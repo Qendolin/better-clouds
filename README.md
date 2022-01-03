@@ -40,6 +40,17 @@ Default:
 | Spacing          | 8.0   |
 | Width            | 32.0  |
 
+#### Realistic Looking
+
+| Option    | Value |
+| --------- | ----- |
+| Clouds    | Fancy |
+| Opacity   | 0.03  |
+| Fuzziness | 0.5   |
+| Spacing   | 12.0  |
+| Width     | 48.0  |
+| Height    | 16.0  |
+
 ## License
 
 This project is licensed under [MPL 2.0](https://www.mozilla.org/en-US/MPL/2.0/FAQ/).
