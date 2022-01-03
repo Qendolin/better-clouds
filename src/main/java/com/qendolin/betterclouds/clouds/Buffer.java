@@ -128,6 +128,9 @@ public class Buffer implements AutoCloseable {
         glDeleteBuffers(drawBufferId);
         glDeleteBuffers(writeBufferId);
         glDeleteBuffers(meshId);
+        if(!usePersistent) {
+            MemoryUtil.memFree(writeBuffer);
+        }
     }
 
     public void clear() {

@@ -16,6 +16,7 @@ import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3f;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -38,6 +39,7 @@ public abstract class CloudRendererMixin {
     @Shadow
     private int ticks;
 
+    @Shadow private @Nullable CloudRenderMode lastCloudsRenderMode;
     private Shader cloudShader;
     private Generator cloudGenerator;
     private boolean firstGenerate = false;
@@ -84,7 +86,8 @@ public abstract class CloudRendererMixin {
         matrices.translate(-camX, -camY, -camZ);
         DimensionEffects effects = world.getDimensionEffects();
 
-        if(Main.CONFIG.hasChanged) {
+        if(Main.CONFIG.hasChanged || lastCloudsRenderMode != client.options.getCloudRenderMode()) {
+            lastCloudsRenderMode = client.options.getCloudRenderMode();
             reloadShader(client.getResourceManager());
             cloudGenerator.reallocate(Main.CONFIG, isFancyMode());
             Main.CONFIG.hasChanged = false;

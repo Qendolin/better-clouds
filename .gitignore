@@ -35,3 +35,7 @@ run/
 # blender
 
 *.blend1
+
+# secrets
+
+/secrets.properties
