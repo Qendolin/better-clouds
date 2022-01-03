@@ -1,0 +1,20 @@
+{
+  "betterclouds.config.title": "Better Clouds Config",
+  "betterclouds.config.entry.opacity": "Opacity",
+  "betterclouds.config.entry.spacing": "Spacing",
+  "betterclouds.config.entry.jitter": "Random Placement",
+  "betterclouds.config.entry.spreadY": "Height Range",
+  "betterclouds.config.entry.spreadY.tooltip": "Not working as intended",
+  "betterclouds.config.entry.windSpeed": "Wind Speed",
+  "betterclouds.config.entry.chunkSize": "Chunk Size",
+  "betterclouds.config.entry.distance": "Distance",
+  "betterclouds.config.entry.distance.tooltip": "Depends on render distance",
+  "betterclouds.config.entry.usePersistentBuffers": "Persistent Buffers",
+  "betterclouds.config.entry.usePersistentBuffers.tooltip": "Requires OpenGL 4.4",
+  "betterclouds.config.entry.async": "Generate Async",
+  "betterclouds.config.entry.async.tooltip": "Clouds will generate in another thread",
+  "betterclouds.config.entry.sizeX": "Width",
+  "betterclouds.config.entry.sizeY": "Height",
+  "betterclouds.config.entry.fadeEdge": "Edge Fade",
+  "betterclouds.config.entry.fuzziness": "Fuzziness"
+}

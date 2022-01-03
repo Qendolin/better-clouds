@@ -1,26 +1,28 @@
 {
   "schemaVersion": 1,
-  "id": "modid",
+  "id": "betterclouds",
   "version": "${version}",
 
-  "name": "Example Mod",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "name": "Better Clouds",
+  "description": "Beautiful clouds in touch with the vanilla style.",
   "authors": [
-    "Me!"
+    "Qendolin"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "homepage": "https://github.com/Qendolin/better-clouds",
+    "sources": "https://github.com/Qendolin/better-clouds",
+    "issues": "https://github.com/Qendolin/better-clouds/issues/new"
   },
 
-  "license": "CC0-1.0",
-  "icon": "assets/modid/icon.png",
+  "license": "MPL-2.0",
+  "icon": "assets/betterclouds/icon.png",
 
-  "environment": "*",
+  "environment": "client",
   "entrypoints": {
-    "main": [
-      "net.fabricmc.example.ExampleMod"
-    ]
+    "client": [
+      "com.qendolin.betterclouds.Main"
+    ],
+    "modmenu": [ "com.qendolin.betterclouds.ModMenuIntegration" ]
   },
   "mixins": [
     "modid.mixins.json"
@@ -28,11 +30,11 @@
 
   "depends": {
     "fabricloader": ">=0.11.3",
-    "fabric": "*",
     "minecraft": "1.18.x",
-    "java": ">=17"
+    "java": ">=17",
+    "fabric": "*"
   },
-  "suggests": {
-    "another-mod": "*"
+  "recommends": {
+    "modmenu": ">=3.0.0"
   }
 }
