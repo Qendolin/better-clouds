@@ -25,7 +25,7 @@
     "modmenu": [ "com.qendolin.betterclouds.ModMenuIntegration" ]
   },
   "mixins": [
-    "modid.mixins.json"
+    "betterclouds.mixins.json"
   ],
 
   "depends": {
