@@ -81,7 +81,7 @@ public abstract class CloudRendererMixin {
         assert RenderSystem.isOnRenderThread();
         client.getProfiler().push("render_setup");
         // When the shader could not be loaded
-        if (!cloudShader.isComplete()) return;
+        if (cloudShader == null || !cloudShader.isComplete()) return;
 
         matrices.push();
         matrices.translate(-camX, -camY, -camZ);
@@ -167,7 +167,7 @@ public abstract class CloudRendererMixin {
 
     @Inject(at = @At("HEAD"), method = "close")
     private void close(CallbackInfo ci) {
-        cloudShader.close();
-        cloudGenerator.close();
+        if(cloudShader != null) cloudShader.close();
+        if(cloudGenerator != null) cloudGenerator.close();
     }
 }
