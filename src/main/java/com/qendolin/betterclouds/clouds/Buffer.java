@@ -7,12 +7,7 @@ import org.lwjgl.system.MemoryUtil;
 
 import java.nio.FloatBuffer;
 
-import static org.lwjgl.opengl.GL11.GL_FLOAT;
-import static org.lwjgl.opengl.GL15.*;
-import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
-import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
-import static org.lwjgl.opengl.GL30.*;
-import static org.lwjgl.opengl.GL30.glBindVertexArray;
+import static org.lwjgl.opengl.GL32.*;
 
 public class Buffer implements AutoCloseable {
     private final boolean supportsBufferStorage = GL.getCapabilities().GL_ARB_buffer_storage || GL.getCapabilities().OpenGL44;

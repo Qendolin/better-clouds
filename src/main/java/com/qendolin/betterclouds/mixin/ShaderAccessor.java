@@ -7,11 +7,11 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 @Mixin(Shader.class)
 public interface ShaderAccessor {
     @Accessor("activeShaderId")
-    public static void setActiveShader(int id) {
+    static void setActiveShader(int id) {
         throw new AssertionError();
     }
     @Accessor("activeShaderId")
-    public static int getActiveShader() {
+    static int getActiveShader() {
         throw new AssertionError();
     }
 }

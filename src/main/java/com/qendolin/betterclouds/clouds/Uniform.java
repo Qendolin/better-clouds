@@ -7,7 +7,7 @@ import org.lwjgl.system.MemoryUtil;
 
 import java.nio.FloatBuffer;
 
-import static org.lwjgl.opengl.GL20.*;
+import static org.lwjgl.opengl.GL32.*;
 
 public abstract class Uniform {
     static final FloatBuffer UNIFORM_BUFFER = MemoryUtil.memAllocFloat(16);

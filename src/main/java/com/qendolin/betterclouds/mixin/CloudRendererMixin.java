@@ -83,6 +83,7 @@ public abstract class CloudRendererMixin {
         // When the shader could not be loaded
         if (!cloudShader.isComplete()) return;
 
+        matrices.push();
         matrices.translate(-camX, -camY, -camZ);
         DimensionEffects effects = world.getDimensionEffects();
 
@@ -154,6 +155,7 @@ public abstract class CloudRendererMixin {
         cloudShader.unbind();
         cloudGenerator.unbind();
 
+        matrices.pop();
         client.getProfiler().pop();
     }
 
