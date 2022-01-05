@@ -2,7 +2,6 @@ package com.qendolin.betterclouds.clouds;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.TextureUtil;
-import com.qendolin.betterclouds.Config;
 import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.mixin.ShaderAccessor;
 import net.minecraft.client.gl.ShaderParseException;
@@ -34,13 +33,11 @@ public class Shader implements AutoCloseable {
     public final Uniform uCloudsDistance;
 
     private final Map<String, Float> defs;
-    private final boolean fancy;
 
     private int programId;
 
     public Shader(ResourceManager resMan, boolean fancy, Map<String, Float> defs) throws IOException {
         this.defs = defs;
-        this.fancy = fancy;
 
         Identifier vshId = fancy ? VERTEX_SHADER_FANCY_ID : VERTEX_SHADER_FAST_ID;
         int vsh = compileShader(GL_VERTEX_SHADER, vshId, resMan);

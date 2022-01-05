@@ -3,13 +3,12 @@ package com.qendolin.betterclouds.clouds;
 import com.google.common.collect.ImmutableList;
 import net.minecraft.util.math.noise.OctaveSimplexNoiseSampler;
 import net.minecraft.util.math.noise.SimplexNoiseSampler;
-import net.minecraft.world.gen.random.AtomicSimpleRandom;
-import net.minecraft.world.gen.random.ChunkRandom;
+import net.minecraft.world.gen.ChunkRandom;
 
 import java.util.List;
 
 public class Sampler {
-    private final ChunkRandom RANDOM = new ChunkRandom(new AtomicSimpleRandom(1337));
+    private final ChunkRandom RANDOM = new ChunkRandom(1337);
     private final List<Integer> OCTAVES = ImmutableList.of(-1, 0, 1, 2);
     private final OctaveSimplexNoiseSampler NOISE = new OctaveSimplexNoiseSampler(RANDOM, OCTAVES);
     private final SimplexNoiseSampler BIG_NOISE = new SimplexNoiseSampler(RANDOM);

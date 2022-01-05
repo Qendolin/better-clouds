@@ -71,7 +71,7 @@ public class ConfigScreen<C extends ModConfig> extends Screen {
         public int getRowWidth() { return 10000; }
         @Override
         public int getScrollbarPositionX() { return this.width -7; }
-        public void addSetting(Entry entry) {
+        public void addSetting(net.minecraft.client.gui.widget.ElementListWidget.Entry entry) {
             this.addEntry(entry);
         }
     }

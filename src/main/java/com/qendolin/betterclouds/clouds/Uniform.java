@@ -105,7 +105,7 @@ public abstract class Uniform {
 
         @Override
         public void setMat4(Matrix4f mat) {
-            throw new NotImplementedException();
+            throw new NotImplementedException("");
         }
 
         @Override

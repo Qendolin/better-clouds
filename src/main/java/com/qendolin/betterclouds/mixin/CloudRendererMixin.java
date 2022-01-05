@@ -61,10 +61,10 @@ public abstract class CloudRendererMixin {
     private void reloadShader(ResourceManager manager) {
         if(cloudShader != null) cloudShader.close();
         Config options = Main.CONFIG;
-        Map<String, Float> defs = ImmutableMap.ofEntries(
-                Map.entry(Shader.DEF_SIZE_X_KEY, options.sizeX),
-                Map.entry(Shader.DEF_SIZE_Y_KEY, options.sizeY),
-                Map.entry(Shader.DEF_FADE_EDGE_KEY, (float) options.fadeEdge)
+        Map<String, Float> defs = ImmutableMap.of(
+                Shader.DEF_SIZE_X_KEY, options.sizeX,
+                Shader.DEF_SIZE_Y_KEY, options.sizeY,
+                Shader.DEF_FADE_EDGE_KEY, (float) options.fadeEdge
         );
 
         try {
@@ -102,7 +102,7 @@ public abstract class CloudRendererMixin {
         matrices.translate(cloudPosition.getX(), cloudPosition.getY(), cloudPosition.getZ());
 
         Matrix4f mvpMat = projMat.copy();
-        mvpMat.multiply(matrices.peek().getPositionMatrix());
+        mvpMat.multiply(matrices.peek().getModel());
         cloudShader.uModelViewProjMat.setMat4(mvpMat);
         cloudShader.uCloudsPosition.setVec3((float)camX-cloudPosition.getX(), (float)camY-cloudPosition.getY(), (float)camZ-cloudPosition.getZ());
         cloudShader.uCloudsDistance.setFloat(Main.CONFIG.blockDistance() - Main.CONFIG.chunkSize/2f);
