@@ -13,6 +13,6 @@ public class Main implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
-
+		LOGGER.info("Initialized.");
 	}
 }

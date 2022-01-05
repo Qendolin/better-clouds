@@ -124,6 +124,8 @@ public abstract class CloudRendererMixin {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.depthMask(false);
+        // Fix for https://github.com/Qendolin/better-clouds/issues/4
+        RenderSystem.enableDepthTest();
         if (!isFancyMode()) {
             RenderSystem.disableCull();
         }
