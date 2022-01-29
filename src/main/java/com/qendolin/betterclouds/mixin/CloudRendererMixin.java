@@ -6,6 +6,7 @@ import com.qendolin.betterclouds.Config;
 import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.clouds.Generator;
 import com.qendolin.betterclouds.clouds.Shader;
+import com.qendolin.betterclouds.compat.SodiumExtraCompat;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.CloudRenderMode;
 import net.minecraft.client.render.DimensionEffects;
@@ -44,6 +45,7 @@ public abstract class CloudRendererMixin {
     private Generator cloudGenerator;
     private boolean firstGenerate = false;
     private float lastRaininess = -1;
+    private float lastDistance = -1;
 
     @Inject(at = @At("TAIL"), method = "reload(Lnet/minecraft/resource/ResourceManager;)V")
     public void reload(ResourceManager manager, CallbackInfo ci) {
@@ -87,7 +89,8 @@ public abstract class CloudRendererMixin {
         matrices.translate(-camX, -camY, -camZ);
         DimensionEffects effects = world.getDimensionEffects();
 
-        if(Main.CONFIG.hasChanged || lastCloudsRenderMode != client.options.getCloudRenderMode()) {
+        if(Main.CONFIG.hasChanged || lastCloudsRenderMode != client.options.getCloudRenderMode() || lastDistance != Main.CONFIG.blockDistance()) {
+            lastDistance = Main.CONFIG.blockDistance();
             lastCloudsRenderMode = client.options.getCloudRenderMode();
             reloadShader(client.getResourceManager());
             cloudGenerator.reallocate(Main.CONFIG, isFancyMode());
@@ -98,7 +101,7 @@ public abstract class CloudRendererMixin {
         cloudShader.bind();
         cloudGenerator.bind();
         boolean cloudGeometryStale = cloudGenerator.update((float) camX, (float) camZ,  ticks + tickDelta, Main.CONFIG);
-        Vec3f cloudPosition = new Vec3f(cloudGenerator.originX(), effects.getCloudsHeight(), cloudGenerator.originZ());
+        Vec3f cloudPosition = new Vec3f(cloudGenerator.originX(), getCloudsHeight(effects), cloudGenerator.originZ());
         matrices.translate(cloudPosition.getX(), cloudPosition.getY(), cloudPosition.getZ());
 
         Matrix4f mvpMat = projMat.copy();
@@ -159,6 +162,16 @@ public abstract class CloudRendererMixin {
 
         matrices.pop();
         client.getProfiler().pop();
+    }
+    
+    private float getCloudsHeight(DimensionEffects effects) {
+        if(SodiumExtraCompat.IS_LOADED) {
+            if (effects.getSkyType() == DimensionEffects.SkyType.NORMAL) {
+                return SodiumExtraCompat.getCloudsHeight();
+            }
+        }
+
+        return effects.getCloudsHeight();
     }
 
     private boolean isFancyMode() {

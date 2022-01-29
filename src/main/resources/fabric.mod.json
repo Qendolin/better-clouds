@@ -35,6 +35,6 @@
     "fabric": "*"
   },
   "recommends": {
-    "modmenu": ">=3.0.0"
+    "modmenu": "*"
   }
 }

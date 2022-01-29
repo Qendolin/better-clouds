@@ -32,9 +32,10 @@ bin/
 
 run/
 
-# blender
+# stuff
 
 *.blend1
+*.cap
 
 # secrets
 

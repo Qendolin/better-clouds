@@ -11,12 +11,26 @@ targetCompatibility = JavaVersion.VERSION_17
 
 archivesBaseName = project.archives_base_name
 version = project.mod_version
+if(project.version_type != "RELEASE") {
+	version += "-" + project.version_type
+}
+version += "+" + project.minecraft_version
+if(project.version_type != "RELEASE") {
+	version += "." + 'git rev-parse --short HEAD'.execute().text.trim()
+}
 group = project.maven_group
 
 repositories {
 	maven {
 		name = "TerraformersMC"
 		url = "https://maven.terraformersmc.com/releases/"
+	}
+	maven {
+		name = "Modrinth"
+		url = "https://api.modrinth.com/maven"
+		content {
+			includeGroup "maven.modrinth"
+		}
 	}
 }
 
@@ -30,6 +44,7 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
 	modImplementation ("com.terraformersmc:modmenu:${project.modmenu_version}")
+	modCompileOnly ("maven.modrinth:sodium-extra:${project.sodium_extra_version}")
 }
 
 processResources {
