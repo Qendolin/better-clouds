@@ -7,10 +7,10 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(ExtendedShader.class)
 public interface ExtendedShaderAccessor {
-    @Accessor("writingToBeforeTranslucent")
+    @Accessor(value = "writingToBeforeTranslucent", remap = false)
     GlFramebuffer getWritingToBeforeTranslucent();
-    @Accessor("writingToAfterTranslucent")
+    @Accessor(value = "writingToAfterTranslucent", remap = false)
     GlFramebuffer getWritingToAfterTranslucent();
-    @Accessor("baseline")
+    @Accessor(value = "baseline", remap = false)
     GlFramebuffer getBaseline();
 }

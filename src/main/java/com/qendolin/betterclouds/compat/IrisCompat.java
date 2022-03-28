@@ -11,7 +11,7 @@ public class IrisCompat {
     public static final boolean IS_LOADED = FabricLoader.getInstance().isModLoaded("iris");
 
     public static boolean isShadersEnabled() {
-        return true;
+        return IS_LOADED && Iris.getIrisConfig().areShadersEnabled();
     }
 
     public static void bindFramebuffer() {
