@@ -16,5 +16,9 @@
   "betterclouds.config.entry.sizeX": "Width",
   "betterclouds.config.entry.sizeY": "Height",
   "betterclouds.config.entry.fadeEdge": "Edge Fade",
-  "betterclouds.config.entry.fuzziness": "Fuzziness"
+  "betterclouds.config.entry.fuzziness": "Fuzziness",
+  "betterclouds.config.entry.writeDepth": "Write Depth Buffer",
+  "betterclouds.config.entry.writeDepth.tooltip": "Required by certain shaders.",
+  "betterclouds.config.entry.enableExperimentalIrisSupport": "§4§nEXPERIMENTAL§r Iris Support",
+  "betterclouds.config.entry.enableExperimentalIrisSupport.tooltip": "§4DO NOT REPORT ISSUES RELATING TO IRIS SUPPORT ON MY OR IRIS's REPOSITORY!!!"
 }

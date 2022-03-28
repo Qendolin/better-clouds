@@ -8,11 +8,18 @@ import java.util.List;
 
 public class ModMenuIntegration implements ModMenuApi {
     public ConfigScreenFactory<?> getModConfigScreenFactory() {
-        return parent -> new ConfigScreen<>(parent, Main.CONFIG, ModMenuIntegration::onClose);
+        return parent -> new ConfigScreen<>(parent, Main.CONFIG)
+                .onClose(ModMenuIntegration::onClose)
+                .onChange(ModMenuIntegration::onChange);
     }
 
     private static void onClose(boolean save, Config config, List<ConfigScreen.EntryValueSetter<?>> valueSetters) {
         ConfigScreen.onCloseDefault(save, config, valueSetters);
-        config.hasChanged = save;
+        config.hasChanged = true;
+    }
+
+    private static void onChange(Config config, String setting, ConfigScreen.EntryValueSetter<?> setter, Object prev, Object curr) {
+        config.hasChanged = true;
+        setter.apply(config);
     }
 }

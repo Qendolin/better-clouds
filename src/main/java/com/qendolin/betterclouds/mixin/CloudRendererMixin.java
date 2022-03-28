@@ -6,6 +6,7 @@ import com.qendolin.betterclouds.Config;
 import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.clouds.Generator;
 import com.qendolin.betterclouds.clouds.Shader;
+import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.compat.SodiumExtraCompat;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.CloudRenderMode;
@@ -18,6 +19,7 @@ import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3f;
 import org.jetbrains.annotations.Nullable;
+import org.lwjgl.opengl.GL43;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -28,7 +30,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.io.IOException;
 import java.util.Map;
 
-import static org.lwjgl.opengl.GL32.*;
+import static org.lwjgl.opengl.GL32.GL_TRIANGLE_STRIP;
+import static org.lwjgl.opengl.GL32.glDrawArraysInstanced;
 
 @Mixin(WorldRenderer.class)
 public abstract class CloudRendererMixin {
@@ -70,7 +73,7 @@ public abstract class CloudRendererMixin {
         );
 
         try {
-            cloudShader = new Shader(manager, isFancyMode(), defs);
+            cloudShader = new Shader(manager, options.enableExperimentalIrisSupport,isFancyMode(), defs);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -78,12 +81,15 @@ public abstract class CloudRendererMixin {
 
     @Inject(at = @At("HEAD"), method = "renderClouds(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/util/math/Matrix4f;FDDD)V", cancellable = true)
     private void renderClouds(MatrixStack matrices, Matrix4f projMat, float tickDelta, double camX, double camY, double camZ, CallbackInfo ci) {
+        if(!Main.CONFIG.enableExperimentalIrisSupport && IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled()) return;
         ci.cancel();
-
         assert RenderSystem.isOnRenderThread();
         client.getProfiler().push("render_setup");
         // When the shader could not be loaded
         if (cloudShader == null || !cloudShader.isComplete()) return;
+        if(Main.IS_DEV) GL43.glPushDebugGroup(GL43.GL_DEBUG_SOURCE_APPLICATION, 1337, "Better Clouds\0");
+
+        if(IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled()) IrisCompat.bindFramebuffer();
 
         matrices.push();
         matrices.translate(-camX, -camY, -camZ);
@@ -126,7 +132,8 @@ public abstract class CloudRendererMixin {
 
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
-        RenderSystem.depthMask(false);
+        if(!Main.CONFIG.writeDepth)
+            RenderSystem.depthMask(false);
         // Fix for https://github.com/Qendolin/better-clouds/issues/4
         RenderSystem.enableDepthTest();
         if (!isFancyMode()) {
@@ -138,7 +145,7 @@ public abstract class CloudRendererMixin {
             lastRaininess = raininess;
             client.getProfiler().swap("generate_clouds");
             float cloudiness = raininess * 0.3f + 0.5f;
-            cloudGenerator.generate(Main.CONFIG, cloudiness);
+            cloudGenerator.generate(Main.CONFIG, cloudiness, firstGenerate);
             client.getProfiler().swap("render_setup");
         }
 
@@ -162,6 +169,7 @@ public abstract class CloudRendererMixin {
 
         matrices.pop();
         client.getProfiler().pop();
+        if(Main.IS_DEV) GL43.glPopDebugGroup();
     }
     
     private float getCloudsHeight(DimensionEffects effects) {

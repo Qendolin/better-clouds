@@ -2,7 +2,6 @@ package com.qendolin.betterclouds.clouds;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.TextureUtil;
-import com.qendolin.betterclouds.Config;
 import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.mixin.ShaderAccessor;
 import net.minecraft.client.gl.ShaderParseException;
@@ -10,11 +9,11 @@ import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 import org.apache.commons.lang3.StringUtils;
 
-import static org.lwjgl.opengl.GL32.*;
-
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
+
+import static org.lwjgl.opengl.GL32.*;
 
 public class Shader implements AutoCloseable {
     public static final String DEF_SIZE_X_KEY = "_SCALE_X_";
@@ -24,7 +23,9 @@ public class Shader implements AutoCloseable {
     public static final Identifier VERTEX_SHADER_FAST_ID = new Identifier(Main.MODID, "shaders/core/clouds_fast.vsh");
     public static final Identifier VERTEX_SHADER_FANCY_ID = new Identifier(Main.MODID, "shaders/core/clouds_fancy.vsh");
     public static final Identifier FRAGMENT_SHADER_FAST_ID = new Identifier(Main.MODID, "shaders/core/clouds_fast.fsh");
+    public static final Identifier FRAGMENT_SHADER_FAST_IRIS_ID = new Identifier(Main.MODID, "shaders/core/clouds_fast-iris.fsh");
     public static final Identifier FRAGMENT_SHADER_FANCY_ID = new Identifier(Main.MODID, "shaders/core/clouds_fancy.fsh");
+    public static final Identifier FRAGMENT_SHADER_FANCY_IRIS_ID = new Identifier(Main.MODID, "shaders/core/clouds_fancy-iris.fsh");
 
     public final Uniform uSunDirection;
     public final Uniform uModelViewProjMat;
@@ -38,13 +39,18 @@ public class Shader implements AutoCloseable {
 
     private int programId;
 
-    public Shader(ResourceManager resMan, boolean fancy, Map<String, Float> defs) throws IOException {
+    public Shader(ResourceManager resMan, boolean fancy, boolean iris, Map<String, Float> defs) throws IOException {
         this.defs = defs;
         this.fancy = fancy;
 
         Identifier vshId = fancy ? VERTEX_SHADER_FANCY_ID : VERTEX_SHADER_FAST_ID;
         int vsh = compileShader(GL_VERTEX_SHADER, vshId, resMan);
-        Identifier fshId = fancy ? FRAGMENT_SHADER_FANCY_ID : FRAGMENT_SHADER_FAST_ID;
+        Identifier fshId;
+        if(fancy) {
+            fshId = iris ? FRAGMENT_SHADER_FANCY_IRIS_ID : FRAGMENT_SHADER_FANCY_ID;
+        } else {
+            fshId = iris ? FRAGMENT_SHADER_FAST_IRIS_ID : FRAGMENT_SHADER_FAST_ID;
+        }
         int fsh = compileShader(GL_FRAGMENT_SHADER, fshId, resMan);
 
         programId = GlStateManager.glCreateProgram();

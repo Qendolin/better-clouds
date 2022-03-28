@@ -36,9 +36,7 @@ run/
 
 *.blend1
 *.cap
-
-renderdoc/
-logs/
+*.rdc
 
 # secrets
 

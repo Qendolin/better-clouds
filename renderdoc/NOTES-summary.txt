@@ -1,0 +1,44 @@
+Mostly works:
+ - BSL
+	- HDR ^2.2 (~3/4)
+ - Complementary 
+	- HDR ^2.2
+ - AstraLex
+    - HDR x0.3
+ - Prismarine
+    - HDR x0.8
+ - Tea
+ - Stereo's
+ - SORA
+ - RedHat
+ - Chocapic V6
+
+Somewhat works:
+ - Sildur's Enhanced Default
+	- Depth
+ - SEUS Renewed
+	- Render Target 1 blue
+ - ProjectLUMA
+	- HDR 1/12
+ - BBL
+	- Render Target 1 blue
+
+Might work:
+ - Oceano
+ - YoFPS
+ - Vanilla+
+
+Wont work:
+ - Sildur's
+
+Not compatible with Iris:
+ - Chocapic V9
+ - Vanilla+
+ - Kappa
+ - Nostalgia
+ - MakeUp
+ - DrDestens
+ - Voyager
+ - Super Duper Vanilla
+ - Atlas
+ - Chocapic Toaster

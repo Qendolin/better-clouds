@@ -6,9 +6,10 @@
   "mixins": [
   ],
   "client": [
+    "BufferRendererAccessor",
     "CloudRendererMixin",
-    "ShaderAccessor",
-    "BufferRendererAccessor"
+    "ExtendedShaderAccessor",
+    "ShaderAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

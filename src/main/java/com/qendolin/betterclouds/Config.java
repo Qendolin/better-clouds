@@ -1,7 +1,7 @@
 package com.qendolin.betterclouds;
 
-import com.qendolin.betterclouds.config.ModConfig;
 import com.qendolin.betterclouds.config.Entry;
+import com.qendolin.betterclouds.config.ModConfig;
 import net.minecraft.client.MinecraftClient;
 
 public class Config implements ModConfig {
@@ -18,6 +18,8 @@ public class Config implements ModConfig {
         this.usePersistentBuffers = other.usePersistentBuffers;
         this.windSpeed = other.windSpeed;
         this.fuzziness = other.fuzziness;
+        this.enableExperimentalIrisSupport = other.enableExperimentalIrisSupport;
+        this.writeDepth = other.writeDepth;
     }
     @Entry.FloatRange(min = 1, max = 4, stringer = "times")
     public float distance = 4;
@@ -45,6 +47,10 @@ public class Config implements ModConfig {
     public boolean usePersistentBuffers = true;
     @Entry.ToggleButton
     public boolean async = true;
+    @Entry.ToggleButton
+    public boolean writeDepth = false;
+    @Entry.ToggleButton
+    public boolean enableExperimentalIrisSupport = false;
     public transient boolean hasChanged = false;
 
     public int blockDistance() {

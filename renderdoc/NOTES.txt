@@ -1,0 +1,137 @@
+✓ BSL
+	Forward
+
+	Render Target 0 is color HDR
+	
+✓ Complementary (BSL)
+	Forward
+
+	Render Target 0 is color HDR
+	Render Target 1 is water
+
+✓ AstraLex (BSL)
+	Forward
+
+	Render Target 0 is color HDR
+	Render Target 1 is entity
+	Render Target 2 is black
+	Render Target 3 is black
+
+✓ Prismarine (BSL)
+	Forward
+
+	Render Target 0 is color
+
+✓ Tea
+	Forward
+
+	Render Target 0 is color
+
+✓ Stereos
+	Deferred
+	
+	Render Target 0 is albedo
+	Render Target 1 is normals
+	Render Target 2 is AO + light?
+
+✓ SORA
+    DOES NOT WORK SOMETIMES
+	Forward
+
+	Render Target 0 is color + fog
+	Render Target 1 idk
+	Render Target 2 is black
+	Render Target 3 is color
+
+✓ RedHat (Chocapic)
+	Deferred
+
+	Render Target 0 is albedo
+
+LUMA
+	Deferred
+
+	Render Target 0 color HDR Clamped
+	Render Target 1 normals?
+	Render Target 2 black
+	Render Target 3 color HDR Clamped without translucent & different
+
+SEUS Renewed
+	Deferred
+
+	Render Target 0 is albedo
+	Render Target 1 is other data
+		red = water fog?
+		green = water
+		blue = material id?
+
+Sildurs
+	Deferred
+
+	Render Target 0 is material?
+	Render Target 1 is normals
+
+Oceano
+	Deferred
+
+	Render Target 0 is albedo
+	Render Target 1 is material?
+	Render Target 2 is normals
+	Render Target 3 is black
+
+BBL
+	Deferred
+	
+	Render Target 0 is albedo
+	Render Target 1 is other data
+		red = material type id?
+		green = block light
+		blue = sky light
+	Render Target 2 is normals
+	Render Target 3 is black
+
+SED
+	Forward
+	
+	Render Target 0 is color
+	Render Target 1 is Reflection Normals?
+
+YoFPS (Chocapic)
+	Deferred
+
+	Render Target 0 is albedo
+
+Chocapic V6
+	Forward
+	Render Target 0 is color HDR
+
+✗ Chocapic V9
+	Black Screen
+
+✗ Vanilla+
+	World is invisible
+	Forward
+
+✗ Kappa
+	White Screen
+
+✗ Nostalgia
+	White Screen
+
+✗ MakeUp
+	Crash
+
+✗ DrDestens
+	Does not load
+
+✗ Voyager
+	White Screen
+
+✗ SDV
+	Does not load
+
+✗ Atlas
+	Does not load
+
+✗ Chocapic Toaster
+	Does not load

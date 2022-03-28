@@ -8,9 +8,29 @@ import java.util.function.Function;
 
 public abstract class Entry {
     static void init() {
-        ConfigScreen.registerWidgetFactory(IntRange.class, (a, x, y, w, h, f, o, s) -> Widgets.intRange(x, y, w, a.min(), a.max(), f.getInt(o), (Function<Integer, String>) s));
-        ConfigScreen.registerWidgetFactory(FloatRange.class, (a, x, y, w, h, f, o, s) -> Widgets.floatRange(x, y, w, a.min(), a.max(), a.step(), f.getFloat(o), (Function<Float, String>) s));
-        ConfigScreen.registerWidgetFactory(ToggleButton.class, (a, x, y, w, h, f, o, s) -> Widgets.toggleButton(x, y, w, f.getBoolean(o), (Function<Boolean, String>) s));
+        ConfigScreen.registerWidgetFactory(IntRange.class, (a, x, y, w, h, f, o, s, c) -> Widgets.intRange(x,
+                y,
+                w,
+                a.min(),
+                a.max(),
+                f.getInt(o),
+                (Function<Integer, String>) s,
+                (ConfigScreen.ValueChangeCallback<Integer>) c));
+        ConfigScreen.registerWidgetFactory(FloatRange.class, (a, x, y, w, h, f, o, s, c) -> Widgets.floatRange(x,
+                y,
+                w,
+                a.min(),
+                a.max(),
+                a.step(),
+                f.getFloat(o),
+                (Function<Float, String>) s,
+                (ConfigScreen.ValueChangeCallback<Float>) c));
+        ConfigScreen.registerWidgetFactory(ToggleButton.class, (a, x, y, w, h, f, o, s, c) -> Widgets.toggleButton(x,
+                y,
+                w,
+                f.getBoolean(o),
+                (Function<Boolean, String>) s,
+                (ConfigScreen.ValueChangeCallback<Boolean>) c));
     }
 
     @Retention(RetentionPolicy.RUNTIME)

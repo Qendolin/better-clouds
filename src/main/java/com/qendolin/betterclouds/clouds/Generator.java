@@ -41,10 +41,10 @@ public class Generator implements AutoCloseable {
         return this.buffer.baseMeshVertexCount();
     }
 
-    public void generate(Config options, float cloudiness) {
+    public void generate(Config options, float cloudiness, boolean forceSync) {
         synchronized (this) {
             if(generating) return;
-            if(options.async) {
+            if(options.async && !forceSync) {
                 final Config optionsSnap = new Config(options);
                 final int chunkXSnap = this.chunkX;
                 final int chunkZSnap = this.chunkZ;

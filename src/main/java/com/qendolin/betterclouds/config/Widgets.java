@@ -7,19 +7,19 @@ import net.minecraft.text.LiteralText;
 import java.util.function.Function;
 
 public class Widgets {
-    public static RangeWidget<Integer> intRange(int x, int y, int width, int min, int max, int value, Function<Integer, String> messageMapper) {
+    public static RangeWidget<Integer> intRange(int x, int y, int width, int min, int max, int value, Function<Integer, String> messageMapper, ConfigScreen.ValueChangeCallback<Integer> onChange) {
         if(messageMapper == null) messageMapper = v -> String.format("%d", v);
-        return new RangeWidget<>(x, y, width, value, v -> RangeWidget.mapIntToRange(v, min, max), messageMapper);
+        return new RangeWidget<>(x, y, width, value, v -> RangeWidget.mapIntToRange(v, min, max), messageMapper, onChange);
     }
 
-    public static RangeWidget<Float> floatRange(int x, int y, int width, float min, float max, float step, float value, Function<Float, String> messageMapper) {
+    public static RangeWidget<Float> floatRange(int x, int y, int width, float min, float max, float step, float value, Function<Float, String> messageMapper, ConfigScreen.ValueChangeCallback<Float> onChange) {
         if(messageMapper == null) messageMapper = v -> String.format("%.4f", v).replaceAll("(?<=[\\.,]\\d{1,4})0+$", "");
-        return new RangeWidget<>(x, y, width, value, (v) -> RangeWidget.mapFloatToRange(v, min, max, step), messageMapper);
+        return new RangeWidget<>(x, y, width, value, (v) -> RangeWidget.mapFloatToRange(v, min, max, step), messageMapper, onChange);
     }
 
-    public static ToggleButtonWidget toggleButton(int x, int y, int width, boolean value, Function<Boolean, String> messageMapper) {
+    public static ToggleButtonWidget toggleButton(int x, int y, int width, boolean value, Function<Boolean, String> messageMapper, ConfigScreen.ValueChangeCallback<Boolean> onChange) {
         if(messageMapper == null) messageMapper = v -> v ? "On" : "Off";
-        return new ToggleButtonWidget(x, y, width, value, messageMapper);
+        return new ToggleButtonWidget(x, y, width, value, messageMapper, onChange);
     }
 }
 
@@ -31,11 +31,13 @@ interface ValueHolder<V> {
 class RangeWidget<T extends Number> extends SliderWidget implements ValueHolder<T> {
     private final Function<Double, T> valueMapper;
     private final Function<T, String> messageMapper;
+    private final ConfigScreen.ValueChangeCallback<T> onChange;
     private T mappedValue;
-    public RangeWidget(int x, int y, int width, T value, Function<Double, T> valueMapper, Function<T, String> messageMapper) {
+    public RangeWidget(int x, int y, int width, T value, Function<Double, T> valueMapper, Function<T, String> messageMapper, ConfigScreen.ValueChangeCallback<T> onChange) {
         super(x, y, width, 20, null, 0);
         this.valueMapper = valueMapper;
         this.messageMapper = messageMapper;
+        this.onChange = onChange;
         this.value = reverseMap(value);
         applyValue();
         updateMessage();
@@ -69,7 +71,9 @@ class RangeWidget<T extends Number> extends SliderWidget implements ValueHolder<
 
     @Override
     protected void applyValue() {
-        this.mappedValue = this.valueMapper.apply(this.value);
+        T old = mappedValue;
+        mappedValue = valueMapper.apply(value);
+        onChange.invoke(old, mappedValue);
     }
 
     @Override
@@ -87,10 +91,12 @@ class RangeWidget<T extends Number> extends SliderWidget implements ValueHolder<
 
 class ToggleButtonWidget extends ButtonWidget implements ValueHolder<Boolean> {
     private final Function<Boolean, String> messageMapper;
+    private final ConfigScreen.ValueChangeCallback<Boolean> onChange;
     private boolean value;
-    public ToggleButtonWidget(int x, int y, int width, boolean value, Function<Boolean, String> messageMapper) {
+    public ToggleButtonWidget(int x, int y, int width, boolean value, Function<Boolean, String> messageMapper, ConfigScreen.ValueChangeCallback<Boolean> onChange) {
         super(x, y, width, 20, null, null);
         this.messageMapper = messageMapper;
+        this.onChange = onChange;
         this.value = value;
         updateMessage();
     }
@@ -112,7 +118,9 @@ class ToggleButtonWidget extends ButtonWidget implements ValueHolder<Boolean> {
 
     @Override
     public void setValue(Boolean value) {
+        boolean old = this.value;
         this.value = value;
+        onChange.invoke(old, value);
         updateMessage();
     }
 }
