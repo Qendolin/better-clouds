@@ -47,9 +47,9 @@ public class Config implements ModConfig {
     public boolean usePersistentBuffers = true;
     @Entry.ToggleButton
     public boolean async = true;
-    @Entry.ToggleButton
+//    @Entry.ToggleButton
     public boolean writeDepth = false;
-    @Entry.ToggleButton
+//    @Entry.ToggleButton
     public boolean enableExperimentalIrisSupport = false;
     public transient boolean hasChanged = false;
 
