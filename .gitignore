@@ -37,6 +37,9 @@ run/
 *.blend1
 *.cap
 
+renderdoc/
+logs/
+
 # secrets
 
 /secrets.properties
