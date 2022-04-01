@@ -22,7 +22,7 @@ Default:
 | Height Range     | 64.0  | The y-range above the cloud height where clouds can generate               |
 | Spacing          | 8.0   | The spacing off samplng points                                             |
 | Width            | 16.0  | The width of a sinxgle cloud                                               |
-| Width            | 8.0   | The height of a single cloud                                               |
+| Height           | 8.0   | The height of a single cloud                                               |
 | Wind Speed       | 0.03  | The drift speed (*blocks/tick*) along the x axis                           |
 | Chunk Size       | 32    | Clouds will generate in chunks of this size. *Different from world chunks* |
 | Edge Fade        | 32    | Width of the fading effect at the edge of the render distance              |
