@@ -54,7 +54,7 @@ public class Config implements ModConfig {
     public transient boolean hasChanged = false;
 
     public int blockDistance() {
-        return (int) (this.distance * MinecraftClient.getInstance().options.viewDistance * 16);
+        return (int) (this.distance * MinecraftClient.getInstance().options.getViewDistance().getValue() * 16);
     }
 
     private String blocksPerSecond(float v) {

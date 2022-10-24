@@ -43,7 +43,9 @@ public abstract class CloudRendererMixin {
     @Shadow
     private int ticks;
 
-    @Shadow private @Nullable CloudRenderMode lastCloudsRenderMode;
+    @Shadow
+    @Nullable
+    private CloudRenderMode lastCloudRenderMode;
     private Shader cloudShader;
     private Generator cloudGenerator;
     private boolean firstGenerate = false;
@@ -95,9 +97,9 @@ public abstract class CloudRendererMixin {
         matrices.translate(-camX, -camY, -camZ);
         DimensionEffects effects = world.getDimensionEffects();
 
-        if(Main.CONFIG.hasChanged || lastCloudsRenderMode != client.options.getCloudRenderMode() || lastDistance != Main.CONFIG.blockDistance()) {
+        if(Main.CONFIG.hasChanged || lastCloudRenderMode != client.options.getCloudRenderModeValue() || lastDistance != Main.CONFIG.blockDistance()) {
             lastDistance = Main.CONFIG.blockDistance();
-            lastCloudsRenderMode = client.options.getCloudRenderMode();
+            lastCloudRenderMode = client.options.getCloudRenderModeValue();
             reloadShader(client.getResourceManager());
             cloudGenerator.reallocate(Main.CONFIG, isFancyMode());
             Main.CONFIG.hasChanged = false;
@@ -183,7 +185,7 @@ public abstract class CloudRendererMixin {
     }
 
     private boolean isFancyMode() {
-        return client.options.getCloudRenderMode() == CloudRenderMode.FANCY;
+        return client.options.getCloudRenderModeValue() == CloudRenderMode.FANCY;
     }
 
     @Inject(at = @At("HEAD"), method = "close")

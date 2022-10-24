@@ -13,8 +13,7 @@ import net.minecraft.client.gui.widget.ElementListWidget;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
-
+import net.minecraft.text.TranslatableTextContent;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -47,7 +46,7 @@ public class ConfigScreen<C extends ModConfig> extends Screen {
     }
 
     public ConfigScreen(Screen parent, C config) {
-        super(new TranslatableText(config.getId()+".config.title"));
+        super(Text.translatable(config.getId()+".config.title"));
         this.parent = parent;
         this.config = config;
         this.onClose = ConfigScreen::onCloseDefault;
@@ -177,15 +176,15 @@ public class ConfigScreen<C extends ModConfig> extends Screen {
 
         List<EntryValueSetter<?>> valueSetters = new ArrayList<>();
 
-        doneButton = addDrawableChild(new ButtonWidget(this.width/2 + 4,this.height - 20 - 8,150,20, new TranslatableText("gui.done"), (button) -> {
+        doneButton = addDrawableChild(new ButtonWidget(this.width/2 + 4,this.height - 20 - 8,150,20, Text.translatable("gui.done"), (button) -> {
             client.setScreen(parent);
             onClose.invoke(true, this.config, valueSetters);
         }));
-        addDrawableChild(new ButtonWidget(this.width/2 - 150 - 4,this.height - 20 - 8,150,20, new TranslatableText("gui.cancel"), (button) -> {
+        addDrawableChild(new ButtonWidget(this.width/2 - 150 - 4,this.height - 20 - 8,150,20, Text.translatable("gui.cancel"), (button) -> {
             client.setScreen(parent);
             onClose.invoke(false, this.config, valueSetters);
         }));
-        addDrawableChild(new ButtonWidget(this.width - 50 - 6, 8, 50, 20, new TranslatableText("controls.reset"), (button) -> {
+        addDrawableChild(new ButtonWidget(this.width - 50 - 6, 8, 50, 20, Text.translatable("controls.reset"), (button) -> {
             try {
                 C defaultConfig = (C) config.getClass().getConstructor().newInstance();
                 for (ConfigEntry entry : entries.values()) {
@@ -210,13 +209,13 @@ public class ConfigScreen<C extends ModConfig> extends Screen {
                     });
 
                     String tooltipKey = translationKeyPrefix + field.getName() + ".tooltip";
-                    TranslatableText tooltip = null;
-                    if(I18n.hasTranslation(tooltipKey)) tooltip = new TranslatableText(tooltipKey);
+                    Text tooltip = null;
+                    if(I18n.hasTranslation(tooltipKey)) tooltip = Text.translatable(tooltipKey);
                     Object startValue = ((ValueHolder<?>) widget).getValue();
                     entries.put(field.getName(), new ConfigEntry(field.getName(), field, widget.y, widget.x, widget.getHeight(), widget.getWidth(), widget, tooltip, startValue));
                     setter[0] = new EntryValueSetter<>(field, ((ValueHolder<?>) widget)::getValue, startValue);
                     valueSetters.add(setter[0]);
-                    list.addSetting(new Setting(widget, new TranslatableText(translationKeyPrefix+field.getName())));
+                    list.addSetting(new Setting(widget, Text.translatable(translationKeyPrefix+field.getName())));
                     sy += widget.getHeight() + 10;
                 }
             }
@@ -225,7 +224,7 @@ public class ConfigScreen<C extends ModConfig> extends Screen {
         }
     }
 
-    protected static record ConfigEntry(String name, Field field, int y, int x, int height, int width, ClickableWidget widget, TranslatableText tooltip, Object startValue) {}
+    protected static record ConfigEntry(String name, Field field, int y, int x, int height, int width, ClickableWidget widget, Text tooltip, Object startValue) {}
     public static record EntryValueSetter<V>(Field field, Supplier<V> valueSupplier, V startValue){
         public <T extends ModConfig> void apply(T config) {
             try {

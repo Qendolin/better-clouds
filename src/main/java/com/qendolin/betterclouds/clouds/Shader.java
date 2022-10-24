@@ -7,9 +7,12 @@ import com.qendolin.betterclouds.mixin.ShaderAccessor;
 import net.minecraft.client.gl.ShaderParseException;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 
@@ -76,8 +79,8 @@ public class Shader implements AutoCloseable {
     private int compileShader(int type, Identifier resource, ResourceManager resMan) throws IOException {
         String shaderSrc;
         try {
-            var srcStream = resMan.getResource(resource).getInputStream();
-            shaderSrc = TextureUtil.readResourceAsString(srcStream);
+            var stream = resMan.getResource(resource).orElseThrow().getInputStream();
+            shaderSrc = IOUtils.toString(stream, StandardCharsets.UTF_8);
         } catch (IOException ex) {
             ShaderParseException parseEx = ShaderParseException.wrap(ex);
             parseEx.addFaultyFile(resource.toString());

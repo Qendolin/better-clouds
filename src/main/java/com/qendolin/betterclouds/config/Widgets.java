@@ -2,7 +2,8 @@ package com.qendolin.betterclouds.config;
 
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.SliderWidget;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.LiteralTextContent;
+import net.minecraft.text.Text;
 
 import java.util.function.Function;
 
@@ -66,7 +67,7 @@ class RangeWidget<T extends Number> extends SliderWidget implements ValueHolder<
 
     @Override
     protected void updateMessage() {
-        setMessage(new LiteralText(this.messageMapper.apply(mappedValue)));
+        setMessage(Text.literal(this.messageMapper.apply(mappedValue)));
     }
 
     @Override
@@ -108,7 +109,7 @@ class ToggleButtonWidget extends ButtonWidget implements ValueHolder<Boolean> {
     }
 
     protected void updateMessage() {
-        setMessage(new LiteralText(this.messageMapper.apply(value)));
+        setMessage(Text.literal(this.messageMapper.apply(value)));
     }
 
     @Override

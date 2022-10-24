@@ -9,7 +9,8 @@
     "BufferRendererAccessor",
     "CloudRendererMixin",
     "ExtendedShaderAccessor",
-    "ShaderAccessor"
+    "ShaderAccessor",
+    "VertexBufferAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -2,6 +2,7 @@ package com.qendolin.betterclouds.clouds;
 
 import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.mixin.BufferRendererAccessor;
+import com.qendolin.betterclouds.mixin.VertexBufferAccessor;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.MemoryUtil;
 
@@ -106,13 +107,17 @@ public class Buffer implements AutoCloseable {
     }
 
     private void restoreVao() {
-        int previousVaoId = BufferRendererAccessor.getCurrentVertexArray();
+        VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
+        if(buffer == null) return;
+        int previousVaoId = buffer.getVertexArrayId();
         if(previousVaoId > 0)
             glBindVertexArray(previousVaoId);
     }
 
     private void restoreVbo() {
-        int previousVboId = BufferRendererAccessor.getCurrentVertexBuffer();
+        VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
+        if(buffer == null) return;
+        int previousVboId = buffer.getVertexBufferId();
         if(previousVboId > 0)
             glBindBuffer(GL_ARRAY_BUFFER, previousVboId);
     }
