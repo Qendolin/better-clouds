@@ -2,7 +2,6 @@ package com.qendolin.betterclouds.config;
 
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.SliderWidget;
-import net.minecraft.text.LiteralTextContent;
 import net.minecraft.text.Text;
 
 import java.util.function.Function;
@@ -95,7 +94,7 @@ class ToggleButtonWidget extends ButtonWidget implements ValueHolder<Boolean> {
     private final ConfigScreen.ValueChangeCallback<Boolean> onChange;
     private boolean value;
     public ToggleButtonWidget(int x, int y, int width, boolean value, Function<Boolean, String> messageMapper, ConfigScreen.ValueChangeCallback<Boolean> onChange) {
-        super(x, y, width, 20, null, null);
+        super(x, y, width, 20, null, null, DEFAULT_NARRATION_SUPPLIER);
         this.messageMapper = messageMapper;
         this.onChange = onChange;
         this.value = value;

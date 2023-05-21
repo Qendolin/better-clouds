@@ -16,23 +16,23 @@ layout(location = 1) in vec3 in_vert;
 flat out vec4 pass_cloudColor;
 
 uniform mat4 u_modelViewProjMat;
-uniform vec3 u_cloudsPosition;
+uniform vec3 u_cloudsOrigin;
 uniform vec4 u_skyColor;
 uniform vec4 u_skyColorOverride;
-uniform vec4 u_sunDirection;
+uniform vec4 u_skyData;
 
 float balance(float value, float range) {
     return (value - (1. - range)) / range;
 }
 
 void main() {
-    vec3 cloudPosition = in_pos - u_cloudsPosition;
+    vec3 cloudPosition = in_pos - u_cloudsOrigin;
     vec2 cloudDirection = normalize(cloudPosition.xz);
-    float fSunCone = dot(u_sunDirection.xz, cloudDirection);
+    float fSunCone = dot(u_skyData.xz, cloudDirection);
     fSunCone -= smoothstep(0., 1., OVERRIDE_CONE_START / length(cloudPosition));
     fSunCone = max(0.05, balance(fSunCone, OVERRIDE_CONE_FACTOR));
 
-    float fColorOverride = fSunCone * u_skyColorOverride.a * u_sunDirection.a;
+    float fColorOverride = fSunCone * u_skyColorOverride.a * u_skyData.a;
 
     pass_cloudColor.rgb = mix(u_skyColor.rgb, u_skyColorOverride.rgb, fColorOverride);
     // flat clouds require a higher alpha because there are half as many faces?

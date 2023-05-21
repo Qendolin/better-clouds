@@ -5,10 +5,16 @@ import net.minecraft.util.math.noise.OctaveSimplexNoiseSampler;
 import net.minecraft.util.math.noise.SimplexNoiseSampler;
 import net.minecraft.util.math.random.CheckedRandom;
 import net.minecraft.util.math.random.ChunkRandom;
+
 import java.util.List;
 
 public class Sampler {
     private final ChunkRandom RANDOM = new ChunkRandom(new CheckedRandom(1337));
+    // -1, 0, 1, 2     - Default with frequent clumps of clouds
+    // -3, -1, 0, 1, 2 - Pretty big, sparse fields of clouds and fields of clear sky, maybe to big for
+    //                   32 Chunks of render distance
+    // -2, 0, 1, 2     - Medium heaps of clouds with fields of clear sky, no problem for 32 Chunks
+    // 0, 1, 2         - Many spots of small clouds with some medium holes of clear sky
     private final List<Integer> OCTAVES = ImmutableList.of(-1, 0, 1, 2);
     private final OctaveSimplexNoiseSampler NOISE = new OctaveSimplexNoiseSampler(RANDOM, OCTAVES);
     private final SimplexNoiseSampler BIG_NOISE = new SimplexNoiseSampler(RANDOM);

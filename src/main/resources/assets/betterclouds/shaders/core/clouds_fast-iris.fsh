@@ -10,9 +10,13 @@ layout (location=2) out vec4 gBuffer2;
 layout (location=3) out vec4 gBuffer3;
 layout (location=4) out vec4 gBuffer4;
 
+uniform float u_gamma;
+uniform vec4 u_color;
 
 void main() {
     fragColor = pass_cloudColor;
+    fragColor.rgb *= u_color.a;
+    fragColor.rgb = pow(fragColor.rgb, vec3(1./u_gamma));
     gBuffer1 = vec4(0.);
     gBuffer2 = vec4(0.);
     gBuffer3 = vec4(0.);

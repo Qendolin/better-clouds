@@ -65,12 +65,6 @@ SEUS Renewed
 		green = water
 		blue = material id?
 
-Sildurs
-	Deferred
-
-	Render Target 0 is material?
-	Render Target 1 is normals
-
 Oceano
 	Deferred
 
@@ -79,18 +73,7 @@ Oceano
 	Render Target 2 is normals
 	Render Target 3 is black
 
-BBL
-	Deferred
-	
-	Render Target 0 is albedo
-	Render Target 1 is other data
-		red = material type id?
-		green = block light
-		blue = sky light
-	Render Target 2 is normals
-	Render Target 3 is black
-
-SED
+Sildur's Enhanced Default
 	Forward
 	
 	Render Target 0 is color
@@ -105,33 +88,111 @@ Chocapic V6
 	Forward
 	Render Target 0 is color HDR
 
-✗ Chocapic V9
-	Black Screen
+Chocapic V9
+    Deferred
+    Rendering to RT 0 works when TAAU is disabled
 
-✗ Vanilla+
-	World is invisible
+    Render Target 0 is translucent only color HDR with TAAU
+
+Vanilla+
+	Deferred
+	Vanilla cloud shader doesn't produce output
+
+	Render Target 0 is opaque color HDR
+
+Kappa
+    Deferred
+    Vanilla cloud shader doesn't produce output
+    Rendering to RT 0 works when TAAU is disabled
+
+    Render Target 0 is opaque color HDR with TAAU
+
+Nostalgia
+	Deferred
+	Vanilla cloud shader doesn't produce output
+
+	Render Target 0 is opaque color HDR
+
+DrDestens
+    Forward
+
+    Render Target 0 is color HDR
+    Render Target 1 is normals
+
+SDV
 	Forward
 
-✗ Kappa
-	White Screen
+    Render Target 0 is color HDR
+    Render Target 1 is material porperties (green=reflectivity ?)
 
-✗ Nostalgia
-	White Screen
+Chocapic Toaster
+    Forward
 
-✗ MakeUp
-	Crash
+    Render Target 1 color HDR
 
-✗ DrDestens
-	Does not load
+Soft Voxels (lite)
+    Deferred (same as Kappa)
+    Vanilla cloud shader doesn't produce output
+    Rendering to RT 0 works when TAAU is disabled
 
-✗ Voyager
-	White Screen
+    Render Target 0 is opaque color HDR with TAAU
 
-✗ SDV
-	Does not load
+Solas
+    Forward
+
+    Render Target 0 is color HDR
+
+Triliton's
+    Deferred
+
+    Render Target 0 is albedo
+
+Sildur's Basic
+    Forward
+
+    Render Target 0 is color
+    Render Target 1 is some sort of alpha mask
 
 ✗ Atlas
 	Does not load
 
-✗ Chocapic Toaster
-	Does not load
+x Complementary Reimagined
+    Forward
+    Always renders shader clouds
+
+    Render Target 0 is color HDR
+
+x Rethinking Voxels
+    Same as Complementary Reimagined
+
+x MakeUp
+    Deferred (Chocapic V9 Based?)
+    RT0 is ignored, can work if RT1 is used
+
+	Render Target 0 is opaque color HDR
+	Render Target 1 is opaque+translucent color HDR
+
+x Voyager
+	Deferred
+    Vanilla cloud shader doesn't produce output
+
+	Render Target 0 is color HDR but with smaller viewport
+
+
+x Sildurs
+	Deferred
+
+	Render Target 0 is R=grayscale, G=?, B=mask?
+	Render Target 1 is RG=normals?, B=distance?, A=smooth lighting
+
+x BBL
+	Deferred
+
+	Render Target 0 is albedo
+	Render Target 1 is other data
+		red = material type id?
+		green = block light
+		blue = sky light
+		alpha = 1 (?)
+	Render Target 2 is normals
+	Render Target 3 is black

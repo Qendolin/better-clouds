@@ -1,0 +1,78 @@
+Full screen & quake pro fov
+Weather Clear
+Time 13200
+height 203
+
+With half res MS:
+    With custom depth test:
+        Stats over 10000 frames: 1,253 / 1,347 / 1,518 min/avg/max 1,331 / 1,347 / 1,361 p25/med/p75
+    + Without fsh gradient coloring:
+        Stats over 10000 frames: 1,163 / 1,242 / 1,397 min/avg/max 1,225 / 1,241 / 1,256 p25/med/p75
+    + With everything covered:
+        Stats over 10000 frames: 0,386 / 0,427 / 0,508 min/avg/max 0,399 / 0,417 / 0,453 p25/med/p75
+    Without depth test:
+        Stats over 10000 frames: 1,134 / 1,207 / 1,274 min/avg/max 1,196 / 1,210 / 1,222 p25/med/p75
+
+With quater res MS:
+    With custom depth test:
+        Stats over 10000 frames: 0,535 / 0,591 / 0,670 min/avg/max 0,549 / 0,602 / 0,612 p25/med/p75
+    + Without fsh gradient coloring:
+        Stats over 10000 frames: 0,524 / 0,576 / 0,695 min/avg/max 0,547 / 0,559 / 0,607 p25/med/p75
+
+With full res:
+    With shared depth:
+        Stats over 10000 frames: 2,044 / 2,268 / 2,533 min/avg/max 2,240 / 2,267 / 2,300 p25/med/p75
+        Stats over 10000 frames: 1,879 / 2,040 / 2,177 min/avg/max 2,013 / 2,048 / 2,073 p25/med/p75
+        Stats over 10000 frames: 1,913 / 2,082 / 2,390 min/avg/max 2,062 / 2,079 / 2,095 p25/med/p75
+    + With everything covered:
+        Stats over 10000 frames: 0,255 / 0,286 / 0,412 min/avg/max 0,259 / 0,263 / 0,315 p25/med/p75
+    + With no OIT resolve
+        Stats over 10000 frames: 1,698 / 1,773 / 1,853 min/avg/max 1,760 / 1,774 / 1,787 p25/med/p75
+    + With simple vsh
+    ++ With alpha = 0.2
+        Stats over 10000 frames: 2,450 / 2,515 / 2,595 min/avg/max 2,507 / 2,516 / 2,525 p25/med/p75
+    ++ With alpha = 1.0
+        Stats over 10000 frames: 2,422 / 2,559 / 2,779 min/avg/max 2,533 / 2,557 / 2,582 p25/med/p75
+    ++ With alpha = 0.075
+        Stats over 10000 frames: 2,638 / 2,739 / 2,826 min/avg/max 2,724 / 2,741 / 2,755 p25/med/p75
+    ++ With alpha = 0.0
+        Stats over 10000 frames: 1,346 / 1,399 / 1,449 min/avg/max 1,393 / 1,401 / 1,407 p25/med/p75
+    ++ With alpha = 0.01
+        Stats over 10000 frames: 2,645 / 2,756 / 2,826 min/avg/max 2,741 / 2,757 / 2,773 p25/med/p75
+    + WIth noop fsh
+        Stats over 10000 frames: 0,244 / 0,273 / 0,392 min/avg/max 0,252 / 0,254 / 0,294 p25/med/p75
+    + With constant op fsh
+        Stats over 10000 frames: 1,998 / 2,107 / 2,326 min/avg/max 2,079 / 2,105 / 2,130 p25/med/p75
+    + With frustum culling and chunk grouping
+        Stats over 10000 frames: 1,838 / 1,947 / 2,248 min/avg/max 1,921 / 1,938 / 1,961 p25/med/p75
+        Stats over 10000 frames: 1,744 / 1,818 / 1,919 min/avg/max 1,801 / 1,818 / 1,835 p25/med/p75
+    ++ With RGBA16
+        Stats over 10000 frames: 1,772 / 1,824 / 1,915 min/avg/max 1,810 / 1,823 / 1,836 p25/med/p75
+    ++ With RGBA8 (not viable)
+        Stats over 10000 frames: 1,316 / 1,377 / 1,444 min/avg/max 1,360 / 1,374 / 1,395 p25/med/p75
+
+With Deferred Alpha
+    With Stencil Accum:
+    + Initial:
+        Stats over 10000 frames: 0,653 / 0,657 / 0,672 min/avg/max 0,657 / 0,657 / 0,657 p25/med/p75
+    + With 4x4 dither transparency and other stuff, redo this test ok?
+        Stats over 10000 frames: 1,311 / 1,321 / 1,337 min/avg/max 1,319 / 1,320 / 1,321 p25/med/p75
+        Stats over 10000 frames: 1,432 / 1,440 / 1,450 min/avg/max 1,439 / 1,440 / 1,442 p25/med/p75
+    ++ With some useless code removed idk anymore
+        Stats over 10000 frames: 0,775 / 0,779 / 0,782 min/avg/max 0,778 / 0,779 / 0,780 p25/med/p75
+    +++ With individual color, constant value
+        Stats over 10000 frames: 0,774 / 0,781 / 0,788 min/avg/max 0,780 / 0,780 / 0,782 p25/med/p75
+    ++++ With random value
+        Stats over 10000 frames: 0,803 / 0,818 / 0,895 min/avg/max 0,816 / 0,818 / 0,821 p25/med/p75
+    ++ Without transparency
+        Stats over 10000 frames: 1,303 / 1,307 / 1,311 min/avg/max 1,307 / 1,307 / 1,308 p25/med/p75
+    +++ With early z
+        Stats over 10000 frames: 1,303 / 1,308 / 1,311 min/avg/max 1,307 / 1,307 / 1,308 p25/med/p75
+    ++ With 2x2 box blur
+        Stats over 10000 frames: 1,393 / 1,453 / 1,616 min/avg/max 1,433 / 1,460 / 1,467 p25/med/p75
+    +++ With 2x2 dither matrix
+        Stats over 10000 frames: 1,427 / 1,455 / 1,595 min/avg/max 1,448 / 1,458 / 1,460 p25/med/p75
+    + With individual correct color, fixed chunk alignment, random ordering
+        Stats over 10000 frames: 0,758 / 0,792 / 0,807 min/avg/max 0,789 / 0,791 / 0,795 p25/med/p75
+    ++ With depth range optimization
+        Stats over 10000 frames: 0,717 / 0,723 / 0,733 min/avg/max 0,723 / 0,723 / 0,723 p25/med/p75

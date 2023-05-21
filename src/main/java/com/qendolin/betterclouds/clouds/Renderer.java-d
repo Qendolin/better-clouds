@@ -1,0 +1,306 @@
+package com.qendolin.betterclouds.clouds;
+
+import com.google.common.collect.ImmutableMap;
+import com.mojang.blaze3d.platform.GlConst;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.qendolin.betterclouds.Config;
+import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.compat.IrisCompat;
+import com.qendolin.betterclouds.compat.SodiumExtraCompat;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.option.CloudRenderMode;
+import net.minecraft.client.render.*;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.world.ClientWorld;
+import net.minecraft.resource.ResourceManager;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.Util;
+import net.minecraft.util.math.Matrix4f;
+import net.minecraft.util.math.Vec3d;
+import org.lwjgl.opengl.*;
+
+import java.io.IOException;
+import java.util.Map;
+
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL15.*;
+import static org.lwjgl.opengl.GL15.glBufferData;
+import static org.lwjgl.opengl.GL30.*;
+import static org.lwjgl.opengl.GL31.glDrawArraysInstanced;
+
+public class Renderer implements AutoCloseable {
+
+    private static final Identifier CLOUD_NOISE = new Identifier(Main.MODID, "textures/environment/cloud_noise.png");
+
+    private final MinecraftClient client;
+    private ClientWorld world = null;
+
+    private CloudRenderMode lastCloudRenderMode = null;
+    private MainShader cloudShader = null;
+    private PostShader cloudShader2 = null;
+    private Generator cloudGenerator = null;
+    private float lastDistance = -1;
+    private final long startTime = Util.getEpochTimeMs();
+    private int quadVbo;
+    private int quadVao;
+    private int oitFbo;
+    private int oitAccumTexture;
+    private int oitRevealTexture;
+
+    public Renderer(MinecraftClient client) {
+        this.client = client;
+    }
+
+    public void reload(ResourceManager manager) {
+        reloadShader(manager);
+        reloadGenerator();
+        client.getTextureManager().getTexture(CLOUD_NOISE).bindTexture();
+        RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_WRAP_S, 10497);
+        RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_WRAP_T, 10497);
+        RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_MIN_FILTER, GlConst.GL_LINEAR);
+        RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_MAG_FILTER, GlConst.GL_LINEAR);
+
+        if(quadVbo != 0) glDeleteBuffers(quadVbo);
+        if(quadVao != 0) glDeleteVertexArrays(quadVao);
+        quadVao = glGenVertexArrays();
+        glBindVertexArray(quadVao);
+        if(Main.IS_DEV) GL44.glObjectLabel(GL44.GL_VERTEX_ARRAY, quadVao, "cloud_quad_vao");
+        quadVbo = glGenBuffers();
+        glBindBuffer(GL_ARRAY_BUFFER, quadVbo);
+        if(Main.IS_DEV) GL44.glObjectLabel(GL44.GL_BUFFER, quadVbo, "cloud_quad_vbo");
+        glBufferData(GL_ARRAY_BUFFER, new float[]{1,-1, 1,1, -1,-1, -1,1}, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, false, 0, 0);
+
+        if(oitFbo != 0) glDeleteFramebuffers(oitFbo);
+        oitFbo = glGenFramebuffers();
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, oitFbo);
+        if(Main.IS_DEV) GL44.glObjectLabel(GL_FRAMEBUFFER, oitFbo, "cloud_oit_framebuffer");
+
+        if(oitAccumTexture != 0) glDeleteTextures(oitAccumTexture);
+        oitAccumTexture = glGenTextures();
+        glBindTexture(GL_TEXTURE_2D, oitAccumTexture);
+        if(Main.IS_DEV) GL44.glObjectLabel(GL_TEXTURE, oitAccumTexture, "cloud_oit_accumulate");
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, client.getFramebuffer().textureWidth, client.getFramebuffer().textureHeight, 0, GL_RGBA, GL_HALF_FLOAT, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, oitAccumTexture, 0);
+
+        if(oitRevealTexture != 0) glDeleteTextures(oitRevealTexture);
+        oitRevealTexture = glGenTextures();
+        glBindTexture(GL_TEXTURE_2D, oitRevealTexture);
+        if(Main.IS_DEV) GL44.glObjectLabel(GL_TEXTURE, oitRevealTexture, "cloud_oit_reveal");
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, client.getFramebuffer().textureWidth, client.getFramebuffer().textureHeight, 0, GL_RED, GL_FLOAT, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, oitRevealTexture, 0);
+        glDrawBuffers(new int[]{GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1});
+
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+            throw new RuntimeException("Cloud framebuffer incomplete");
+        }
+    }
+
+    public void setWorld(ClientWorld world) {
+        this.world = world;
+    }
+
+    private void reloadGenerator() {
+        if(cloudGenerator != null) cloudGenerator.close();
+        cloudGenerator = new Generator();
+        cloudGenerator.allocate(Main.CONFIG, isFancyMode());
+        cloudGenerator.clear();
+    }
+
+    private void reloadShader(ResourceManager manager) {
+        if(cloudShader != null) cloudShader.close();
+        Config options = Main.CONFIG;
+        Map<String, String> defs = ImmutableMap.ofEntries(
+            Map.entry(MainShader.DEF_SIZE_X_KEY, Float.toString(options.sizeXZ)),
+            Map.entry(MainShader.DEF_SIZE_Y_KEY, Float.toString(options.sizeY)),
+            Map.entry(MainShader.DEF_FADE_EDGE_KEY, Integer.toString(options.fadeEdge)),
+            Map.entry(MainShader.DEF_GRADIENT_COLOR_KEY, options.gradientColoring ? "1" : "0")
+        );
+
+        try {
+            cloudShader = new MainShader(manager, options.enableExperimentalIrisSupport, isFancyMode(), defs);
+            cloudShader.bind();
+            cloudShader.uCloudNoise.setInt(0);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
+            cloudShader2 = new PostShader(manager, Map.of());
+            cloudShader2.bind();
+            cloudShader2.uAccum.setInt(0);
+            cloudShader2.uReveal.setInt(1);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean skipRender() {
+        boolean disabledForIris = !Main.CONFIG.enableExperimentalIrisSupport && IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled();
+        return disabledForIris;
+    }
+
+    public void render(MatrixStack matrices, Matrix4f projMat, float tickDelta, int ticks, Vec3d cam) {
+        assert RenderSystem.isOnRenderThread();
+        client.getProfiler().push("render_setup");
+
+        // When the shader could not be loaded
+        if (cloudShader == null || !cloudShader.isComplete()) return;
+        if(Main.IS_DEV) GL43.glPushDebugGroup(GL43.GL_DEBUG_SOURCE_APPLICATION, 1337, "Better Clouds\0");
+
+        matrices.push();
+        matrices.translate(0, -cam.y, 0);
+        DimensionEffects effects = world.getDimensionEffects();
+
+        if(Main.CONFIG.hasChanged || lastCloudRenderMode != client.options.getCloudRenderModeValue() || lastDistance != Main.CONFIG.blockDistance()) {
+            lastDistance = Main.CONFIG.blockDistance();
+            lastCloudRenderMode = client.options.getCloudRenderModeValue();
+            reloadShader(client.getResourceManager());
+            cloudGenerator.reallocate(Main.CONFIG, isFancyMode());
+            Main.CONFIG.hasChanged = false;
+        }
+
+        float raininess = Math.max(0.6f*world.getRainGradient(tickDelta), world.getThunderGradient(tickDelta));
+        float cloudiness = raininess * 0.3f + 0.5f;
+
+        cloudGenerator.bind();
+        cloudGenerator.update(cam, tickDelta, Main.CONFIG, cloudiness);
+        if(cloudGenerator.canGenerate() && !cloudGenerator.generating()) {
+            client.getProfiler().swap("generate_clouds");
+            cloudGenerator.generate(false);
+            client.getProfiler().swap("render_setup");
+        }
+        if(cloudGenerator.canSwap()) {
+            client.getProfiler().swap("swap");
+            cloudGenerator.swap();
+            client.getProfiler().swap("render_setup");
+        }
+
+        float cloudsHeight = getCloudsHeight(effects);
+        matrices.translate(cloudGenerator.renderOriginX(cam.x), cloudsHeight, cloudGenerator.renderOriginZ(cam.z));
+        if(Main.CONFIG.sort) {
+            client.getProfiler().swap("sort");
+            cloudGenerator.sort((float) cloudGenerator.renderOriginX(cam.x), (float) (cloudsHeight-cam.y), (float) cloudGenerator.renderOriginZ(cam.z));
+            client.getProfiler().swap("render_setup");
+        }
+
+        Matrix4f mvpMat = projMat.copy();
+        mvpMat.multiply(matrices.peek().getPositionMatrix());
+        cloudShader.bind();
+        cloudShader.uModelViewProjMat.setMat4(mvpMat);
+        cloudShader.uCloudsOrigin.setVec3((float) -cloudGenerator.renderOriginX(cam.x), (float)cam.y-cloudsHeight, (float) -cloudGenerator.renderOriginZ(cam.z));
+        cloudShader.uCloudsDistance.setFloat(Main.CONFIG.blockDistance() - Main.CONFIG.chunkSize/2f);
+        cloudShader.uCloudsBox.setVec4((float) cam.x, (float) cam.z, (float) cam.y-cloudsHeight, Main.CONFIG.spreadY);
+
+        float skyAngle = world.getSkyAngleRadians(tickDelta);
+        cloudShader.uSkyData.setVec4((float) -Math.sin(skyAngle), (float) Math.cos(skyAngle), 0, 1-0.75f*raininess);
+
+        Vec3d skyColor = new Vec3d(Main.CONFIG.red, Main.CONFIG.green, Main.CONFIG.blue); // world.getCloudsColor(tickDelta);
+        cloudShader.uSkyColor.setVec4((float) skyColor.x, (float) skyColor.y, (float) skyColor.z, Main.CONFIG.opacity);
+
+        float[] skyColorOverride = effects.getFogColorOverride(world.getSkyAngle(tickDelta), tickDelta);
+        if (skyColorOverride != null) {
+            cloudShader.uSkyColorOverride.setVec4(skyColorOverride[0], skyColorOverride[1], skyColorOverride[2], skyColorOverride[3]);
+        } else {
+            cloudShader.uSkyColorOverride.setVec4(0, 0, 0, 0);
+        }
+
+        if(IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled() && Main.CONFIG.useIrisFBO) IrisCompat.bindFramebuffer();
+
+        RenderSystem.enableBlend();
+//        RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ONE_MINUS_DST_ALPHA, GlStateManager.DstFactor.ONE);
+        if(!Main.CONFIG.writeDepth) {
+            RenderSystem.depthMask(false);
+        }
+        RenderSystem.depthFunc(Main.CONFIG.depthTest ? GL_LEQUAL : GL_ALWAYS);
+
+        // Fix for https://github.com/Qendolin/better-clouds/issues/4
+        RenderSystem.enableDepthTest();
+        if (!isFancyMode()) {
+            RenderSystem.disableCull();
+        }
+
+        RenderSystem.defaultBlendFunc();
+//        RenderSystem.blendEquation(GL_FUNC_ADD);
+//        if(GL.getCapabilities().OpenGL44) {
+//            GL44.glBlendFunci(0, GL_ONE, GL_ONE);
+//            GL44.glBlendFunci(1, GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
+//        } else {
+//            ARBDrawBuffersBlend.glBlendFunciARB(0, GL_ONE, GL_ONE);
+//            ARBDrawBuffersBlend.glBlendFunciARB(1, GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
+//        }
+
+//        int lastBoundFbo = glGetInteger(GL_DRAW_FRAMEBUFFER_BINDING);
+//        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, oitFbo);
+//        glClearBufferfv(GL_COLOR, 0, new float[] {0, 0, 0, 0});
+//        glClearBufferfv(GL_COLOR, 1, new float[] {1, 1, 1, 1});
+
+        client.getProfiler().swap("draw_geometry");
+
+        cloudShader.uTime.setFloat((Util.getEpochTimeMs() - startTime)/1000f);
+        cloudShader.uColor.setVec4(Main.CONFIG.red, Main.CONFIG.green, Main.CONFIG.blue, Main.CONFIG.brightness);
+        RenderSystem.activeTexture(GlConst.GL_TEXTURE0);
+        RenderSystem.enableTexture();
+        client.getTextureManager().getTexture(CLOUD_NOISE).bindTexture();
+
+        if(cloudGenerator.canRender()) {
+            glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, cloudGenerator.instanceVertexCount(), cloudGenerator.cloudCount());
+        }
+
+        client.getProfiler().swap("draw_shading");
+
+        RenderSystem.disableDepthTest();
+        RenderSystem.depthMask(false);
+
+//        GlStateManager._glBindFramebuffer(GL_DRAW_FRAMEBUFFER, lastBoundFbo);
+//        RenderSystem.activeTexture(GL_TEXTURE0);
+//        GlStateManager._bindTexture(oitAccumTexture);
+//        RenderSystem.activeTexture(GL_TEXTURE1);
+//        GlStateManager._bindTexture(oitRevealTexture);
+//        RenderSystem.blendFunc(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA);
+//        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+//        cloudShader2.bind();
+//        glBindVertexArray(quadVao);
+//        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+        client.getProfiler().swap("render_cleanup");
+
+        RenderSystem.depthMask(true);
+        RenderSystem.depthFunc(GL_LESS);
+        RenderSystem.disableBlend();
+        if (!isFancyMode()) {
+            RenderSystem.enableCull();
+        }
+        Shader.unbind();
+        cloudGenerator.unbind();
+
+        matrices.pop();
+        client.getProfiler().pop();
+        if(Main.IS_DEV) GL43.glPopDebugGroup();
+    }
+
+    private float getCloudsHeight(DimensionEffects effects) {
+        if(SodiumExtraCompat.IS_LOADED) {
+            if (effects.getSkyType() == DimensionEffects.SkyType.NORMAL) {
+                return SodiumExtraCompat.getCloudsHeight();
+            }
+        }
+
+        return effects.getCloudsHeight();
+    }
+
+    private boolean isFancyMode() {
+        return client.options.getCloudRenderModeValue() == CloudRenderMode.FANCY;
+    }
+
+    public void close() {
+        if(cloudShader != null) cloudShader.close();
+        if(cloudGenerator != null) cloudGenerator.close();
+    }
+}

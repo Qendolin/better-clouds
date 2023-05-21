@@ -37,7 +37,12 @@ run/
 *.blend1
 *.cap
 *.rdc
+*.xcf
 
 # secrets
 
 /secrets.properties
+
+# local files
+
+local/

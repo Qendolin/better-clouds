@@ -19,9 +19,9 @@ public class IrisCompat {
         if(pipeline instanceof NewWorldRenderingPipeline corePipeline) {
             ExtendedShaderAccessor irisShader = (ExtendedShaderAccessor) corePipeline.getShaderMap().getShader(ShaderKey.CLOUDS);
             if(corePipeline.isBeforeTranslucent) {
-                irisShader.getWritingToBeforeTranslucent().bind();
+                irisShader.getWritingToBeforeTranslucent().bindAsDrawBuffer();
             } else {
-                irisShader.getWritingToAfterTranslucent().bind();
+                irisShader.getWritingToAfterTranslucent().bindAsDrawBuffer();
             }
         }
     }

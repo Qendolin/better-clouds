@@ -1,14 +1,13 @@
 package com.qendolin.betterclouds.clouds;
 
 import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.platform.TextureUtil;
-import com.qendolin.betterclouds.Main;
-import com.qendolin.betterclouds.mixin.ShaderAccessor;
-import net.minecraft.client.gl.ShaderParseException;
+import com.qendolin.betterclouds.mixin.ShaderProgramAccessor;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.InvalidHierarchicalFileException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.lwjgl.opengl.GL44;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,45 +15,22 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 
+import static com.qendolin.betterclouds.Main.bcObjectLabel;
 import static org.lwjgl.opengl.GL32.*;
 
 public class Shader implements AutoCloseable {
-    public static final String DEF_SIZE_X_KEY = "_SCALE_X_";
-    public static final String DEF_SIZE_Y_KEY = "_SCALE_Y_";
-    public static final String DEF_FADE_EDGE_KEY = "_VISIBILITY_EDGE_";
 
-    public static final Identifier VERTEX_SHADER_FAST_ID = new Identifier(Main.MODID, "shaders/core/clouds_fast.vsh");
-    public static final Identifier VERTEX_SHADER_FANCY_ID = new Identifier(Main.MODID, "shaders/core/clouds_fancy.vsh");
-    public static final Identifier FRAGMENT_SHADER_FAST_ID = new Identifier(Main.MODID, "shaders/core/clouds_fast.fsh");
-    public static final Identifier FRAGMENT_SHADER_FAST_IRIS_ID = new Identifier(Main.MODID, "shaders/core/clouds_fast-iris.fsh");
-    public static final Identifier FRAGMENT_SHADER_FANCY_ID = new Identifier(Main.MODID, "shaders/core/clouds_fancy.fsh");
-    public static final Identifier FRAGMENT_SHADER_FANCY_IRIS_ID = new Identifier(Main.MODID, "shaders/core/clouds_fancy-iris.fsh");
+    private final Map<String, String> defs;
 
-    public final Uniform uSunDirection;
-    public final Uniform uModelViewProjMat;
-    public final Uniform uSkyColor;
-    public final Uniform uSkyColorOverride;
-    public final Uniform uCloudsPosition;
-    public final Uniform uCloudsDistance;
+    protected int programId;
 
-    private final Map<String, Float> defs;
-    private final boolean fancy;
-
-    private int programId;
-
-    public Shader(ResourceManager resMan, boolean fancy, boolean iris, Map<String, Float> defs) throws IOException {
+    public Shader(ResourceManager resMan, Identifier vshId, Identifier fshId, Map<String, String> defs) throws IOException {
         this.defs = defs;
-        this.fancy = fancy;
-
-        Identifier vshId = fancy ? VERTEX_SHADER_FANCY_ID : VERTEX_SHADER_FAST_ID;
         int vsh = compileShader(GL_VERTEX_SHADER, vshId, resMan);
-        Identifier fshId;
-        if(fancy) {
-            fshId = iris ? FRAGMENT_SHADER_FANCY_IRIS_ID : FRAGMENT_SHADER_FANCY_ID;
-        } else {
-            fshId = iris ? FRAGMENT_SHADER_FAST_IRIS_ID : FRAGMENT_SHADER_FAST_ID;
-        }
         int fsh = compileShader(GL_FRAGMENT_SHADER, fshId, resMan);
+
+        bcObjectLabel(GL44.GL_SHADER, vsh, vshId.getPath());
+        bcObjectLabel(GL44.GL_SHADER, fsh, fshId.getPath());
 
         programId = GlStateManager.glCreateProgram();
         glAttachShader(programId, vsh);
@@ -62,40 +38,34 @@ public class Shader implements AutoCloseable {
 
         glLinkProgram(programId);
         if (glGetProgrami(programId, GL_LINK_STATUS) == 0) {
-            throw new IllegalStateException("Failed to link program");
+            String log = glGetProgramInfoLog(programId);
+            throw new IllegalStateException("Failed to link program: " + log);
         }
 
         GlStateManager.glDeleteShader(vsh);
         GlStateManager.glDeleteShader(fsh);
-
-        uSunDirection = getUniform("u_sunDirection", true);
-        uModelViewProjMat = getUniform("u_modelViewProjMat", false);
-        uSkyColor = getUniform("u_skyColor", true);
-        uSkyColorOverride = getUniform("u_skyColorOverride", true);
-        uCloudsPosition = getUniform("u_cloudsPosition", false);
-        uCloudsDistance = getUniform("u_cloudsDistance", true);
     }
 
-    private int compileShader(int type, Identifier resource, ResourceManager resMan) throws IOException {
+    protected int compileShader(int type, Identifier resource, ResourceManager resMan) throws IOException {
         String shaderSrc;
         try {
-            var stream = resMan.getResource(resource).orElseThrow().getInputStream();
+            InputStream stream = resMan.getResourceOrThrow(resource).getInputStream();
             shaderSrc = IOUtils.toString(stream, StandardCharsets.UTF_8);
         } catch (IOException ex) {
-            ShaderParseException parseEx = ShaderParseException.wrap(ex);
-            parseEx.addFaultyFile(resource.toString());
-            throw parseEx;
+            InvalidHierarchicalFileException fileEx = InvalidHierarchicalFileException.wrap(ex);
+            fileEx.addInvalidFile(resource.toString());
+            throw fileEx;
         }
-        for (Map.Entry<String, Float> entry : defs.entrySet()) {
-            shaderSrc = shaderSrc.replace(entry.getKey(), entry.getValue().toString());
+        for (Map.Entry<String, String> entry : defs.entrySet()) {
+            shaderSrc = shaderSrc.replace(entry.getKey(), entry.getValue());
         }
         int id = GlStateManager.glCreateShader(type);
         GlStateManager.glShaderSource(id, Collections.singletonList(shaderSrc));
         GlStateManager.glCompileShader(id);
         if (GlStateManager.glGetShaderi(id, GL_COMPILE_STATUS) == 0) {
             String log = StringUtils.trim(GlStateManager.glGetShaderInfoLog(id, 32768));
-            ShaderParseException parseEx = new ShaderParseException("Couldn't compile shader program (" + resource + ") : " + log);
-            parseEx.addFaultyFile(resource.toString());
+            InvalidHierarchicalFileException parseEx = new InvalidHierarchicalFileException("Couldn't compile shader program (" + resource + ") : " + log);
+            parseEx.addInvalidFile(resource.toString());
             throw parseEx;
         }
         return id;
@@ -115,13 +85,17 @@ public class Shader implements AutoCloseable {
         glUseProgram(programId);
     }
 
-    public void unbind() {
-        int previousProgramId = ShaderAccessor.getActiveShader();
+    public int glId() {
+        return programId;
+    }
+
+    public static void unbind() {
+        int previousProgramId = ShaderProgramAccessor.getActiveProgramGlRef();
         if(previousProgramId > 0)
             glUseProgram(previousProgramId);
     }
 
-    private Uniform getUniform(String name, boolean cached) {
+    protected Uniform getUniform(String name, boolean cached) {
         int location = glGetUniformLocation(programId, name);
         if(location < 0) {
             return new Uniform.Noop(name, location);

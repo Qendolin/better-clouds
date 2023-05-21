@@ -1,0 +1,484 @@
+package com.qendolin.betterclouds.clouds;
+
+import com.google.common.collect.ImmutableMap;
+import com.mojang.blaze3d.platform.GlConst;
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.qendolin.betterclouds.Config;
+import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.compat.IrisCompat;
+import com.qendolin.betterclouds.compat.SodiumExtraCompat;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.option.CloudRenderMode;
+import net.minecraft.client.render.DimensionEffects;
+import net.minecraft.client.render.Frustum;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.world.ClientWorld;
+import net.minecraft.resource.ResourceManager;
+import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.*;
+import org.lwjgl.opengl.GL43;
+import org.lwjgl.opengl.GL44;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL15.*;
+import static org.lwjgl.opengl.GL30.*;
+
+public class Renderer3 implements AutoCloseable {
+
+    private static final Identifier CLOUD_NOISE = new Identifier(Main.MODID, "textures/environment/cloud_noise.png");
+    private static final Identifier COLOR_GRADIENT = new Identifier(Main.MODID, "textures/environment/cloud_gradient.png");
+
+    private final MinecraftClient client;
+    private ClientWorld world = null;
+
+    private final ViewboxTransform viewboxTransform = new ViewboxTransform();
+    private CloudRenderMode lastCloudRenderMode = null;
+    private TestShader0 cloudShader0 = null;
+    private TestShader1 cloudShader1 = null;
+    private TestShader2 cloudShader2 = null;
+    private ChunkedGenerator cloudGenerator = null;
+    private float lastDistance = -1;
+    private int quadVbo;
+    private int quadVao;
+    private int oitFbo;
+    private int oitCustomTexture;
+    private int oitStencilTexture;
+    private int fboWidth;
+    private int fboHeight;
+
+    private GlTimer timer;
+
+    public Renderer3(MinecraftClient client) {
+        this.client = client;
+    }
+
+    public void reload(ResourceManager manager) {
+        GL44.glEnable(GL44.GL_DEBUG_OUTPUT_SYNCHRONOUS);
+
+        reloadShader(manager);
+        reloadGenerator();
+
+        client.getTextureManager().getTexture(CLOUD_NOISE).bindTexture();
+        RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_WRAP_S, GL_REPEAT);
+        RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_WRAP_T, GL_REPEAT);
+        RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_MIN_FILTER, GlConst.GL_LINEAR);
+        RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_MAG_FILTER, GlConst.GL_LINEAR);
+        client.getTextureManager().getTexture(COLOR_GRADIENT).bindTexture();
+        RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_WRAP_T, GL_REPEAT);
+        RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_MIN_FILTER, GlConst.GL_LINEAR);
+        RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_MAG_FILTER, GlConst.GL_LINEAR);
+
+        if(quadVbo != 0) glDeleteBuffers(quadVbo);
+        if(quadVao != 0) glDeleteVertexArrays(quadVao);
+        quadVao = glGenVertexArrays();
+        glBindVertexArray(quadVao);
+        if(Main.IS_DEV) GL44.glObjectLabel(GL44.GL_VERTEX_ARRAY, quadVao, "cloud_quad_vao");
+        quadVbo = glGenBuffers();
+        glBindBuffer(GL_ARRAY_BUFFER, quadVbo);
+        if(Main.IS_DEV) GL44.glObjectLabel(GL44.GL_BUFFER, quadVbo, "cloud_quad_vbo");
+        glBufferData(GL_ARRAY_BUFFER, new float[]{1,-1, 1,1, -1,-1, -1,1}, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, false, 0, 0);
+
+        reloadFramebufferCustom();
+
+        if(timer != null) timer.close();
+        timer = new GlTimer();
+    }
+
+    public void setWorld(ClientWorld world) {
+        this.world = world;
+    }
+
+    private void reloadGenerator() {
+        if(cloudGenerator != null) cloudGenerator.close();
+        cloudGenerator = new ChunkedGenerator();
+        cloudGenerator.allocate(Main.CONFIG, isFancyMode());
+        cloudGenerator.clear();
+    }
+
+    private void reloadFramebufferCustom() {
+        if(oitFbo != 0) glDeleteFramebuffers(oitFbo);
+        oitFbo = glGenFramebuffers();
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, oitFbo);
+        if(Main.IS_DEV) GL44.glObjectLabel(GL_FRAMEBUFFER, oitFbo, "cloud_oit_framebuffer");
+
+        fboWidth = client.getFramebuffer().textureWidth;
+        fboHeight = client.getFramebuffer().textureHeight;
+
+        if(oitCustomTexture != 0) glDeleteTextures(oitCustomTexture);
+        oitCustomTexture = glGenTextures();
+        glBindTexture(GL_TEXTURE_2D, oitCustomTexture);
+        if(Main.IS_DEV) GL44.glObjectLabel(GL_TEXTURE, oitCustomTexture, "cloud_oit_custom");
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, fboWidth, fboHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, oitCustomTexture, 0);
+
+        glDrawBuffers(new int[]{GL_COLOR_ATTACHMENT0});
+
+        if(oitStencilTexture != 0) glDeleteTextures(oitStencilTexture);
+        oitStencilTexture = glGenTextures();
+        glBindTexture(GL_TEXTURE_2D, oitStencilTexture);
+        if(Main.IS_DEV) GL44.glObjectLabel(GL_TEXTURE, oitStencilTexture, "cloud_oit_stencil");
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, fboWidth, fboHeight, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL44.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_STENCIL_INDEX);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, oitStencilTexture, 0);
+
+        int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        if (status != GL_FRAMEBUFFER_COMPLETE) {
+            throw new RuntimeException("Clouds framebuffer incomplete, status: " + status);
+        }
+    }
+
+    private void reloadShader(ResourceManager manager) {
+        if(cloudShader1 != null) cloudShader1.close();
+        Config options = Main.CONFIG;
+        Map<String, String> defs = ImmutableMap.ofEntries(
+            Map.entry(MainShader.DEF_SIZE_X_KEY, Float.toString(options.sizeXZ)),
+            Map.entry(MainShader.DEF_SIZE_Y_KEY, Float.toString(options.sizeY)),
+            Map.entry(MainShader.DEF_FADE_EDGE_KEY, Integer.toString(options.fadeEdge)),
+            Map.entry(MainShader.DEF_GRADIENT_COLOR_KEY, options.gradientColoring ? "1" : "0")
+        );
+
+        try {
+            cloudShader0 = new TestShader0(manager, Map.of());
+            cloudShader0.bind();
+            cloudShader0.uDepth.setInt(0);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
+            cloudShader1 = new TestShader1(manager, defs);
+            cloudShader1.bind();
+            cloudShader1.uLightTexture.setInt(0);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
+            cloudShader2 = new TestShader2(manager, defs);
+            cloudShader2.bind();
+            cloudShader2.uColor.setInt(0);
+            cloudShader2.uAccum.setInt(1);
+            cloudShader2.uLightTexture.setInt(2);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean skipRender() {
+        boolean disabledForIris = !Main.CONFIG.enableExperimentalIrisSupport && IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled();
+        return disabledForIris;
+    }
+
+    public void render(MatrixStack matrices, Matrix4f projMat, float tickDelta, int ticks, Vec3d cam, Frustum frustum) {
+        assert RenderSystem.isOnRenderThread();
+        client.getProfiler().push("render_setup");
+
+        // When the shader could not be loaded
+        if (cloudShader1 == null || !cloudShader1.isComplete()) return;
+        if(Main.IS_DEV) GL43.glPushDebugGroup(GL43.GL_DEBUG_SOURCE_APPLICATION, 1337, "Better Clouds\0");
+
+        timer.start();
+
+        if(Main.CONFIG.hasChanged || lastCloudRenderMode != client.options.getCloudRenderModeValue() || lastDistance != Main.CONFIG.blockDistance()) {
+            lastDistance = Main.CONFIG.blockDistance();
+            lastCloudRenderMode = client.options.getCloudRenderModeValue();
+            reloadShader(client.getResourceManager());
+            cloudGenerator.reallocate(Main.CONFIG, isFancyMode());
+            Main.CONFIG.hasChanged = false;
+        }
+
+        float raininess = Math.max(0.6f*world.getRainGradient(tickDelta), world.getThunderGradient(tickDelta));
+        float cloudiness = raininess * 0.3f + 0.5f;
+        Vec3d skyColor = world.getCloudsColor(tickDelta);
+        float skyAngle = world.getSkyAngleRadians(tickDelta);
+
+        cloudGenerator.bind();
+        cloudGenerator.update(cam, tickDelta, Main.CONFIG, cloudiness);
+        if(cloudGenerator.canGenerate() && !cloudGenerator.generating()) {
+            client.getProfiler().swap("generate_clouds");
+            cloudGenerator.generate();
+            client.getProfiler().swap("render_setup");
+        }
+        if(cloudGenerator.canSwap()) {
+            client.getProfiler().swap("swap");
+            cloudGenerator.swap();
+            client.getProfiler().swap("render_setup");
+        }
+
+        matrices.push();
+        matrices.translate(0, -cam.y, 0);
+        DimensionEffects effects = world.getDimensionEffects();
+
+        float cloudsHeight = getCloudsHeight(effects);
+        matrices.translate(cloudGenerator.renderOriginX(cam.x), cloudsHeight, cloudGenerator.renderOriginZ(cam.z));
+
+        /*
+        FloatBuffer projMatBuf = FloatBuffer.wrap(new float[16]);
+        projMat.write(projMatBuf, true);
+
+        // Optimize the depth range
+        float tanFov = 1 / projMatBuf.get(5);
+        float fov = (float) Math.atan(tanFov);
+        float far = projMatBuf.get(11) / (projMatBuf.get(10) + 1);
+        float near = projMatBuf.get(11) / (projMatBuf.get(10) - 1);
+//        float maxNear = (float) Math.min(cloudsHeight-Main.CONFIG.sizeY-cam.y, cloudsHeight+Main.CONFIG.sizeY+Main.CONFIG.spreadY-cam.y);
+
+        float cloudPlaneMin = Math.min(cloudsHeight-Main.CONFIG.sizeY, cloudsHeight+Main.CONFIG.sizeY+Main.CONFIG.spreadY);
+        float cloudPlaneMax = Math.max(cloudsHeight-Main.CONFIG.sizeY, cloudsHeight+Main.CONFIG.sizeY+Main.CONFIG.spreadY);
+        float pitchRad = (float) Math.abs(client.cameraEntity.getPitch() * Math.PI / 180);
+        // FIXME: Breaks when cam.y > cloudPlaneMin
+        // I think this formula is trash
+//        float maxNear = (float) ((cloudPlaneMin - cam.y) / (-Math.sin(pitchRad) + Math.cos(pitchRad) * tanFov));
+        float maxNear = (float) ((cloudPlaneMin - cam.y) / (Math.sin(pitchRad) + Math.cos(pitchRad) * tanFov));
+        // This also works
+        // float maxNear = (float) (Math.cos(fov) * (cloudPlaneMin-cam.y) / Math.sin(fov + Math.abs(pitchRad)));
+//        float maxNear = (float) ((cloudPlaneMin-cam.y) / (tanFov + Math.sin(Math.abs(pitchRad))));
+
+//        float maxNear = (float) ((cloudsHeight - cam.y) / (-Math.sin(client.cameraEntity.getPitch() * Math.PI / 180) + Math.cos(client.cameraEntity.getPitch() * Math.PI / 180) * tanFov));
+        float minFar = MathHelper.sqrt(MathHelper.square(Main.CONFIG.blockDistance() + Main.CONFIG.sizeXZ) + MathHelper.square(cloudPlaneMax));
+
+        if(maxNear >= minFar || maxNear < 0 || minFar < 0) {
+            // TODO: skip render
+        }
+        maxNear = Math.max(maxNear, 0.05f);
+
+        projMatBuf.put(10, -(minFar+maxNear)/(minFar-maxNear));
+        projMatBuf.put(11, -(2*minFar*maxNear)/(minFar-maxNear));
+
+        projMat.read(projMatBuf, true);
+         */
+
+        viewboxTransform.update(projMat, (float) cam.y, cloudsHeight, client.cameraEntity.getPitch());
+        projMat = viewboxTransform.getProjection();
+
+        RenderSystem.disableBlend();
+//        RenderSystem.enableBlend();
+//        RenderSystem.blendEquation(GL_FUNC_ADD);
+//        RenderSystem.blendFunc(GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ONE);
+
+        RenderSystem.colorMask(false, false, false, false);
+
+
+        // Fix for https://github.com/Qendolin/better-clouds/issues/4
+        if (!isFancyMode()) {
+            RenderSystem.disableCull();
+        } else {
+            RenderSystem.enableCull();
+
+        }
+
+        RenderSystem.enableDepthTest();
+        RenderSystem.depthFunc(GL_LESS);
+        RenderSystem.depthMask(true);
+
+        int lastBoundFbo = glGetInteger(GL_DRAW_FRAMEBUFFER_BINDING);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, oitFbo);
+        RenderSystem.viewport(0, 0, fboWidth, fboHeight);
+        RenderSystem.clearDepth(1);
+        RenderSystem.clearColor(0, 0, 0, 0);
+        glClear(GL_DEPTH_BUFFER_BIT);
+
+        RenderSystem.enableTexture();
+
+        cloudShader0.bind();
+
+        double f0 = viewboxTransform.farPlane();
+        double n0 = viewboxTransform.nearPlane();
+        double f1 = viewboxTransform.minFarPlane();
+        double n1 = viewboxTransform.maxNearPlane();
+//        cloudShader0.uClipPlanes.setVec4((float) n0, (float) f0, (float) n1, (float) f1);
+        cloudShader0.uClipPlanes.setVec4((float)((f0-n0)/(2*f0*n0)), (float)(-(f0+n0)/(2*f0*n0)), (float)((2*f1*n1)/(f1-n1)), (float)((f1+n1)/(f1-n1)));
+        RenderSystem.activeTexture(GL_TEXTURE0);
+        RenderSystem.bindTexture(client.getFramebuffer().getDepthAttachment());
+
+        glBindVertexArray(quadVao);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+        Matrix4f mvpMat = projMat.copy();
+        mvpMat.multiply(matrices.peek().getPositionMatrix());
+        cloudShader1.bind();
+        cloudShader1.uModelViewProjMat.setMat4(mvpMat);
+        cloudShader1.uCloudsOrigin.setVec3((float) -cloudGenerator.renderOriginX(cam.x), (float)cam.y-cloudsHeight, (float) -cloudGenerator.renderOriginZ(cam.z));
+        cloudShader1.uCloudsDistance.setFloat(Main.CONFIG.blockDistance() - Main.CONFIG.chunkSize/2f);
+        cloudShader1.uSkyData.setVec4((float) -Math.sin(skyAngle), (float) Math.cos(skyAngle), world.getTimeOfDay()/24000f, 1-0.75f*raininess);
+
+        cloudGenerator.bind();
+
+        glEnable(GL_STENCIL_TEST);
+        glStencilMask(0xff);
+//        glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
+        glStencilOp(GL_KEEP, GL_INCR, GL_INCR);
+        glStencilFunc(GL_ALWAYS, 0xff, 0xff);
+
+        glClear(GL_STENCIL_BUFFER_BIT);
+
+//        RenderSystem.depthMask(false);
+        RenderSystem.depthMask(true);
+        RenderSystem.depthFunc(GL_LEQUAL);
+//        glEnable(GL_POLYGON_OFFSET_FILL);
+//        glPolygonOffset(0.0f, -1.0f);
+
+        RenderSystem.colorMask(true, true, true, true);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        RenderSystem.activeTexture(GL_TEXTURE0);
+        client.getTextureManager().getTexture(COLOR_GRADIENT).bindTexture();
+
+        client.getProfiler().swap("draw_geometry");
+
+        if(cloudGenerator.canRender()) {
+            // TODO: improve grouping
+            int runStart = -1;
+            int runCount = 0;
+            for (ChunkedGenerator.ChunkIndex chunk : cloudGenerator.chunks()) {
+                Box bounds = chunk.bounds(cloudsHeight, Main.CONFIG.sizeXZ, Main.CONFIG.sizeY);
+                if(!frustum.isVisible(bounds)) {
+                    if(runCount != 0) {
+                        GL44.glDrawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, 0, cloudGenerator.instanceVertexCount(), runCount, runStart);
+                    }
+                    runStart = -1;
+                    runCount = 0;
+                } else {
+                    if(runStart == -1) runStart = chunk.start();
+                    runCount += chunk.count();
+                }
+            }
+            if(runCount != 0) {
+                GL44.glDrawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, 0, cloudGenerator.instanceVertexCount(), runCount, runStart);
+            }
+        }
+
+//        RenderSystem.colorMask(true, true, true, true);
+//        RenderSystem.depthMask(false);
+//        RenderSystem.depthFunc(GL_EQUAL);
+//        glStencilMask(0x0);
+//
+//        if(cloudGenerator.canRender()) {
+//            // TODO: improve grouping
+//            int runStart = -1;
+//            int runCount = 0;
+//            for (ChunkedGenerator.ChunkIndex chunk : cloudGenerator.chunks()) {
+//                Box bounds = chunk.bounds(cloudsHeight, Main.CONFIG.sizeXZ, Main.CONFIG.sizeY);
+//                if(!frustum.isVisible(bounds)) {
+//                    if(runCount != 0) {
+//                        GL44.glDrawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, 0, cloudGenerator.instanceVertexCount(), runCount, runStart);
+//                    }
+//                    runStart = -1;
+//                    runCount = 0;
+//                } else {
+//                    if(runStart == -1) runStart = chunk.start();
+//                    runCount += chunk.count();
+//                }
+//            }
+//            if(runCount != 0) {
+//                GL44.glDrawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, 0, cloudGenerator.instanceVertexCount(), runCount, runStart);
+//            }
+//        }
+
+        client.getProfiler().swap("draw_shading");
+
+//        glDisable(GL_POLYGON_OFFSET_FILL);
+        RenderSystem.disableDepthTest();
+
+        GlStateManager._glBindFramebuffer(GL_DRAW_FRAMEBUFFER, lastBoundFbo);
+        // TODO: viewport might not be correct always
+        RenderSystem.viewport(0, 0, client.getFramebuffer().textureWidth, client.getFramebuffer().textureHeight);
+
+        RenderSystem.activeTexture(GL_TEXTURE0);
+        RenderSystem.bindTexture(oitCustomTexture);
+        RenderSystem.activeTexture(GL_TEXTURE1);
+        RenderSystem.bindTexture(oitStencilTexture);
+        RenderSystem.activeTexture(GL_TEXTURE2);
+        client.getTextureManager().getTexture(COLOR_GRADIENT).bindTexture();
+
+        RenderSystem.enableBlend();
+        RenderSystem.blendEquation(GL_FUNC_ADD);
+        RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ZERO, GlStateManager.DstFactor.ONE);
+
+        glDisable(GL_STENCIL_TEST);
+        glStencilFunc(GL_ALWAYS, 0x0, 0xff);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+
+        RenderSystem.colorMask(true, true, true, true);
+
+        if(IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled() && Main.CONFIG.useIrisFBO) IrisCompat.bindFramebuffer();
+
+        cloudShader2.bind();
+        cloudShader2.uSkyColor.setVec4((float) skyColor.x, (float) skyColor.y, (float) skyColor.z, Main.CONFIG.opacity);
+        cloudShader2.uSkyData.setVec4((float) -Math.sin(skyAngle), (float) Math.cos(skyAngle), world.getTimeOfDay()/24000f, 1-0.75f*raininess);
+        cloudShader2.uGamma.setVec3(Main.CONFIG.brightness, Main.CONFIG.gamma, Main.CONFIG.alphaFactor);
+
+        Matrix4f viewRotMat = new Matrix4f();
+        viewRotMat.loadIdentity();
+        viewRotMat.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(client.cameraEntity.getPitch()));
+        viewRotMat.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(client.cameraEntity.getYaw() + 180.0f));
+        Matrix4f inverseMat = projMat.copy();
+        inverseMat.multiply(viewRotMat);
+        inverseMat.invert();
+        cloudShader2.uInverseMat.setMat4(inverseMat);
+
+        glBindVertexArray(quadVao);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+        client.getProfiler().swap("render_cleanup");
+
+        cloudGenerator.unbind();
+        Shader.unbind();
+        RenderSystem.enableDepthTest();
+        RenderSystem.depthMask(true);
+        RenderSystem.depthFunc(GL_LESS);
+        RenderSystem.disableBlend();
+
+        matrices.pop();
+        client.getProfiler().pop();
+
+        timer.stop();
+
+        if(timer.frames() >= 10000) {
+            List<Double> times = timer.get();
+            times.sort(Double::compare);
+            double median = times.get(times.size()/2);
+            double p25 = times.get((int) Math.ceil(times.size()*0.25));
+            double p75 = times.get((int) Math.ceil(times.size()*0.75));
+            double min = times.get(0);
+            double max = times.get(times.size()-1);
+            double average = times.stream().mapToDouble(d -> d).average().orElse(0);
+            client.inGameHud.getChatHud().addMessage(Text.literal(String.format("Stats over %d frames: %.3f / %.3f / %.3f min/avg/max %.3f / %.3f / %.3f p25/med/p75", timer.frames(), min, average, max, p25, median, p75)));
+            timer.reset();
+        }
+
+        if(Main.IS_DEV) GL43.glPopDebugGroup();
+    }
+
+    private float getCloudsHeight(DimensionEffects effects) {
+        if(SodiumExtraCompat.IS_LOADED) {
+            if (effects.getSkyType() == DimensionEffects.SkyType.NORMAL) {
+                return SodiumExtraCompat.getCloudsHeight();
+            }
+        }
+
+        return effects.getCloudsHeight();
+    }
+
+    private boolean isFancyMode() {
+        return client.options.getCloudRenderModeValue() == CloudRenderMode.FANCY;
+    }
+
+    public void close() {
+        if(cloudShader1 != null) cloudShader1.close();
+        if(cloudGenerator != null) cloudGenerator.close();
+    }
+}

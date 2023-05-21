@@ -2,17 +2,18 @@ package com.qendolin.betterclouds.clouds;
 
 import com.qendolin.betterclouds.Config;
 import com.qendolin.betterclouds.Main;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
 
-import java.nio.FloatBuffer;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Generator implements AutoCloseable {
+public class ChunkedGenerator implements AutoCloseable {
     private double originX;
     private double originZ;
 
@@ -28,13 +29,8 @@ public class Generator implements AutoCloseable {
     @Nullable
     private Task swappedTask;
 
-    private Vec3d lastSortPos;
-    private int lastSortTask;
-    private int lastSortIdx;
-    private int fullSortCount;
-
     private static int floorCloudChunk(double coord, int chunkSize) {
-        return (int) coord / chunkSize;
+        return (int) Math.floor(coord / chunkSize);
     }
 
     public synchronized boolean canGenerate() {
@@ -55,6 +51,11 @@ public class Generator implements AutoCloseable {
         runningTask = null;
         completedTask = null;
         swappedTask = null;
+    }
+
+    public synchronized List<ChunkIndex> chunks() {
+        if(swappedTask == null) return List.of();
+        return swappedTask.chunks();
     }
 
     public synchronized int instanceVertexCount() {
@@ -141,12 +142,13 @@ public class Generator implements AutoCloseable {
             boolean optionsChanged = options.fuzziness != prevOptions.fuzziness
                 || options.chunkSize != prevOptions.chunkSize
                 || options.spreadY != prevOptions.spreadY
+                || options.sparsity != prevOptions.sparsity
                 || options.spacing != prevOptions.spacing
                 || options.jitter != prevOptions.jitter
                 || options.distance != prevOptions.distance;
 
             float prevCloudiness = prevTask.cloudiness();
-            boolean cloudinessChanged = Math.abs(cloudiness - prevCloudiness) > 0.05;
+            boolean cloudinessChanged = Math.ceil(cloudiness * 100) != Math.ceil(prevCloudiness * 100);
 
             boolean bufferCleared = buffer.swapCount() == 0 && queuedTask == null && runningTask == null && (completedTask == null || completedTask == swappedTask);
 
@@ -160,7 +162,7 @@ public class Generator implements AutoCloseable {
         }
     }
 
-    public synchronized void generate(boolean forceSync) {
+    public synchronized void generate() {
         if(queuedTask == null) {
             Main.LOGGER.warn("generate called with no queued task");
             return;
@@ -171,19 +173,13 @@ public class Generator implements AutoCloseable {
         runningTask = queuedTask;
         queuedTask = null;
 
-//        if(runningTask.options.async && !forceSync) {
-            CompletableFuture.runAsync(runningTask::run)
-            .whenComplete((unused, throwable) -> {
-                synchronized (this) {
-                    if(runningTask.completed()) completedTask = runningTask;
-                    runningTask = null;
-                }
-            });
-//        } else {
-//            runningTask.run();
-//            if(runningTask.completed()) completedTask = runningTask;
-//            runningTask = null;
-//        }
+        CompletableFuture.runAsync(runningTask::run)
+        .whenComplete((unused, throwable) -> {
+            synchronized (this) {
+                if(runningTask.completed()) completedTask = runningTask;
+                runningTask = null;
+            }
+        });
     }
 
     public synchronized void swap() {
@@ -195,6 +191,7 @@ public class Generator implements AutoCloseable {
             Main.LOGGER.warn("swap called with swapped task");
             return;
         }
+
         completedTask.buffer.swap();
         swappedTask = completedTask;
     }
@@ -212,8 +209,8 @@ public class Generator implements AutoCloseable {
         private final AtomicBoolean ran = new AtomicBoolean();
         private final AtomicBoolean cancelled = new AtomicBoolean();
         private final AtomicBoolean completed = new AtomicBoolean();
+        private final List<ChunkIndex> chunks = new ArrayList<>();
         private int cloudCount;
-        private CloudList cloudList;
 
         public Task(int chunkX, int chunkZ, Config options, float cloudiness, Buffer buffer, Sampler sampler) {
             this.id = nextId.getAndIncrement();
@@ -260,6 +257,44 @@ public class Generator implements AutoCloseable {
         public float cloudiness() {
             return cloudiness;
         }
+        public List<ChunkIndex> chunks() {
+            return chunks;
+        }
+
+        private int roundToMultiple(int n, int base) {
+            if (n >= 0) {
+                return (n + base - 1) / base * base;
+            } else {
+                return (n - base + 1) / base * base;
+            }
+        }
+
+        private int hash(int prime, int... values) {
+            int hash = prime;
+            for (int value : values) {
+                hash += value;
+                hash += hash << 10;
+                hash ^= hash >> 6;
+            }
+            hash += hash << 3;
+            hash ^= hash >> 11;
+            hash += hash << 15;
+            return hash;
+        }
+
+        // https://stackoverflow.com/a/17479300/7448536
+        // Distribution is very uniform from my testing
+        private float hashToFloat(int prime, int... values) {
+            int hash = hash(prime, values);
+
+            int ieeeMantissa = 0x007FFFFF;
+            int ieeeOne = 0x3F800000;
+
+            hash &= ieeeMantissa;
+            hash |= ieeeOne;
+            float f = Float.intBitsToFloat(hash);
+            return f - 1;
+        }
 
         public void run() {
             synchronized (this) {
@@ -269,31 +304,93 @@ public class Generator implements AutoCloseable {
             int distance = options.blockDistance();
             double spacing = options.spacing;
 
-            int halfGridPointsC = MathHelper.ceil(distance / spacing);
-            int halfGridPointsF = MathHelper.floor(distance / spacing);
+            int gridMin = -MathHelper.floor(distance / spacing);
+            int gridMax = MathHelper.ceil(distance / spacing);
 
-            int originX = chunkX * options.chunkSize;
-            int originZ = chunkZ * options.chunkSize;
-            double alignedOriginX = MathHelper.floor(originX / spacing) * spacing;
-            double alignedOriginZ = MathHelper.floor(originZ / spacing) * spacing;
+            int chunkMin = roundToMultiple(gridMin, options.chunkSize);
+            int chunkMax = roundToMultiple(gridMax, options.chunkSize);
+            int chunkLength = chunkMax - chunkMin;
+            int chunkCount = chunkLength / options.chunkSize;
+
+            int gridOriginX = MathHelper.floor((chunkX * options.chunkSize) / spacing);
+            int gridOriginZ = MathHelper.floor((chunkZ * options.chunkSize) / spacing);
+
+            int[][][] chunkGridPoints = new int[chunkCount * chunkCount][][];
+            for (int chunkX = chunkMin; chunkX < chunkMax; chunkX += options.chunkSize) {
+                for (int chunkZ = chunkMin; chunkZ < chunkMax; chunkZ += options.chunkSize) {
+                    int chunkGridMinX = Math.max(chunkX, gridMin);
+                    int chunkGridMinZ = Math.max(chunkZ, gridMin);
+                    int chunkGridMaxX = Math.min(chunkX + options.chunkSize, gridMax);
+                    int chunkGridMaxZ = Math.min(chunkZ + options.chunkSize, gridMax);
+                    int chunkGridLengthX = chunkGridMaxX - chunkGridMinX;
+                    int chunkGridLengthZ = chunkGridMaxZ - chunkGridMinZ;
+                    int chunkIndex = (chunkX-chunkMin) / options.chunkSize + chunkCount * ((chunkZ-chunkMin) / options.chunkSize);
+                    chunkGridPoints[chunkIndex] = new int[chunkGridLengthX * chunkGridLengthZ][];
+
+                    for (int gridX = chunkGridMinX; gridX < chunkGridMaxX; gridX++) {
+                        for (int gridZ = chunkGridMinZ; gridZ < chunkGridMaxZ; gridZ++) {
+                            if(hashToFloat(11, gridX + gridOriginX, gridZ + gridOriginZ) < options.sparsity)
+                                continue;
+
+                            int pointIndex = (gridX-chunkGridMinX) + chunkGridLengthX * (gridZ-chunkGridMinZ);
+                            chunkGridPoints[chunkIndex][pointIndex] = new int[]{gridX, gridZ};
+                        }
+                    }
+                }
+            }
+
+            // Shuffle
+            for (int[][] gridPoints : chunkGridPoints) {
+                for (int s = 0; s < gridPoints.length; s++) {
+                    int[] tmp = gridPoints[s];
+                    if(tmp == null) continue;
+                    int d = hash(13, tmp[0] + gridOriginX, tmp[1] + gridOriginZ) % gridPoints.length;
+                    if(d < 0) d = -d;
+                    gridPoints[s] = gridPoints[d];
+                    gridPoints[d] = tmp;
+                }
+            }
 
             buffer.clear();
 
-            for (int gridX = -halfGridPointsF; gridX < halfGridPointsC; gridX++) {
-                for (int gridZ = -halfGridPointsF; gridZ < halfGridPointsC; gridZ++) {
-                    int sampleX = MathHelper.floor(gridX * spacing + alignedOriginX);
-                    int sampleZ = MathHelper.floor(gridZ * spacing + alignedOriginZ);
+            for (int[][] gridPoints : chunkGridPoints) {
+                int chunkCloudIndex = cloudCount;
+                float[] bounds = null;
+                for (int[] point : gridPoints) {
+                    if(point == null) continue;
+                    int gridX = point[0], gridZ = point[1];
+
+                    int sampleX = MathHelper.floor((gridX + gridOriginX) * spacing);
+                    int sampleZ = MathHelper.floor((gridZ + gridOriginZ) * spacing);
                     float value = sampler.sample(sampleX, sampleZ, cloudiness, options.fuzziness);
                     if (value <= 0) continue;
 
-                    float x = (float) (sampleX - chunkX * options.chunkSize + sampler.jitterX(sampleX, sampleZ) * options.jitter * spacing);
+                    float x = (float) (sampleX - this.chunkX * options.chunkSize + sampler.jitterX(sampleX, sampleZ) * options.jitter * spacing);
                     // TODO: cloudPointiness value
                     float y = options.spreadY * value * value;
-                    float z = (float) (sampleZ - chunkZ * options.chunkSize + sampler.jitterZ(sampleX, sampleZ) * options.jitter * spacing);
+                    float z = (float) (sampleZ - this.chunkZ * options.chunkSize + sampler.jitterZ(sampleX, sampleZ) * options.jitter * spacing);
+
+                    if(bounds == null) {
+                        bounds = new float[]{x, y, z, x, y, z};
+                    } else {
+                        if(x < bounds[0]) bounds[0] = x;
+                        if(y < bounds[1]) bounds[1] = y;
+                        if(z < bounds[2]) bounds[2] = z;
+                        if(x > bounds[3]) bounds[3] = x;
+                        if(y > bounds[4]) bounds[4] = y;
+                        if(z > bounds[5]) bounds[5] = z;
+                    }
 
                     buffer.put(x, y, z);
                     cloudCount++;
                 }
+
+                if(chunkCloudIndex != cloudCount && bounds != null) {
+                    Box boundingBox = new Box(bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5])
+                        .offset(this.chunkX * options.chunkSize, 0, this.chunkZ * options.chunkSize);
+                    chunks.add(new ChunkIndex(chunkCloudIndex, cloudCount-chunkCloudIndex, boundingBox));
+                }
+
                 if(cancelled.get()) {
                     synchronized (this) {
                         notify();
@@ -302,91 +399,42 @@ public class Generator implements AutoCloseable {
                 }
             }
 
-            cloudList = new CloudList(buffer.writeBuffer());
             completed.set(true);
         }
     }
 
-    public static class CloudList implements Sort.List {
+    public static final class ChunkIndex {
+        private final int start;
+        private final int count;
+        private final Box bounds;
 
-        private final FloatBuffer buffer;
-        private final float[] distances;
-        private float originX;
-        private float originY;
-        private float originZ;
-        private int compares = 0;
-        private int swaps = 0;
+        private Box cachedBounds;
+        private float lastCloudsHeight;
+        private float lastSizeXZ;
+        private float lastSizeY;
 
-        public CloudList(FloatBuffer buffer) {
-            this.distances = new float[buffer.position() / 3];
-            updateOrigin(0, 0,0);
-            this.buffer = buffer;
+        public ChunkIndex(int start, int count, Box bounds) {
+            this.start = start;
+            this.count = count;
+            this.bounds = bounds;
         }
 
-        public void updateOrigin(float x, float y, float z) {
-            originX = x;
-            originY = y;
-            originZ = z;
-            Arrays.fill(distances, -1);
+        public Box bounds(float cloudsHeight, float sizeXZ, float sizeY) {
+            if(cloudsHeight == lastCloudsHeight && sizeXZ == lastSizeXZ && sizeY == lastSizeY) return cachedBounds;
+
+            cachedBounds = bounds.offset(0, cloudsHeight, 0).expand(sizeXZ, sizeY, sizeXZ);
+            lastCloudsHeight = cloudsHeight;
+            lastSizeXZ = sizeXZ;
+            lastSizeY = sizeY;
+            return cachedBounds;
         }
 
-        @Override
-        public void swap(int i, int j) {
-            swaps++;
-            float tmpDist = distances[i];
-            distances[i] = distances[j];
-            distances[j] = tmpDist;
-
-            float tmpX = buffer.get(i*3);
-            float tmpY = buffer.get(i*3+1);
-            float tmpZ = buffer.get(i*3+2);
-            buffer.put(i*3, buffer.get(j*3));
-            buffer.put(i*3+1, buffer.get(j*3+1));
-            buffer.put(i*3+2, buffer.get(j*3+2));
-            buffer.put(j*3, tmpX);
-            buffer.put(j*3+1, tmpY);
-            buffer.put(j*3+2, tmpZ);
+        public int start() {
+            return start;
         }
 
-        @Override
-        public int compare(int i, int j) {
-            compares++;
-            float distI = distances[i], distJ = distances[j];
-            if(distI == -1) {
-                distI = calculateDistance(i);
-                distances[i] = distI;
-            }
-            if(distJ == -1) {
-                distJ = calculateDistance(j);
-                distances[j] = distJ;
-            }
-            return Float.compare(distJ, distI);
-        }
-
-        private float calculateDistance(int i){
-//            float y = buffer.get(i*3+1);
-//            return y;
-
-            float x = buffer.get(i*3);
-            float y = -100 - buffer.get(i*3+1);
-            float z = buffer.get(i*3+2);
-
-            return x*x + y*y + z*z;
-
-//            float x = buffer.get(i*3);
-//            float y = buffer.get(i*3+1);
-//            float z = buffer.get(i*3+2);
-//
-//            float dx = originX-x;
-//            float dy = originY-y;
-//            float dz = originZ-z;
-//
-//           return dx*dx + dy*dy + dz*dz;
-        }
-
-        @Override
-        public int size() {
-            return distances.length;
+        public int count() {
+            return count;
         }
     }
 }

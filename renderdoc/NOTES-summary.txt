@@ -9,36 +9,64 @@ Mostly works:
     - HDR x0.8
  - Tea
  - Stereo's
- - SORA
  - RedHat
  - Chocapic V6
+ - Super Duper Vanilla
+ - Sildurs's Basic Shaders
+ - Vanilla+
+ - Nostalgia
+ - DrDestens
+ - Chocapic Toaster
+
 
 Somewhat works:
  - Sildur's Enhanced Default
-	- Depth
+	- Depth for god-rays
  - SEUS Renewed
 	- Render Target 1 blue
  - ProjectLUMA
 	- HDR 1/12
- - BBL
-	- Render Target 1 blue
+ - Solas Shader
+ - Triliton's Shader
 
 Might work:
  - Oceano
  - YoFPS
  - Vanilla+
+ - Chocapic V9
+    TAAU has to be disabled
+ - Kappa
+    TAAU has to be disabled
+    Clouds appear very dark
+ - Soft Voxels (lite)
+    TAAU has to be disabled
+ - BBL
+	- RT0 albedo
+	- RT1 vec4(29./255., 0.93725, 0.79608, 1.0)
+	But: blending doesn't work?
 
 Wont work:
  - Sildur's
+    Complicated GBuffer layout
+ - SORA
+    Clouds baked into Skybox
+ - Complementary Reimagined v1.4
+    Cannot disable clouds
+ - Rethinking Voxels
+    Same as Complementary Reimagined
+ - MakeUp
+    RT0 is ignored
+ - Voyager
+    RT0 viewport size
+
 
 Not compatible with Iris:
- - Chocapic V9
- - Vanilla+
- - Kappa
- - Nostalgia
- - MakeUp
- - DrDestens
- - Voyager
- - Super Duper Vanilla
- - Atlas
- - Chocapic Toaster
+  - Atlas
+
+
+Tested, needs sorting:
+
+
+Not tested:
+
+- UShader 2.0

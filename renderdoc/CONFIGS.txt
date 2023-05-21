@@ -1,0 +1,45 @@
+Complementary 4.6 :)
+    Gamma           -2.2
+    Brightness      0.6
+
+BSL 8.2 :(
+    Opacity         0.55
+    Gamma           -2.2
+    Brightness      0.85
+
+    Opacity         0.2
+    Gamma           -2.2
+    Brightness      1.0
+
+AstraLex 67.0 :(
+    Same as BSL 8.2
+    Note: not quite, clouds are very bright
+
+Complementary Reimagined 1.3 :I
+    Gamma           2.2
+    Brightness      1.2
+
+Tea 1.5.7 :)
+    Vanilla
+
+Chocapic V6 Low, Medium :)
+    Gamma           2.2
+    Brightness      1.9
+
+Prismarine 4.2a :)
+    Opacity:        0.1
+    Gamma           -2.2
+    Brightness      0.75
+
+Stereo's Default+ 2.4 :)
+    Gamma           1.0
+    Brightness      0.95
+
+RedHat 34.0 :I
+    Opacity:        0.3
+
+Sildur's Basic 2.01 :)
+    Vanilla
+
+Sildur's Enhanced Default 2.01 :)
+    Vanilla
