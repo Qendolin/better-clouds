@@ -16,8 +16,7 @@ out vec3 out_color;
 
 void main() {
     if(pass_opacity <= dither_matrix[int(gl_FragCoord.x)%4][int(gl_FragCoord.y)%4]) {
-        // TODO: Maybe there is a way to achieve the same without using discard, to enable
-        // the early z test
+        // TODO: Maybe there is a way to achieve the same without using discard, to enable the early z test
         discard;
     }
 

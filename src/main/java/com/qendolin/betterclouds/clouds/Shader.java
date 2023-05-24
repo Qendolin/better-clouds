@@ -1,13 +1,13 @@
 package com.qendolin.betterclouds.clouds;
 
 import com.mojang.blaze3d.platform.GlStateManager;
+import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.mixin.ShaderProgramAccessor;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.InvalidHierarchicalFileException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.lwjgl.opengl.GL44;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,7 +15,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 
-import static com.qendolin.betterclouds.Main.bcObjectLabel;
 import static org.lwjgl.opengl.GL32.*;
 
 public class Shader implements AutoCloseable {
@@ -29,8 +28,8 @@ public class Shader implements AutoCloseable {
         int vsh = compileShader(GL_VERTEX_SHADER, vshId, resMan);
         int fsh = compileShader(GL_FRAGMENT_SHADER, fshId, resMan);
 
-        bcObjectLabel(GL44.GL_SHADER, vsh, vshId.getPath());
-        bcObjectLabel(GL44.GL_SHADER, fsh, fshId.getPath());
+        Main.glCompat.objectLabel(Main.glCompat.GL_SHADER, vsh, vshId.getPath());
+        Main.glCompat.objectLabel(Main.glCompat.GL_SHADER, fsh, fshId.getPath());
 
         programId = GlStateManager.glCreateProgram();
         glAttachShader(programId, vsh);
@@ -77,8 +76,8 @@ public class Shader implements AutoCloseable {
         programId = 0;
     }
 
-    public boolean isComplete() {
-        return programId > 0;
+    public boolean isIncomplete() {
+        return programId <= 0;
     }
 
     public void bind() {

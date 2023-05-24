@@ -156,7 +156,7 @@ Sildur's Basic
 ✗ Atlas
 	Does not load
 
-x Complementary Reimagined
+x Complementary Reimagined 1.4
     Forward
     Always renders shader clouds
 

@@ -16,45 +16,47 @@ import net.minecraft.client.render.Frustum;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.resource.ResourceManager;
-import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
-import net.minecraft.util.math.*;
+import net.minecraft.util.math.Box;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.RotationAxis;
+import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
-import org.lwjgl.opengl.GL44;
+import org.joml.Vector3f;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static com.qendolin.betterclouds.Main.bcObjectLabel;
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL15.*;
-import static org.lwjgl.opengl.GL30.*;
+import static com.qendolin.betterclouds.Main.glCompat;
+import static org.lwjgl.opengl.GL32.*;
 
-public class Renderer4 implements AutoCloseable {
+public class Renderer implements AutoCloseable {
 
-    private static final Identifier NOISE_TEXTURE = new Identifier(Main.MODID, "textures/environment/cloud_noise.png");
-    private static final Identifier NOISE2_TEXTURE = new Identifier(Main.MODID, "textures/environment/cloud_noise_3.png");
+    // Texture Unit 5
+    private static final Identifier NOISE_TEXTURE = new Identifier(Main.MODID, "textures/environment/cloud_noise_rgb.png");
+    // Texture Unit 4
     private static final Identifier LIGHTING_TEXTURE = new Identifier(Main.MODID, "textures/environment/cloud_gradient.png");
 
     private final MinecraftClient client;
     private ClientWorld world = null;
 
-    private CloudRenderMode lastCloudRenderMode = null;
-    private TestShader0 depthShader = null;
-    private TestShader1 coverageShader = null;
-    private TestShader2 blitShader = null;
-    private ChunkedGenerator cloudGenerator = null;
+    private DepthShader depthShader = null;
+    private CoverageShader coverageShader = null;
+    private BlitShader blitShader = null;
+    private ChunkedGenerator generator = null;
     private final ViewboxTransform viewboxTransform = new ViewboxTransform();
     private final long startTime = Util.getEpochTimeMs();
-    private float lastDistance = -1;
     private int quadVbo;
     private int quadVao;
     private int oitFbo;
-    private int oitDataTexture;
-    private int oitCoverageTexture;
+    // Texture Unit 1
     private int oitCoverageDepthView;
+    // Texture Unit 2
+    private int oitDataTexture;
+    // Texture Unit 3
+    private int oitCoverageTexture;
     private int fboWidth;
     private int fboHeight;
     private float cloudsHeight;
@@ -63,10 +65,11 @@ public class Renderer4 implements AutoCloseable {
     private final Matrix4f mvpMatrix = new Matrix4f();
     private final Matrix4f inverseMatrix = new Matrix4f();
     private final Matrix4f tempMatrix = new Matrix4f();
+    private final PrimitiveChangeDetector shaderInvalidator = new PrimitiveChangeDetector(false);
 
     private GlTimer timer;
 
-    public Renderer4(MinecraftClient client) {
+    public Renderer(MinecraftClient client) {
         this.client = client;
     }
 
@@ -75,22 +78,19 @@ public class Renderer4 implements AutoCloseable {
     }
 
     public void reload(ResourceManager manager) {
-        // TODO: Move this somewhere else
-        if(Main.IS_DEV) GL44.glEnable(GL44.GL_DEBUG_OUTPUT_SYNCHRONOUS);
-
         Main.LOGGER.info("Reloading cloud renderer...");
 
-        Main.LOGGER.info("1) Reloading shaders");
+        Main.LOGGER.debug("[1/6] Reloading shaders");
         reloadShaders(manager);
-        Main.LOGGER.info("2) Reloading generator");
+        Main.LOGGER.debug("[2/6] Reloading generator");
         reloadGenerator();
-        Main.LOGGER.info("3) Reloading textures");
+        Main.LOGGER.debug("[3/6] Reloading textures");
         reloadTextures();
-        Main.LOGGER.info("4) Reloading quad mesh");
+        Main.LOGGER.debug("[4/6] Reloading quad mesh");
         reloadQuad();
-        Main.LOGGER.info("5) Reloading framebuffer");
+        Main.LOGGER.debug("[5/6] Reloading framebuffer");
         reloadFramebuffer();
-        Main.LOGGER.info("6) Reloading timers");
+        Main.LOGGER.debug("[6/6] Reloading timers");
         reloadTimer();
 
         Main.LOGGER.info("Cloud renderer initialized");
@@ -101,9 +101,9 @@ public class Renderer4 implements AutoCloseable {
     }
 
     private void reloadTimer() {
-        if(!Main.IS_DEV) return;
         deleteTimer();
 
+        if(!Main.isProfilingEnabled()) return;
         timer = new GlTimer();
     }
 
@@ -117,11 +117,11 @@ public class Renderer4 implements AutoCloseable {
 
         quadVao = glGenVertexArrays();
         glBindVertexArray(quadVao);
-        bcObjectLabel(GL44.GL_VERTEX_ARRAY, quadVao, "quad");
+        glCompat.objectLabel(glCompat.GL_VERTEX_ARRAY, quadVao, "quad");
 
         quadVbo = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, quadVbo);
-        bcObjectLabel(GL44.GL_BUFFER, quadVbo, "quad");
+        glCompat.objectLabel(glCompat.GL_BUFFER, quadVbo, "quad");
 
         glBufferData(GL_ARRAY_BUFFER, new float[]{1,-1, 1,1, -1,-1, -1,1}, GL_STATIC_DRAW);
         glEnableVertexAttribArray(0);
@@ -129,24 +129,17 @@ public class Renderer4 implements AutoCloseable {
     }
 
     private void reloadTextures() {
-        // FIXME: The texture doesn't load sometimes
         int noiseTexture = client.getTextureManager().getTexture(NOISE_TEXTURE).getGlId();
+        RenderSystem.activeTexture(GL_TEXTURE0);
         RenderSystem.bindTexture(noiseTexture);
-        bcObjectLabel(GL_TEXTURE, noiseTexture, "noise");
-        RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_WRAP_S, GL_REPEAT);
-        RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_WRAP_T, GL_REPEAT);
-        RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_MIN_FILTER, GlConst.GL_LINEAR);
-        RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_MAG_FILTER, GlConst.GL_LINEAR);
-        noiseTexture = client.getTextureManager().getTexture(NOISE2_TEXTURE).getGlId();
-        RenderSystem.bindTexture(noiseTexture);
-        bcObjectLabel(GL_TEXTURE, noiseTexture, "noise2");
+        glCompat.objectLabel(GL_TEXTURE, noiseTexture, "noise");
         RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_WRAP_S, GL_REPEAT);
         RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_WRAP_T, GL_REPEAT);
         RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_MIN_FILTER, GlConst.GL_LINEAR);
         RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_MAG_FILTER, GlConst.GL_LINEAR);
         int lightingTexture = client.getTextureManager().getTexture(LIGHTING_TEXTURE).getGlId();
         RenderSystem.bindTexture(lightingTexture);
-        bcObjectLabel(GL_TEXTURE, lightingTexture, "lighting");
+        glCompat.objectLabel(GL_TEXTURE, lightingTexture, "lighting");
         RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_WRAP_T, GL_REPEAT);
         RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_MIN_FILTER, GlConst.GL_LINEAR);
@@ -154,20 +147,21 @@ public class Renderer4 implements AutoCloseable {
     }
 
     private void deleteGenerator() {
-        if(cloudGenerator != null) cloudGenerator.close();
+        if(generator != null) generator.close();
     }
 
     private void reloadGenerator() {
         deleteGenerator();
-        cloudGenerator = new ChunkedGenerator();
-        cloudGenerator.allocate(Main.CONFIG, isFancyMode());
-        cloudGenerator.clear();
+        generator = new ChunkedGenerator();
+        generator.allocate(Main.getConfig(), isFancyMode());
+        generator.clear();
     }
 
     private void deleteFramebuffer() {
         if(oitFbo != 0) glDeleteFramebuffers(oitFbo);
-        if(oitDataTexture != 0) glDeleteTextures(oitDataTexture);
-        if(oitCoverageTexture != 0) glDeleteTextures(oitCoverageTexture);
+        if(oitDataTexture != 0) RenderSystem.deleteTexture(oitDataTexture);
+        if(oitCoverageTexture != 0) RenderSystem.deleteTexture(oitCoverageTexture);
+        if(oitCoverageDepthView != 0) RenderSystem.deleteTexture(oitCoverageDepthView);
     }
 
     private void reloadFramebuffer() {
@@ -175,16 +169,15 @@ public class Renderer4 implements AutoCloseable {
 
         oitFbo = glGenFramebuffers();
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, oitFbo);
-        bcObjectLabel(GL_FRAMEBUFFER, oitFbo, "coverage");
+        glCompat.objectLabel(GL_FRAMEBUFFER, oitFbo, "coverage");
 
         fboWidth = client.getFramebuffer().textureWidth;
         fboHeight = client.getFramebuffer().textureHeight;
 
         oitDataTexture = glGenTextures();
-        glBindTexture(GL_TEXTURE_2D, oitDataTexture);
-        if(Main.IS_DEV) GL44.glObjectLabel(GL_TEXTURE, oitDataTexture, "coverage_color");
-        GL44.glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB8, fboWidth, fboHeight);
-//        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, fboWidth, fboHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+        RenderSystem.bindTexture(oitDataTexture);
+        glCompat.objectLabel(GL_TEXTURE, oitDataTexture, "coverage_color");
+        glCompat.texStorage2D(GL_TEXTURE_2D, 1, GL_RGB8, fboWidth, fboHeight);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, oitDataTexture, 0);
@@ -192,21 +185,21 @@ public class Renderer4 implements AutoCloseable {
         glDrawBuffers(new int[]{GL_COLOR_ATTACHMENT0});
 
         oitCoverageTexture = glGenTextures();
-        glBindTexture(GL_TEXTURE_2D, oitCoverageTexture);
-        bcObjectLabel(GL_TEXTURE, oitCoverageTexture, "coverage_stencil");
-//        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, fboWidth, fboHeight, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0);
-        GL44.glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH24_STENCIL8, fboWidth, fboHeight);
+        RenderSystem.bindTexture(oitCoverageTexture);
+        glCompat.objectLabel(GL_TEXTURE, oitCoverageTexture, "coverage_stencil");
+        glCompat.texStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH24_STENCIL8, fboWidth, fboHeight);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL44.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_STENCIL_INDEX);
+        glTexParameteri(GL_TEXTURE_2D, glCompat.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_STENCIL_INDEX);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, oitCoverageTexture, 0);
 
         oitCoverageDepthView = glGenTextures();
-        GL44.glTextureView(oitCoverageDepthView, GL_TEXTURE_2D, oitCoverageTexture, GL_DEPTH24_STENCIL8, 0, 1, 0, 1);
+        glCompat.textureView(oitCoverageDepthView, GL_TEXTURE_2D, oitCoverageTexture, GL_DEPTH24_STENCIL8, 0, 1, 0, 1);
         glBindTexture(GL_TEXTURE_2D, oitCoverageDepthView);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL44.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_DEPTH_COMPONENT);
+        glTexParameteri(GL_TEXTURE_2D, glCompat.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_DEPTH_COMPONENT);
+
 
         int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
         if (status != GL_FRAMEBUFFER_COMPLETE) {
@@ -223,109 +216,101 @@ public class Renderer4 implements AutoCloseable {
     private void reloadShaders(ResourceManager manager) {
         deleteShaders();
 
-        Config options = Main.CONFIG;
-        Map<String, String> defs = ImmutableMap.ofEntries(
-            Map.entry(MainShader.DEF_SIZE_X_KEY, Float.toString(options.sizeXZ)),
-            Map.entry(MainShader.DEF_SIZE_Y_KEY, Float.toString(options.sizeY)),
-            Map.entry(MainShader.DEF_FADE_EDGE_KEY, Integer.toString((int) (options.fadeEdge * options.blockDistance())))
-        );
+        Config config = Main.getConfig();
 
         try {
-            depthShader = new TestShader0(manager, Map.of());
+            depthShader = new DepthShader(manager, Map.of());
             depthShader.bind();
             depthShader.uDepth.setInt(0);
-            bcObjectLabel(GL44.GL_PROGRAM, depthShader.glId(), "depth");
+            glCompat.objectLabel(glCompat.GL_PROGRAM, depthShader.glId(), "depth");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
         try {
-            coverageShader = new TestShader1(manager, defs);
+            Map<String, String> defs = ImmutableMap.ofEntries(
+                Map.entry(CoverageShader.DEF_SIZE_XZ_KEY, Float.toString(config.sizeXZ)),
+                Map.entry(CoverageShader.DEF_SIZE_Y_KEY, Float.toString(config.sizeY)),
+                Map.entry(CoverageShader.DEF_FADE_EDGE_KEY, Integer.toString((int) (config.fadeEdge * config.blockDistance())))
+            );
+
+            coverageShader = new CoverageShader(manager, defs);
             coverageShader.bind();
-            coverageShader.uLightTexture.setInt(2);
-            coverageShader.uNoise2Texture.setInt(3);
-            coverageShader.uNoise1Texture.setInt(5);
-            bcObjectLabel(GL44.GL_PROGRAM, coverageShader.glId(), "coverage");
+            coverageShader.uNoiseTexture.setInt(5);
+            glCompat.objectLabel(glCompat.GL_PROGRAM, coverageShader.glId(), "coverage");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
         try {
-            blitShader = new TestShader2(manager, defs);
+            blitShader = new BlitShader(manager, Map.ofEntries(
+                Map.entry(BlitShader.DEF_BLIT_DEPTH_KEY, config.writeDepth ? "1" : "0")
+            ));
             blitShader.bind();
-            blitShader.uColor.setInt(0);
-            blitShader.uAccum.setInt(1);
-            blitShader.uDepth.setInt(4);
-            blitShader.uLightTexture.setInt(2);
-            blitShader.uNoise2Texture.setInt(3);
-            bcObjectLabel(GL44.GL_PROGRAM, blitShader.glId(), "blit");
+            blitShader.uDepth.setInt(1);
+            blitShader.uData.setInt(2);
+            blitShader.uCoverage.setInt(3);
+            blitShader.uLightTexture.setInt(4);
+            glCompat.objectLabel(glCompat.GL_PROGRAM, blitShader.glId(), "blit");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
+    private Config getGeneratorConfig() {
+        Config config = generator.config();
+        if(config != null) return config;
+        return Main.getConfig();
+    }
+
     public boolean setup(MatrixStack matrices, Matrix4f projMat, float tickDelta, int ticks, Vec3d cam, Frustum frustum) {
         assert RenderSystem.isOnRenderThread();
         client.getProfiler().swap("render_setup");
+        Config config = Main.getConfig();
 
         if(depthShader == null || coverageShader == null || blitShader == null) return false;
-        if(!depthShader.isComplete() || !coverageShader.isComplete() || !blitShader.isComplete()) return false;
-        if(!Main.CONFIG.enableExperimentalIrisSupport && IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled()) return false;
-        if(Main.CONFIG.useVanillaClouds) return false;
-        // Rendering clouds when underwater was making them very visible in unloaded chunks
-        if(client.gameRenderer.getCamera().getSubmersionType() != CameraSubmersionType.NONE) return false;
+        if(depthShader.isIncomplete() || coverageShader.isIncomplete() || blitShader.isIncomplete()) return false;
+        if(!config.irisSupport && IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled()) return false;
 
         DimensionEffects effects = world.getDimensionEffects();
-
         if(SodiumExtraCompat.IS_LOADED && effects.getSkyType() == DimensionEffects.SkyType.NORMAL) {
             cloudsHeight = SodiumExtraCompat.getCloudsHeight();
         } else {
             cloudsHeight = effects.getCloudsHeight();
         }
 
-        cloudGenerator.bind();
-        if(Main.CONFIG.hasChanged || lastCloudRenderMode != client.options.getCloudRenderModeValue() || lastDistance != Main.CONFIG.blockDistance()) {
-            lastDistance = Main.CONFIG.blockDistance();
-            lastCloudRenderMode = client.options.getCloudRenderModeValue();
-
+        generator.bind();
+        if(shaderInvalidator.hasChanged(client.options.getCloudRenderModeValue(), config.blockDistance(), config.fadeEdge, config.sizeXZ, config.sizeY, config.writeDepth)) {
             reloadShaders(client.getResourceManager());
-            cloudGenerator.reallocate(Main.CONFIG, isFancyMode());
-
-            Main.CONFIG.hasChanged = false;
         }
+        generator.reallocateIfStale(config, isFancyMode());
 
         raininess = Math.max(0.6f*world.getRainGradient(tickDelta), world.getThunderGradient(tickDelta));
         float cloudiness = raininess * 0.3f + 0.5f;
 
-        cloudGenerator.update(cam, tickDelta, Main.CONFIG, cloudiness);
-        if(cloudGenerator.canGenerate() && !cloudGenerator.generating()) {
+        generator.update(cam, tickDelta, Main.getConfig(), cloudiness);
+        if(generator.canGenerate() && !generator.generating()) {
             client.getProfiler().swap("generate_clouds");
-            cloudGenerator.generate();
+            generator.generate();
             client.getProfiler().swap("render_setup");
         }
 
-        if(cloudGenerator.canSwap()) {
+        if(generator.canSwap()) {
             client.getProfiler().swap("swap");
-            cloudGenerator.swap();
+            generator.swap();
             client.getProfiler().swap("render_setup");
         }
 
-        matrices.translate(cloudGenerator.renderOriginX(cam.x), cloudsHeight-cam.y, cloudGenerator.renderOriginZ(cam.z));
+        matrices.translate(generator.renderOriginX(cam.x), cloudsHeight-cam.y, generator.renderOriginZ(cam.z));
 
         float pitch = client.cameraEntity == null ? 0 : client.cameraEntity.getPitch();
         float yaw = client.cameraEntity == null ? 0 : client.cameraEntity.getYaw();
-        viewboxTransform.update(projMat, (float) cam.y, cloudsHeight, pitch);
-
-        if(viewboxTransform.isInvalid()) {
-            return false;
-        }
+        viewboxTransform.update(projMat, (float) cam.y, pitch, cloudsHeight, getGeneratorConfig());
 
         inverseMatrix.identity();
         Matrix4f viewRotationMatrix = tempMatrix;
         viewRotationMatrix.identity();
-//        viewRotationMatrix.mul(Vec3f.POSITIVE_X.getDegreesQuaternion(pitch));
         viewRotationMatrix.rotate(RotationAxis.POSITIVE_X.rotationDegrees(pitch));
-//        viewRotationMatrix.mul(Vec3f.POSITIVE_Y.getDegreesQuaternion(yaw + 180.0f));
         viewRotationMatrix.rotate(RotationAxis.POSITIVE_Y.rotationDegrees(yaw + 180.0f));
         inverseMatrix.set(viewboxTransform.getProjection());
         inverseMatrix.mul(viewRotationMatrix);
@@ -334,20 +319,28 @@ public class Renderer4 implements AutoCloseable {
         mvpMatrix.set(viewboxTransform.getProjection());
         mvpMatrix.mul(matrices.peek().getPositionMatrix());
 
-        // TODO: don't do this dynamicaly
+        // TODO: don't do this dynamically
         defaultFbo = glGetInteger(GL_DRAW_FRAMEBUFFER_BINDING);
 
         return true;
     }
 
-    // Push / Pop matrix stack outside
+    // Don't forget to push / pop matrix stack outside
     public void render(MatrixStack matrices, float tickDelta, int ticks, Vec3d cam, Frustum frustum) {
-        // FIXME: Back to Game button missing background texture
-        // FIXME: Uniforms like spreadY are not 'in sync' with the vbo which causes graphic bugs when changing the options
+        if(viewboxTransform.isInvalid()) {
+            return;
+        }
+        // Rendering clouds when underwater was making them very visible in unloaded chunks
+        if(client.gameRenderer.getCamera().getSubmersionType() != CameraSubmersionType.NONE) return;
+
+        // TODO: Optimize uniforms
         client.getProfiler().swap("render_setup");
-        if(Main.DO_PROFILE) {
+        if(Main.isProfilingEnabled()) {
+            if(timer == null) reloadTimer();
             timer.start();
         }
+
+        Config config = Main.getConfig();
 
         if(framebufferStale()) {
             reloadFramebuffer();
@@ -357,7 +350,6 @@ public class Renderer4 implements AutoCloseable {
         GlStateManager._glBindFramebuffer(GL_DRAW_FRAMEBUFFER, oitFbo);
         RenderSystem.clearDepth(1);
         RenderSystem.clearColor(0, 0, 0, 0);
-//        RenderSystem.enableTexture();
 
         client.getProfiler().swap("draw_depth");
         drawDepth();
@@ -366,7 +358,7 @@ public class Renderer4 implements AutoCloseable {
         drawCoverage(tickDelta, cam, frustum);
 
         client.getProfiler().swap("draw_shading");
-        if(IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled() && Main.CONFIG.useIrisFBO) {
+        if(IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled() && config.useIrisFBO) {
             IrisCompat.bindFramebuffer();
         } else {
             GlStateManager._glBindFramebuffer(GL_DRAW_FRAMEBUFFER, defaultFbo);
@@ -378,20 +370,21 @@ public class Renderer4 implements AutoCloseable {
 
         client.getProfiler().swap("render_cleanup");
 
-        cloudGenerator.unbind();
+        generator.unbind();
         Shader.unbind();
         RenderSystem.disableBlend();
         RenderSystem.enableDepthTest();
         RenderSystem.depthMask(true);
-        RenderSystem.depthFunc(GL_LESS);
+        RenderSystem.depthFunc(GL_LEQUAL);
         RenderSystem.activeTexture(GL_TEXTURE0);
+        RenderSystem.colorMask(true, true, true, true);
         glDisable(GL_STENCIL_TEST);
         glStencilFunc(GL_ALWAYS, 0x0, 0xff);
 
-        if(Main.DO_PROFILE) {
+        if(Main.isProfilingEnabled()) {
             timer.stop();
 
-            if(timer.frames() >= 10000) {
+            if(timer.frames() >= Main.profileInterval) {
                 List<Double> times = timer.get();
                 times.sort(Double::compare);
                 double median = times.get(times.size()/2);
@@ -400,7 +393,7 @@ public class Renderer4 implements AutoCloseable {
                 double min = times.get(0);
                 double max = times.get(times.size()-1);
                 double average = times.stream().mapToDouble(d -> d).average().orElse(0);
-                client.inGameHud.getChatHud().addMessage(Text.literal(String.format("Stats over %d frames: %.3f / %.3f / %.3f min/avg/max %.3f / %.3f / %.3f p25/med/p75", timer.frames(), min, average, max, p25, median, p75)));
+                Main.debugChatMessage(String.format("§cGPU Times§r: %.3f | %.3f | %.3f §7min,avg,max§r || %.3f | %.3f | %.3f §7p25,med,p75§r", min, average, max, p25, median, p75));
                 timer.reset();
             }
         }
@@ -411,40 +404,65 @@ public class Renderer4 implements AutoCloseable {
     }
 
     private void drawShading(float tickDelta) {
-        RenderSystem.disableDepthTest();
+        Config config = Main.getConfig();
+
+        if(config.writeDepth) {
+            RenderSystem.depthMask(true);
+            RenderSystem.enableDepthTest();
+            RenderSystem.depthFunc(GL_ALWAYS);
+        } else {
+            RenderSystem.disableDepthTest();
+        }
+
         RenderSystem.enableBlend();
         RenderSystem.blendEquation(GL_FUNC_ADD);
         RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ZERO, GlStateManager.DstFactor.ONE);
-        RenderSystem.colorMask(true, true, true, true);
+        RenderSystem.colorMask(false, false, false, false);
+        glColorMaski(0, true, true, true, true);
         glStencilFunc(GL_GREATER, 0x0, 0xff);
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
-        RenderSystem.activeTexture(GL_TEXTURE0);
-        RenderSystem.bindTexture(oitDataTexture);
         RenderSystem.activeTexture(GL_TEXTURE1);
-        RenderSystem.bindTexture(oitCoverageTexture);
-        RenderSystem.activeTexture(GL_TEXTURE2);
-        client.getTextureManager().getTexture(LIGHTING_TEXTURE).bindTexture();
-        RenderSystem.activeTexture(GL_TEXTURE3);
-        client.getTextureManager().getTexture(NOISE2_TEXTURE).bindTexture();
-        RenderSystem.activeTexture(GL_TEXTURE4);
         RenderSystem.bindTexture(oitCoverageDepthView);
+        RenderSystem.activeTexture(GL_TEXTURE2);
+        RenderSystem.bindTexture(oitDataTexture);
+        RenderSystem.activeTexture(GL_TEXTURE3);
+        RenderSystem.bindTexture(oitCoverageTexture);
+        RenderSystem.activeTexture(GL_TEXTURE4);
+        client.getTextureManager().getTexture(LIGHTING_TEXTURE).bindTexture();
 
         float effectLuma = getEffectLuminance(tickDelta);
-        float skyAngle = world.getSkyAngleRadians(tickDelta);
+        float skyAngle = world.getSkyAngle(tickDelta);
+        float skyAngleRad = world.getSkyAngleRadians(tickDelta);
+        float sunPathAngleRad = (float) Math.toRadians(config.sunPathAngle);
+        float dayNightFactor = smoothstep(skyAngle, 0.17333f, 0.25965086f) * smoothstep(skyAngle, 0.82667f, 0.7403491f);
+        float brightness = dayNightFactor * config.nightBrightness + (1-dayNightFactor) * config.dayBrightness;
+        Vector3f sunDir = new Vector3f(0, 1, 0).rotateAxis(skyAngleRad, 0, MathHelper.sin(sunPathAngleRad/2), MathHelper.cos(sunPathAngleRad/2));
 
         blitShader.bind();
-        blitShader.uEffectColor.setVec4((float) Math.pow(effectLuma, Main.CONFIG.gamma), 0.0f, 0.0f, Main.CONFIG.opacity);
-        blitShader.uSkyData.setVec4((float) -Math.sin(skyAngle), (float) Math.cos(skyAngle), world.getTimeOfDay()/24000f, 1-0.75f*raininess);
-        blitShader.uGamma.setVec3(Main.CONFIG.brightness, Main.CONFIG.gamma, Main.CONFIG.alphaFactor);
+        blitShader.uEffectColor.setVec4((float) Math.pow(effectLuma, config.gamma), 0.0f, 0.0f, config.opacity);
+        blitShader.uSunData.setVec4(sunDir.x, sunDir.y, sunDir.z,(world.getTimeOfDay()%24000)/24000f);
+        blitShader.uColorGrading.setVec4(brightness, 1f/config.gamma(), config.alphaFactor, config.saturation);
         blitShader.uDepthRange.setVec2((float) viewboxTransform.maxNearPlane(), (float) viewboxTransform.minFarPlane());
         blitShader.uInverseMat.setMat4(inverseMatrix);
+        blitShader.uTint.setVec3(config.tintRed, config.tintGreen, config.tintBlue);
+        blitShader.uDepthCoeffs.setVec4(
+            (float) viewboxTransform.inverseLinearizeFactor(),
+            (float) viewboxTransform.inverseLinearizeAddend(),
+            (float) viewboxTransform.inverseHyperbolizeFactor(),
+            (float) viewboxTransform.inverseHyperbolizeAddend()
+        );
 
         glBindVertexArray(quadVao);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
 
-    public float getEffectLuminance(float tickDelta) {
+    private float smoothstep(float x, float e0, float e1) {
+        x = MathHelper.clamp((x-e0) / (e1-e0), 0, 1);
+        return x * x * (3 - 2*x);
+    }
+
+    private float getEffectLuminance(float tickDelta) {
         float luma = 1.0f;
         float rain = world.getRainGradient(tickDelta);
         if (rain > 0.0f) {
@@ -469,36 +487,36 @@ public class Renderer4 implements AutoCloseable {
         RenderSystem.colorMask(true, true, true, true);
         glClear(GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-        Vec3d skyColor = world.getCloudsColor(tickDelta);
         float skyAngle = world.getSkyAngleRadians(tickDelta);
+
+        Config generatorConfig = getGeneratorConfig();
+        Config config = Main.getConfig();
 
         coverageShader.bind();
         coverageShader.uModelViewProjMat.setMat4(mvpMatrix);
-        coverageShader.uCloudsOrigin.setVec3((float) -cloudGenerator.renderOriginX(cam.x), (float) cam.y-cloudsHeight, (float) -cloudGenerator.renderOriginZ(cam.z));
-        coverageShader.uCloudsDistance.setFloat(Main.CONFIG.blockDistance() - Main.CONFIG.chunkSize/2f);
+        coverageShader.uCloudsOrigin.setVec3((float) -generator.renderOriginX(cam.x), (float) cam.y-cloudsHeight, (float) -generator.renderOriginZ(cam.z));
+        coverageShader.uCloudsDistance.setFloat(generatorConfig.blockDistance() - generatorConfig.chunkSize/2f);
         coverageShader.uSkyData.setVec4((float) -Math.sin(skyAngle), (float) Math.cos(skyAngle), world.getTimeOfDay()/24000f, 1-0.75f*raininess);
-        coverageShader.uCloudsBox.setVec4((float) cam.x, (float) cam.z, (float) cam.y-cloudsHeight, Main.CONFIG.spreadY);
+        coverageShader.uCloudsBox.setVec4((float) cam.x, (float) cam.z, (float) cam.y-cloudsHeight, generatorConfig.spreadY);
         coverageShader.uTime.setFloat((Util.getEpochTimeMs() - startTime)/1000f);
-        coverageShader.uMiscOptions.setVec4(Main.CONFIG.fakeScaleFalloffMin, Main.CONFIG.windFactor, 0.0f, 0.0f);
+        coverageShader.uMiscOptions.setVec4(config.scaleFalloffMin, config.windFactor, 0.0f, 0.0f);
 
-        RenderSystem.activeTexture(GL_TEXTURE2);
-        client.getTextureManager().getTexture(LIGHTING_TEXTURE).bindTexture();
-        RenderSystem.activeTexture(GL_TEXTURE3);
-        client.getTextureManager().getTexture(NOISE2_TEXTURE).bindTexture();
         RenderSystem.activeTexture(GL_TEXTURE5);
         client.getTextureManager().getTexture(NOISE_TEXTURE).bindTexture();
 
-        cloudGenerator.bind();
+        generator.bind();
 
-        if(cloudGenerator.canRender()) {
+        Frustum frustumAtOrigin = new Frustum(frustum);
+        frustumAtOrigin.setPosition(cam.x - generator.originX(), cam.y, cam.z - generator.originZ());
+        if(generator.canRender()) {
             // TODO: improve grouping
             int runStart = -1;
             int runCount = 0;
-            for (ChunkedGenerator.ChunkIndex chunk : cloudGenerator.chunks()) {
-                Box bounds = chunk.bounds(cloudsHeight, Main.CONFIG.sizeXZ, Main.CONFIG.sizeY);
-                if(!frustum.isVisible(bounds)) {
+            for (ChunkedGenerator.ChunkIndex chunk : generator.chunks()) {
+                Box bounds = chunk.bounds(cloudsHeight, config.sizeXZ, config.sizeY);
+                if(!frustumAtOrigin.isVisible(bounds)) {
                     if(runCount != 0) {
-                        GL44.glDrawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, 0, cloudGenerator.instanceVertexCount(), runCount, runStart);
+                        glCompat.drawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, 0, generator.instanceVertexCount(), runCount, runStart);
                     }
                     runStart = -1;
                     runCount = 0;
@@ -508,7 +526,7 @@ public class Renderer4 implements AutoCloseable {
                 }
             }
             if(runCount != 0) {
-                GL44.glDrawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, 0, cloudGenerator.instanceVertexCount(), runCount, runStart);
+                glCompat.drawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, 0, generator.instanceVertexCount(), runCount, runStart);
             }
         }
     }
@@ -521,7 +539,7 @@ public class Renderer4 implements AutoCloseable {
         RenderSystem.depthMask(true);
 
         depthShader.bind();
-        depthShader.uClipPlanes.setVec4(
+        depthShader.uDepthCoeffs.setVec4(
             (float) viewboxTransform.linearizeFactor(),
             (float) viewboxTransform.linearizeAddend(),
             (float) viewboxTransform.hyperbolizeFactor(),

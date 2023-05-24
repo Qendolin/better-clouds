@@ -21,7 +21,7 @@ public abstract class CloudSettingMixin {
 
     @Inject(at = @At("HEAD"), method = "getCloudRenderModeValue", cancellable = true)
     private void overrideCloudSetting(CallbackInfoReturnable<CloudRenderMode> cir) {
-        if(!Main.CONFIG.enableExperimentalCloudOverride) return;
+        if(!Main.getConfig().cloudOverride) return;
         if (viewDistance.getValue() < 4) {
             return;
         }

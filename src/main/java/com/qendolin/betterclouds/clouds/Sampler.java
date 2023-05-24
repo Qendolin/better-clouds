@@ -55,8 +55,8 @@ public class Sampler {
         return hashToFloat(x, z, 'Z');
     }
 
-    public float sample(int x, int z, float cloudiness, float fuzziness) {
-        double value = NOISE.sample(x / 128f, z / 128f, false);
+    public float sample(int x, int z, float cloudiness, float fuzziness, float scale) {
+        double value = NOISE.sample(x / scale / 128f, z / scale / 128f, false);
         value = value / 2 + 0.5;
         value = (value - (1 - cloudiness)) / cloudiness;
         value *= smoothstep(-0.6*cloudiness-0.3, -0.6*cloudiness, BIG_NOISE.sample(x / 1024f, z / 1024f));

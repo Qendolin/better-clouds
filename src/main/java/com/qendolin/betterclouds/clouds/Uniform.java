@@ -73,7 +73,6 @@ public abstract class Uniform {
 
         @Override
         public void setMat4(Matrix4f mat) {
-//            mat.writeColumnMajor(UNIFORM_BUFFER);
             mat.get(UNIFORM_BUFFER);
             UNIFORM_BUFFER.rewind();
             glUniformMatrix4fv(location, false, UNIFORM_BUFFER);
