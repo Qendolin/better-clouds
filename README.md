@@ -9,47 +9,13 @@
 
 **Please, feel free to [report](https://github.com/Qendolin/better-clouds/issues/new) any issues** 
 
-## Config
+## Shaders
 
-Default:
-
-| Option           | Value | Description                                                                |
-| ---------------- | ----- | -------------------------------------------------------------------------- |
-| Distance         | 4.0   | Final distance is `Render Distance * Distance`                             |
-| Opacity          | 0.2   | The opacity of a single cloud. *x1.5 for fast clouds*                      |
-| Random Placement | 1.0   | Random offset between sampling points                                      |
-| Fuzziness        | 1.0   | How sharp the edges of clouds are                                          |
-| Height Range     | 64.0  | The y-range above the cloud height where clouds can generate               |
-| Spacing          | 8.0   | The spacing off samplng points                                             |
-| Width            | 16.0  | The width of a sinxgle cloud                                               |
-| Width            | 8.0   | The height of a single cloud                                               |
-| Wind Speed       | 0.03  | The drift speed (*blocks/tick*) along the x axis                           |
-| Chunk Size       | 32    | Clouds will generate in chunks of this size. *Different from world chunks* |
-| Edge Fade        | 32    | Width of the fading effect at the edge of the render distance              |
-
-### Other configurations you might want to try
-
-#### Flat Pixelated
-
-| Option           | Value |
-| ---------------- | ----- |
-| Clouds           | Fast  |
-| Opacity          | 0.15  |
-| Random Placement | 0.0   |
-| Height Range     | 0.0   |
-| Spacing          | 8.0   |
-| Width            | 32.0  |
-
-#### Realistic Looking
-
-| Option    | Value |
-| --------- | ----- |
-| Clouds    | Fancy |
-| Opacity   | 0.03  |
-| Fuzziness | 0.5   |
-| Spacing   | 12.0  |
-| Width     | 48.0  |
-| Height    | 16.0  |
+Iris Shader support is **experimental** and **disabled by default**.
+Some shaderpacks work, others don't.
+It's best to turn off the clouds in the shader pack settings or set them to 'vanilla' if that is an option.
+You can play with the color settings if the clouds don't look right.
+Shaderpack presets/profiles are planned but not in development yet.
 
 ## License
 
