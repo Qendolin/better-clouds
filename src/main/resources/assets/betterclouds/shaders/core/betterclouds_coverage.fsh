@@ -1,4 +1,4 @@
-#version 460
+#version 430
 
 //layout(early_fragment_tests) in;
 

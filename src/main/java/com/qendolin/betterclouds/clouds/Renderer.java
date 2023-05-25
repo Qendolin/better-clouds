@@ -37,7 +37,7 @@ public class Renderer implements AutoCloseable {
     // Texture Unit 5
     private static final Identifier NOISE_TEXTURE = new Identifier(Main.MODID, "textures/environment/cloud_noise_rgb.png");
     // Texture Unit 4
-    private static final Identifier LIGHTING_TEXTURE = new Identifier(Main.MODID, "textures/environment/cloud_gradient.png");
+    private static final Identifier LIGHTING_TEXTURE = new Identifier(Main.MODID, "textures/environment/cloud_light_gradient.png");
 
     private final MinecraftClient client;
     private ClientWorld world = null;
@@ -224,10 +224,13 @@ public class Renderer implements AutoCloseable {
                 Map.entry(DepthShader.DEF_REMAP_DEPTH_KEY, config.highQualityDepth ? "1" : "0")
             ));
             depthShader.bind();
-            depthShader.uDepth.setInt(0);
+            depthShader.uDepthTexture.setInt(0);
             glCompat.objectLabel(glCompat.GL_PROGRAM, depthShader.glId(), "depth");
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            Main.LOGGER.error(e);
+            depthShader.close();
+            depthShader = null;
+            return;
         }
 
         try {
@@ -242,7 +245,10 @@ public class Renderer implements AutoCloseable {
             coverageShader.uNoiseTexture.setInt(5);
             glCompat.objectLabel(glCompat.GL_PROGRAM, coverageShader.glId(), "coverage");
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            Main.LOGGER.error(e);
+            coverageShader.close();
+            coverageShader = null;
+            return;
         }
 
         try {
@@ -251,13 +257,15 @@ public class Renderer implements AutoCloseable {
                 Map.entry(BlitShader.DEF_REMAP_DEPTH_KEY, config.highQualityDepth ? "1" : "0")
             ));
             blitShader.bind();
-            blitShader.uDepth.setInt(1);
-            blitShader.uData.setInt(2);
-            blitShader.uCoverage.setInt(3);
+            blitShader.uDepthTexture.setInt(1);
+            blitShader.uDataTexture.setInt(2);
+            blitShader.uCoverageTexture.setInt(3);
             blitShader.uLightTexture.setInt(4);
             glCompat.objectLabel(glCompat.GL_PROGRAM, blitShader.glId(), "blit");
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            Main.LOGGER.error(e);
+            blitShader.close();
+            blitShader = null;
         }
     }
 
@@ -343,7 +351,7 @@ public class Renderer implements AutoCloseable {
         // Rendering clouds when underwater was making them very visible in unloaded chunks
         if(client.gameRenderer.getCamera().getSubmersionType() != CameraSubmersionType.NONE) return;
 
-        // TODO: Optimize uniforms
+        // TODO: Implement a fix for shaders using TAAU
         client.getProfiler().swap("render_setup");
         if(Main.isProfilingEnabled()) {
             if(timer == null) reloadTimer();
@@ -450,13 +458,12 @@ public class Renderer implements AutoCloseable {
         Vector3f sunDir = new Vector3f(0, 1, 0).rotateAxis(skyAngleRad, 0, MathHelper.sin(sunPathAngleRad/2), MathHelper.cos(sunPathAngleRad/2));
 
         blitShader.bind();
-        blitShader.uEffectColor.setVec4((float) Math.pow(effectLuma, config.gamma), 0.0f, 0.0f, config.opacity);
-        blitShader.uSunData.setVec4(sunDir.x, sunDir.y, sunDir.z,(world.getTimeOfDay()%24000)/24000f);
-        blitShader.uColorGrading.setVec4(brightness, 1f/config.gamma(), config.alphaFactor, config.saturation);
-        blitShader.uDepthRange.setVec2((float) viewboxTransform.maxNearPlane(), (float) viewboxTransform.minFarPlane());
-        blitShader.uInverseMat.setMat4(inverseMatrix);
+        blitShader.uInverseVPMatrix.setMat4(inverseMatrix);
+        blitShader.uSunDirection.setVec4(sunDir.x, sunDir.y, sunDir.z,(world.getTimeOfDay()%24000)/24000f);
+        blitShader.uOpacity.setVec2(config.opacity, config.opacityFactor);
+        blitShader.uColorGrading.setVec4(brightness, 1f/config.gamma(), effectLuma, config.saturation);
         blitShader.uTint.setVec3(config.tintRed, config.tintGreen, config.tintBlue);
-        blitShader.uDepthCoeffs.setVec4(
+        blitShader.uDepthTransform.setVec4(
             (float) viewboxTransform.inverseLinearizeFactor(),
             (float) viewboxTransform.inverseLinearizeAddend(),
             (float) viewboxTransform.inverseHyperbolizeFactor(),
@@ -497,19 +504,15 @@ public class Renderer implements AutoCloseable {
         RenderSystem.colorMask(true, true, true, true);
         glClear(GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-        float skyAngle = world.getSkyAngleRadians(tickDelta);
-
         Config generatorConfig = getGeneratorConfig();
         Config config = Main.getConfig();
 
         coverageShader.bind();
-        coverageShader.uModelViewProjMat.setMat4(mvpMatrix);
-        coverageShader.uCloudsOrigin.setVec3((float) -generator.renderOriginX(cam.x), (float) cam.y-cloudsHeight, (float) -generator.renderOriginZ(cam.z));
-        coverageShader.uCloudsDistance.setFloat(generatorConfig.blockDistance() - generatorConfig.chunkSize/2f);
-        coverageShader.uSkyData.setVec4((float) -Math.sin(skyAngle), (float) Math.cos(skyAngle), world.getTimeOfDay()/24000f, 1-0.75f*raininess);
-        coverageShader.uCloudsBox.setVec4((float) cam.x, (float) cam.z, (float) cam.y-cloudsHeight, generatorConfig.yRange +config.sizeY);
+        coverageShader.uMVPMatrix.setMat4(mvpMatrix);
+        coverageShader.uOriginOffset.setVec3((float) -generator.renderOriginX(cam.x), (float) cam.y-cloudsHeight, (float) -generator.renderOriginZ(cam.z));
+        coverageShader.uBoundingBox.setVec4((float) cam.x, (float) cam.z, generatorConfig.blockDistance() - generatorConfig.chunkSize/2f, generatorConfig.yRange + config.sizeY);
         coverageShader.uTime.setFloat((Util.getEpochTimeMs() - startTime)/1000f);
-        coverageShader.uMiscOptions.setVec4(config.scaleFalloffMin, config.windFactor, 0.0f, 0.0f);
+        coverageShader.uMiscellaneous.setVec2(config.scaleFalloffMin, config.windFactor);
 
         RenderSystem.activeTexture(GL_TEXTURE5);
         client.getTextureManager().getTexture(NOISE_TEXTURE).bindTexture();
@@ -549,7 +552,7 @@ public class Renderer implements AutoCloseable {
         RenderSystem.depthMask(true);
 
         depthShader.bind();
-        depthShader.uDepthCoeffs.setVec4(
+        depthShader.uDepthTransform.setVec4(
             (float) viewboxTransform.linearizeFactor(),
             (float) viewboxTransform.linearizeAddend(),
             (float) viewboxTransform.hyperbolizeFactor(),

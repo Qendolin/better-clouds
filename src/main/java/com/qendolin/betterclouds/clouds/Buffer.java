@@ -90,7 +90,6 @@ public class Buffer implements AutoCloseable {
         return writeBuffer;
     }
 
-
     public int instanceVertexCount() {
         return instanceVertexCount;
     }

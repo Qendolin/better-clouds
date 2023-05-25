@@ -36,7 +36,7 @@ public class Config {
         this.gamma = other.gamma;
         this.dayBrightness = other.dayBrightness;
         this.nightBrightness = other.nightBrightness;
-        this.alphaFactor = other.alphaFactor;
+        this.opacityFactor = other.opacityFactor;
         this.saturation = other.saturation;
         this.tintRed = other.tintRed;
         this.tintGreen = other.tintGreen;
@@ -102,7 +102,7 @@ public class Config {
     @ConfigEntry
     public float saturation = 1f;
     @ConfigEntry
-    public float alphaFactor = 1f;
+    public float opacityFactor = 1f;
     @ConfigEntry
     public float tintRed = 1f;
     @ConfigEntry

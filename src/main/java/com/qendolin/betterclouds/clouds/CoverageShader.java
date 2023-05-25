@@ -15,26 +15,22 @@ public class CoverageShader extends Shader {
     public static final Identifier VERTEX_SHADER_ID = new Identifier(Main.MODID, "shaders/core/betterclouds_coverage.vsh");
     public static final Identifier FRAGMENT_SHADER_ID = new Identifier(Main.MODID, "shaders/core/betterclouds_coverage.fsh");
 
-    public final Uniform uModelViewProjMat;
-    public final Uniform uCloudsOrigin;
-    public final Uniform uCloudsDistance;
     public final Uniform uNoiseTexture;
-    public final Uniform uSkyData;
-    public final Uniform uCloudsBox;
+    public final Uniform uMVPMatrix;
+    public final Uniform uOriginOffset;
+    public final Uniform uBoundingBox;
     public final Uniform uTime;
-    public final Uniform uMiscOptions;
+    public final Uniform uMiscellaneous;
 
 
     public CoverageShader(ResourceManager resMan, Map<String, String> defs) throws IOException {
         super(resMan, VERTEX_SHADER_ID, FRAGMENT_SHADER_ID, defs);
 
-        uModelViewProjMat = getUniform("u_modelViewProjMat", false);
-        uCloudsOrigin = getUniform("u_cloudsOrigin", false);
-        uCloudsDistance = getUniform("u_cloudsDistance", true);
-        uSkyData = getUniform("u_skyData", true);
-        uCloudsBox = getUniform("u_cloudsBox", true);
+        uNoiseTexture = getUniform("u_noise_texture", false);
+        uMVPMatrix = getUniform("u_mvp_matrix", false);
+        uOriginOffset = getUniform("u_origin_offset", false);
         uTime = getUniform("u_time", false);
-        uMiscOptions = getUniform("u_miscOptions", true);
-        uNoiseTexture = getUniform("u_noiseTexture", false);
+        uBoundingBox = getUniform("u_bounding_box", false);
+        uMiscellaneous = getUniform("u_miscellaneous", true);
     }
 }

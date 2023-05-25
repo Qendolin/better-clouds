@@ -72,7 +72,7 @@ public class Shader implements AutoCloseable {
 
     @Override
     public void close() {
-        glDeleteProgram(programId);
+        if(programId != 0) glDeleteProgram(programId);
         programId = 0;
     }
 

@@ -1,10 +1,10 @@
-#version 460
+#version 430
 
 #define REMAP_DEPTH _REMAP_DEPTH_
 
-uniform sampler2D u_depth;
+uniform sampler2D u_depth_texture;
 #if REMAP_DEPTH
-uniform vec4 u_depthCoeffs;
+uniform vec4 u_depth_transform;
 #endif
 
 layout (depth_any) out float gl_FragDepth;
@@ -76,10 +76,10 @@ float remap_depth(float d, float x, float y, float z, float w)
 }
 
 void main() {
-    float depth = texelFetch(u_depth, ivec2(gl_FragCoord.xy), 0).r;
+    float depth = texelFetch(u_depth_texture, ivec2(gl_FragCoord.xy), 0).r;
 #if REMAP_DEPTH
 //    gl_FragDepth = hyperbolize_depth(linearize_depth(depth, u_depthCoeffs.x, u_depthCoeffs.y), u_depthCoeffs.z, u_depthCoeffs.w);
-    gl_FragDepth = remap_depth(depth, u_depthCoeffs.x, u_depthCoeffs.y, u_depthCoeffs.z, u_depthCoeffs.w);
+    gl_FragDepth = remap_depth(depth, u_depth_transform.x, u_depth_transform.y, u_depth_transform.z, u_depth_transform.w);
 #else
     gl_FragDepth = depth;
 #endif

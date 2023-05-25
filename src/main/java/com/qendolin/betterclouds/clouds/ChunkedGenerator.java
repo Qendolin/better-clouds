@@ -190,7 +190,7 @@ public class ChunkedGenerator implements AutoCloseable {
         queuedTask = null;
 
         if(runningTask.ran()) {
-            Main.LOGGER.warn("Queued generator task #{} already ran", runningTask.id);
+            Main.LOGGER.warn("Queued generator task #{} already ran", runningTask.id());
         }
 
         final Task boundTask = runningTask;
@@ -198,20 +198,20 @@ public class ChunkedGenerator implements AutoCloseable {
         .whenComplete((unused, throwable) -> {
             synchronized (this) {
                 if(throwable != null) {
-                    Main.LOGGER.error("Generator task #{} ran with error", runningTask.id, throwable);
+                    Main.LOGGER.error("Generator task #{} ran with error", runningTask.id(), throwable);
                 }
 
                 if(boundTask != runningTask) {
                     if(boundTask.completed()) {
-                        Main.LOGGER.warn("Generator task #{} completed but task #{} was expected", boundTask.id, runningTask.id);
+                        Main.LOGGER.warn("Generator task #{} completed but task #{} was expected", boundTask.id(), runningTask.id());
                     } else if(!boundTask.cancelled() && throwable == null) {
-                        Main.LOGGER.warn("Generator task #{} ran without error, completion or cancellation", boundTask.id);
+                        Main.LOGGER.warn("Generator task #{} ran without error, completion or cancellation", boundTask.id());
                     }
                 } else {
                     if(boundTask.completed()) {
                         completedTask = runningTask;
                     } else if(!boundTask.cancelled() && throwable == null) {
-                        Main.LOGGER.warn("Generator task #{} ran without error, completion or cancellation", boundTask.id);
+                        Main.LOGGER.warn("Generator task #{} ran without error, completion or cancellation", boundTask.id());
                     }
                     runningTask = null;
                 }

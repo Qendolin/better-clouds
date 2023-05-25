@@ -14,31 +14,29 @@ public class BlitShader extends Shader {
     public static final String DEF_BLIT_DEPTH_KEY = "_BLIT_DEPTH_";
     public static final String DEF_REMAP_DEPTH_KEY = "_REMAP_DEPTH_";
 
-    public final Uniform uData;
-    public final Uniform uDepth;
-    public final Uniform uCoverage;
-    public final Uniform uDepthCoeffs;
-    public final Uniform uDepthRange;
-    public final Uniform uEffectColor;
-    public final Uniform uSunData;
-    public final Uniform uColorGrading;
-    public final Uniform uInverseMat;
+    public final Uniform uDataTexture;
+    public final Uniform uDepthTexture;
+    public final Uniform uCoverageTexture;
     public final Uniform uLightTexture;
+    public final Uniform uInverseVPMatrix;
+    public final Uniform uDepthTransform;
+    public final Uniform uSunDirection;
+    public final Uniform uColorGrading;
+    public final Uniform uOpacity;
     public final Uniform uTint;
 
     public BlitShader(ResourceManager resMan, Map<String, String> defs) throws IOException {
         super(resMan, VERTEX_SHADER_ID, FRAGMENT_SHADER_ID, defs);
 
-        uData = getUniform("u_data", false);
-        uDepth = getUniform("u_depth", false);
-        uCoverage = getUniform("u_coverage", false);
-        uLightTexture = getUniform("u_lightTexture", false);
-        uDepthCoeffs = getUniform("u_depthCoeffs", true);
-        uDepthRange = getUniform("u_depthRange", true);
-        uEffectColor = getUniform("u_effectColor", true);
-        uSunData = getUniform("u_sunData", true);
-        uColorGrading = getUniform("u_colorGrading", true);
-        uInverseMat = getUniform("u_inverseMat", false);
+        uDataTexture = getUniform("u_data_texture", false);
+        uDepthTexture = getUniform("u_depth_texture", false);
+        uCoverageTexture = getUniform("u_coverage_texture", false);
+        uLightTexture = getUniform("u_light_texture", false);
+        uInverseVPMatrix = getUniform("u_inverse_vp_matrix", false);
+        uDepthTransform = getUniform("u_depth_transform", true);
+        uSunDirection = getUniform("u_sun_direction", true);
+        uColorGrading = getUniform("u_color_grading", true);
+        uOpacity = getUniform("u_opacity", true);
         uTint = getUniform("u_tint", true);
     }
 }

@@ -3,7 +3,9 @@ package com.qendolin.betterclouds.mixin;
 import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.clouds.Renderer;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.*;
+import net.minecraft.client.render.BufferBuilderStorage;
+import net.minecraft.client.render.Frustum;
+import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.util.math.MatrixStack;
@@ -49,12 +51,11 @@ public abstract class CloudRendererMixin {
 
     @Shadow @Final private MinecraftClient client;
 
-    @Shadow public abstract void close();
-
     @Shadow private @Nullable ClientWorld world;
 
     @Inject(at = @At("TAIL"), method = "reload(Lnet/minecraft/resource/ResourceManager;)V")
     private void onReload(ResourceManager manager, CallbackInfo ci) {
+        if(glCompat.isIncompatible()) return;
         if(cloudRenderer != null) cloudRenderer.reload(manager);
     }
 

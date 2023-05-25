@@ -52,8 +52,8 @@ public class GLCompat {
 
         compatible = openGl32 &&
             (openGl33 || (arbInstancedArrays)) &&
-            (openGl43 || (arbTextureView && arbStencilTexturing)) &&
-            (openGl42 || (arbBaseInstance && arbTextureStorage));
+            (openGl42 || (arbBaseInstance && arbTextureStorage)) &&
+            (openGl43 || (arbTextureView && arbStencilTexturing));
 
         GL_VERTEX_ARRAY = GL32.GL_VERTEX_ARRAY;
         GL_BUFFER = KHRDebug.GL_BUFFER;

@@ -11,6 +11,4 @@ public interface ExtendedShaderAccessor {
     GlFramebuffer getWritingToBeforeTranslucent();
     @Accessor(value = "writingToAfterTranslucent", remap = false)
     GlFramebuffer getWritingToAfterTranslucent();
-    @Accessor(value = "baseline", remap = false)
-    GlFramebuffer getBaseline();
 }

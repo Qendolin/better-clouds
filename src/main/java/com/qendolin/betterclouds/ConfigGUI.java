@@ -159,8 +159,8 @@ public class ConfigGUI {
                     .binding(defaults.fadeEdge, () -> config.fadeEdge, val -> config.fadeEdge = val)
                     .controller(opt -> new FloatSliderController(opt, 0.1f, 0.5f, 0.01f, ConfigGUI::formatAsPercent))
                     .build())
-                .option(createOption(float.class, "alphaFactor")
-                    .binding(defaults.alphaFactor, () -> config.alphaFactor, val -> config.alphaFactor = val)
+                .option(createOption(float.class, "opacityFactor")
+                    .binding(defaults.opacityFactor, () -> config.opacityFactor, val -> config.opacityFactor = val)
                     .controller(opt -> new FloatSliderController(opt, 0, 1, 0.01f, ConfigGUI::formatAsPercent))
                     .build())
                 .build())
@@ -270,10 +270,6 @@ public class ConfigGUI {
 
     private static Text categoryLabel(String key) {
         return Text.translatable(LANG_KEY_PREFIX+".category."+key);
-    }
-
-    private static Text categoryTooltip(String key) {
-        return Text.translatable(LANG_KEY_PREFIX+".category."+key+".tooltip");
     }
 
     private static Text groupLabel(String key) {

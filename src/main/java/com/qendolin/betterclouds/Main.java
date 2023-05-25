@@ -17,6 +17,7 @@ import net.minecraft.text.Text;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.glfw.GLFW;
+import org.lwjgl.opengl.GL32;
 
 import java.nio.file.Path;
 
@@ -47,6 +48,10 @@ public class Main implements ClientModInitializer {
 		glCompat = new GLCompat(IS_DEV);
 		if(glCompat.isIncompatible()) {
 			LOGGER.warn("Your GPU is not compatible with Better Clouds. OpenGL 4.3 is required!");
+			LOGGER.info("Vendor:       {}", GL32.glGetString(GL32.GL_VENDOR));
+			LOGGER.info("Renderer:     {}", GL32.glGetString(GL32.GL_RENDERER));
+			LOGGER.info("GL Version:   {}", GL32.glGetString(GL32.GL_VERSION));
+			LOGGER.info("GLSL Version: {}", GL32.glGetString(GL32.GL_SHADING_LANGUAGE_VERSION));
 		}
 	}
 
