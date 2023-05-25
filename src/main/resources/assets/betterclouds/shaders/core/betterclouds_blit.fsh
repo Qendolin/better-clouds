@@ -1,6 +1,7 @@
 #version 460
 
 #define BLIT_DEPTH _BLIT_DEPTH_
+#define REMAP_DEPTH _REMAP_DEPTH_
 
 #if !BLIT_DEPTH
 layout(early_fragment_tests) in;
@@ -13,8 +14,11 @@ layout (location=0) out vec4 frag_color;
 
 #if BLIT_DEPTH
 uniform sampler2D u_depth;
+#if REMAP_DEPTH
 uniform vec4 u_depthCoeffs;
 #endif
+#endif
+// TODO: use uniform structs
 uniform sampler2D u_data;
 uniform usampler2D u_coverage;
 uniform sampler2D u_lightTexture;
@@ -35,7 +39,6 @@ float hyperbolize_depth(float lin, float a, float b)
 {
     return (lin * a + b) * 0.5 + 0.5;
 }
-
 
 float remap_depth(float d, float x, float y, float z, float w)
 {
@@ -108,8 +111,11 @@ void main() {
     frag_color.a *= u_colorGrading.z;
 
 #if BLIT_DEPTH
-//    gl_FragDepth = texture(u_depth, pass_uv).r;
+#if REMAP_DEPTH
     gl_FragDepth = hyperbolize_depth(linearize_depth(texture(u_depth, pass_uv).r, u_depthCoeffs.x, u_depthCoeffs.y), u_depthCoeffs.z, u_depthCoeffs.w);
 //    gl_FragDepth = remap_depth(texture(u_depth, pass_uv).r, u_depthCoeffs.x, u_depthCoeffs.y, u_depthCoeffs.z, u_depthCoeffs.w);
+#else
+    gl_FragDepth = texture(u_depth, pass_uv).r;
+#endif
 #endif
 }

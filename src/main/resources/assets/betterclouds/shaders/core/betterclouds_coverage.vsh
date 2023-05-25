@@ -15,6 +15,7 @@ uniform vec3 u_cloudsOrigin;
 uniform float u_cloudsDistance;
 uniform sampler2D u_noiseTexture;
 uniform vec4 u_skyData;
+// FIXME: u_cloudsBox.z is unused
 uniform vec4 u_cloudsBox;
 uniform vec4 u_miscOptions;
 uniform float u_time;
@@ -41,12 +42,12 @@ void main() {
     float waveScale = texture(u_noiseTexture, (localWorldPosition.xz + u_cloudsBox.xy) / 4000.0 + vec2(u_time / 800f)).r;
     float smallWaves = texture(u_noiseTexture, (localWorldPosition.zx + u_cloudsBox.yx) / 1000.0 + vec2(u_time / 200f)).r * 1.8 - 0.9;
     waveScale = mix(mix(waveScale, 1.0, max(smallWaves, 0.0)), 0.0, max(-smallWaves, 0.0));
-    float fDynScale = 1 - smoothstep(0., u_cloudsBox.w / 4f, in_pos.y);
+    float fDynScale = 1 - smoothstep(0., u_cloudsBox.w / 4f, in_pos.y+0.5);
     float dynScale = mix(1.0, waveScale, fDynScale * u_miscOptions.y);
     vec3 scale = SIZE * dynScale * scaleFalloff;
 
     pass_color.r = 1.;
-    pass_color.g = (scale * in_vert + in_pos).y / u_cloudsBox.w;
+    pass_color.g = (scale.y * 0.625 * (in_vert.y+0.375) + in_pos.y) / (u_cloudsBox.w);
     pass_color.b = texture(u_noiseTexture, localWorldPosition.xz / 1024.).g;
 
     gl_Position = u_modelViewProjMat * vec4(scale * in_vert + realPos, 1.0);

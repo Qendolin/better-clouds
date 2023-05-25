@@ -46,7 +46,7 @@ public class Renderer implements AutoCloseable {
     private CoverageShader coverageShader = null;
     private BlitShader blitShader = null;
     private ChunkedGenerator generator = null;
-    private final ViewboxTransform viewboxTransform = new ViewboxTransform();
+    private IViewboxTransform viewboxTransform = null;
     private final long startTime = Util.getEpochTimeMs();
     private int quadVbo;
     private int quadVao;
@@ -66,6 +66,7 @@ public class Renderer implements AutoCloseable {
     private final Matrix4f inverseMatrix = new Matrix4f();
     private final Matrix4f tempMatrix = new Matrix4f();
     private final PrimitiveChangeDetector shaderInvalidator = new PrimitiveChangeDetector(false);
+    private final PrimitiveChangeDetector viewboxTransformInvalidator = new PrimitiveChangeDetector(true);
 
     private GlTimer timer;
 
@@ -219,7 +220,9 @@ public class Renderer implements AutoCloseable {
         Config config = Main.getConfig();
 
         try {
-            depthShader = new DepthShader(manager, Map.of());
+            depthShader = new DepthShader(manager, Map.ofEntries(
+                Map.entry(DepthShader.DEF_REMAP_DEPTH_KEY, config.highQualityDepth ? "1" : "0")
+            ));
             depthShader.bind();
             depthShader.uDepth.setInt(0);
             glCompat.objectLabel(glCompat.GL_PROGRAM, depthShader.glId(), "depth");
@@ -244,7 +247,8 @@ public class Renderer implements AutoCloseable {
 
         try {
             blitShader = new BlitShader(manager, Map.ofEntries(
-                Map.entry(BlitShader.DEF_BLIT_DEPTH_KEY, config.writeDepth ? "1" : "0")
+                Map.entry(BlitShader.DEF_BLIT_DEPTH_KEY, config.writeDepth ? "1" : "0"),
+                Map.entry(BlitShader.DEF_REMAP_DEPTH_KEY, config.highQualityDepth ? "1" : "0")
             ));
             blitShader.bind();
             blitShader.uDepth.setInt(1);
@@ -274,13 +278,19 @@ public class Renderer implements AutoCloseable {
 
         DimensionEffects effects = world.getDimensionEffects();
         if(SodiumExtraCompat.IS_LOADED && effects.getSkyType() == DimensionEffects.SkyType.NORMAL) {
-            cloudsHeight = SodiumExtraCompat.getCloudsHeight();
+            cloudsHeight = SodiumExtraCompat.getCloudsHeight() + config.yOffset;
         } else {
-            cloudsHeight = effects.getCloudsHeight();
+            cloudsHeight = effects.getCloudsHeight() + config.yOffset;
+        }
+
+        if(viewboxTransformInvalidator.hasChanged(config.highQualityDepth)) {
+            if(config.highQualityDepth) viewboxTransform = new QualityViewboxTransform();
+            else viewboxTransform = new FastViewboxTransform();
         }
 
         generator.bind();
-        if(shaderInvalidator.hasChanged(client.options.getCloudRenderModeValue(), config.blockDistance(), config.fadeEdge, config.sizeXZ, config.sizeY, config.writeDepth)) {
+        if(shaderInvalidator.hasChanged(client.options.getCloudRenderModeValue(), config.blockDistance(),
+            config.fadeEdge, config.sizeXZ, config.sizeY, config.writeDepth, config.highQualityDepth)) {
             reloadShaders(client.getResourceManager());
         }
         generator.reallocateIfStale(config, isFancyMode());
@@ -497,7 +507,7 @@ public class Renderer implements AutoCloseable {
         coverageShader.uCloudsOrigin.setVec3((float) -generator.renderOriginX(cam.x), (float) cam.y-cloudsHeight, (float) -generator.renderOriginZ(cam.z));
         coverageShader.uCloudsDistance.setFloat(generatorConfig.blockDistance() - generatorConfig.chunkSize/2f);
         coverageShader.uSkyData.setVec4((float) -Math.sin(skyAngle), (float) Math.cos(skyAngle), world.getTimeOfDay()/24000f, 1-0.75f*raininess);
-        coverageShader.uCloudsBox.setVec4((float) cam.x, (float) cam.z, (float) cam.y-cloudsHeight, generatorConfig.spreadY);
+        coverageShader.uCloudsBox.setVec4((float) cam.x, (float) cam.z, (float) cam.y-cloudsHeight, generatorConfig.yRange +config.sizeY);
         coverageShader.uTime.setFloat((Util.getEpochTimeMs() - startTime)/1000f);
         coverageShader.uMiscOptions.setVec4(config.scaleFalloffMin, config.windFactor, 0.0f, 0.0f);
 

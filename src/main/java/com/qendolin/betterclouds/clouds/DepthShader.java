@@ -10,6 +10,7 @@ import java.util.Map;
 public class DepthShader extends Shader {
     public static final Identifier VERTEX_SHADER_ID = new Identifier(Main.MODID, "shaders/core/betterclouds_depth.vsh");
     public static final Identifier FRAGMENT_SHADER_ID = new Identifier(Main.MODID, "shaders/core/betterclouds_depth.fsh");
+    public static final String DEF_REMAP_DEPTH_KEY = "_REMAP_DEPTH_";
 
     public final Uniform uDepth;
     public final Uniform uDepthCoeffs;

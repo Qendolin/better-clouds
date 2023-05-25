@@ -13,12 +13,13 @@ public class Config {
         this.jitter = other.jitter;
         this.fuzziness = other.fuzziness;
         this.shuffle = other.shuffle;
-        this.spreadY = other.spreadY;
+        this.yRange = other.yRange;
+        this.yOffset = other.yOffset;
         this.sparsity = other.sparsity;
         this.spacing = other.spacing;
         this.sizeXZ = other.sizeXZ;
         this.sizeY = other.sizeY;
-        this.windSpeed = other.windSpeed;
+        this.travelSpeed = other.travelSpeed;
         this.windFactor = other.windFactor;
         this.chunkSize = other.chunkSize;
         this.samplingScale = other.samplingScale;
@@ -26,6 +27,7 @@ public class Config {
         this.fadeEdge = other.fadeEdge;
         this.usePersistentBuffers = other.usePersistentBuffers;
         this.writeDepth = other.writeDepth;
+        this.highQualityDepth = other.highQualityDepth;
         this.irisSupport = other.irisSupport;
         this.enabled = other.enabled;
         this.cloudOverride = other.cloudOverride;
@@ -54,7 +56,9 @@ public class Config {
     @ConfigEntry
     public boolean shuffle = false;
     @ConfigEntry
-    public float spreadY = 64f;
+    public float yRange = 64f;
+    @ConfigEntry
+    public float yOffset = 0f;
     @ConfigEntry
     public float sparsity = 0f;
     @ConfigEntry
@@ -64,7 +68,7 @@ public class Config {
     @ConfigEntry
     public float sizeY = 8f;
     @ConfigEntry
-    public float windSpeed = 0.03f;
+    public float travelSpeed = 0.03f;
     @ConfigEntry
     public float windFactor = 1.0f;
     @ConfigEntry
@@ -79,6 +83,8 @@ public class Config {
     public boolean usePersistentBuffers = true;
     @ConfigEntry
     public boolean writeDepth = false;
+    @ConfigEntry
+    public boolean highQualityDepth = false;
     @ConfigEntry
     public boolean irisSupport = false;
     @ConfigEntry

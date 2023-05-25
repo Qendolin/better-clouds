@@ -12,6 +12,7 @@ public class BlitShader extends Shader {
     public static final Identifier FRAGMENT_SHADER_ID = new Identifier(Main.MODID, "shaders/core/betterclouds_blit.fsh");
 
     public static final String DEF_BLIT_DEPTH_KEY = "_BLIT_DEPTH_";
+    public static final String DEF_REMAP_DEPTH_KEY = "_REMAP_DEPTH_";
 
     public final Uniform uData;
     public final Uniform uDepth;

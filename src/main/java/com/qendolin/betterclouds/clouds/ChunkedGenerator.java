@@ -1,10 +1,7 @@
 package com.qendolin.betterclouds.clouds;
 
-import com.ibm.icu.impl.duration.impl.Utils;
 import com.qendolin.betterclouds.Config;
 import com.qendolin.betterclouds.Main;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
@@ -13,7 +10,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -141,7 +137,7 @@ public class ChunkedGenerator implements AutoCloseable {
     }
 
     public synchronized void update(Vec3d camera, float timeDelta, Config options, float cloudiness) {
-        originX -= timeDelta * options.windSpeed;
+        originX -= timeDelta * options.travelSpeed;
         originZ = 0;
         double worldOriginX = camera.x - this.originX;
         double worldOriginZ = camera.z - this.originZ;
@@ -159,12 +155,13 @@ public class ChunkedGenerator implements AutoCloseable {
             Config prevOptions = prevTask.options();
             boolean optionsChanged = options.fuzziness != prevOptions.fuzziness
                 || options.chunkSize != prevOptions.chunkSize
-                || options.spreadY != prevOptions.spreadY
+                || options.yRange != prevOptions.yRange
                 || options.sparsity != prevOptions.sparsity
                 || options.spacing != prevOptions.spacing
                 || options.jitter != prevOptions.jitter
                 || options.distance != prevOptions.distance
-                || options.samplingScale != prevOptions.samplingScale;
+                || options.samplingScale != prevOptions.samplingScale
+                || options.shuffle != prevOptions.shuffle;
 
             float prevCloudiness = prevTask.cloudiness();
             boolean cloudinessChanged = Math.ceil(cloudiness * 100) != Math.ceil(prevCloudiness * 100);
@@ -393,7 +390,7 @@ public class ChunkedGenerator implements AutoCloseable {
                     // The outer loop generates sample points
                     for (int gridX = chunkGridMinX; gridX < chunkGridMaxX; gridX++) {
                         for (int gridZ = chunkGridMinZ; gridZ < chunkGridMaxZ; gridZ++) {
-                            if(hashToFloat(11, gridX + gridOriginX, gridZ + gridOriginZ) < options.sparsity)
+                            if(options.sparsity > 0 && hashToFloat(11, gridX + gridOriginX, gridZ + gridOriginZ) < options.sparsity)
                                 continue;
                             if(gridX * gridX + gridZ * gridZ >= gridVisibilityRadiusSquared) {
                                 // The point is outside the visible range
@@ -438,7 +435,7 @@ public class ChunkedGenerator implements AutoCloseable {
 
                     float x = (float) (sampleX - this.chunkX * options.chunkSize + sampler.jitterX(sampleX, sampleZ) * options.jitter * spacing);
                     // TODO: cloudPointiness value
-                    float y = options.spreadY * value * value;
+                    float y = options.yRange * value * value;
                     float z = (float) (sampleZ - this.chunkZ * options.chunkSize + sampler.jitterZ(sampleX, sampleZ) * options.jitter * spacing);
 
                     if(bounds == null) {
