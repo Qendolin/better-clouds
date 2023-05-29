@@ -73,6 +73,16 @@ public class QualityViewboxTransform implements IViewboxTransform {
         return (farPlane+nearPlane)/(farPlane-nearPlane);
     }
 
+    @Override
+    public boolean isInvalid() {
+        return invalid;
+    }
+
+    @Override
+    public Matrix4f getProjection() {
+        return projection;
+    }
+
     /**
      * Calculates the farthest near plane and the nearest far plane
      */
@@ -126,15 +136,5 @@ public class QualityViewboxTransform implements IViewboxTransform {
         this.projection.set(projection);
         this.projection.m22((float) (-(minFarPlane+maxNearPlane)/(minFarPlane-maxNearPlane)));
         this.projection.m32((float) (-(2*minFarPlane*maxNearPlane)/(minFarPlane-maxNearPlane)));
-    }
-
-    @Override
-    public boolean isInvalid() {
-        return invalid;
-    }
-
-    @Override
-    public Matrix4f getProjection() {
-        return projection;
     }
 }

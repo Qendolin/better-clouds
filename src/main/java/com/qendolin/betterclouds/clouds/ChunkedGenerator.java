@@ -5,8 +5,8 @@ import com.qendolin.betterclouds.Main;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3d;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -136,7 +136,7 @@ public class ChunkedGenerator implements AutoCloseable {
             + MathHelper.ceil(distance / options.spacing);
     }
 
-    public synchronized void update(Vec3d camera, float timeDelta, Config options, float cloudiness) {
+    public synchronized void update(Vector3d camera, float timeDelta, Config options, float cloudiness) {
         originX -= timeDelta * options.travelSpeed;
         originZ = 0;
         double worldOriginX = camera.x - this.originX;

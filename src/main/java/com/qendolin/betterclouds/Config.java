@@ -4,7 +4,6 @@ import dev.isxander.yacl.config.ConfigEntry;
 import net.minecraft.client.MinecraftClient;
 
 public class Config {
-
     public Config() {}
 
     public Config(Config other) {
@@ -29,6 +28,7 @@ public class Config {
         this.writeDepth = other.writeDepth;
         this.highQualityDepth = other.highQualityDepth;
         this.irisSupport = other.irisSupport;
+        this.upscaleResolutionFactor = other.upscaleResolutionFactor;
         this.enabled = other.enabled;
         this.cloudOverride = other.cloudOverride;
         this.useIrisFBO = other.useIrisFBO;
@@ -91,6 +91,8 @@ public class Config {
     public boolean cloudOverride = false;
     @ConfigEntry
     public boolean useIrisFBO = true;
+    @ConfigEntry
+    public float upscaleResolutionFactor = 1f;
     @ConfigEntry
     public float gamma = 1f;
     @ConfigEntry

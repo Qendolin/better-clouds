@@ -87,5 +87,7 @@ public class FastViewboxTransform implements IViewboxTransform {
         nearPlane = m11 / (m10 - 1);
 
         this.projection.set(projection);
+        this.projection.m22((float) (-(farPlane+nearPlane)/(farPlane-nearPlane)));
+        this.projection.m32((float) (-(2*farPlane*nearPlane)/(farPlane-nearPlane)));
     }
 }

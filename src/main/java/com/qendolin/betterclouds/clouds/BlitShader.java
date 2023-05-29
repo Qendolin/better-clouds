@@ -8,8 +8,8 @@ import java.io.IOException;
 import java.util.Map;
 
 public class BlitShader extends Shader {
-    public static final Identifier VERTEX_SHADER_ID = new Identifier(Main.MODID, "shaders/core/betterclouds_blit.vsh");
-    public static final Identifier FRAGMENT_SHADER_ID = new Identifier(Main.MODID, "shaders/core/betterclouds_blit.fsh");
+    public static final Identifier VERTEX_SHADER_ID = new Identifier(Main.MODID, "shaders/core/betterclouds_shading.vsh");
+    public static final Identifier FRAGMENT_SHADER_ID = new Identifier(Main.MODID, "shaders/core/betterclouds_shading.fsh");
 
     public static final String DEF_BLIT_DEPTH_KEY = "_BLIT_DEPTH_";
     public static final String DEF_REMAP_DEPTH_KEY = "_REMAP_DEPTH_";

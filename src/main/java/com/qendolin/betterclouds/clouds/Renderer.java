@@ -21,8 +21,8 @@ import net.minecraft.util.Util;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
-import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
+import org.joml.Vector3d;
 import org.joml.Vector3f;
 
 import java.io.IOException;
@@ -61,7 +61,6 @@ public class Renderer implements AutoCloseable {
     private int fboHeight;
     private float cloudsHeight;
     private int defaultFbo;
-    private float raininess;
     private final Matrix4f mvpMatrix = new Matrix4f();
     private final Matrix4f inverseMatrix = new Matrix4f();
     private final Matrix4f tempMatrix = new Matrix4f();
@@ -172,8 +171,8 @@ public class Renderer implements AutoCloseable {
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, oitFbo);
         glCompat.objectLabel(GL_FRAMEBUFFER, oitFbo, "coverage");
 
-        fboWidth = client.getFramebuffer().textureWidth;
-        fboHeight = client.getFramebuffer().textureHeight;
+        fboWidth = scaledFramebufferWidth();
+        fboHeight = scaledFramebufferHeight();
 
         oitDataTexture = glGenTextures();
         RenderSystem.bindTexture(oitDataTexture);
@@ -275,7 +274,7 @@ public class Renderer implements AutoCloseable {
         return Main.getConfig();
     }
 
-    public boolean setup(MatrixStack matrices, Matrix4f projMat, float tickDelta, int ticks, Vec3d cam, Frustum frustum) {
+    public boolean setup(MatrixStack matrices, Matrix4f projMat, float tickDelta, int ticks, Vector3d cam, Frustum frustum) {
         assert RenderSystem.isOnRenderThread();
         client.getProfiler().swap("render_setup");
         Config config = Main.getConfig();
@@ -303,11 +302,11 @@ public class Renderer implements AutoCloseable {
         }
         generator.reallocateIfStale(config, isFancyMode());
 
-        raininess = Math.max(0.6f*world.getRainGradient(tickDelta), world.getThunderGradient(tickDelta));
+        float raininess = Math.max(0.6f * world.getRainGradient(tickDelta), world.getThunderGradient(tickDelta));
         float cloudiness = raininess * 0.3f + 0.5f;
 
         generator.update(cam, tickDelta, Main.getConfig(), cloudiness);
-        if(generator.canGenerate() && !generator.generating()) {
+        if(generator.canGenerate() && !generator.generating() && !Debug.generatorPause) {
             client.getProfiler().swap("generate_clouds");
             generator.generate();
             client.getProfiler().swap("render_setup");
@@ -325,6 +324,7 @@ public class Renderer implements AutoCloseable {
         float yaw = client.cameraEntity == null ? 0 : client.cameraEntity.getYaw();
         viewboxTransform.update(projMat, (float) cam.y, pitch, cloudsHeight, getGeneratorConfig());
 
+        // FIXME: The inverse matrix does not work always (Issue #14)
         inverseMatrix.identity();
         Matrix4f viewRotationMatrix = tempMatrix;
         viewRotationMatrix.identity();
@@ -344,14 +344,13 @@ public class Renderer implements AutoCloseable {
     }
 
     // Don't forget to push / pop matrix stack outside
-    public void render(MatrixStack matrices, float tickDelta, int ticks, Vec3d cam, Frustum frustum) {
+    public void render(MatrixStack matrices, float tickDelta, int ticks, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
         if(viewboxTransform.isInvalid()) {
             return;
         }
         // Rendering clouds when underwater was making them very visible in unloaded chunks
         if(client.gameRenderer.getCamera().getSubmersionType() != CameraSubmersionType.NONE) return;
 
-        // TODO: Implement a fix for shaders using TAAU
         client.getProfiler().swap("render_setup");
         if(Main.isProfilingEnabled()) {
             if(timer == null) reloadTimer();
@@ -360,7 +359,7 @@ public class Renderer implements AutoCloseable {
 
         Config config = Main.getConfig();
 
-        if(framebufferStale()) {
+        if(isFramebufferStale()) {
             reloadFramebuffer();
         }
 
@@ -373,7 +372,7 @@ public class Renderer implements AutoCloseable {
         drawDepth();
 
         client.getProfiler().swap("draw_coverage");
-        drawCoverage(tickDelta, cam, frustum);
+        drawCoverage(cam, frustumPos, frustum);
 
         client.getProfiler().swap("draw_shading");
         if(IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled() && config.useIrisFBO) {
@@ -399,10 +398,14 @@ public class Renderer implements AutoCloseable {
         glDisable(GL_STENCIL_TEST);
         glStencilFunc(GL_ALWAYS, 0x0, 0xff);
 
+        if(Debug.frustumCulling) {
+            Debug.drawFrustumCulling(cam, frustum, frustumPos, generator, cloudsHeight);
+        }
+
         if(Main.isProfilingEnabled()) {
             timer.stop();
 
-            if(timer.frames() >= Main.profileInterval) {
+            if(timer.frames() >= Debug.profileInterval) {
                 List<Double> times = timer.get();
                 times.sort(Double::compare);
                 double median = times.get(times.size()/2);
@@ -415,10 +418,6 @@ public class Renderer implements AutoCloseable {
                 timer.reset();
             }
         }
-    }
-
-    private boolean framebufferStale() {
-        return fboWidth != client.getFramebuffer().textureWidth || fboHeight != client.getFramebuffer().textureHeight;
     }
 
     private void drawShading(float tickDelta) {
@@ -474,27 +473,7 @@ public class Renderer implements AutoCloseable {
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
 
-    private float smoothstep(float x, float e0, float e1) {
-        x = MathHelper.clamp((x-e0) / (e1-e0), 0, 1);
-        return x * x * (3 - 2*x);
-    }
-
-    private float getEffectLuminance(float tickDelta) {
-        float luma = 1.0f;
-        float rain = world.getRainGradient(tickDelta);
-        if (rain > 0.0f) {
-            float f = rain * 0.95f;
-            luma *= (1.0 - f) + f * 0.6f;
-        }
-        float thunder = world.getThunderGradient(tickDelta);
-        if (thunder > 0.0f) {
-            float f = thunder * 0.95f;
-            luma *= (1.0 - f) + f * 0.2f;
-        }
-        return luma;
-    }
-
-    private void drawCoverage(float tickDelta, Vec3d cam, Frustum frustum) {
+    private void drawCoverage(Vector3d cam, Vector3d frustumPos, Frustum frustum) {
         glEnable(GL_STENCIL_TEST);
         glStencilMask(0xff);
         glStencilOp(GL_KEEP, GL_INCR, GL_INCR);
@@ -520,9 +499,8 @@ public class Renderer implements AutoCloseable {
         generator.bind();
 
         Frustum frustumAtOrigin = new Frustum(frustum);
-        frustumAtOrigin.setPosition(cam.x - generator.originX(), cam.y, cam.z - generator.originZ());
+        frustumAtOrigin.setPosition(frustumPos.x - generator.originX(), frustumPos.y, frustumPos.z - generator.originZ());
         if(generator.canRender()) {
-            // TODO: improve grouping
             int runStart = -1;
             int runCount = 0;
             for (ChunkedGenerator.ChunkIndex chunk : generator.chunks()) {
@@ -568,6 +546,38 @@ public class Renderer implements AutoCloseable {
 
     private boolean isFancyMode() {
         return client.options.getCloudRenderModeValue() == CloudRenderMode.FANCY;
+    }
+
+    private float smoothstep(float x, float e0, float e1) {
+        x = MathHelper.clamp((x-e0) / (e1-e0), 0, 1);
+        return x * x * (3 - 2*x);
+    }
+
+    private float getEffectLuminance(float tickDelta) {
+        float luma = 1.0f;
+        float rain = world.getRainGradient(tickDelta);
+        if (rain > 0.0f) {
+            float f = rain * 0.95f;
+            luma *= (1.0 - f) + f * 0.6f;
+        }
+        float thunder = world.getThunderGradient(tickDelta);
+        if (thunder > 0.0f) {
+            float f = thunder * 0.95f;
+            luma *= (1.0 - f) + f * 0.2f;
+        }
+        return luma;
+    }
+
+    private boolean isFramebufferStale() {
+        return fboWidth != scaledFramebufferWidth() || fboHeight != scaledFramebufferHeight();
+    }
+
+    private int scaledFramebufferWidth() {
+        return (int) (Main.getConfig().upscaleResolutionFactor * client.getFramebuffer().textureWidth);
+    }
+
+    private int scaledFramebufferHeight() {
+        return (int) (Main.getConfig().upscaleResolutionFactor * client.getFramebuffer().textureHeight);
     }
 
     public void close() {

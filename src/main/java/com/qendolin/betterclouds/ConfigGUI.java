@@ -213,6 +213,10 @@ public class ConfigGUI {
                     .binding(defaults.writeDepth, () -> config.writeDepth, val -> config.writeDepth = val)
                     .controller(TickBoxController::new)
                     .build())
+                .option(createOption(float.class, "upscaleResolutionFactor")
+                    .binding(defaults.upscaleResolutionFactor, () -> config.upscaleResolutionFactor, val -> config.upscaleResolutionFactor = val)
+                    .controller(opt -> new FloatSliderController(opt, 0.25f, 1.0f, 0.25f, ConfigGUI::formatAsPercent))
+                    .build())
                 .build())
             .build();
     }

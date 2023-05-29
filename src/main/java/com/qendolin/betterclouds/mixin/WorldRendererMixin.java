@@ -1,17 +1,15 @@
 package com.qendolin.betterclouds.mixin;
 
 import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.clouds.Debug;
 import com.qendolin.betterclouds.clouds.Renderer;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.BufferBuilderStorage;
-import net.minecraft.client.render.Frustum;
-import net.minecraft.client.render.WorldRenderer;
+import net.minecraft.client.render.*;
 import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.dimension.DimensionTypes;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
@@ -27,7 +25,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import static com.qendolin.betterclouds.Main.glCompat;
 
 @Mixin(WorldRenderer.class)
-public abstract class CloudRendererMixin {
+public abstract class WorldRendererMixin {
 
     private Renderer cloudRenderer;
     @Shadow
@@ -74,21 +72,22 @@ public abstract class CloudRendererMixin {
         client.getProfiler().push(Main.MODID);
         glCompat.pushDebugGroup("Better Clouds");
 
+        Vector3d cam = new Vector3d(camX, camY, camZ);
         Frustum frustum = this.frustum;
+        Vector3d frustumPos = cam;
         if (capturedFrustum != null) {
             frustum = capturedFrustum;
             frustum.setPosition(capturedFrustumPosition.x, this.capturedFrustumPosition.y, this.capturedFrustumPosition.z);
+            frustumPos = capturedFrustumPosition;
         }
 
         if(Main.isProfilingEnabled()) GL32.glFinish();
         long startTime = System.nanoTime();
 
-        Vec3d cam = new Vec3d(camX, camY, camZ);
-
         matrices.push();
         if(cloudRenderer.setup(matrices, projMat, tickDelta, ticks, cam, frustum)) {
             ci.cancel();
-            cloudRenderer.render(matrices, tickDelta, ticks, cam, frustum);
+            cloudRenderer.render(matrices, tickDelta, ticks, cam, frustumPos, frustum);
         }
         matrices.pop();
 
@@ -96,7 +95,7 @@ public abstract class CloudRendererMixin {
             GL32.glFinish();
             profTimeAcc += (System.nanoTime() - startTime) / 1e6;
             profFrames++;
-            if (profFrames >= Main.profileInterval) {
+            if (profFrames >= Debug.profileInterval) {
                 Main.debugChatMessage(String.format("§3CPU Times§r: %.3f §7avg§r", profTimeAcc / profFrames));
                 profFrames = 0;
                 profTimeAcc = 0;

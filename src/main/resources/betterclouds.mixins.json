@@ -7,7 +7,7 @@
   ],
   "client": [
     "BufferRendererAccessor",
-    "CloudRendererMixin",
+    "WorldRendererMixin",
     "CloudSettingMixin",
     "ExtendedShaderAccessor",
     "RenderSystemMixin",
