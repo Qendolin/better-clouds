@@ -10,7 +10,7 @@ layout(early_fragment_tests) in;
 in vec3 pass_dir;
 in vec2 pass_uv;
 
-layout (location=0) out vec4 frag_color;
+layout (location=0) out vec4 out_color;
 
 #if BLIT_DEPTH
 uniform sampler2D u_depth_texture;
@@ -32,6 +32,7 @@ uniform vec4 u_color_grading;
 uniform vec3 u_tint;
 
 const float pi = 3.14159265359;
+const float sqrt2 = 1.41421356237;
 
 float linearize_depth(float hyp, float a, float b)
 {
@@ -59,27 +60,17 @@ void main() {
     float coverage = float(texelFetch(u_coverage_texture, ivec2(gl_FragCoord), 0).r);
     // This is the "correct" formula
     // frag_color.a = 1. - pow((1.-u_opacity.a), coverage);
-    frag_color.a = pow(coverage, 1.5) / (1./(u_opacity.x)+pow(coverage, 1.5)-1);
+    out_color.a = pow(coverage, 1.5) / (1./(u_opacity.x)+pow(coverage, 1.5)-1);
 
     vec3 sunDir = u_sun_direction.xyz;
     vec3 fragDir = normalize(pass_dir);
-    vec3 xzDir = normalize(vec3(pass_dir.x, 0, pass_dir.z));
 
     vec3 xzProj = fragDir - sunDir * dot(fragDir, sunDir);
     float projAngle = acos(dot(normalize(xzProj), vec3(0, 0, 1)));
 
-    float dotXY = dot(normalize(pass_dir.xy), normalize(sunDir.xy));
-    float dotYZ = dot(normalize(pass_dir.yz), normalize(sunDir.yz));
-    float dotX = dot(fragDir, vec3(1, 0, 0));
-    float dotZ = dot(fragDir, vec3(0, 0, 1));
-
-    float cotx = tan(fragDir.x / fragDir.y);
-    float cotz = tan(fragDir.z / fragDir.y);
-
     // if sunDir.z is always 0, this can be optimized, but who cares
-    float sphere = dot(sunDir, normalize(pass_dir));
-    float square = abs(pass_dir.x) > abs(pass_dir.z) ? dotXY : dotYZ;
-    float rsquare = (1-length(max(abs(vec2(1-abs(dotXY), 1-abs(dotYZ))), vec2(0)))) * sign(sunDir.y * fragDir.y);
+    float sphere = dot(sunDir, fragDir);
+    // TODO: document how I arrived at this formula
     float superellipse = ((1.0 + (1./3.) * (pow(sin(2*projAngle + pi/2.), 2.0))) * (1.-abs(dot(sunDir, fragDir))) - 1.0) * sign(dot(sunDir, -fragDir));
     float lightUVx = mix(sphere, superellipse, smoothstep(0.75, 1.0, abs(sphere)));
 
@@ -94,13 +85,12 @@ void main() {
 
     // Prevent sampling the horizontally interpolated vertical edges
     lightUV.x -= (lightUV.x - 0.5) / textureSize(u_light_texture, 0).x;
-    frag_color.rgb = texture(u_light_texture, lightUV).rgb;
+    out_color.rgb = texture(u_light_texture, lightUV).rgb;
 
-    float colorLumi = dot(frag_color.rgb, vec3(0.2126, 0.7152, 0.072)) + 0.001;
-    vec3 colorChroma = frag_color.rgb / colorLumi;
+    float colorLumi = dot(out_color.rgb, vec3(0.2126, 0.7152, 0.072)) + 0.001;
+    vec3 colorChroma = out_color.rgb / colorLumi;
 
-    vec3 dataWeights = vec3(1, 3, 3);
-    float colorVariance = length(vec3(1., 1. - pow(1. - cloudData.g, 3.) * 0.75, cloudData.b * 0.75 + 0.25) * dataWeights.rgb) / length(dataWeights);
+    float colorVariance = length(vec2(1. - pow(1. - cloudData.g, 3.) * 0.75, cloudData.b * 0.75 + 0.25)) / sqrt2;
     colorLumi = colorVariance * 0.35 * (0.3 + 0.7 * colorLumi) + 0.75 * colorLumi;
 
     colorChroma = mix(vec3(1.0), colorChroma, u_color_grading.z);
@@ -109,9 +99,9 @@ void main() {
     colorLumi *= u_color_grading.x;
     colorLumi = pow(colorLumi, u_color_grading.y);
 
-    frag_color.rgb = colorChroma * colorLumi;
-    frag_color.rgb *= u_tint;
-    frag_color.a *= u_opacity.y;
+    out_color.rgb = colorChroma * colorLumi;
+    out_color.rgb *= u_tint;
+    out_color.a *= u_opacity.y;
 
 #if BLIT_DEPTH
 #if REMAP_DEPTH

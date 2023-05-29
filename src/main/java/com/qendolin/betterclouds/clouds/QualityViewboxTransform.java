@@ -88,6 +88,7 @@ public class QualityViewboxTransform implements IViewboxTransform {
      */
     @Override
     public void update(Matrix4f projection, float cameraY, float pitchDeg, float cloudsHeight, Config generatorConfig) {
+        // FIXME: calculation is incorrect when nausea is applied
         float tanFov = 1 / projection.m11();
         // this is actually the total fov / 2
         float fov = (float) Math.atan(tanFov);

@@ -1,6 +1,7 @@
 package com.qendolin.betterclouds.clouds;
 
 public class Mesh {
+    // Use TRIANGLE_STRIP
     public static final float[] FANCY_MESH = new float[]{
 //     [position        ][normal          ]
 //     [  x     y     z ][ x     y     z  ]
@@ -34,4 +35,49 @@ public class Mesh {
 
     public static final int FAST_MESH_VERTEX_SIZE = 3;
     public static final int FAST_MESH_VERTEX_COUNT = FAST_MESH.length / FAST_MESH_VERTEX_SIZE;
+
+    // Use TRIANGLES, front faces are inside
+    public static final float[] CUBE_MESH = new float[]{
+//     [position   ]
+//     [ x   y   z ]
+        -1, +1, -1, // +y
+        +1, +1, -1,
+        +1, +1, +1,
+        -1, +1, -1,
+        +1, +1, +1,
+        -1, +1, +1,
+        +1, +1, +1, // +z
+        +1, -1, +1,
+        -1, -1, +1,
+        +1, +1, +1,
+        -1, -1, +1,
+        -1, +1, +1,
+        -1, +1, +1, // -x
+        -1, -1, +1,
+        -1, -1, -1,
+        -1, +1, +1,
+        -1, -1, -1,
+        -1, +1, -1,
+        +1, -1, -1, // -y
+        -1, -1, -1,
+        -1, -1, +1,
+        +1, -1, -1,
+        -1, -1, +1,
+        +1, -1, +1,
+        +1, +1, -1, // +x
+        +1, -1, -1,
+        +1, -1, +1,
+        +1, +1, -1,
+        +1, -1, +1,
+        +1, +1, +1,
+        -1, +1, -1, // -z
+        -1, -1, -1,
+        +1, -1, -1,
+        -1, +1, -1,
+        +1, -1, -1,
+        +1, +1, -1
+    };
+
+    public static final int CUBE_MESH_VERTEX_SIZE = 3;
+    public static final int CUBE_MESH_VERTEX_COUNT = CUBE_MESH.length / CUBE_MESH_VERTEX_SIZE;
 }

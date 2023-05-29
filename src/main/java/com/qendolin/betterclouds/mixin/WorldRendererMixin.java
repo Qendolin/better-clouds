@@ -4,7 +4,9 @@ import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.clouds.Debug;
 import com.qendolin.betterclouds.clouds.Renderer;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.*;
+import net.minecraft.client.render.BufferBuilderStorage;
+import net.minecraft.client.render.Frustum;
+import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.util.math.MatrixStack;
@@ -85,9 +87,9 @@ public abstract class WorldRendererMixin {
         long startTime = System.nanoTime();
 
         matrices.push();
-        if(cloudRenderer.setup(matrices, projMat, tickDelta, ticks, cam, frustum)) {
+        if(cloudRenderer.prepare(matrices, projMat, tickDelta, cam)) {
             ci.cancel();
-            cloudRenderer.render(matrices, tickDelta, ticks, cam, frustumPos, frustum);
+            cloudRenderer.render(tickDelta, cam, frustumPos, frustum);
         }
         matrices.pop();
 
