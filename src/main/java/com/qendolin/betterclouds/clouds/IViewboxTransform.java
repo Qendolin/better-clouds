@@ -8,14 +8,6 @@ public interface IViewboxTransform {
 
     Matrix4f getProjection();
 
-    double farPlane();
-
-    double nearPlane();
-
-    double minFarPlane();
-
-    double maxNearPlane();
-
     double linearizeFactor();
 
     double inverseLinearizeFactor();
