@@ -9,7 +9,7 @@ public class Config {
     public Config(Config other) {
         this.distance = other.distance;
         this.opacity = other.opacity;
-        this.jitter = other.jitter;
+        this.randomPlacement = other.randomPlacement;
         this.fuzziness = other.fuzziness;
         this.shuffle = other.shuffle;
         this.yRange = other.yRange;
@@ -20,6 +20,7 @@ public class Config {
         this.sizeY = other.sizeY;
         this.travelSpeed = other.travelSpeed;
         this.windFactor = other.windFactor;
+        this.colorVariationFactor = other.colorVariationFactor;
         this.chunkSize = other.chunkSize;
         this.samplingScale = other.samplingScale;
         this.scaleFalloffMin = other.scaleFalloffMin;
@@ -50,7 +51,8 @@ public class Config {
     @ConfigEntry
     public float opacity = 0.2f;
     @ConfigEntry
-    public float jitter = 1.0f;
+    // TODO: rename
+    public float randomPlacement = 1.0f;
     @ConfigEntry
     public float fuzziness = 1.0f;
     @ConfigEntry
@@ -72,6 +74,8 @@ public class Config {
     @ConfigEntry
     public float windFactor = 1.0f;
     @ConfigEntry
+    public float colorVariationFactor = 1.0f;
+    @ConfigEntry
     public int chunkSize = 32;
     @ConfigEntry
     public float samplingScale = 1;
@@ -88,7 +92,7 @@ public class Config {
     @ConfigEntry
     public boolean irisSupport = false;
     @ConfigEntry
-    public boolean cloudOverride = false;
+    public boolean cloudOverride = true;
     @ConfigEntry
     public boolean useIrisFBO = true;
     @ConfigEntry

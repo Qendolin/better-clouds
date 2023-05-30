@@ -30,6 +30,8 @@ uniform vec2 u_opacity;
 uniform vec4 u_color_grading;
 // r, g, b
 uniform vec3 u_tint;
+// color noise factor
+uniform float u_noise_factor;
 
 const float pi = 3.14159265359;
 const float sqrt2 = 1.41421356237;
@@ -91,7 +93,7 @@ void main() {
     vec3 colorChroma = out_color.rgb / colorLumi;
 
     float colorVariance = length(vec2(1. - pow(1. - cloudData.g, 3.) * 0.75, cloudData.b * 0.75 + 0.25)) / sqrt2;
-    colorLumi = colorVariance * 0.35 * (0.3 + 0.7 * colorLumi) + 0.75 * colorLumi;
+    colorLumi = mix(colorLumi, colorVariance * 0.35 * (0.3 + 0.7 * colorLumi) + 0.75 * colorLumi, u_noise_factor);
 
     colorChroma = mix(vec3(1.0), colorChroma, u_color_grading.z);
     colorChroma = mix(vec3(1.0), colorChroma, u_color_grading.w);

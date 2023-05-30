@@ -158,7 +158,7 @@ public class ChunkedGenerator implements AutoCloseable {
                 || options.yRange != prevOptions.yRange
                 || options.sparsity != prevOptions.sparsity
                 || options.spacing != prevOptions.spacing
-                || options.jitter != prevOptions.jitter
+                || options.randomPlacement != prevOptions.randomPlacement
                 || options.distance != prevOptions.distance
                 || options.samplingScale != prevOptions.samplingScale
                 || options.shuffle != prevOptions.shuffle;
@@ -433,10 +433,10 @@ public class ChunkedGenerator implements AutoCloseable {
                     float value = sampler.sample(sampleX, sampleZ, cloudiness, options.fuzziness, options.samplingScale);
                     if (value <= 0) continue;
 
-                    float x = (float) (sampleX - this.chunkX * options.chunkSize + sampler.jitterX(sampleX, sampleZ) * options.jitter * spacing);
+                    float x = (float) (sampleX - this.chunkX * options.chunkSize + sampler.randomOffsetX(sampleX, sampleZ) * options.randomPlacement * spacing);
                     // TODO: cloudPointiness value
                     float y = options.yRange * value * value;
-                    float z = (float) (sampleZ - this.chunkZ * options.chunkSize + sampler.jitterZ(sampleX, sampleZ) * options.jitter * spacing);
+                    float z = (float) (sampleZ - this.chunkZ * options.chunkSize + sampler.randomOffsetZ(sampleX, sampleZ) * options.randomPlacement * spacing);
 
                     if(bounds == null) {
                         bounds = new float[]{x, y, z, x, y, z};

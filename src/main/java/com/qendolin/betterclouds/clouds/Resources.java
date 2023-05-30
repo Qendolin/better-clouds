@@ -32,7 +32,7 @@ public class Resources implements Closeable {
     // Shaders
     private DepthShader depthShader = null;
     private CoverageShader coverageShader = null;
-    private BlitShader blitShader = null;
+    private ShadingShader shadingShader = null;
 
     // Generator
     private ChunkedGenerator generator = null;
@@ -69,8 +69,8 @@ public class Resources implements Closeable {
         return coverageShader;
     }
 
-    public BlitShader blitShader() {
-        return blitShader;
+    public ShadingShader shadingShader() {
+        return shadingShader;
     }
 
     public int quadVao() {
@@ -110,8 +110,8 @@ public class Resources implements Closeable {
     }
 
     public boolean failedToLoadCritical() {
-        if(depthShader == null || coverageShader == null || blitShader == null) return true;
-        if(depthShader.isIncomplete() || coverageShader.isIncomplete() || blitShader.isIncomplete()) return true;
+        if(depthShader == null || coverageShader == null || shadingShader == null) return true;
+        if(depthShader.isIncomplete() || coverageShader.isIncomplete() || shadingShader.isIncomplete()) return true;
         if(generator == null) return true;
         if(oitFbo == UNASSIGNED) return true;
         if(oitDataTexture == UNASSIGNED || oitCoverageTexture == UNASSIGNED || oitCoverageDepthView == UNASSIGNED) return true;
@@ -258,10 +258,10 @@ public class Resources implements Closeable {
     public void deleteShaders() {
         if(depthShader != null) depthShader.close();
         if(coverageShader != null) coverageShader.close();
-        if(blitShader != null) blitShader.close();
+        if(shadingShader != null) shadingShader.close();
         depthShader = null;
         coverageShader = null;
-        blitShader = null;
+        shadingShader = null;
     }
 
     public void reloadShaders(ResourceManager manager) {
@@ -302,20 +302,20 @@ public class Resources implements Closeable {
         }
 
         try {
-            blitShader = new BlitShader(manager, Map.ofEntries(
-                Map.entry(BlitShader.DEF_BLIT_DEPTH_KEY, config.writeDepth ? "1" : "0"),
-                Map.entry(BlitShader.DEF_REMAP_DEPTH_KEY, config.highQualityDepth ? "1" : "0")
+            shadingShader = new ShadingShader(manager, Map.ofEntries(
+                Map.entry(ShadingShader.DEF_BLIT_DEPTH_KEY, config.writeDepth ? "1" : "0"),
+                Map.entry(ShadingShader.DEF_REMAP_DEPTH_KEY, config.highQualityDepth ? "1" : "0")
             ));
-            blitShader.bind();
-            blitShader.uDepthTexture.setInt(1);
-            blitShader.uDataTexture.setInt(2);
-            blitShader.uCoverageTexture.setInt(3);
-            blitShader.uLightTexture.setInt(4);
-            glCompat.objectLabel(glCompat.GL_PROGRAM, blitShader.glId(), "blit");
+            shadingShader.bind();
+            shadingShader.uDepthTexture.setInt(1);
+            shadingShader.uDataTexture.setInt(2);
+            shadingShader.uCoverageTexture.setInt(3);
+            shadingShader.uLightTexture.setInt(4);
+            glCompat.objectLabel(glCompat.GL_PROGRAM, shadingShader.glId(), "blit");
         } catch (IOException e) {
             Main.LOGGER.error(e);
-            blitShader.close();
-            blitShader = null;
+            shadingShader.close();
+            shadingShader = null;
         }
     }
 

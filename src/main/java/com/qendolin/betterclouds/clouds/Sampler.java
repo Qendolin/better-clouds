@@ -47,11 +47,11 @@ public class Sampler {
         return f - 1;
     }
 
-    public float jitterX(int x, int z) {
+    public float randomOffsetX(int x, int z) {
         return hashToFloat(x, z, 'X');
     }
 
-    public float jitterZ(int x, int z) {
+    public float randomOffsetZ(int x, int z) {
         return hashToFloat(x, z, 'Z');
     }
 

@@ -124,7 +124,7 @@ public class Renderer implements AutoCloseable {
         viewboxTransform.update(projMat, (float) cam.y, pitch, cloudsHeight, getGeneratorConfig());
 
         rotationProjectionMatrix.set(projMat);
-        // This is fixes issue #14
+        // This is fixes issue #14, not entirely sure why, but it forces the matrix to be homogenous
         tempMatrix.m30(0);
         tempMatrix.m31(0);
         tempMatrix.m32(0);
@@ -136,7 +136,6 @@ public class Renderer implements AutoCloseable {
 
         mvpMatrix.set(viewboxTransform.getProjection());
         mvpMatrix.mul(matrices.peek().getPositionMatrix());
-
 
         // TODO: don't do this dynamically
         defaultFbo = glGetInteger(GL_DRAW_FRAMEBUFFER_BINDING);
@@ -259,13 +258,14 @@ public class Renderer implements AutoCloseable {
         float brightness = dayNightFactor * config.nightBrightness + (1-dayNightFactor) * config.dayBrightness;
         Vector3f sunDir = new Vector3f(0, 1, 0).rotateAxis(skyAngleRad, 0, MathHelper.sin(sunPathAngleRad/2), MathHelper.cos(sunPathAngleRad/2));
 
-        res.blitShader().bind();
-        res.blitShader().uInverseVPMatrix.setMat4(rotationProjectionMatrix);
-        res.blitShader().uSunDirection.setVec4(sunDir.x, sunDir.y, sunDir.z,(world.getTimeOfDay()%24000)/24000f);
-        res.blitShader().uOpacity.setVec2(config.opacity, config.opacityFactor);
-        res.blitShader().uColorGrading.setVec4(brightness, 1f/config.gamma(), effectLuma, config.saturation);
-        res.blitShader().uTint.setVec3(config.tintRed, config.tintGreen, config.tintBlue);
-        res.blitShader().uDepthTransform.setVec4(
+        res.shadingShader().bind();
+        res.shadingShader().uVPMatrix.setMat4(rotationProjectionMatrix);
+        res.shadingShader().uSunDirection.setVec4(sunDir.x, sunDir.y, sunDir.z,(world.getTimeOfDay()%24000)/24000f);
+        res.shadingShader().uOpacity.setVec2(config.opacity, config.opacityFactor);
+        res.shadingShader().uColorGrading.setVec4(brightness, 1f/config.gamma(), effectLuma, config.saturation);
+        res.shadingShader().uTint.setVec3(config.tintRed, config.tintGreen, config.tintBlue);
+        res.shadingShader().uNoiseFactor.setFloat(config.colorVariationFactor);
+        res.shadingShader().uDepthTransform.setVec4(
             (float) viewboxTransform.inverseLinearizeFactor(),
             (float) viewboxTransform.inverseLinearizeAddend(),
             (float) viewboxTransform.inverseHyperbolizeFactor(),
