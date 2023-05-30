@@ -13,7 +13,7 @@ public class Debug {
     public static boolean generatorPause = false;
 
     public static void drawBox(Vector3d cam, VertexConsumer vertexConsumer, Box box, float red, float green, float blue, float alpha) {
-        // I was having some issues with WorldRenderer#drawBox and sodium, so I've copied a modifed version here
+        // I was having some issues with WorldRenderer#drawBox and sodium, so I've copied a modified version here
         float minX = (float) (box.minX-cam.x);
         float minY = (float) (box.minY-cam.y);
         float minZ = (float) (box.minZ-cam.z);

@@ -67,9 +67,7 @@ public class Main implements ClientModInitializer {
 	public void onInitializeClient() {
 		CONFIG.load();
 
-		ClientLifecycleEvents.CLIENT_STARTED.register(client -> {
-			glCompat.enableDebugOutputSynchronous();
-		});
+		ClientLifecycleEvents.CLIENT_STARTED.register(client -> glCompat.enableDebugOutputSynchronous());
 
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> Commands.register(dispatcher));
 
