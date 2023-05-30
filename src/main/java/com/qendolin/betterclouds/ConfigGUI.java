@@ -39,7 +39,6 @@ public class ConfigGUI {
     public final Option<Float> yRange;
     public final Option<Float> yOffset;
     public final Option<Float> samplingScale;
-    public final Option<Boolean> highQualityDepth;
     public final Option<Float> sizeXZ;
     public final Option<Float> sizeY;
     public final Option<Float> scaleFalloffMin;
@@ -214,10 +213,6 @@ public class ConfigGUI {
             .binding(defaults.usePersistentBuffers, () -> config.usePersistentBuffers, val -> config.usePersistentBuffers = val)
             .controller(TickBoxController::new)
             .build();
-        this.highQualityDepth = createOption(boolean.class, "highQualityDepth")
-            .binding(defaults.highQualityDepth, () -> config.highQualityDepth, val -> config.highQualityDepth = val)
-            .controller(TickBoxController::new)
-            .build();
 
         categories.add(new Pair<>(ConfigCategory.createBuilder()
             .name(categoryLabel("generation")), generationCategory));
@@ -249,7 +244,7 @@ public class ConfigGUI {
         performanceGenerationGroup.addAll(List.of(spacing, chunkSize, distance, sparsity, fuzziness, shuffle));
         performanceCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("performance.technical")), performanceTechnicalGroup));
-        performanceTechnicalGroup.addAll(List.of(usePersistentBuffers, highQualityDepth));
+        performanceTechnicalGroup.addAll(List.of(usePersistentBuffers));
 
         categories.add(new Pair<>(ConfigCategory.createBuilder()
             .name(categoryLabel("shaders")), shadersCategory));

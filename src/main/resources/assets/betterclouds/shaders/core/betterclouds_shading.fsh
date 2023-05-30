@@ -1,7 +1,6 @@
 #version 430
 
 #define BLIT_DEPTH _BLIT_DEPTH_
-#define REMAP_DEPTH _REMAP_DEPTH_
 
 #if !BLIT_DEPTH
 layout(early_fragment_tests) in;
@@ -14,9 +13,6 @@ layout (location=0) out vec4 out_color;
 
 #if BLIT_DEPTH
 uniform sampler2D u_depth_texture;
-#if REMAP_DEPTH
-uniform vec4 u_depth_transform;
-#endif
 #endif
 
 uniform sampler2D u_data_texture;
@@ -35,21 +31,6 @@ uniform float u_noise_factor;
 
 const float pi = 3.14159265359;
 const float sqrt2 = 1.41421356237;
-
-float linearize_depth(float hyp, float a, float b)
-{
-    return (hyp * 2 - 1) * a + b;
-}
-
-float hyperbolize_depth(float lin, float a, float b)
-{
-    return (lin * a + b) * 0.5 + 0.5;
-}
-
-float remap_depth(float d, float x, float y, float z, float w)
-{
-    return d*x*z - 0.5*x*z + 0.5*y*z + 0.5*w + 0.5;
-}
 
 void main() {
     vec3 cloudData = texelFetch(u_data_texture, ivec2(gl_FragCoord), 0).rgb;
@@ -106,11 +87,6 @@ void main() {
     out_color.a *= u_opacity.y;
 
 #if BLIT_DEPTH
-#if REMAP_DEPTH
-//    gl_FragDepth = hyperbolize_depth(linearize_depth(texture(u_depth, pass_uv).r, u_depthCoeffs.x, u_depthCoeffs.y), u_depthCoeffs.z, u_depthCoeffs.w);
-    gl_FragDepth = remap_depth(texture(u_depth_texture, pass_uv).r, u_depth_transform.x, u_depth_transform.y, u_depth_transform.z, u_depth_transform.w);
-#else
     gl_FragDepth = texture(u_depth_texture, pass_uv).r;
-#endif
 #endif
 }

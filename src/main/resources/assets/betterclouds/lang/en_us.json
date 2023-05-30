@@ -78,8 +78,6 @@
   "betterclouds.config.entry.samplingScale.tooltip": "Affects the detail frequency",
   "betterclouds.config.entry.writeDepth": "Write Depth Buffer",
   "betterclouds.config.entry.writeDepth.tooltip": "Required by certain shader effects",
-  "betterclouds.config.entry.highQualityDepth": "High Quality Depth",
-  "betterclouds.config.entry.highQualityDepth.tooltip": "Helps to reduce z-fighting",
   "betterclouds.config.entry.useIrisFBO": "Use Iris FBO",
   "betterclouds.config.entry.useIrisFBO.tooltip": "Don't turn this off unless you are experiencing crashes",
   "betterclouds.config.entry.irisSupport": "Iris Support",

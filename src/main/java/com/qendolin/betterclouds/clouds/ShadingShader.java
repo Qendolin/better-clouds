@@ -12,14 +12,12 @@ public class ShadingShader extends Shader {
     public static final Identifier FRAGMENT_SHADER_ID = new Identifier(Main.MODID, "shaders/core/betterclouds_shading.fsh");
 
     public static final String DEF_BLIT_DEPTH_KEY = "_BLIT_DEPTH_";
-    public static final String DEF_REMAP_DEPTH_KEY = "_REMAP_DEPTH_";
 
     public final Uniform uDataTexture;
     public final Uniform uDepthTexture;
     public final Uniform uCoverageTexture;
     public final Uniform uLightTexture;
     public final Uniform uVPMatrix;
-    public final Uniform uDepthTransform;
     public final Uniform uSunDirection;
     public final Uniform uColorGrading;
     public final Uniform uOpacity;
@@ -34,7 +32,6 @@ public class ShadingShader extends Shader {
         uCoverageTexture = getUniform("u_coverage_texture", false);
         uLightTexture = getUniform("u_light_texture", false);
         uVPMatrix = getUniform("u_vp_matrix", false);
-        uDepthTransform = getUniform("u_depth_transform", true);
         uSunDirection = getUniform("u_sun_direction", true);
         uColorGrading = getUniform("u_color_grading", true);
         uOpacity = getUniform("u_opacity", true);

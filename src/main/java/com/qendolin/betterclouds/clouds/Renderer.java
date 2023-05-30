@@ -30,7 +30,6 @@ public class Renderer implements AutoCloseable {
     private final MinecraftClient client;
     private ClientWorld world = null;
 
-    private IViewboxTransform viewboxTransform = null;
     private final long startTime = Util.getEpochTimeMs();
     private float cloudsHeight;
     private int defaultFbo;
@@ -38,7 +37,6 @@ public class Renderer implements AutoCloseable {
     private final Matrix4f rotationProjectionMatrix = new Matrix4f();
     private final Matrix4f tempMatrix = new Matrix4f();
     private final PrimitiveChangeDetector shaderInvalidator = new PrimitiveChangeDetector(false);
-    private final PrimitiveChangeDetector viewboxTransformInvalidator = new PrimitiveChangeDetector(true);
 
     private final Resources res = new Resources();
 
@@ -88,14 +86,9 @@ public class Renderer implements AutoCloseable {
             cloudsHeight = effects.getCloudsHeight() + config.yOffset;
         }
 
-        if(viewboxTransformInvalidator.hasChanged(config.highQualityDepth)) {
-            if(config.highQualityDepth) viewboxTransform = new QualityViewboxTransform();
-            else viewboxTransform = new FastViewboxTransform();
-        }
-
         res.generator().bind();
         if(shaderInvalidator.hasChanged(client.options.getCloudRenderModeValue(), config.blockDistance(),
-            config.fadeEdge, config.sizeXZ, config.sizeY, config.writeDepth, config.highQualityDepth)) {
+            config.fadeEdge, config.sizeXZ, config.sizeY, config.writeDepth)) {
             res.reloadShaders(client.getResourceManager());
         }
         res.generator().reallocateIfStale(config, isFancyMode());
@@ -120,9 +113,6 @@ public class Renderer implements AutoCloseable {
 
         matrices.translate(res.generator().renderOriginX(cam.x), cloudsHeight-cam.y, res.generator().renderOriginZ(cam.z));
 
-        float pitch = client.cameraEntity == null ? 0 : client.cameraEntity.getPitch();
-        viewboxTransform.update(projMat, (float) cam.y, pitch, cloudsHeight, getGeneratorConfig());
-
         rotationProjectionMatrix.set(projMat);
         // This is fixes issue #14, not entirely sure why, but it forces the matrix to be homogenous
         tempMatrix.m30(0);
@@ -134,7 +124,7 @@ public class Renderer implements AutoCloseable {
         tempMatrix.m03(0);
         rotationProjectionMatrix.mul(tempMatrix);
 
-        mvpMatrix.set(viewboxTransform.getProjection());
+        mvpMatrix.set(projMat);
         mvpMatrix.mul(matrices.peek().getPositionMatrix());
 
         // TODO: don't do this dynamically
@@ -145,9 +135,6 @@ public class Renderer implements AutoCloseable {
 
     // Don't forget to push / pop matrix stack outside
     public void render(float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
-        if(viewboxTransform.isInvalid()) {
-            return;
-        }
         // Rendering clouds when underwater was making them very visible in unloaded chunks
         if(client.gameRenderer.getCamera().getSubmersionType() != CameraSubmersionType.NONE) return;
 
@@ -265,12 +252,7 @@ public class Renderer implements AutoCloseable {
         res.shadingShader().uColorGrading.setVec4(brightness, 1f/config.gamma(), effectLuma, config.saturation);
         res.shadingShader().uTint.setVec3(config.tintRed, config.tintGreen, config.tintBlue);
         res.shadingShader().uNoiseFactor.setFloat(config.colorVariationFactor);
-        res.shadingShader().uDepthTransform.setVec4(
-            (float) viewboxTransform.inverseLinearizeFactor(),
-            (float) viewboxTransform.inverseLinearizeAddend(),
-            (float) viewboxTransform.inverseHyperbolizeFactor(),
-            (float) viewboxTransform.inverseHyperbolizeAddend()
-        );
+
 
         glBindVertexArray(res.cubeVao());
 //        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -334,12 +316,6 @@ public class Renderer implements AutoCloseable {
         RenderSystem.depthMask(true);
 
         res.depthShader().bind();
-        res.depthShader().uDepthTransform.setVec4(
-            (float) viewboxTransform.linearizeFactor(),
-            (float) viewboxTransform.linearizeAddend(),
-            (float) viewboxTransform.hyperbolizeFactor(),
-            (float) viewboxTransform.hyperbolizeAddend()
-        );
 
         RenderSystem.activeTexture(GL_TEXTURE0);
         RenderSystem.bindTexture(client.getFramebuffer().getDepthAttachment());

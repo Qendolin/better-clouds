@@ -27,7 +27,6 @@ public class Config {
         this.fadeEdge = other.fadeEdge;
         this.usePersistentBuffers = other.usePersistentBuffers;
         this.writeDepth = other.writeDepth;
-        this.highQualityDepth = other.highQualityDepth;
         this.irisSupport = other.irisSupport;
         this.upscaleResolutionFactor = other.upscaleResolutionFactor;
         this.enabled = other.enabled;
@@ -87,8 +86,6 @@ public class Config {
     public boolean usePersistentBuffers = true;
     @ConfigEntry
     public boolean writeDepth = false;
-    @ConfigEntry
-    public boolean highQualityDepth = false;
     @ConfigEntry
     public boolean irisSupport = false;
     @ConfigEntry

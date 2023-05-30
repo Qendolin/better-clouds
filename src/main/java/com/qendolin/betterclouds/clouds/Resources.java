@@ -270,9 +270,7 @@ public class Resources implements Closeable {
         Config config = Main.getConfig();
 
         try {
-            depthShader = new DepthShader(manager, Map.ofEntries(
-                Map.entry(DepthShader.DEF_REMAP_DEPTH_KEY, config.highQualityDepth ? "1" : "0")
-            ));
+            depthShader = new DepthShader(manager, Map.of());
             depthShader.bind();
             depthShader.uDepthTexture.setInt(0);
             glCompat.objectLabel(glCompat.GL_PROGRAM, depthShader.glId(), "depth");
@@ -303,8 +301,7 @@ public class Resources implements Closeable {
 
         try {
             shadingShader = new ShadingShader(manager, Map.ofEntries(
-                Map.entry(ShadingShader.DEF_BLIT_DEPTH_KEY, config.writeDepth ? "1" : "0"),
-                Map.entry(ShadingShader.DEF_REMAP_DEPTH_KEY, config.highQualityDepth ? "1" : "0")
+                Map.entry(ShadingShader.DEF_BLIT_DEPTH_KEY, config.writeDepth ? "1" : "0")
             ));
             shadingShader.bind();
             shadingShader.uDepthTexture.setInt(1);
