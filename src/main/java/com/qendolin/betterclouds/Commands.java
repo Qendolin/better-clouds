@@ -5,6 +5,7 @@ import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.qendolin.betterclouds.clouds.Debug;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
+import net.minecraft.client.MinecraftClient;
 
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.argument;
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
@@ -58,5 +59,15 @@ public class Commands {
                     Main.debugChatMessage("Cloud generator resumed");
                     return 1;
                 })));
+        dispatcher.register(literal(Main.MODID+":settings")
+            .executes(context -> {
+                MinecraftClient client = context.getSource().getClient();
+                // The chat screen will call setScreen(null) after the command handler
+                // which would override our call, so we delay it
+                client.send(() -> {
+                    client.setScreen(ConfigGUI.create(null));
+                });
+                return 1;
+            }));
     }
 }

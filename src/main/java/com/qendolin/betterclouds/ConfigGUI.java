@@ -1,22 +1,17 @@
 package com.qendolin.betterclouds;
 
+import com.qendolin.betterclouds.gui.ConfigScreen;
 import dev.isxander.yacl.api.*;
-import dev.isxander.yacl.gui.OptionListWidget;
-import dev.isxander.yacl.gui.TooltipButtonWidget;
-import dev.isxander.yacl.gui.YACLScreen;
 import dev.isxander.yacl.gui.controllers.BooleanController;
 import dev.isxander.yacl.gui.controllers.ColorController;
 import dev.isxander.yacl.gui.controllers.TickBoxController;
 import dev.isxander.yacl.gui.controllers.slider.FloatSliderController;
 import dev.isxander.yacl.gui.controllers.slider.IntegerSliderController;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.Pair;
 
-import java.awt.Color;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -277,10 +272,10 @@ public class ConfigGUI {
         return builder;
     }
 
-    public static ConfigGUI.CustomScreen create(Screen parent) {
+    public static ConfigScreen create(Screen parent) {
         YetAnotherConfigLib yacl = YetAnotherConfigLib.create(Main.getConfigInstance(),
             (defaults, config, builder) -> new ConfigGUI(defaults, config).apply(builder));
-        return new CustomScreen(yacl, parent);
+        return new ConfigScreen(yacl, parent);
     }
 
     private static <T> Option.Builder<T> createOption(Class<T> typeClass, String key) {
@@ -289,6 +284,8 @@ public class ConfigGUI {
             .tooltip(optionTooltip(key))
             .instant(true);
     }
+
+    public static final String LANG_KEY_PREFIX = Main.MODID + ".config";
 
     private static Text formatAsBlocksPerSecond(Float value) {
         return Text.translatable(LANG_KEY_PREFIX+".unit.blocks_per_second", String.format("%.1f", value*20));
@@ -306,8 +303,6 @@ public class ConfigGUI {
         return Text.translatable(LANG_KEY_PREFIX+".unit.degrees", String.format("%.0f", value));
     }
 
-    private static final String LANG_KEY_PREFIX = Main.MODID + ".config";
-
     private static Text categoryLabel(String key) {
         return Text.translatable(LANG_KEY_PREFIX+".category."+key);
     }
@@ -324,137 +319,4 @@ public class ConfigGUI {
         return Text.translatable(LANG_KEY_PREFIX+".entry."+key+".tooltip");
     }
 
-    public static class CustomScreen extends YACLScreen {
-
-        public TooltipButtonWidget hideShowButton;
-        protected Screen hiddenScreen;
-        protected boolean hidden;
-
-        public CustomScreen(YetAnotherConfigLib config, Screen parent) {
-            super(config, parent);
-        }
-
-        @Override
-        protected void init() {
-            super.init();
-            remove(undoButton);
-
-            hideShowButton = new TooltipButtonWidget(
-                this,
-                undoButton.getX(),
-                undoButton.getY(),
-                undoButton.getWidth(),
-                undoButton.getHeight(),
-                Text.translatable(LANG_KEY_PREFIX+".hide"),
-                Text.empty(),
-                btn -> setHidden(!hidden)
-            );
-            addDrawableChild(hideShowButton);
-            hideShowButton.active = client != null && client.world != null;
-
-            remove(optionList);
-            optionList = new CustomOptionListWidget(this, client, width, height);
-            addSelectableChild(optionList);
-
-            hiddenScreen = new HiddenScreen(title, hideShowButton);
-        }
-
-        @Override
-        public void tick() {
-            super.tick();
-
-            if(Screen.hasShiftDown()) {
-                cancelResetButton.active = true;
-                cancelResetButton.setTooltip(Text.translatable(LANG_KEY_PREFIX+".reset.tooltip"));
-            } else {
-                cancelResetButton.active = false;
-                cancelResetButton.setTooltip(Text.translatable(LANG_KEY_PREFIX+".reset.tooltip.holdShift"));
-            }
-        }
-
-        @Override
-        public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-            return super.keyPressed(keyCode, scanCode, modifiers);
-        }
-
-        public void setHidden(boolean hidden) {
-            assert client != null;
-            this.hidden = hidden;
-            if(hidden) {
-                hideShowButton.setMessage(Text.translatable(LANG_KEY_PREFIX+".show"));
-                client.setScreen(hiddenScreen);
-            } else {
-                hideShowButton.setMessage(Text.translatable(LANG_KEY_PREFIX+".hide"));
-                client.setScreen(this);
-            }
-        }
-
-        @Override
-        public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-            if(hidden) {
-                hideShowButton.render(matrices, mouseX, mouseY, delta);
-                hideShowButton.renderHoveredTooltip(matrices);
-                return;
-            }
-
-            super.render(matrices, mouseX, mouseY, delta);
-        }
-
-        @Override
-        public void renderBackground(MatrixStack matrices) {
-            if(client == null || client.world == null) {
-                super.renderBackground(matrices);
-            } else {
-                fill(matrices, 0, 0, width / 3, height, 0x6B000000);
-            }
-        }
-
-        @Override
-        protected void finishOrSave() {
-            close();
-        }
-
-        @Override
-        public void close() {
-            config.saveFunction().run();
-            super.close();
-        }
-
-        private static class HiddenScreen extends Screen {
-            public HiddenScreen(Text title, ButtonWidget showButton) {
-                super(title);
-                addDrawableChild(showButton);
-            }
-
-            @Override
-            public boolean shouldCloseOnEsc() {
-                return false;
-            }
-
-            @Override
-            public void renderBackground(MatrixStack matrices) {
-                if(client == null || client.world == null) {
-                    super.renderBackground(matrices);
-                } else {
-                    fill(matrices, 0, 0, width / 3, height, 0x6B000000);
-                }
-            }
-        }
-    }
-
-    private static class CustomOptionListWidget extends OptionListWidget {
-        public CustomOptionListWidget(YACLScreen screen, MinecraftClient client, int width, int height) {
-            super(screen, client, width, height);
-        }
-
-        @Override
-        protected void renderBackground(MatrixStack matrices) {
-            if(client == null || client.world == null) {
-                super.renderBackground(matrices);
-                setRenderBackground(true);
-            } else {
-                setRenderBackground(false);
-            }
-        }
-    }
 }

@@ -6,7 +6,7 @@
   "betterclouds.config.unit.degrees": "%s°",
   "betterclouds.config.hide": "Hide GUI",
   "betterclouds.config.show": "Show GUI",
-  "betterclouds.config.reset.tooltip": "Resets all options to default.",
+  "betterclouds.config.reset.tooltip": "Resets all options to default",
   "betterclouds.config.reset.tooltip.holdShift": "Hold SHIFT and click to reset",
   "betterclouds.config.category.generation": "Generation",
   "betterclouds.config.group.generation.visual": "Visual",

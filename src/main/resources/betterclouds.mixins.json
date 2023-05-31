@@ -6,13 +6,14 @@
   "mixins": [
   ],
   "client": [
+    "AbstractWidgetMixin",
     "BufferRendererAccessor",
-    "WorldRendererMixin",
     "CloudSettingMixin",
     "ExtendedShaderAccessor",
     "RenderSystemMixin",
     "ShaderProgramAccessor",
-    "VertexBufferAccessor"
+    "VertexBufferAccessor",
+    "WorldRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1
