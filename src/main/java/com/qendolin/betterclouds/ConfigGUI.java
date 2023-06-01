@@ -1,15 +1,21 @@
 package com.qendolin.betterclouds;
 
 import com.qendolin.betterclouds.gui.ConfigScreen;
+import com.qendolin.betterclouds.gui.CustomActionController;
+import com.qendolin.betterclouds.gui.DynamicDefaultBinding;
+import com.qendolin.betterclouds.gui.SelectController;
 import dev.isxander.yacl.api.*;
 import dev.isxander.yacl.gui.controllers.BooleanController;
 import dev.isxander.yacl.gui.controllers.ColorController;
 import dev.isxander.yacl.gui.controllers.TickBoxController;
 import dev.isxander.yacl.gui.controllers.slider.FloatSliderController;
 import dev.isxander.yacl.gui.controllers.slider.IntegerSliderController;
+import dev.isxander.yacl.gui.controllers.string.StringController;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Pair;
+import net.minecraft.util.math.MathHelper;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -52,6 +58,10 @@ public class ConfigGUI {
     public final Option<Boolean> writeDepth;
     public final Option<Float> upscaleResolutionFactor;
     public final Option<Boolean> usePersistentBuffers;
+    public final Option<Integer> selectedPreset;
+    public final Option<String> presetTitle;
+    public final ButtonOption copyPresetButton;
+    public final ButtonOption removePresetButton;
 
     protected final List<Pair<ConfigCategory.Builder, List<Pair<OptionGroup.Builder, List<Option<?>>>>>> categories = new ArrayList<>();
 
@@ -68,12 +78,17 @@ public class ConfigGUI {
     protected final List<Option<?>> performanceGenerationGroup = new ArrayList<>();
     protected final List<Option<?>> performanceTechnicalGroup = new ArrayList<>();
     protected final List<Option<?>> shadersGeneralGroup = new ArrayList<>();
+    protected final List<Option<?>> shadersPresetGroup = new ArrayList<>();
     protected final List<Option<?>> shadersColorGroup = new ArrayList<>();
     protected final List<Option<?>> shadersTechnicalGroup = new ArrayList<>();
+
+    protected final List<Option<?>> shaderConfigPresetOptions = new ArrayList<>();
 
     public ConfigGUI(Config defaults, Config config) {
         this.defaults = defaults;
         this.config = config;
+        config.addFirstPreset();
+        config.sortPresets();
 
         this.chunkSize = createOption(int.class, "chunkSize")
             .binding(defaults.chunkSize, () -> config.chunkSize, val -> config.chunkSize = val)
@@ -98,30 +113,6 @@ public class ConfigGUI {
         this.shuffle = createOption(boolean.class, "shuffle")
             .binding(defaults.shuffle, () -> config.shuffle, val -> config.shuffle = val)
             .controller(TickBoxController::new)
-            .build();
-        this.saturation = createOption(float.class, "saturation")
-            .binding(defaults.saturation, () -> config.saturation, val -> config.saturation = val)
-            .controller(opt -> new FloatSliderController(opt, 0, 2, 0.05f, ConfigGUI::formatAsPercent))
-            .build();
-        this.tint = createOption(Color.class, "tint")
-            .binding(new Color(defaults.tintRed, defaults.tintGreen, defaults.tintBlue), () -> new Color(config.tintRed, config.tintGreen, config.tintBlue), val -> {
-                config.tintRed = val.getRed() / 255f;
-                config.tintGreen = val.getGreen() / 255f;
-                config.tintBlue = val.getBlue() / 255f;
-            })
-            .controller(ColorController::new)
-            .build();
-        this.gamma = createOption(float.class, "gamma")
-            .binding(defaults.gamma, () -> config.gamma, val -> config.gamma = val)
-            .controller(opt -> new FloatSliderController(opt, -5, 5, 0.01f))
-            .build();
-        this.dayBrightness = createOption(float.class, "dayBrightness")
-            .binding(defaults.dayBrightness, () -> config.dayBrightness, val -> config.dayBrightness = val)
-            .controller(opt -> new FloatSliderController(opt, 0.1f, 4, 0.01f, ConfigGUI::formatAsPercent))
-            .build();
-        this.nightBrightness = createOption(float.class, "nightBrightness")
-            .binding(defaults.nightBrightness, () -> config.nightBrightness, val -> config.nightBrightness = val)
-            .controller(opt -> new FloatSliderController(opt, 0.1f, 4, 0.01f, ConfigGUI::formatAsPercent))
             .build();
         this.randomPlacement = createOption(float.class, "randomPlacement")
             .binding(defaults.randomPlacement, () -> config.randomPlacement, val -> config.randomPlacement = val)
@@ -167,14 +158,6 @@ public class ConfigGUI {
             .binding(defaults.enabled, () -> config.enabled, val -> config.enabled = val)
             .controller(opt -> new BooleanController(opt, val -> Text.translatable(LANG_KEY_PREFIX + ".entry.enabled." + val), false))
             .build();
-        this.opacity = createOption(float.class, "opacity")
-            .binding(defaults.opacity, () -> config.opacity, val -> config.opacity = val)
-            .controller(opt -> new FloatSliderController(opt, 0, 1, 0.01f, ConfigGUI::formatAsPercent))
-            .build();
-        this.opacityFactor = createOption(float.class, "opacityFactor")
-            .binding(defaults.opacityFactor, () -> config.opacityFactor, val -> config.opacityFactor = val)
-            .controller(opt -> new FloatSliderController(opt, 0, 1, 0.01f, ConfigGUI::formatAsPercent))
-            .build();
         this.fadeEdge = createOption(float.class, "fadeEdge")
             .binding(defaults.fadeEdge, () -> config.fadeEdge, val -> config.fadeEdge = val)
             .controller(opt -> new FloatSliderController(opt, 0.1f, 0.5f, 0.01f, ConfigGUI::formatAsPercent))
@@ -188,10 +171,6 @@ public class ConfigGUI {
             .binding(defaults.cloudOverride, () -> config.cloudOverride, val -> config.cloudOverride = val)
             .controller(TickBoxController::new)
             .build();
-        this.sunPathAngle = createOption(float.class, "sunPathAngle")
-            .binding(defaults.sunPathAngle, () -> config.sunPathAngle, val -> config.sunPathAngle = val)
-            .controller(opt -> new FloatSliderController(opt, -60f, 60f, 1f, ConfigGUI::formatAsDegrees))
-            .build();
         this.useIrisFBO = createOption(boolean.class, "useIrisFBO")
             .binding(defaults.useIrisFBO, () -> config.useIrisFBO, val -> config.useIrisFBO = val)
             .controller(TickBoxController::new)
@@ -200,13 +179,118 @@ public class ConfigGUI {
             .binding(defaults.writeDepth, () -> config.writeDepth, val -> config.writeDepth = val)
             .controller(TickBoxController::new)
             .build();
-        this.upscaleResolutionFactor = createOption(float.class, "upscaleResolutionFactor")
-            .binding(defaults.upscaleResolutionFactor, () -> config.upscaleResolutionFactor, val -> config.upscaleResolutionFactor = val)
-            .controller(opt -> new FloatSliderController(opt, 0.25f, 1.0f, 0.25f, ConfigGUI::formatAsPercent))
-            .build();
         this.usePersistentBuffers = createOption(boolean.class, "usePersistentBuffers")
             .binding(defaults.usePersistentBuffers, () -> config.usePersistentBuffers, val -> config.usePersistentBuffers = val)
             .controller(TickBoxController::new)
+            .build();
+
+
+        this.selectedPreset = createOption(int.class, "shaderPreset")
+            .binding(defaults.selectedPreset, () -> config.selectedPreset, val -> config.selectedPreset = val)
+            .controller(opt -> new SelectController<>(opt, config.presets, (i, preset) -> {
+                if(preset.title.isBlank()) {
+                    return Text.translatable(LANG_KEY_PREFIX+".entry.shaderPreset.untitled")
+                        .styled(style -> style.withColor(Formatting.GRAY).withItalic(true));
+                } else if(!preset.editable) {
+                    return Text.literal(preset.title)
+                        .styled(style -> style.withItalic(true));
+                } else {
+                    return Text.literal(preset.title);
+                }
+            }))
+            .listener((opt, i) -> {
+                // The 'instant' listener gets called later, applyValue is called now manually
+                opt.applyValue();
+                if(opt.controller() instanceof SelectController select) {
+                    select.updateValues();
+                }
+                for (Option<?> option : shaderConfigPresetOptions) {
+                    option.forgetPendingValue();
+                    option.setAvailable(config.preset().editable);
+                }
+                updateRemovePresetButtonAvailability();
+            })
+            .build();
+        this.presetTitle = createOption(String.class, "presetTitle", false)
+            .binding("", () -> config.preset().title, val -> config.preset().title = val)
+            .controller(StringController::new)
+            .build();
+        this.saturation = createOption(float.class, "saturation")
+            .binding(defaults.preset().saturation, () -> config.preset().saturation, val -> config.preset().saturation = val)
+            .controller(opt -> new FloatSliderController(opt, 0, 2, 0.05f, ConfigGUI::formatAsPercent))
+            .build();
+        this.tint = createOption(Color.class, "tint")
+            .binding(new Color(defaults.preset().tintRed, defaults.preset().tintGreen, defaults.preset().tintBlue), () -> new Color(config.preset().tintRed, config.preset().tintGreen, config.preset().tintBlue), val -> {
+                config.preset().tintRed = val.getRed() / 255f;
+                config.preset().tintGreen = val.getGreen() / 255f;
+                config.preset().tintBlue = val.getBlue() / 255f;
+            })
+            .controller(ColorController::new)
+            .build();
+        this.gamma = createOption(float.class, "gamma")
+            .binding(defaults.preset().gamma, () -> config.preset().gamma, val -> config.preset().gamma = val)
+            .controller(opt -> new FloatSliderController(opt, -5, 5, 0.01f, value -> Text.literal(String.format("%,.2f", value).replaceAll("[\u00a0\u202F]", " "))))
+            .build();
+        this.dayBrightness = createOption(float.class, "dayBrightness")
+            .binding(defaults.preset().dayBrightness, () -> config.preset().dayBrightness, val -> config.preset().dayBrightness = val)
+            .controller(opt -> new FloatSliderController(opt, 0.1f, 4, 0.01f, ConfigGUI::formatAsPercent))
+            .build();
+        this.nightBrightness = createOption(float.class, "nightBrightness")
+            .binding(defaults.preset().nightBrightness, () -> config.preset().nightBrightness, val -> config.preset().nightBrightness = val)
+            .controller(opt -> new FloatSliderController(opt, 0.1f, 4, 0.01f, ConfigGUI::formatAsPercent))
+            .build();
+        this.upscaleResolutionFactor = createOption(float.class, "upscaleResolutionFactor")
+            .binding(defaults.preset().upscaleResolutionFactor, () -> config.preset().upscaleResolutionFactor, val -> config.preset().upscaleResolutionFactor = val)
+            .controller(opt -> new FloatSliderController(opt, 0.25f, 1.0f, 0.01f, ConfigGUI::formatAsPercent))
+            .build();
+        this.sunPathAngle = createOption(float.class, "sunPathAngle")
+            .binding(defaults.preset().sunPathAngle, () -> config.preset().sunPathAngle, val -> config.preset().sunPathAngle = val)
+            .controller(opt -> new FloatSliderController(opt, -60f, 60f, 1f, ConfigGUI::formatAsDegrees))
+            .build();
+        this.opacityFactor = createOption(float.class, "opacityFactor")
+            .binding(defaults.preset().opacityFactor, () -> config.preset().opacityFactor, val -> config.preset().opacityFactor = val)
+            .controller(opt -> new FloatSliderController(opt, 0, 1, 0.01f, ConfigGUI::formatAsPercent))
+            .build();
+        this.opacity = createOption(float.class, "opacity")
+            .binding(defaults.preset().opacity, () -> config.preset().opacity, val -> config.preset().opacity = val)
+            .controller(opt -> new FloatSliderController(opt, 0, 1, 0.01f, ConfigGUI::formatAsPercent))
+            .build();
+        shaderConfigPresetOptions.addAll(List.of(presetTitle, saturation, tint, gamma, dayBrightness, nightBrightness, upscaleResolutionFactor, sunPathAngle, opacityFactor, opacity));
+        shaderConfigPresetOptions.forEach(opt -> opt.setAvailable(config.preset().editable));
+
+        this.removePresetButton = ButtonOption.createBuilder()
+            .name(Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.remove"))
+            .available(config.presets.size() > 1)
+            .action((screen, option) -> {
+                if(config.presets.size() <= 1 || !config.preset().editable) {
+                    option.setAvailable(false);
+                    return;
+                }
+                config.presets.remove(config.selectedPreset);
+                selectedPreset.requestSet(MathHelper.clamp( config.selectedPreset, 0, config.presets.size()-1));
+                if(selectedPreset.controller() instanceof SelectController select) {
+                    select.updateValues();
+                }
+                updateRemovePresetButtonAvailability();
+            })
+            .controller(CustomActionController::new)
+            .build();
+        updateRemovePresetButtonAvailability();
+        this.copyPresetButton = ButtonOption.createBuilder()
+            .name(Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.copy"))
+            .action((screen, buttonOption) -> {
+                Config.ShaderConfigPreset preset = new Config.ShaderConfigPreset(config.preset());
+                preset.title = Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.copyOf", config.preset().title).getString();
+                preset.editable = true;
+                preset.key = null;
+                config.presets.add(0, preset);
+                selectedPreset.requestSet(0);
+                if(selectedPreset.controller() instanceof SelectController select) {
+                    select.updateValues();
+                }
+                updateRemovePresetButtonAvailability();
+            })
+            .controller(CustomActionController::new)
             .build();
 
         categories.add(new Pair<>(ConfigCategory.createBuilder()
@@ -247,16 +331,28 @@ public class ConfigGUI {
             .name(groupLabel("shaders.general")), shadersGeneralGroup));
         shadersGeneralGroup.addAll(List.of(irisDisclaimer, irisSupport, cloudOverride));
         shadersCategory.add(new Pair<>(OptionGroup.createBuilder()
+            .name(groupLabel("shaders.presets")), shadersPresetGroup));
+        shadersPresetGroup.addAll(List.of(selectedPreset, presetTitle, copyPresetButton, removePresetButton));
+        shadersCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("shaders.color")), shadersColorGroup));
         shadersColorGroup.addAll(List.of(gamma, dayBrightness, nightBrightness, saturation, tint));
         shadersCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("shaders.technical")), shadersTechnicalGroup));
-        shadersTechnicalGroup.addAll(List.of(sunPathAngle, useIrisFBO, writeDepth, upscaleResolutionFactor));
+
+        shadersTechnicalGroup.addAll(List.of(sunPathAngle, upscaleResolutionFactor, useIrisFBO, writeDepth));
+    }
+
+    private void updateRemovePresetButtonAvailability() {
+        if(removePresetButton == null) return;
+        removePresetButton.setAvailable(config.preset().editable && config.presets.size() > 1);
     }
 
     public YetAnotherConfigLib.Builder apply(YetAnotherConfigLib.Builder builder) {
         builder = builder
-            .save(() -> Main.getConfigInstance().save())
+            .save(() -> {
+                config.sortPresets();
+                Main.getConfigInstance().save();
+            })
             .title(Text.translatable(LANG_KEY_PREFIX + ".title"));
 
         for (Pair<ConfigCategory.Builder, List<Pair<OptionGroup.Builder, List<Option<?>>>>> categoryPair : categories) {
@@ -279,10 +375,15 @@ public class ConfigGUI {
     }
 
     private static <T> Option.Builder<T> createOption(Class<T> typeClass, String key) {
-        return Option.createBuilder(typeClass)
+        return createOption(typeClass, key, true);
+    }
+
+    private static <T> Option.Builder<T> createOption(Class<T> typeClass, String key, boolean tooltip) {
+        Option.Builder<T> builder = Option.createBuilder(typeClass)
             .name(optionLabel(key))
-            .tooltip(optionTooltip(key))
             .instant(true);
+        if(tooltip) builder = builder.tooltip(optionTooltip(key));
+        return builder;
     }
 
     public static final String LANG_KEY_PREFIX = Main.MODID + ".config";

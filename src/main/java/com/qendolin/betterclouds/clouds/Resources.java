@@ -38,8 +38,6 @@ public class Resources implements Closeable {
     private ChunkedGenerator generator = null;
 
     // Meshes
-    private int quadVbo;
-    private int quadVao;
     private int cubeVbo;
     private int cubeVao;
 
@@ -71,10 +69,6 @@ public class Resources implements Closeable {
 
     public ShadingShader shadingShader() {
         return shadingShader;
-    }
-
-    public int quadVao() {
-        return quadVao;
     }
 
     public int cubeVao() {
@@ -115,7 +109,7 @@ public class Resources implements Closeable {
         if(generator == null) return true;
         if(oitFbo == UNASSIGNED) return true;
         if(oitDataTexture == UNASSIGNED || oitCoverageTexture == UNASSIGNED || oitCoverageDepthView == UNASSIGNED) return true;
-        if(quadVao == UNASSIGNED || cubeVao == UNASSIGNED) return true;
+        if(cubeVao == UNASSIGNED || cubeVbo == UNASSIGNED) return true;
 
         return false;
     }
@@ -132,26 +126,14 @@ public class Resources implements Closeable {
     }
 
     public void deleteMeshPrimitives() {
-        if(quadVbo != 0) glDeleteBuffers(quadVbo);
-        if(quadVao != 0) glDeleteVertexArrays(quadVao);
         if(cubeVbo != 0) glDeleteBuffers(cubeVbo);
         if(cubeVao != 0) glDeleteVertexArrays(cubeVao);
-        quadVbo = UNASSIGNED;
-        quadVao = UNASSIGNED;
         cubeVbo = UNASSIGNED;
         cubeVao = UNASSIGNED;
     }
 
     public void reloadMeshPrimitives() {
         deleteMeshPrimitives();
-
-        quadVao = glGenVertexArrays();
-        glBindVertexArray(quadVao);
-        glCompat.objectLabel(glCompat.GL_VERTEX_ARRAY, quadVao, "quad");
-
-        quadVbo = glGenBuffers();
-        glBindBuffer(GL_ARRAY_BUFFER, quadVbo);
-        glCompat.objectLabel(glCompat.GL_BUFFER, quadVbo, "quad");
 
         glBufferData(GL_ARRAY_BUFFER, new float[]{1,-1, 1,1, -1,-1, -1,1}, GL_STATIC_DRAW);
         glEnableVertexAttribArray(0);

@@ -234,7 +234,7 @@ public class ChunkedGenerator implements AutoCloseable {
 
         if(Main.isProfilingEnabled()) {
             long elapsed = swappedTask.elapsedMs(Util.getMeasuringTimeMs());
-            Main.debugChatMessage(String.format("§5Gen Times§r: %d §7ms§r || %.3f §7per second§r", elapsed, 1000f/elapsed));
+            Main.debugChatMessage("profiling.genTimes", elapsed, 1000f/elapsed);
         }
     }
 
@@ -406,7 +406,6 @@ public class ChunkedGenerator implements AutoCloseable {
 
             // Shuffle
             if(options.shuffle) {
-                // TODO: I'm not sure if I still need this
                 for (int[][] gridPoints : chunkGridPoints) {
                     for (int s = 0; s < gridPoints.length; s++) {
                         int[] tmp = gridPoints[s];

@@ -15,7 +15,8 @@ Iris Shader support is **experimental** and **disabled by default**.
 Some shaderpacks work, others don't.
 It's best to turn off the clouds in the shader pack settings or set them to 'vanilla' if that is an option.
 You can play with the color settings if the clouds don't look right.
-Shaderpack presets/profiles are planned but not in development yet.
+
+<!-- TODO: Make good readme -->
 
 ## License
 

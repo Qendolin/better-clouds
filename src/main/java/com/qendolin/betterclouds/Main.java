@@ -6,8 +6,10 @@ import dev.isxander.yacl.config.GsonConfigInstance;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.resource.ResourceType;
 import net.minecraft.text.Text;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,8 +47,12 @@ public class Main implements ClientModInitializer {
 		return Debug.profileInterval > 0;
 	}
 
-	public static void debugChatMessage(String message) {
-		debugChatMessage(Text.literal(message));
+	public static String debugChatMessageKey(String id) {
+		return MODID + ".message." + id;
+	}
+
+	public static void debugChatMessage(String id, Object ...args) {
+		debugChatMessage(Text.translatable(debugChatMessageKey(id), args));
 	}
 
 	public static void debugChatMessage(Text message) {
@@ -68,6 +74,9 @@ public class Main implements ClientModInitializer {
 		CONFIG.load();
 
 		ClientLifecycleEvents.CLIENT_STARTED.register(client -> glCompat.enableDebugOutputSynchronous());
+
+		ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES)
+				.registerReloadListener(ShaderPresetLoader.INSTANCE);
 
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> Commands.register(dispatcher));
 

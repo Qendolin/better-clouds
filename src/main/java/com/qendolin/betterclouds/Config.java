@@ -2,13 +2,17 @@ package com.qendolin.betterclouds;
 
 import dev.isxander.yacl.config.ConfigEntry;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.util.math.MathHelper;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.*;
 
 public class Config {
     public Config() {}
 
     public Config(Config other) {
         this.distance = other.distance;
-        this.opacity = other.opacity;
         this.randomPlacement = other.randomPlacement;
         this.fuzziness = other.fuzziness;
         this.shuffle = other.shuffle;
@@ -28,19 +32,12 @@ public class Config {
         this.usePersistentBuffers = other.usePersistentBuffers;
         this.writeDepth = other.writeDepth;
         this.irisSupport = other.irisSupport;
-        this.upscaleResolutionFactor = other.upscaleResolutionFactor;
         this.enabled = other.enabled;
         this.cloudOverride = other.cloudOverride;
         this.useIrisFBO = other.useIrisFBO;
-        this.sunPathAngle = other.sunPathAngle;
-        this.gamma = other.gamma;
-        this.dayBrightness = other.dayBrightness;
-        this.nightBrightness = other.nightBrightness;
-        this.opacityFactor = other.opacityFactor;
-        this.saturation = other.saturation;
-        this.tintRed = other.tintRed;
-        this.tintGreen = other.tintGreen;
-        this.tintBlue = other.tintBlue;
+        this.selectedPreset = other.selectedPreset;
+        this.presets = other.presets;
+        this.presets.replaceAll(ShaderConfigPreset::new);
     }
 
     @ConfigEntry
@@ -48,9 +45,6 @@ public class Config {
     @ConfigEntry
     public float distance = 4;
     @ConfigEntry
-    public float opacity = 0.2f;
-    @ConfigEntry
-    // TODO: rename
     public float randomPlacement = 1.0f;
     @ConfigEntry
     public float fuzziness = 1.0f;
@@ -93,35 +87,104 @@ public class Config {
     @ConfigEntry
     public boolean useIrisFBO = true;
     @ConfigEntry
-    public float upscaleResolutionFactor = 1f;
+    public int selectedPreset = 0;
     @ConfigEntry
-    public float gamma = 1f;
-    @ConfigEntry
-    public float sunPathAngle = 0f;
-    @ConfigEntry
-    public float dayBrightness = 1f;
-    @ConfigEntry
-    public float nightBrightness = 1f;
-    @ConfigEntry
-    public float saturation = 1f;
-    @ConfigEntry
-    public float opacityFactor = 1f;
-    @ConfigEntry
-    public float tintRed = 1f;
-    @ConfigEntry
-    public float tintGreen = 1f;
-    @ConfigEntry
-    public float tintBlue = 1f;
+    public List<ShaderConfigPreset> presets = new ArrayList<>();
+
+    public void addFirstPreset() {
+        if(presets.size() != 0) return;
+        presets.add(new ShaderConfigPreset(""));
+    }
+
+    public void loadDefaultPresets() {
+        Map<String, ShaderConfigPreset> defaults = new HashMap<>(ShaderPresetLoader.INSTANCE.presets());
+        presets.removeIf(preset -> preset.key != null && !preset.editable && defaults.containsKey(preset.key));
+        presets.addAll(defaults.values());
+        sortPresets();
+    }
+
+    public void sortPresets() {
+        ShaderConfigPreset selected = preset();
+        Comparator<ShaderConfigPreset> comparator = Comparator.
+            <ShaderConfigPreset, Boolean>comparing(preset -> !preset.editable)
+            .thenComparing(preset -> !"default".equals(preset.key))
+            .thenComparing(preset -> preset.title);
+        presets.sort(comparator);
+        selectedPreset = presets.indexOf(selected);
+    }
+
+    public static class ShaderConfigPreset {
+        public ShaderConfigPreset(String title) {
+            this.title = title;
+        }
+
+        public ShaderConfigPreset(ShaderConfigPreset other) {
+            this.title = other.title;
+            this.key = other.key;
+            this.editable = other.editable;
+            this.upscaleResolutionFactor = other.upscaleResolutionFactor;
+            this.gamma = other.gamma;
+            this.sunPathAngle = other.sunPathAngle;
+            this.dayBrightness = other.dayBrightness;
+            this.nightBrightness = other.nightBrightness;
+            this.saturation = other.saturation;
+            this.opacity = other.opacity;
+            this.opacityFactor = other.opacityFactor;
+            this.tintRed = other.tintRed;
+            this.tintGreen = other.tintGreen;
+            this.tintBlue = other.tintBlue;
+        }
+
+        @ConfigEntry
+        public String title;
+        @ConfigEntry
+        @Nullable
+        public String key;
+        @ConfigEntry
+        public boolean editable = true;
+        @ConfigEntry
+        public float upscaleResolutionFactor = 1f;
+        @ConfigEntry
+        public float gamma = 1f;
+        // TODO: implement day duration / offset
+        @ConfigEntry
+        public float sunPathAngle = 0f;
+        @ConfigEntry
+        public float dayBrightness = 1f;
+        @ConfigEntry
+        public float nightBrightness = 1f;
+        @ConfigEntry
+        public float saturation = 1f;
+        @ConfigEntry
+        public float opacity = 0.2f;
+        @ConfigEntry
+        public float opacityFactor = 1f;
+        @ConfigEntry
+        public float tintRed = 1f;
+        @ConfigEntry
+        public float tintGreen = 1f;
+        @ConfigEntry
+        public float tintBlue = 1f;
+
+        public float gamma() {
+            if(gamma > 0) {
+                return gamma;
+            } else {
+                return -1/gamma;
+            }
+        }
+    }
+
+    @NotNull
+    public ShaderConfigPreset preset() {
+        if(presets.size() == 0) {
+            addFirstPreset();
+        }
+        selectedPreset = MathHelper.clamp(selectedPreset, 0, presets.size()-1);
+        return presets.get(selectedPreset);
+    }
 
     public int blockDistance() {
         return (int) (this.distance * MinecraftClient.getInstance().options.getViewDistance().getValue() * 16);
-    }
-
-    public float gamma() {
-        if(gamma > 0) {
-            return gamma;
-        } else {
-            return -1/gamma;
-        }
     }
 }

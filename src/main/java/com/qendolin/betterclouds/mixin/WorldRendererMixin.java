@@ -98,7 +98,7 @@ public abstract class WorldRendererMixin {
             profTimeAcc += (System.nanoTime() - startTime) / 1e6;
             profFrames++;
             if (profFrames >= Debug.profileInterval) {
-                Main.debugChatMessage(String.format("§3CPU Times§r: %.3f §7avg§r", profTimeAcc / profFrames));
+                Main.debugChatMessage("profiling.cpuTimes", profTimeAcc / profFrames);
                 profFrames = 0;
                 profTimeAcc = 0;
             }

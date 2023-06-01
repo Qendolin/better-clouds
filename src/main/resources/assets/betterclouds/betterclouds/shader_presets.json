@@ -1,0 +1,103 @@
+{
+  "default": {
+    "title": "Default"
+  },
+  "bsl_v8": {
+    "title": "BSL V8",
+    "upscale_resolution_factor": 1.0,
+    "gamma": 1.0,
+    "sun_path_angle": 0.0,
+    "day_brightness": 1.0,
+    "night_brightness": 1.0,
+    "saturation": 1.0,
+    "opacity": 0.2,
+    "opacity_factor": 1.0,
+    "tint_red": 1.0,
+    "tint_green": 1.0,
+    "tint_blue": 1.0
+  },
+  "chocapic13_v6": {
+    "title": "Chocapic13 V6",
+    "upscale_resolution_factor": 1.0,
+    "gamma": -2.25,
+    "sun_path_angle": -40.0,
+    "day_brightness": 0.7099999,
+    "night_brightness": 0.40999994,
+    "saturation": 1.3000001,
+    "opacity": 0.2,
+    "opacity_factor": 0.75,
+    "tint_red": 1.0,
+    "tint_green": 1.0,
+    "tint_blue": 1.0
+  },
+  "chocapic13_v9": {
+    "title": "Chocapic13 V9",
+    "upscale_resolution_factor": 0.75,
+    "gamma": -2.25,
+    "sun_path_angle": -40.0,
+    "day_brightness": 1.2099999,
+    "night_brightness": 0.5,
+    "saturation": 1.0,
+    "opacity": 0.2,
+    "opacity_factor": 0.5,
+    "tint_red": 1.0,
+    "tint_green": 1.0,
+    "tint_blue": 1.0
+  },
+  "complementary_reimagined_v2": {
+    "title": "Complementary Reimagined V2",
+    "upscale_resolution_factor": 1.0,
+    "gamma": 1.0,
+    "sun_path_angle": 0.0,
+    "day_brightness": 1.2099999,
+    "night_brightness": 1.0,
+    "saturation": 1.1,
+    "opacity": 0.2,
+    "opacity_factor": 1.0,
+    "tint_red": 1.0,
+    "tint_green": 1.0,
+    "tint_blue": 1.0
+  },
+  "complementary_v4": {
+    "title": "Complementary V4",
+    "upscale_resolution_factor": 1.0,
+    "gamma": -2.25,
+    "sun_path_angle": -40.0,
+    "day_brightness": 0.6,
+    "night_brightness": 0.9,
+    "saturation": 1.3000001,
+    "opacity": 0.2,
+    "opacity_factor": 1.0,
+    "tint_red": 1.0,
+    "tint_green": 1.0,
+    "tint_blue": 1.0
+  },
+  "kappa_v5": {
+    "title": "Kappa V5",
+    "upscale_resolution_factor": 0.75,
+    "gamma": -3.00,
+    "sun_path_angle": -40.0,
+    "day_brightness": 3.0,
+    "night_brightness": 1.0,
+    "saturation": 1.0,
+    "opacity": 0.2,
+    "opacity_factor": 1.0,
+    "tint_red": 1.0,
+    "tint_green": 1.0,
+    "tint_blue": 1.0
+  },
+  "rethinking_voxels_v0": {
+    "title": "Rethinking Voxels",
+    "upscale_resolution_factor": 1.0,
+    "gamma": 1.5,
+    "sun_path_angle": 0.0,
+    "day_brightness": 1.5,
+    "night_brightness": 1.0,
+    "saturation": 0.75,
+    "opacity": 0.2,
+    "opacity_factor": 1.0,
+    "tint_red": 1.0,
+    "tint_green": 1.0,
+    "tint_blue": 1.0
+  }
+}

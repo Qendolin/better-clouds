@@ -18,13 +18,13 @@ public class Commands {
                 .then(argument("interval", IntegerArgumentType.integer(30))
                     .executes(context -> {
                         int interval = IntegerArgumentType.getInteger(context, "interval");
-                        Main.debugChatMessage(String.format("Enabled profiling over %d frames, performance will suffer.", interval));
+                        Main.debugChatMessage("profiling.enabled", interval);
                         Debug.profileInterval = interval;
                         return 1;
                     }))
                 .then(literal("stop")
                     .executes(context -> {
-                        Main.debugChatMessage("Disabled profiling.");
+                        Main.debugChatMessage("profiling.disabled");
                         Debug.profileInterval = 0;
                         return 1;
                     }))
@@ -50,16 +50,16 @@ public class Commands {
             .then(literal("pause")
                 .executes(context -> {
                     Debug.generatorPause = true;
-                    Main.debugChatMessage("Cloud generator paused");
+                    Main.debugChatMessage("generatorPaused");
                     return 1;
                 }))
             .then(literal("resume")
                 .executes(context -> {
                     Debug.generatorPause = false;
-                    Main.debugChatMessage("Cloud generator resumed");
+                    Main.debugChatMessage("generatorResumed");
                     return 1;
                 })));
-        dispatcher.register(literal(Main.MODID+":settings")
+        dispatcher.register(literal(Main.MODID+":config")
             .executes(context -> {
                 MinecraftClient client = context.getSource().getClient();
                 // The chat screen will call setScreen(null) after the command handler
@@ -68,6 +68,12 @@ public class Commands {
                     client.setScreen(ConfigGUI.create(null));
                 });
                 return 1;
-            }));
+            })
+            .then(literal("reload").executes(context -> {
+                Main.debugChatMessage("reloadingConfig");
+                Main.getConfigInstance().load();
+                Main.debugChatMessage("configReloaded");
+                return 1;
+            })));
     }
 }

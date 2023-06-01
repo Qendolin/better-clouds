@@ -113,6 +113,7 @@ public class Renderer implements AutoCloseable {
 
         matrices.translate(res.generator().renderOriginX(cam.x), cloudsHeight-cam.y, res.generator().renderOriginZ(cam.z));
 
+        // TODO: moon corona in wrong spot when upscaling is used
         rotationProjectionMatrix.set(projMat);
         // This is fixes issue #14, not entirely sure why, but it forces the matrix to be homogenous
         tempMatrix.m30(0);
@@ -203,7 +204,7 @@ public class Renderer implements AutoCloseable {
                 double min = times.get(0);
                 double max = times.get(times.size()-1);
                 double average = times.stream().mapToDouble(d -> d).average().orElse(0);
-                Main.debugChatMessage(String.format("§cGPU Times§r: %.3f | %.3f | %.3f §7min,avg,max§r || %.3f | %.3f | %.3f §7p25,med,p75§r", min, average, max, p25, median, p75));
+                Main.debugChatMessage("profiling.gpuTimes", min, average, max, p25, median, p75);
                 res.timer().reset();
             }
         }
@@ -240,22 +241,22 @@ public class Renderer implements AutoCloseable {
         float effectLuma = getEffectLuminance(tickDelta);
         float skyAngle = world.getSkyAngle(tickDelta);
         float skyAngleRad = world.getSkyAngleRadians(tickDelta);
-        float sunPathAngleRad = (float) Math.toRadians(config.sunPathAngle);
+        float sunPathAngleRad = (float) Math.toRadians(config.preset().sunPathAngle);
         float dayNightFactor = smoothstep(skyAngle, 0.17333f, 0.25965086f) * smoothstep(skyAngle, 0.82667f, 0.7403491f);
-        float brightness = dayNightFactor * config.nightBrightness + (1-dayNightFactor) * config.dayBrightness;
+        float brightness = dayNightFactor * config.preset().nightBrightness + (1-dayNightFactor) * config.preset().dayBrightness;
+        // FIXME: sunDir seems misaligned at sunrise / sunset
         Vector3f sunDir = new Vector3f(0, 1, 0).rotateAxis(skyAngleRad, 0, MathHelper.sin(sunPathAngleRad/2), MathHelper.cos(sunPathAngleRad/2));
 
         res.shadingShader().bind();
         res.shadingShader().uVPMatrix.setMat4(rotationProjectionMatrix);
         res.shadingShader().uSunDirection.setVec4(sunDir.x, sunDir.y, sunDir.z,(world.getTimeOfDay()%24000)/24000f);
-        res.shadingShader().uOpacity.setVec2(config.opacity, config.opacityFactor);
-        res.shadingShader().uColorGrading.setVec4(brightness, 1f/config.gamma(), effectLuma, config.saturation);
-        res.shadingShader().uTint.setVec3(config.tintRed, config.tintGreen, config.tintBlue);
+        res.shadingShader().uOpacity.setVec2(config.preset().opacity, config.preset().opacityFactor);
+        res.shadingShader().uColorGrading.setVec4(brightness, 1f/config.preset().gamma(), effectLuma, config.preset().saturation);
+        res.shadingShader().uTint.setVec3(config.preset().tintRed, config.preset().tintGreen, config.preset().tintBlue);
         res.shadingShader().uNoiseFactor.setFloat(config.colorVariationFactor);
 
 
         glBindVertexArray(res.cubeVao());
-//        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         glDrawArrays(GL_TRIANGLES, 0, Mesh.CUBE_MESH_VERTEX_COUNT);
     }
 
@@ -320,8 +321,8 @@ public class Renderer implements AutoCloseable {
         RenderSystem.activeTexture(GL_TEXTURE0);
         RenderSystem.bindTexture(client.getFramebuffer().getDepthAttachment());
 
-        glBindVertexArray(res.quadVao());
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        glBindVertexArray(res.cubeVao());
+        glDrawArrays(GL_TRIANGLES, 0, Mesh.QUAD_MESH_VERTEX_COUNT);
     }
 
     private boolean isFancyMode() {
@@ -353,11 +354,11 @@ public class Renderer implements AutoCloseable {
     }
 
     private int scaledFramebufferWidth() {
-        return (int) (Main.getConfig().upscaleResolutionFactor * client.getFramebuffer().textureWidth);
+        return (int) (Main.getConfig().preset().upscaleResolutionFactor * client.getFramebuffer().textureWidth);
     }
 
     private int scaledFramebufferHeight() {
-        return (int) (Main.getConfig().upscaleResolutionFactor * client.getFramebuffer().textureHeight);
+        return (int) (Main.getConfig().preset().upscaleResolutionFactor * client.getFramebuffer().textureHeight);
     }
 
     public void close() {

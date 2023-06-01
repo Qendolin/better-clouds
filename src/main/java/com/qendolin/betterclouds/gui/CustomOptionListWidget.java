@@ -1,6 +1,7 @@
 package com.qendolin.betterclouds.gui;
 
 import dev.isxander.yacl.api.utils.Dimension;
+import dev.isxander.yacl.gui.ElementListWidgetExt;
 import dev.isxander.yacl.gui.OptionListWidget;
 import dev.isxander.yacl.gui.YACLScreen;
 import dev.isxander.yacl.gui.controllers.LabelController;
@@ -59,6 +60,18 @@ public class CustomOptionListWidget extends OptionListWidget {
         } else {
             setRenderBackground(false);
         }
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+        for (dev.isxander.yacl.gui.OptionListWidget.Entry child : children()) {
+            if (child.mouseScrolled(mouseX, mouseY, amount)) {
+                return true;
+            }
+        }
+
+        this.setScrollAmount(this.getScrollAmount() - amount * 20);
+        return true;
     }
 
     // It is super annoying that Entry is not declared as a static class
