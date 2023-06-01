@@ -42,27 +42,27 @@ void main() {
 
     float coverage = float(texelFetch(u_coverage_texture, ivec2(gl_FragCoord), 0).r);
     // This is the "correct" formula
-    // frag_color.a = 1. - pow((1.-u_opacity.a), coverage);
-    out_color.a = pow(coverage, 1.5) / (1./(u_opacity.x)+pow(coverage, 1.5)-1);
+    // frag_color.a = 1.0 - pow((1.0-u_opacity.x), coverage);
+    out_color.a = pow(coverage, 1.5) / (1.0/(u_opacity.x)+pow(coverage, 1.5)-1.0);
 
     vec3 sunDir = u_sun_direction.xyz;
     vec3 fragDir = normalize(pass_dir);
 
     vec3 xzProj = fragDir - sunDir * dot(fragDir, sunDir);
-    float projAngle = acos(dot(normalize(xzProj), vec3(0, 0, 1)));
+    float projAngle = acos(dot(normalize(xzProj), vec3(0.0, 0.0, 1.0)));
 
     // if sunDir.z is always 0, this can be optimized, but who cares
     float sphere = dot(sunDir, fragDir);
     // TODO: document how I arrived at this formula
-    float superellipse = ((1.0 + (1./3.) * (pow(sin(2*projAngle + pi/2.), 2.0))) * (1.-abs(dot(sunDir, fragDir))) - 1.0) * sign(dot(sunDir, -fragDir));
+    float superellipse = ((1.0 + (1.0/3.0) * (pow(sin(2.0*projAngle + pi/2.0), 2.0))) * (1.0-abs(dot(sunDir, fragDir))) - 1.0) * sign(dot(sunDir, -fragDir));
     float lightUVx = mix(sphere, superellipse, smoothstep(0.75, 1.0, abs(sphere)));
 
     // (1, 0) to (0.5, 1)
-    if(lightUVx > 0.5) lightUVx = (-2 * lightUVx + 2) * 0.375;
+    if(lightUVx > 0.5) lightUVx = (-2.0 * lightUVx + 2.0) * 0.375;
     // (0.5, 0) to (-0.5, 1)
-    else if(lightUVx > -0.5) lightUVx = 0.375 + (-1 * lightUVx + 0.5) * 0.25;
+    else if(lightUVx > -0.5) lightUVx = 0.375 + (-1.0 * lightUVx + 0.5) * 0.25;
     // (-0.5, 0) to (-1, 1)
-    else lightUVx = 0.625 + (-2 * lightUVx - 1) * 0.375;
+    else lightUVx = 0.625 + (-2.0 * lightUVx - 1.0) * 0.375;
 
     vec2 lightUV = vec2(lightUVx, u_sun_direction.w);
 
@@ -73,7 +73,7 @@ void main() {
     float colorLumi = dot(out_color.rgb, vec3(0.2126, 0.7152, 0.072)) + 0.001;
     vec3 colorChroma = out_color.rgb / colorLumi;
 
-    float colorVariance = length(vec2(1. - pow(1. - cloudData.g, 3.) * 0.75, cloudData.b * 0.75 + 0.25)) / sqrt2;
+    float colorVariance = length(vec2(1.0 - pow(1.0 - cloudData.g, 3.) * 0.75, cloudData.b * 0.75 + 0.25)) / sqrt2;
     colorLumi = mix(colorLumi, colorVariance * 0.35 * (0.3 + 0.7 * colorLumi) + 0.75 * colorLumi, u_noise_factor);
 
     colorChroma = mix(vec3(1.0), colorChroma, u_color_grading.z);
