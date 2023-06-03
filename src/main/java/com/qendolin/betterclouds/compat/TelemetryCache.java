@@ -59,7 +59,7 @@ public class TelemetryCache {
             }
         }
 
-        writer = new FileWriter(file);
+        writer = new FileWriter(file, StandardCharsets.UTF_8, true);
         available = true;
     }
 
@@ -82,8 +82,7 @@ public class TelemetryCache {
         try {
             writer.append(String.format("%s%s %s", System.lineSeparator(), type, hash));
             writer.flush();
-        } catch (IOException ignored) {
-        }
+        } catch (IOException ignored) {}
     }
 
     public String hash(String str) {
