@@ -6,7 +6,9 @@ import com.qendolin.betterclouds.Main;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -42,12 +44,17 @@ public class TelemetryCache {
         File dir = Paths.get(".cache").toFile();
         //noinspection ResultOfMethodCallIgnored
         dir.mkdir();
-        File file = Paths.get(".cache", Main.MODID + "-telemetry_cache.bin").toFile();
+        File file = Paths.get(".cache", Main.MODID + "-telemetry_cache-v"+Telemetry.VERSION+".bin").toFile();
         //noinspection ResultOfMethodCallIgnored
         file.createNewFile();
+        int lineCount = 0;
+        final int maxLines = 10000;
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
+                // the cache should never grow this large
+                if(lineCount++ > maxLines) break;
+
                 Matcher matcher = linePattern.matcher(line);
                 if(!matcher.matches()) continue;
                 String type = matcher.group(1).toLowerCase();
@@ -57,6 +64,11 @@ public class TelemetryCache {
                 }
                 cache.get(type).add(hash);
             }
+        }
+
+        if(lineCount > maxLines) {
+            Files.write(file.toPath(), new byte[]{}, StandardOpenOption.TRUNCATE_EXISTING);
+            cache.clear();
         }
 
         writer = new FileWriter(file, StandardCharsets.UTF_8, true);
