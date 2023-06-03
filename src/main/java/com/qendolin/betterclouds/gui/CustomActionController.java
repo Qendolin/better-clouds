@@ -5,7 +5,6 @@ import dev.isxander.yacl.api.utils.Dimension;
 import dev.isxander.yacl.gui.AbstractWidget;
 import dev.isxander.yacl.gui.YACLScreen;
 import dev.isxander.yacl.gui.controllers.ActionController;
-import dev.isxander.yacl.gui.utils.GuiUtils;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 

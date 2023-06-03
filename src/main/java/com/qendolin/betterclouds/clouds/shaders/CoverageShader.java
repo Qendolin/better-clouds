@@ -1,5 +1,6 @@
-package com.qendolin.betterclouds.clouds;
+package com.qendolin.betterclouds.clouds.shaders;
 
+import com.google.common.collect.ImmutableMap;
 import com.qendolin.betterclouds.Main;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
@@ -32,5 +33,14 @@ public class CoverageShader extends Shader {
         uTime = getUniform("u_time", false);
         uBoundingBox = getUniform("u_bounding_box", false);
         uMiscellaneous = getUniform("u_miscellaneous", true);
+    }
+
+    public static CoverageShader create(ResourceManager manager, float sizeXZ, float sizeY, int edgeFade) throws IOException {
+        Map<String, String> defs = ImmutableMap.ofEntries(
+            Map.entry(CoverageShader.DEF_SIZE_XZ_KEY, Float.toString(sizeXZ)),
+            Map.entry(CoverageShader.DEF_SIZE_Y_KEY, Float.toString(sizeY)),
+            Map.entry(CoverageShader.DEF_FADE_EDGE_KEY, Integer.toString(edgeFade))
+        );
+        return new CoverageShader(manager, defs);
     }
 }

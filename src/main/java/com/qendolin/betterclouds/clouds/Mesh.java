@@ -37,7 +37,6 @@ public class Mesh {
     public static final int FAST_MESH_VERTEX_COUNT = FAST_MESH.length / FAST_MESH_VERTEX_SIZE;
 
     // Use TRIANGLES, front faces are inside
-    // TODO: Replace the quad mesh with the cube mesh
     public static final float[] CUBE_MESH = new float[]{
 //     [position   ]
 //     [ x   y   z ]

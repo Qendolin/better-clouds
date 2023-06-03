@@ -2,7 +2,7 @@ package com.qendolin.betterclouds;
 
 import com.qendolin.betterclouds.gui.ConfigScreen;
 import com.qendolin.betterclouds.gui.CustomActionController;
-import com.qendolin.betterclouds.gui.DynamicDefaultBinding;
+import com.qendolin.betterclouds.gui.CustomButtonOption;
 import com.qendolin.betterclouds.gui.SelectController;
 import dev.isxander.yacl.api.*;
 import dev.isxander.yacl.gui.controllers.BooleanController;
@@ -65,11 +65,16 @@ public class ConfigGUI {
 
     protected final List<Pair<ConfigCategory.Builder, List<Pair<OptionGroup.Builder, List<Option<?>>>>>> categories = new ArrayList<>();
 
+    protected final List<Pair<OptionGroup.Builder, List<Option<?>>>> commonCategory = new ArrayList<>();
     protected final List<Pair<OptionGroup.Builder, List<Option<?>>>> generationCategory = new ArrayList<>();
     protected final List<Pair<OptionGroup.Builder, List<Option<?>>>> appearanceCategory = new ArrayList<>();
     protected final List<Pair<OptionGroup.Builder, List<Option<?>>>> performanceCategory = new ArrayList<>();
     protected final List<Pair<OptionGroup.Builder, List<Option<?>>>> shadersCategory = new ArrayList<>();
 
+    protected final List<Option<?>> commonPresetsGroup = new ArrayList<>();
+    protected final List<Option<?>> commonGenerationGroup = new ArrayList<>();
+    protected final List<Option<?>> commonAppearanceGroup = new ArrayList<>();
+    protected final List<Option<?>> commonShadersGroup = new ArrayList<>();
     protected final List<Option<?>> generationVisualGroup = new ArrayList<>();
     protected final List<Option<?>> generationPerformanceGroup = new ArrayList<>();
     protected final List<Option<?>> appearanceGeometryGroup = new ArrayList<>();
@@ -83,6 +88,8 @@ public class ConfigGUI {
     protected final List<Option<?>> shadersTechnicalGroup = new ArrayList<>();
 
     protected final List<Option<?>> shaderConfigPresetOptions = new ArrayList<>();
+
+    protected final List<Config.ShaderConfigPreset> presetsToBeDeleted = new ArrayList<>();
 
     public ConfigGUI(Config defaults, Config config) {
         this.defaults = defaults;
@@ -194,6 +201,8 @@ public class ConfigGUI {
                 } else if(!preset.editable) {
                     return Text.literal(preset.title)
                         .styled(style -> style.withItalic(true));
+                } else if(presetsToBeDeleted.contains(preset)) {
+                    return Text.literal(preset.title).styled(style -> style.withStrikethrough(true));
                 } else {
                     return Text.literal(preset.title);
                 }
@@ -208,7 +217,7 @@ public class ConfigGUI {
                     option.forgetPendingValue();
                     option.setAvailable(config.preset().editable);
                 }
-                updateRemovePresetButtonAvailability();
+                updateRemovePresetButton();
             })
             .build();
         this.presetTitle = createOption(String.class, "presetTitle", false)
@@ -258,40 +267,56 @@ public class ConfigGUI {
         shaderConfigPresetOptions.addAll(List.of(presetTitle, saturation, tint, gamma, dayBrightness, nightBrightness, upscaleResolutionFactor, sunPathAngle, opacityFactor, opacity));
         shaderConfigPresetOptions.forEach(opt -> opt.setAvailable(config.preset().editable));
 
-        this.removePresetButton = ButtonOption.createBuilder()
-            .name(Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.remove"))
+        final Text removeButtonRemoveText = Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.remove");
+        final Text removeButtonRestoreText = Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.restore");
+
+        this.removePresetButton = CustomButtonOption.createBuilder()
+            .name(() -> presetsToBeDeleted.contains(config.preset()) ? removeButtonRestoreText : removeButtonRemoveText)
             .available(config.presets.size() > 1)
             .action((screen, option) -> {
                 if(config.presets.size() <= 1 || !config.preset().editable) {
                     option.setAvailable(false);
                     return;
                 }
-                config.presets.remove(config.selectedPreset);
-                selectedPreset.requestSet(MathHelper.clamp( config.selectedPreset, 0, config.presets.size()-1));
-                if(selectedPreset.controller() instanceof SelectController select) {
-                    select.updateValues();
+                if(presetsToBeDeleted.contains(config.preset())) {
+                    presetsToBeDeleted.remove(config.preset());
+                } else {
+                    presetsToBeDeleted.add(config.preset());
                 }
-                updateRemovePresetButtonAvailability();
             })
             .controller(CustomActionController::new)
             .build();
-        updateRemovePresetButtonAvailability();
+        updateRemovePresetButton();
         this.copyPresetButton = ButtonOption.createBuilder()
             .name(Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.copy"))
             .action((screen, buttonOption) -> {
                 Config.ShaderConfigPreset preset = new Config.ShaderConfigPreset(config.preset());
                 preset.title = Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.copyOf", config.preset().title).getString();
-                preset.editable = true;
-                preset.key = null;
+                preset.markAsCopy();
                 config.presets.add(0, preset);
                 selectedPreset.requestSet(0);
                 if(selectedPreset.controller() instanceof SelectController select) {
                     select.updateValues();
                 }
-                updateRemovePresetButtonAvailability();
+                updateRemovePresetButton();
             })
             .controller(CustomActionController::new)
             .build();
+
+        categories.add(new Pair<>(ConfigCategory.createBuilder()
+            .name(categoryLabel("generation")), commonCategory));
+        commonCategory.add(new Pair<>(OptionGroup.createBuilder()
+            .name(groupLabel("common.presets")), commonPresetsGroup));
+        commonPresetsGroup.addAll(List.of(selectedPreset, presetTitle, copyPresetButton, removePresetButton));
+        commonCategory.add(new Pair<>(OptionGroup.createBuilder()
+            .name(groupLabel("common.generation")), commonGenerationGroup));
+        commonGenerationGroup.addAll(List.of(sizeXZ, sizeY, spacing, samplingScale, distance));
+        commonCategory.add(new Pair<>(OptionGroup.createBuilder()
+            .name(groupLabel("common.appearance")), commonAppearanceGroup));
+        commonAppearanceGroup.addAll(List.of(enabled,  opacity, opacityFactor));
+        commonCategory.add(new Pair<>(OptionGroup.createBuilder()
+            .name(groupLabel("common.shaders")), commonShadersGroup));
+        commonShadersGroup.addAll(List.of(irisDisclaimer, irisSupport, gamma, dayBrightness, nightBrightness, sunPathAngle));
 
         categories.add(new Pair<>(ConfigCategory.createBuilder()
             .name(categoryLabel("generation")), generationCategory));
@@ -342,7 +367,7 @@ public class ConfigGUI {
         shadersTechnicalGroup.addAll(List.of(sunPathAngle, upscaleResolutionFactor, useIrisFBO, writeDepth));
     }
 
-    private void updateRemovePresetButtonAvailability() {
+    private void updateRemovePresetButton() {
         if(removePresetButton == null) return;
         removePresetButton.setAvailable(config.preset().editable && config.presets.size() > 1);
     }
@@ -350,6 +375,10 @@ public class ConfigGUI {
     public YetAnotherConfigLib.Builder apply(YetAnotherConfigLib.Builder builder) {
         builder = builder
             .save(() -> {
+                for (Config.ShaderConfigPreset preset : presetsToBeDeleted) {
+                    config.presets.remove(preset);
+                }
+                config.selectedPreset = MathHelper.clamp(config.selectedPreset, 0, config.presets.size());
                 config.sortPresets();
                 Main.getConfigInstance().save();
             })
@@ -358,6 +387,7 @@ public class ConfigGUI {
         for (Pair<ConfigCategory.Builder, List<Pair<OptionGroup.Builder, List<Option<?>>>>> categoryPair : categories) {
             ConfigCategory.Builder categoryBuilder = categoryPair.getLeft();
             for (Pair<OptionGroup.Builder, List<Option<?>>> groupPair : categoryPair.getRight()) {
+                if(groupPair.getRight().isEmpty()) continue;
                 OptionGroup.Builder groupBuilder = groupPair.getLeft();
                 groupBuilder.options(groupPair.getRight());
                 categoryBuilder.group(groupBuilder.build());

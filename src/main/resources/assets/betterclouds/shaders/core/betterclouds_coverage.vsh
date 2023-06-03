@@ -1,4 +1,4 @@
-#version 430
+#version 330
 
 // Geometry attributes
 #define SIZE vec3(_SIZE_XZ_, _SIZE_Y_, _SIZE_XZ_)

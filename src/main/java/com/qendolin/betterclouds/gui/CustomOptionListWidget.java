@@ -1,7 +1,6 @@
 package com.qendolin.betterclouds.gui;
 
 import dev.isxander.yacl.api.utils.Dimension;
-import dev.isxander.yacl.gui.ElementListWidgetExt;
 import dev.isxander.yacl.gui.OptionListWidget;
 import dev.isxander.yacl.gui.YACLScreen;
 import dev.isxander.yacl.gui.controllers.LabelController;
@@ -86,11 +85,6 @@ public class CustomOptionListWidget extends OptionListWidget {
         public ProxyEntry(T delegate) {
             super();
             this.delegate = delegate;
-        }
-
-        @Override
-        public int getNavigationOrder() {
-            return super.getNavigationOrder();
         }
 
         public ProxyEntry<T> onBeforeRender(BeforeRenderCallback<T> callback) {

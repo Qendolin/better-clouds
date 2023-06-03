@@ -13,7 +13,9 @@ import net.minecraft.util.profiler.Profiler;
 
 import java.io.BufferedReader;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 

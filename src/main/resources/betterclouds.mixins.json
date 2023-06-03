@@ -3,8 +3,7 @@
   "minVersion": "0.8",
   "package": "com.qendolin.betterclouds.mixin",
   "compatibilityLevel": "JAVA_17",
-  "mixins": [
-  ],
+  "mixins": [],
   "client": [
     "AbstractWidgetMixin",
     "BufferRendererAccessor",
@@ -13,7 +12,8 @@
     "RenderSystemMixin",
     "ShaderProgramAccessor",
     "VertexBufferAccessor",
-    "WorldRendererMixin"
+    "WorldRendererMixin",
+    "GsonConfigInstanceBuilderMixin"
   ],
   "injectors": {
     "defaultRequire": 1

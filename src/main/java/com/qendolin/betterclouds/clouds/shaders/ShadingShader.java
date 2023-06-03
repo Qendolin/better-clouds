@@ -1,4 +1,4 @@
-package com.qendolin.betterclouds.clouds;
+package com.qendolin.betterclouds.clouds.shaders;
 
 import com.qendolin.betterclouds.Main;
 import net.minecraft.resource.ResourceManager;
@@ -12,6 +12,7 @@ public class ShadingShader extends Shader {
     public static final Identifier FRAGMENT_SHADER_ID = new Identifier(Main.MODID, "shaders/core/betterclouds_shading.fsh");
 
     public static final String DEF_BLIT_DEPTH_KEY = "_BLIT_DEPTH_";
+    public static final String DEF_EARLY_FRAGMENT_TESTS_KEY = "_EARLY_FRAGMENT_TESTS_";
 
     public final Uniform uDataTexture;
     public final Uniform uDepthTexture;
@@ -37,5 +38,13 @@ public class ShadingShader extends Shader {
         uOpacity = getUniform("u_opacity", true);
         uTint = getUniform("u_tint", true);
         uNoiseFactor = getUniform("u_noise_factor", true);
+    }
+
+    public static ShadingShader create(ResourceManager manager, boolean writeDepth, boolean earlyFragmentTests) throws IOException {
+        Map<String, String> defs = Map.ofEntries(
+            Map.entry(ShadingShader.DEF_BLIT_DEPTH_KEY, writeDepth ? "1" : "0"),
+            Map.entry(ShadingShader.DEF_EARLY_FRAGMENT_TESTS_KEY, earlyFragmentTests ? "1" : "0")
+        );
+        return new ShadingShader(manager, defs);
     }
 }

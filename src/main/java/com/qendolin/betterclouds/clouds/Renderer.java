@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.Config;
 import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.clouds.shaders.Shader;
 import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.compat.SodiumExtraCompat;
 import net.minecraft.client.MinecraftClient;
@@ -113,7 +114,7 @@ public class Renderer implements AutoCloseable {
 
         matrices.translate(res.generator().renderOriginX(cam.x), cloudsHeight-cam.y, res.generator().renderOriginZ(cam.z));
 
-        // TODO: moon corona in wrong spot when upscaling is used
+        // FIXME: moon corona in wrong spot when upscaling is used
         rotationProjectionMatrix.set(projMat);
         // This is fixes issue #14, not entirely sure why, but it forces the matrix to be homogenous
         tempMatrix.m30(0);

@@ -1,4 +1,4 @@
-package com.qendolin.betterclouds.clouds;
+package com.qendolin.betterclouds.clouds.shaders;
 
 import org.apache.commons.lang3.NotImplementedException;
 import org.joml.Matrix4f;

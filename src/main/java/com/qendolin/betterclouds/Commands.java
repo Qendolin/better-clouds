@@ -64,9 +64,7 @@ public class Commands {
                 MinecraftClient client = context.getSource().getClient();
                 // The chat screen will call setScreen(null) after the command handler
                 // which would override our call, so we delay it
-                client.send(() -> {
-                    client.setScreen(ConfigGUI.create(null));
-                });
+                client.send(() -> client.setScreen(ConfigGUI.create(null)));
                 return 1;
             })
             .then(literal("reload").executes(context -> {

@@ -1,3 +1,0 @@
- - Fixed rendering far out from 0,0
- - Added gradient coloring
- - Added options

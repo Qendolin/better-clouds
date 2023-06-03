@@ -1,4 +1,4 @@
-package com.qendolin.betterclouds.clouds;
+package com.qendolin.betterclouds.clouds.shaders;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.qendolin.betterclouds.Main;
@@ -19,6 +19,7 @@ import static org.lwjgl.opengl.GL32.*;
 
 public class Shader implements AutoCloseable {
 
+    public static final String DEF_VERSION_KEY = "_VERSION_";
     private final Map<String, String> defs;
 
     protected int programId;
@@ -63,7 +64,7 @@ public class Shader implements AutoCloseable {
         GlStateManager.glCompileShader(id);
         if (GlStateManager.glGetShaderi(id, GL_COMPILE_STATUS) == 0) {
             String log = StringUtils.trim(GlStateManager.glGetShaderInfoLog(id, 32768));
-            InvalidHierarchicalFileException parseEx = new InvalidHierarchicalFileException("Couldn't compile shader program (" + resource + ") : " + log);
+            InvalidHierarchicalFileException parseEx = new InvalidHierarchicalFileException("Couldn't compile shader program (" + resource + "): \n" + log + "\n\nShader Source: \n" + shaderSrc);
             parseEx.addInvalidFile(resource.toString());
             throw parseEx;
         }

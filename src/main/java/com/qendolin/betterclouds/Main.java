@@ -2,12 +2,18 @@ package com.qendolin.betterclouds;
 
 import com.qendolin.betterclouds.clouds.Debug;
 import com.qendolin.betterclouds.compat.GLCompat;
+import com.qendolin.betterclouds.compat.GsonConfigInstanceBuilderDuck;
+import com.qendolin.betterclouds.compat.Telemetry;
 import dev.isxander.yacl.config.GsonConfigInstance;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.api.EnvType;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.ModContainer;
+import net.fabricmc.loader.api.Version;
+import net.fabricmc.loader.impl.util.version.StringVersion;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.text.Text;
@@ -24,22 +30,47 @@ public class Main implements ClientModInitializer {
 	public static final boolean IS_DEV = FabricLoader.getInstance().isDevelopmentEnvironment();
 
 	public static GLCompat glCompat;
+	public static Version version;
 
-	private static final GsonConfigInstance<Config> CONFIG = GsonConfigInstance
-		.createBuilder(Config.class)
-		.setPath(Path.of("config/betterclouds-v1.json"))
-		// FIXME: This is currently broken, see issue 64
-//		.appendGsonBuilder(gsonBuilder -> gsonBuilder.setLenient().setPrettyPrinting())
-		.build();
+	private static final GsonConfigInstance<Config> CONFIG;
+
+	static {
+		if(FabricLoader.getInstance().getEnvironmentType().equals(EnvType.CLIENT)) {
+			GsonConfigInstance.Builder<Config> builder = GsonConfigInstance
+				.createBuilder(Config.class)
+				.setPath(Path.of("config/betterclouds-v1.json"));
+
+			//noinspection unchecked
+			builder = ((GsonConfigInstanceBuilderDuck<Config>) builder).betterclouds$appendGsonBuilder(
+				gsonBuilder -> gsonBuilder.setLenient().setPrettyPrinting());
+			CONFIG = builder.build();
+		} else {
+			CONFIG = null;
+		}
+	}
 
 	public static void initGlCompat() {
 		glCompat = new GLCompat(IS_DEV);
 		if(glCompat.isIncompatible()) {
 			LOGGER.warn("Your GPU is not compatible with Better Clouds. OpenGL 4.3 is required!");
-			LOGGER.info("Vendor:       {}", GL32.glGetString(GL32.GL_VENDOR));
-			LOGGER.info("Renderer:     {}", GL32.glGetString(GL32.GL_RENDERER));
-			LOGGER.info("GL Version:   {}", GL32.glGetString(GL32.GL_VERSION));
-			LOGGER.info("GLSL Version: {}", GL32.glGetString(GL32.GL_SHADING_LANGUAGE_VERSION));
+			LOGGER.info(" - Vendor:       {}", GL32.glGetString(GL32.GL_VENDOR));
+			LOGGER.info(" - Renderer:     {}", GL32.glGetString(GL32.GL_RENDERER));
+			LOGGER.info(" - GL Version:   {}", GL32.glGetString(GL32.GL_VERSION));
+			LOGGER.info(" - GLSL Version: {}", GL32.glGetString(GL32.GL_SHADING_LANGUAGE_VERSION));
+			LOGGER.info(" - Extensions:   {}", String.join(", ", glCompat.supportedCheckedExtensions));
+			LOGGER.info(" - Functions:    {}", String.join(", ", glCompat.supportedCheckedFunctions));
+		}
+		if(getConfig().lastTelemetryVersion < Telemetry.VERSION && Telemetry.INSTANCE != null) {
+			Telemetry.INSTANCE.sendSystemInfo()
+			.whenComplete((success, throwable) -> {
+				MinecraftClient client = MinecraftClient.getInstance();
+				if(success && client != null) {
+					client.execute(() -> {
+						getConfig().lastTelemetryVersion = Telemetry.VERSION;
+						CONFIG.save();
+					});
+				}
+			});
 		}
 	}
 
@@ -65,13 +96,22 @@ public class Main implements ClientModInitializer {
 		return CONFIG.getConfig();
 	}
 
+	public static Version getVersion() {
+		return version;
+	}
+
 	static GsonConfigInstance<Config> getConfigInstance() {
 		return CONFIG;
 	}
 
 	@Override
 	public void onInitializeClient() {
+		if(CONFIG == null) throw new IllegalStateException("Fabric environment is "+FabricLoader.getInstance().getEnvironmentType().name() +" but onInitializeClient was called");
 		CONFIG.load();
+
+		ModContainer mod = FabricLoader.getInstance().getModContainer(MODID).orElse(null);
+		if(mod != null) version = mod.getMetadata().getVersion();
+		else version = new StringVersion("unknown");
 
 		ClientLifecycleEvents.CLIENT_STARTED.register(client -> glCompat.enableDebugOutputSynchronous());
 

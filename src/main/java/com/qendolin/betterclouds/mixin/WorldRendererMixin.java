@@ -42,9 +42,6 @@ public abstract class WorldRendererMixin {
         cloudRenderer = new Renderer(client);
     }
 
-    @Shadow
-    private int ticks;
-
     @Shadow private @Nullable Frustum capturedFrustum;
 
     @Shadow @Final private Vector3d capturedFrustumPosition;

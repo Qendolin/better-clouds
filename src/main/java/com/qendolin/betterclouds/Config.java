@@ -9,6 +9,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public class Config {
+
+    public static final String DEFAULT_PRESET_KEY = "default";
+
     public Config() {}
 
     public Config(Config other) {
@@ -38,6 +41,7 @@ public class Config {
         this.selectedPreset = other.selectedPreset;
         this.presets = other.presets;
         this.presets.replaceAll(ShaderConfigPreset::new);
+        this.lastTelemetryVersion = other.lastTelemetryVersion;
     }
 
     @ConfigEntry
@@ -90,6 +94,8 @@ public class Config {
     public int selectedPreset = 0;
     @ConfigEntry
     public List<ShaderConfigPreset> presets = new ArrayList<>();
+    @ConfigEntry
+    public int lastTelemetryVersion = 0;
 
     public void addFirstPreset() {
         if(presets.size() != 0) return;
@@ -98,8 +104,27 @@ public class Config {
 
     public void loadDefaultPresets() {
         Map<String, ShaderConfigPreset> defaults = new HashMap<>(ShaderPresetLoader.INSTANCE.presets());
+        boolean missingDefault = presets.stream().noneMatch(preset -> DEFAULT_PRESET_KEY.equals(preset.key));
         presets.removeIf(preset -> preset.key != null && !preset.editable && defaults.containsKey(preset.key));
         presets.addAll(defaults.values());
+        if(missingDefault) {
+            ShaderConfigPreset empty = new ShaderConfigPreset("");
+            presets.removeIf(preset -> {
+                if(preset == null) return true;
+                String title = preset.title;
+                preset.title = empty.title;
+                boolean equal = preset.equals(empty);
+                preset.title = title;
+                return equal;
+            });
+            ShaderConfigPreset defaultPreset = defaults.get(DEFAULT_PRESET_KEY);
+            if(defaultPreset != null) {
+                ShaderConfigPreset defaultCopy = new ShaderConfigPreset(defaultPreset);
+                defaultCopy.markAsCopy();
+                presets.add(defaultCopy);
+                selectedPreset = presets.indexOf(defaultCopy);
+            }
+        }
         sortPresets();
     }
 
@@ -107,7 +132,7 @@ public class Config {
         ShaderConfigPreset selected = preset();
         Comparator<ShaderConfigPreset> comparator = Comparator.
             <ShaderConfigPreset, Boolean>comparing(preset -> !preset.editable)
-            .thenComparing(preset -> !"default".equals(preset.key))
+            .thenComparing(preset -> !DEFAULT_PRESET_KEY.equals(preset.key))
             .thenComparing(preset -> preset.title);
         presets.sort(comparator);
         selectedPreset = presets.indexOf(selected);
@@ -173,6 +198,37 @@ public class Config {
                 return -1/gamma;
             }
         }
+
+        public void markAsCopy() {
+            editable = true;
+            key = null;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            ShaderConfigPreset preset = (ShaderConfigPreset) o;
+
+            if (editable != preset.editable) return false;
+            if (Float.compare(preset.upscaleResolutionFactor, upscaleResolutionFactor) != 0) return false;
+            if (Float.compare(preset.gamma, gamma) != 0) return false;
+            if (Float.compare(preset.sunPathAngle, sunPathAngle) != 0) return false;
+            if (Float.compare(preset.dayBrightness, dayBrightness) != 0) return false;
+            if (Float.compare(preset.nightBrightness, nightBrightness) != 0) return false;
+            if (Float.compare(preset.saturation, saturation) != 0) return false;
+            if (Float.compare(preset.opacity, opacity) != 0) return false;
+            if (Float.compare(preset.opacityFactor, opacityFactor) != 0) return false;
+            if (Float.compare(preset.tintRed, tintRed) != 0) return false;
+            if (Float.compare(preset.tintGreen, tintGreen) != 0) return false;
+            if (Float.compare(preset.tintBlue, tintBlue) != 0) return false;
+            if (!Objects.equals(title, preset.title)) return false;
+            if (!Objects.equals(key, preset.key)) return false;
+
+            return true;
+        }
+
     }
 
     @NotNull
