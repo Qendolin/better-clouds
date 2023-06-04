@@ -40,9 +40,11 @@ public class Main implements ClientModInitializer {
 				.createBuilder(Config.class)
 				.setPath(Path.of("config/betterclouds-v1.json"));
 
-			//noinspection unchecked
-			builder = ((GsonConfigInstanceBuilderDuck<Config>) builder).betterclouds$appendGsonBuilder(
-				gsonBuilder -> gsonBuilder.setLenient().setPrettyPrinting());
+			if(builder instanceof GsonConfigInstanceBuilderDuck) {
+				//noinspection unchecked
+				GsonConfigInstanceBuilderDuck<Config> duck = (GsonConfigInstanceBuilderDuck<Config>) builder;
+				builder = duck.betterclouds$appendGsonBuilder(b -> b.setLenient().setPrettyPrinting());
+			}
 			CONFIG = builder.build();
 		} else {
 			CONFIG = null;

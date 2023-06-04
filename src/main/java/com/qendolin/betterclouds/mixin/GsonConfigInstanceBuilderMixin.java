@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.Shadow;
 
 import java.util.function.UnaryOperator;
 
-@Mixin(GsonConfigInstance.Builder.class)
+@Mixin(value = GsonConfigInstance.Builder.class, remap = false)
 public abstract class GsonConfigInstanceBuilderMixin<T> implements GsonConfigInstanceBuilderDuck<T> {
 
     @Shadow private UnaryOperator<GsonBuilder> gsonBuilder;
