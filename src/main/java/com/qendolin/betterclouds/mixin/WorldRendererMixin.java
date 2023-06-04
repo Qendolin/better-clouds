@@ -50,6 +50,8 @@ public abstract class WorldRendererMixin {
 
     @Shadow private @Nullable ClientWorld world;
 
+    @Shadow private int ticks;
+
     @Inject(at = @At("TAIL"), method = "reload(Lnet/minecraft/resource/ResourceManager;)V")
     private void onReload(ResourceManager manager, CallbackInfo ci) {
         if(glCompat.isIncompatible()) return;
@@ -86,7 +88,7 @@ public abstract class WorldRendererMixin {
         matrices.push();
         if(cloudRenderer.prepare(matrices, projMat, tickDelta, cam)) {
             ci.cancel();
-            cloudRenderer.render(tickDelta, cam, frustumPos, frustum);
+            cloudRenderer.render(ticks, tickDelta, cam, frustumPos, frustum);
         }
         matrices.pop();
 

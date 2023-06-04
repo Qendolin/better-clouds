@@ -15,7 +15,6 @@ import net.minecraft.client.render.Frustum;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Util;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import org.joml.Matrix4f;
@@ -31,7 +30,6 @@ public class Renderer implements AutoCloseable {
     private final MinecraftClient client;
     private ClientWorld world = null;
 
-    private final long startTime = Util.getEpochTimeMs();
     private float cloudsHeight;
     private int defaultFbo;
     private final Matrix4f mvpMatrix = new Matrix4f();
@@ -114,7 +112,6 @@ public class Renderer implements AutoCloseable {
 
         matrices.translate(res.generator().renderOriginX(cam.x), cloudsHeight-cam.y, res.generator().renderOriginZ(cam.z));
 
-        // FIXME: moon corona in wrong spot when upscaling is used
         rotationProjectionMatrix.set(projMat);
         // This is fixes issue #14, not entirely sure why, but it forces the matrix to be homogenous
         tempMatrix.m30(0);
@@ -136,7 +133,7 @@ public class Renderer implements AutoCloseable {
     }
 
     // Don't forget to push / pop matrix stack outside
-    public void render(float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
+    public void render(int ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
         // Rendering clouds when underwater was making them very visible in unloaded chunks
         if(client.gameRenderer.getCamera().getSubmersionType() != CameraSubmersionType.NONE) return;
 
@@ -161,7 +158,7 @@ public class Renderer implements AutoCloseable {
         drawDepth();
 
         client.getProfiler().swap("draw_coverage");
-        drawCoverage(cam, frustumPos, frustum);
+        drawCoverage(ticks+tickDelta, cam, frustumPos, frustum);
 
         client.getProfiler().swap("draw_shading");
         if(IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled() && config.useIrisFBO) {
@@ -169,8 +166,6 @@ public class Renderer implements AutoCloseable {
         } else {
             GlStateManager._glBindFramebuffer(GL_DRAW_FRAMEBUFFER, defaultFbo);
         }
-        // TODO: viewport might not be correct always
-        RenderSystem.viewport(0, 0, client.getFramebuffer().textureWidth, client.getFramebuffer().textureHeight);
 
         drawShading(tickDelta);
 
@@ -240,13 +235,12 @@ public class Renderer implements AutoCloseable {
         client.getTextureManager().getTexture(Resources.LIGHTING_TEXTURE).bindTexture();
 
         float effectLuma = getEffectLuminance(tickDelta);
-        float skyAngle = world.getSkyAngle(tickDelta);
+        long skyTime = world.getLunarTime() % 24000;
         float skyAngleRad = world.getSkyAngleRadians(tickDelta);
         float sunPathAngleRad = (float) Math.toRadians(config.preset().sunPathAngle);
-        float dayNightFactor = smoothstep(skyAngle, 0.17333f, 0.25965086f) * smoothstep(skyAngle, 0.82667f, 0.7403491f);
-        float brightness = dayNightFactor * config.preset().nightBrightness + (1-dayNightFactor) * config.preset().dayBrightness;
-        // FIXME: sunDir seems misaligned at sunrise / sunset
-        Vector3f sunDir = new Vector3f(0, 1, 0).rotateAxis(skyAngleRad, 0, MathHelper.sin(sunPathAngleRad/2), MathHelper.cos(sunPathAngleRad/2));
+        float dayNightFactor = interpolateDayNightFactor(skyTime, config.preset().sunriseStartTime, config.preset().sunriseEndTime, config.preset().sunsetStartTime, config.preset().sunsetEndTime);
+        float brightness = (1-dayNightFactor) * config.preset().nightBrightness + dayNightFactor * config.preset().dayBrightness;
+        Vector3f sunDir = new Vector3f(1, 0, 0).rotateAxis(skyAngleRad+MathHelper.HALF_PI, 0, MathHelper.sin(sunPathAngleRad), MathHelper.cos(sunPathAngleRad));
 
         res.shadingShader().bind();
         res.shadingShader().uVPMatrix.setMat4(rotationProjectionMatrix);
@@ -261,7 +255,18 @@ public class Renderer implements AutoCloseable {
         glDrawArrays(GL_TRIANGLES, 0, Mesh.CUBE_MESH_VERTEX_COUNT);
     }
 
-    private void drawCoverage(Vector3d cam, Vector3d frustumPos, Frustum frustum) {
+    private float interpolateDayNightFactor(float time, float riseStart, float riseEnd, float setStart, float setEnd) {
+        if(time <= 6000 || time > 18000) {
+            // sunrise time
+            if(time > 18000) time -= 24000;
+            return smoothstep(time, riseStart, riseEnd);
+        } else {
+            // sunset time
+            return 1 - smoothstep(time, setStart, setEnd);
+        }
+    }
+
+    private void drawCoverage(float ticks, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
         glEnable(GL_STENCIL_TEST);
         glStencilMask(0xff);
         glStencilOp(GL_KEEP, GL_INCR, GL_INCR);
@@ -278,7 +283,7 @@ public class Renderer implements AutoCloseable {
         res.coverageShader().uMVPMatrix.setMat4(mvpMatrix);
         res.coverageShader().uOriginOffset.setVec3((float) -res.generator().renderOriginX(cam.x), (float) cam.y-cloudsHeight, (float) -res.generator().renderOriginZ(cam.z));
         res.coverageShader().uBoundingBox.setVec4((float) cam.x, (float) cam.z, generatorConfig.blockDistance() - generatorConfig.chunkSize/2f, generatorConfig.yRange + config.sizeY);
-        res.coverageShader().uTime.setFloat((Util.getEpochTimeMs() - startTime)/1000f);
+        res.coverageShader().uTime.setFloat(ticks/20);
         res.coverageShader().uMiscellaneous.setVec2(config.scaleFalloffMin, config.windFactor);
 
         RenderSystem.activeTexture(GL_TEXTURE5);

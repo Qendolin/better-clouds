@@ -2,6 +2,7 @@ package com.qendolin.betterclouds;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
+import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.InstanceCreator;
@@ -22,6 +23,7 @@ import java.util.concurrent.Executor;
 public class ShaderPresetLoader implements SimpleResourceReloadListener<Map<String, Config.ShaderConfigPreset>> {
     private static final Gson GSON = new GsonBuilder()
         .setLenient()
+        .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
         .registerTypeAdapter(Config.ShaderConfigPreset.class, (InstanceCreator<Config.ShaderConfigPreset>) type -> new Config.ShaderConfigPreset(""))
         .create();
     public static final Identifier ID = new Identifier(Main.MODID, "shader_presets");

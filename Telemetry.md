@@ -22,8 +22,12 @@ This allows me to identify and address any issues related to shader compilation 
 
 ## What information is included in the telemetry dta
 
+`META_INFORMATION` includes:
+- `modVersion` The version of this mod
+
 `SYSTEM_INFORMATION` telemetry includes:
 
+- `META_INFORMATION`
 - `os` The name of your Operating System
 - `vendor` The name of your GPU Vendor
 - `renderer` The name of your GPU

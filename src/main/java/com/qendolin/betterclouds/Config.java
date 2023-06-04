@@ -1,5 +1,6 @@
 package com.qendolin.betterclouds;
 
+import com.google.common.base.Objects;
 import dev.isxander.yacl.config.ConfigEntry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.MathHelper;
@@ -12,6 +13,7 @@ public class Config {
 
     public static final String DEFAULT_PRESET_KEY = "default";
 
+    @SuppressWarnings("unused")
     public Config() {}
 
     public Config(Config other) {
@@ -103,20 +105,24 @@ public class Config {
     }
 
     public void loadDefaultPresets() {
+        // Remember which default preset was selected, if any
+        String selectedDefaultPreset = preset().key;
         Map<String, ShaderConfigPreset> defaults = new HashMap<>(ShaderPresetLoader.INSTANCE.presets());
         boolean missingDefault = presets.stream().noneMatch(preset -> DEFAULT_PRESET_KEY.equals(preset.key));
         presets.removeIf(preset -> preset.key != null && !preset.editable && defaults.containsKey(preset.key));
         presets.addAll(defaults.values());
+
+        if(selectedDefaultPreset != null) {
+            // Restore the selected default preset
+            presets.stream()
+                .filter(preset -> selectedDefaultPreset.equals(preset.key)).findFirst()
+                .ifPresentOrElse(prevSelectedPreset -> selectedPreset = presets.indexOf(prevSelectedPreset), () -> selectedPreset = 0);
+        }
+
         if(missingDefault) {
-            ShaderConfigPreset empty = new ShaderConfigPreset("");
-            presets.removeIf(preset -> {
-                if(preset == null) return true;
-                String title = preset.title;
-                preset.title = empty.title;
-                boolean equal = preset.equals(empty);
-                preset.title = title;
-                return equal;
-            });
+            // No preset with the key 'default' was present,
+            // so it is assumed that the presets are not initialized
+            presets.removeIf(Config::isPresetEqualToEmpty);
             ShaderConfigPreset defaultPreset = defaults.get(DEFAULT_PRESET_KEY);
             if(defaultPreset != null) {
                 ShaderConfigPreset defaultCopy = new ShaderConfigPreset(defaultPreset);
@@ -126,6 +132,16 @@ public class Config {
             }
         }
         sortPresets();
+    }
+
+    private static boolean isPresetEqualToEmpty(ShaderConfigPreset preset) {
+        if(preset == null) return true;
+        String title = preset.title;
+        // The title does not matter
+        preset.title = ShaderConfigPreset.EMPTY_PRESET.title;
+        boolean equal = preset.equals(ShaderConfigPreset.EMPTY_PRESET);
+        preset.title = title;
+        return equal;
     }
 
     public void sortPresets() {
@@ -139,6 +155,9 @@ public class Config {
     }
 
     public static class ShaderConfigPreset {
+
+        protected static final ShaderConfigPreset EMPTY_PRESET = new ShaderConfigPreset("");
+
         public ShaderConfigPreset(String title) {
             this.title = title;
         }
@@ -152,12 +171,18 @@ public class Config {
             this.sunPathAngle = other.sunPathAngle;
             this.dayBrightness = other.dayBrightness;
             this.nightBrightness = other.nightBrightness;
+            this.sunriseStartTime = other.sunriseStartTime;
+            this.sunriseEndTime = other.sunriseEndTime;
+            this.sunsetStartTime = other.sunsetStartTime;
+            this.sunsetEndTime = other.sunsetEndTime;
             this.saturation = other.saturation;
             this.opacity = other.opacity;
             this.opacityFactor = other.opacityFactor;
             this.tintRed = other.tintRed;
             this.tintGreen = other.tintGreen;
             this.tintBlue = other.tintBlue;
+
+            // NOTE: Don't forget to update `equals`
         }
 
         @ConfigEntry
@@ -171,9 +196,16 @@ public class Config {
         public float upscaleResolutionFactor = 1f;
         @ConfigEntry
         public float gamma = 1f;
-        // TODO: implement day duration / offset
         @ConfigEntry
         public float sunPathAngle = 0f;
+        @ConfigEntry
+        public int sunriseStartTime = -785;
+        @ConfigEntry
+        public int sunriseEndTime = 1163;
+        @ConfigEntry
+        public int sunsetStartTime = 10837;
+        @ConfigEntry
+        public int sunsetEndTime = 12785;
         @ConfigEntry
         public float dayBrightness = 1f;
         @ConfigEntry
@@ -208,27 +240,26 @@ public class Config {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-
             ShaderConfigPreset preset = (ShaderConfigPreset) o;
-
-            if (editable != preset.editable) return false;
-            if (Float.compare(preset.upscaleResolutionFactor, upscaleResolutionFactor) != 0) return false;
-            if (Float.compare(preset.gamma, gamma) != 0) return false;
-            if (Float.compare(preset.sunPathAngle, sunPathAngle) != 0) return false;
-            if (Float.compare(preset.dayBrightness, dayBrightness) != 0) return false;
-            if (Float.compare(preset.nightBrightness, nightBrightness) != 0) return false;
-            if (Float.compare(preset.saturation, saturation) != 0) return false;
-            if (Float.compare(preset.opacity, opacity) != 0) return false;
-            if (Float.compare(preset.opacityFactor, opacityFactor) != 0) return false;
-            if (Float.compare(preset.tintRed, tintRed) != 0) return false;
-            if (Float.compare(preset.tintGreen, tintGreen) != 0) return false;
-            if (Float.compare(preset.tintBlue, tintBlue) != 0) return false;
-            if (!Objects.equals(title, preset.title)) return false;
-            if (!Objects.equals(key, preset.key)) return false;
-
-            return true;
+            return editable == preset.editable &&
+                Float.compare(preset.upscaleResolutionFactor, upscaleResolutionFactor) == 0 &&
+                Float.compare(preset.gamma, gamma) == 0 &&
+                Float.compare(preset.sunPathAngle, sunPathAngle) == 0 &&
+                sunriseStartTime == preset.sunriseStartTime &&
+                sunriseEndTime == preset.sunriseEndTime &&
+                sunsetStartTime == preset.sunsetStartTime &&
+                sunsetEndTime == preset.sunsetEndTime &&
+                Float.compare(preset.dayBrightness, dayBrightness) == 0 &&
+                Float.compare(preset.nightBrightness, nightBrightness) == 0 &&
+                Float.compare(preset.saturation, saturation) == 0 &&
+                Float.compare(preset.opacity, opacity) == 0 &&
+                Float.compare(preset.opacityFactor, opacityFactor) == 0 &&
+                Float.compare(preset.tintRed, tintRed) == 0 &&
+                Float.compare(preset.tintGreen, tintGreen) == 0 &&
+                Float.compare(preset.tintBlue, tintBlue) == 0 &&
+                Objects.equal(title, preset.title) &&
+                Objects.equal(key, preset.key);
         }
-
     }
 
     @NotNull

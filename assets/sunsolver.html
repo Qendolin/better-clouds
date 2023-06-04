@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Sun Angle Solver</title>
+	</head>
+	<body>
+		<h2>Sun Angle Time Solver</h2>
+		<div id="sunAnglePlot"></div>
+		<span>
+			Specify the sun angle in [0, 1] where 0.75 is sunrise, 0.0 is noon, 0.25 is sunset and 0.5 is midnight </span
+		><br />
+		<input type="text" oninput="onSunAngleInput(event.currentTarget.value)" placeholder="sun angle" />
+		<span> guess: </span>
+		<input type="number" value="12000" oninput="setSunAngleGuess(event.currentTarget.value)" placeholder="guess" />
+		<br />
+		<code>/time set <output id="sunAngleOutput"></output></code>
+		<h2>Sky Brightness Time Solver</h2>
+		<div id="skyBrightnessPlot"></div>
+		<span> Specify the sky brightness in [0, 1] where 1 is bright and 0 is dark</span><br />
+		<input type="text" oninput="onSkyBrightnessInput(event.currentTarget.value)" placeholder="sky brightness" />
+		<span> guess: </span>
+		<input
+			type="number"
+			value="12000"
+			oninput="setSkyBrightnessGuess(event.currentTarget.value)"
+			placeholder="guess"
+		/>
+		<br />
+		<code>/time set <output id="skyBrightnessOutput"></output></code>
+		<script>
+			sunAnglePlot.append(plot((x) => sunAngle(x > 6000 ? x - 6000 : x + 18000), 0, 24000, 240 * 2, 100));
+			skyBrightnessPlot.append(
+				plot((x) => skyBrightness(x > 6000 ? x - 6000 : x + 18000), 0, 24000, 240 * 2, 100)
+			);
+			const sunAngleOutput = document.getElementById('sunAngleOutput');
+			const skyBrightnessOutput = document.getElementById('skyBrightnessOutput');
+			let sunAngleGuess = 12000;
+			let skyBrightnessGuess = 12000;
+			let sunAngleSearch = 0;
+			let skyBrightnessSearch = 0;
+			function setSunAngleGuess(value) {
+				value = parseInt(value);
+				if (isNaN(value)) return;
+				sunAngleGuess = value;
+				updateSunAngle();
+			}
+			function setSkyBrightnessGuess(value) {
+				value = parseInt(value);
+				if (isNaN(value)) return;
+				skyBrightnessGuess = value;
+				updateSkyBrightness();
+			}
+			function onSunAngleInput(value) {
+				value = parseFloat(value);
+				if (isNaN(value)) return;
+				sunAngleSearch = value - Math.floor(value);
+				updateSunAngle();
+			}
+			function updateSunAngle() {
+				const time = newtonsMethod((x) => sunAngle(x) - sunAngleSearch, sunAngleGuess) + 6000;
+				sunAngleOutput.textContent = Math.round(time) % 24000;
+			}
+			function onSkyBrightnessInput(value) {
+				value = parseFloat(value);
+				if (isNaN(value)) return;
+				skyBrightnessSearch = value - Math.floor(value);
+				updateSkyBrightness();
+			}
+			function updateSkyBrightness() {
+				let time;
+				for (let i = 0; i < 24000; i += 100) {
+					if (sunAngleGuess + i <= 24000)
+						time =
+							newtonsMethod((x) => skyBrightness(x) - skyBrightnessSearch, skyBrightnessGuess + i) + 6000;
+					if (!isNaN(time)) break;
+					if (sunAngleGuess - i >= 0)
+						time =
+							newtonsMethod((x) => skyBrightness(x) - skyBrightnessSearch, skyBrightnessGuess - i) + 6000;
+					if (!isNaN(time)) break;
+				}
+				skyBrightnessOutput.textContent = Math.round(time) % 24000;
+			}
+
+			function plot(f, from, to, width, height) {
+				const canvas = document.createElement('canvas');
+				const ctx = canvas.getContext('2d');
+				const values = [];
+				for (let i = 0; i < width; i++) {
+					let x = from + (i / width) * (to - from);
+					values.push(f(x));
+				}
+				const yMax = Math.max(...values);
+				const yMin = Math.min(...values);
+				const yRange = yMax - yMin;
+				const padX =
+					Math.max(ctx.measureText(yMax.toFixed(3)).width, ctx.measureText(yMin.toFixed(3)).width) + 5;
+				canvas.width = width + padX + ctx.measureText(to).width + 5;
+				canvas.height = height + 20;
+
+				ctx.fillStyle = 'blue';
+				ctx.font = '11px sans-serif';
+				ctx.fillText(yMax.toFixed(3), 0, 9);
+				ctx.fillText(yMin.toFixed(3), 0, height);
+				ctx.fillText(from, padX, height + 12);
+				ctx.fillRect(padX, 0, 1, height);
+				ctx.fillText(Math.round(from + (to - from) / 4), padX + width / 4, height + 12);
+				ctx.fillRect(padX + width / 4, 0, 1, height);
+				ctx.fillText(Math.round(from + (to - from) / 2), padX + width / 2, height + 12);
+				ctx.fillRect(padX + width / 2, 0, 1, height);
+				ctx.fillText(Math.round(from + (3 * (to - from)) / 4), padX + (3 * width) / 4, height + 12);
+				ctx.fillRect(padX + (3 * width) / 4, 0, 1, height);
+				ctx.fillText(to, padX + width, height + 12);
+				ctx.fillRect(padX + width, 0, 1, height);
+
+				ctx.fillStyle = 'black';
+				values.forEach((v, i) => {
+					ctx.fillRect(i + padX, height - (height * (v - yMin)) / yRange, 3, 3);
+				});
+				return canvas;
+			}
+
+			function sunAngle(x) {
+				const a = x / 24000;
+				const b = 0.5 - Math.cos(a * Math.PI) / 2;
+				return (a * 2 + b) / 3;
+			}
+
+			function skyBrightness(x) {
+				const a = sunAngle(x);
+				const b = 1 - Math.cos(a * 2 * Math.PI) * 2;
+				return Math.max(0, Math.min(1, 1 - b));
+			}
+
+			function derivative(f) {
+				var h = 0.001;
+				return function (x) {
+					return (f(x + h) - f(x - h)) / (2 * h);
+				};
+			}
+
+			function newtonsMethod(f, guess = 12000, prevGuess = null, iter = 0) {
+				if (iter > 1000) return guess;
+
+				if (prevGuess == null || Math.abs(prevGuess - guess) > 0.0001) {
+					var approx = guess - f(guess) / derivative(f)(guess);
+					return newtonsMethod(f, approx, guess, iter + 1);
+				} else {
+					return guess;
+				}
+			}
+		</script>
+	</body>
+</html>

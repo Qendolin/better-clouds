@@ -11,6 +11,7 @@ import dev.isxander.yacl.gui.controllers.TickBoxController;
 import dev.isxander.yacl.gui.controllers.slider.FloatSliderController;
 import dev.isxander.yacl.gui.controllers.slider.IntegerSliderController;
 import dev.isxander.yacl.gui.controllers.string.StringController;
+import dev.isxander.yacl.gui.controllers.string.number.IntegerFieldController;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -36,6 +37,10 @@ public class ConfigGUI {
     public final Option<Float> gamma;
     public final Option<Float> dayBrightness;
     public final Option<Float> nightBrightness;
+    public final Option<Integer> sunriseStartTime;
+    public final Option<Integer> sunriseEndTime;
+    public final Option<Integer> sunsetStartTime;
+    public final Option<Integer> sunsetEndTime;
     public final Option<Float> randomPlacement;
     public final Option<Float> yRange;
     public final Option<Float> yOffset;
@@ -248,6 +253,22 @@ public class ConfigGUI {
             .binding(defaults.preset().nightBrightness, () -> config.preset().nightBrightness, val -> config.preset().nightBrightness = val)
             .controller(opt -> new FloatSliderController(opt, 0.1f, 4, 0.01f, ConfigGUI::formatAsPercent))
             .build();
+        this.sunriseStartTime = createOption(int.class, "sunriseStartTime")
+            .binding(defaults.preset().sunriseStartTime, () -> config.preset().sunriseStartTime, val -> config.preset().sunriseStartTime = val)
+            .controller(opt -> new IntegerFieldController(opt, -6000, 6000))
+            .build();
+        this.sunriseEndTime = createOption(int.class, "sunriseEndTime")
+            .binding(defaults.preset().sunriseEndTime, () -> config.preset().sunriseEndTime, val -> config.preset().sunriseEndTime = val)
+            .controller(opt -> new IntegerFieldController(opt, -6000, 6000))
+            .build();
+        this.sunsetStartTime = createOption(int.class, "sunsetStartTime")
+            .binding(defaults.preset().sunsetStartTime, () -> config.preset().sunsetStartTime, val -> config.preset().sunsetStartTime = val)
+            .controller(opt -> new IntegerFieldController(opt, 6000, 18000))
+            .build();
+        this.sunsetEndTime = createOption(int.class, "sunsetEndTime")
+            .binding(defaults.preset().sunsetEndTime, () -> config.preset().sunsetEndTime, val -> config.preset().sunsetEndTime = val)
+            .controller(opt -> new IntegerFieldController(opt, 6000, 18000))
+            .build();
         this.upscaleResolutionFactor = createOption(float.class, "upscaleResolutionFactor")
             .binding(defaults.preset().upscaleResolutionFactor, () -> config.preset().upscaleResolutionFactor, val -> config.preset().upscaleResolutionFactor = val)
             .controller(opt -> new FloatSliderController(opt, 0.25f, 1.0f, 0.01f, ConfigGUI::formatAsPercent))
@@ -264,7 +285,20 @@ public class ConfigGUI {
             .binding(defaults.preset().opacity, () -> config.preset().opacity, val -> config.preset().opacity = val)
             .controller(opt -> new FloatSliderController(opt, 0, 1, 0.01f, ConfigGUI::formatAsPercent))
             .build();
-        shaderConfigPresetOptions.addAll(List.of(presetTitle, saturation, tint, gamma, dayBrightness, nightBrightness, upscaleResolutionFactor, sunPathAngle, opacityFactor, opacity));
+        shaderConfigPresetOptions.addAll(List.of(presetTitle,
+            saturation,
+            tint,
+            gamma,
+            dayBrightness,
+            nightBrightness,
+            sunriseStartTime,
+            sunriseEndTime,
+            sunsetStartTime,
+            sunsetEndTime,
+            upscaleResolutionFactor,
+            sunPathAngle,
+            opacityFactor,
+            opacity));
         shaderConfigPresetOptions.forEach(opt -> opt.setAvailable(config.preset().editable));
 
         final Text removeButtonRemoveText = Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.remove");
@@ -304,7 +338,7 @@ public class ConfigGUI {
             .build();
 
         categories.add(new Pair<>(ConfigCategory.createBuilder()
-            .name(categoryLabel("generation")), commonCategory));
+            .name(categoryLabel("common")), commonCategory));
         commonCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("common.presets")), commonPresetsGroup));
         commonPresetsGroup.addAll(List.of(selectedPreset, presetTitle, copyPresetButton, removePresetButton));
@@ -364,7 +398,14 @@ public class ConfigGUI {
         shadersCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("shaders.technical")), shadersTechnicalGroup));
 
-        shadersTechnicalGroup.addAll(List.of(sunPathAngle, upscaleResolutionFactor, useIrisFBO, writeDepth));
+        shadersTechnicalGroup.addAll(List.of(sunPathAngle,
+            sunriseStartTime,
+            sunriseEndTime,
+            sunsetStartTime,
+            sunsetEndTime,
+            upscaleResolutionFactor,
+            useIrisFBO,
+            writeDepth));
     }
 
     private void updateRemovePresetButton() {
