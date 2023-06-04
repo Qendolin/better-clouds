@@ -160,6 +160,7 @@ public class Telemetry {
         public final List<String> extensions;
         public final List<String> functions;
         public final String cpuName;
+        public final boolean compatible;
 
         public SystemDetails() {
             this.os = SystemUtils.OS_NAME;
@@ -173,6 +174,7 @@ public class Telemetry {
             this.glslVersion = GL32.glGetString(GL32.GL_SHADING_LANGUAGE_VERSION);
             this.extensions = Main.glCompat.supportedCheckedExtensions;
             this.functions = Main.glCompat.supportedCheckedFunctions;
+            this.compatible = !Main.glCompat.isIncompatible();
 
             String cpuName;
             try {

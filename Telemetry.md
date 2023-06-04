@@ -39,7 +39,8 @@ This allows me to identify and address any issues related to shader compilation 
 - `glslVersion` The GLSL version
 - `extensions` A list of supported, selected, OpenGL extensions
 - `functions` A list of supported, selected, OpenGL functions
-- `cpuName` THe name of your CPU
+- `cpuName` The name of your CPU
+- `compatible` If your system is compatible with the mod
 
 `SHADER_COMPILE_ERROR` telemetry includes
 
