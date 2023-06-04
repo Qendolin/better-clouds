@@ -116,9 +116,10 @@ modrinth  { // Make sure it runs after build!
 		// scope.type
 		// The scope can be `required`, `optional`, `incompatible`, or `embedded`
 		// The type can either be `project` or `version`
-		required.project "fabric-api" // Creates a new required dependency on Fabric API
-		required.project "yacl"
+		required.project "fabric-api"
+		required.version "M5iKxVFU" // yacl 2.5.1
 		optional.project "sodium"
 		optional.project "iris"
+		optional.project "modmenu"
 	}
 }
