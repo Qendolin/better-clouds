@@ -52,7 +52,13 @@ void main() {
     // if sunDir.z is always 0, this can be optimized, but who cares
     float sphere = dot(sunDir, fragDir);
     // TODO: document how I arrived at this formula
-    float superellipse = ((1.0 + (1.0/3.0) * (pow(sin(2.0*projAngle + pi/2.0), 2.0))) * (1.0-abs(dot(sunDir, fragDir))) - 1.0) * sign(dot(sunDir, -fragDir));
+    float superellipseFalloff = dot(sunDir, fragDir);
+    // Higher values -> smaller size
+    const float superellipseSize = 3.0;
+    float superellipse = (
+        (1.0 + (1.0/3.0) * (pow(sin(2.0*projAngle + pi/2.0), 2.0)))
+        * (superellipseSize-abs(superellipseFalloff)*superellipseSize) - 1.0
+    ) * sign(-superellipseFalloff);
     float lightUVx = mix(sphere, superellipse, smoothstep(0.75, 1.0, abs(sphere)));
 
     // (1, 0) to (0.5, 1)

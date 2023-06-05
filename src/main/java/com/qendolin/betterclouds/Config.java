@@ -89,7 +89,7 @@ public class Config {
     @ConfigEntry
     public boolean writeDepth = false;
     @ConfigEntry
-    public boolean irisSupport = false;
+    public boolean irisSupport = true;
     @ConfigEntry
     public boolean cloudOverride = true;
     @ConfigEntry

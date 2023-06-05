@@ -59,10 +59,16 @@
   "kappa_v5": {
     "title": "Kappa V5",
     "upscale_resolution_factor": 0.75,
-    "gamma": -3.00,
-    "sun_path_angle": -40.0,
-    "day_brightness": 3.0,
-    "night_brightness": 1.0
+    "gamma": -2.4,
+    "sun_path_angle": -35.0,
+    "sunrise_start_time": -1500,
+    "sunrise_end_time": 500,
+    "sunset_start_time": 11500,
+    "sunset_end_time": 13000,
+    "day_brightness": 4.0,
+    "night_brightness": 0.46,
+    "opacity": 0.4,
+    "opacity_factor": 0.7
   },
   "rethinking_voxels_v0": {
     "title": "Rethinking Voxels",

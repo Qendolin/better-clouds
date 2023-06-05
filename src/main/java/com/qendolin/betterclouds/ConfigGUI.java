@@ -1,9 +1,6 @@
 package com.qendolin.betterclouds;
 
-import com.qendolin.betterclouds.gui.ConfigScreen;
-import com.qendolin.betterclouds.gui.CustomActionController;
-import com.qendolin.betterclouds.gui.CustomButtonOption;
-import com.qendolin.betterclouds.gui.SelectController;
+import com.qendolin.betterclouds.gui.*;
 import dev.isxander.yacl.api.*;
 import dev.isxander.yacl.gui.controllers.BooleanController;
 import dev.isxander.yacl.gui.controllers.ColorController;
@@ -255,19 +252,19 @@ public class ConfigGUI {
             .build();
         this.sunriseStartTime = createOption(int.class, "sunriseStartTime")
             .binding(defaults.preset().sunriseStartTime, () -> config.preset().sunriseStartTime, val -> config.preset().sunriseStartTime = val)
-            .controller(opt -> new IntegerFieldController(opt, -6000, 6000))
+            .controller(opt -> new CustomIntegerFieldController(opt, -6000, 6000))
             .build();
         this.sunriseEndTime = createOption(int.class, "sunriseEndTime")
             .binding(defaults.preset().sunriseEndTime, () -> config.preset().sunriseEndTime, val -> config.preset().sunriseEndTime = val)
-            .controller(opt -> new IntegerFieldController(opt, -6000, 6000))
+            .controller(opt -> new CustomIntegerFieldController(opt, -6000, 6000))
             .build();
         this.sunsetStartTime = createOption(int.class, "sunsetStartTime")
             .binding(defaults.preset().sunsetStartTime, () -> config.preset().sunsetStartTime, val -> config.preset().sunsetStartTime = val)
-            .controller(opt -> new IntegerFieldController(opt, 6000, 18000))
+            .controller(opt -> new CustomIntegerFieldController(opt, 6000, 18000))
             .build();
         this.sunsetEndTime = createOption(int.class, "sunsetEndTime")
             .binding(defaults.preset().sunsetEndTime, () -> config.preset().sunsetEndTime, val -> config.preset().sunsetEndTime = val)
-            .controller(opt -> new IntegerFieldController(opt, 6000, 18000))
+            .controller(opt -> new CustomIntegerFieldController(opt, 6000, 18000))
             .build();
         this.upscaleResolutionFactor = createOption(float.class, "upscaleResolutionFactor")
             .binding(defaults.preset().upscaleResolutionFactor, () -> config.preset().upscaleResolutionFactor, val -> config.preset().upscaleResolutionFactor = val)
