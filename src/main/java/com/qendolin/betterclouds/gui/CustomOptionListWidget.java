@@ -28,19 +28,19 @@ public class CustomOptionListWidget extends OptionListWidget {
         super.refreshOptions();
         addEntry(new PaddingEntry());
         for (Entry child : children()) {
-            if(child instanceof OptionEntry optionEntry && optionEntry.option.controller() instanceof LabelController) {
+            if (child instanceof OptionEntry optionEntry && optionEntry.option.controller() instanceof LabelController) {
                 addEntryBelow(optionEntry, new ProxyEntry<OptionEntry>(optionEntry)
                     .onBeforeRender((delegate, matrices, index, y, x, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta) -> {
-                        if(client.world == null) return;
+                        if (client.world == null) return;
                         Dimension<Integer> dim = delegate.widget.getDimension();
                         DrawableHelper.fill(matrices, dim.x(), dim.y(), dim.xLimit(), dim.yLimit(), 0x6b000000);
                     }));
                 removeEntry(optionEntry);
-            } else if(child instanceof GroupSeparatorEntry groupSeparatorEntry) {
+            } else if (child instanceof GroupSeparatorEntry groupSeparatorEntry) {
                 addEntryBelow(groupSeparatorEntry, new ProxyEntry<GroupSeparatorEntry>(groupSeparatorEntry)
                     .onBeforeRender((delegate, matrices, index, y, x, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta) -> {
-                        if(client.world == null) return;
-                        DrawableHelper.fill(matrices, x, y, x+entryWidth, y+19, 0x6b000000);
+                        if (client.world == null) return;
+                        DrawableHelper.fill(matrices, x, y, x + entryWidth, y + 19, 0x6b000000);
                     }));
                 removeEntry(groupSeparatorEntry);
             }
@@ -109,16 +109,19 @@ public class CustomOptionListWidget extends OptionListWidget {
 
         @Override
         public void render(MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
-            if(beforeRender != null) beforeRender.onBeforeRender(delegate, matrices, index, y, x, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta);
+            if (beforeRender != null)
+                beforeRender.onBeforeRender(delegate, matrices, index, y, x, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta);
             delegate.render(matrices, index, y, x, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta);
-            if(afterRender != null) afterRender.onAfterRender(delegate, matrices, index, y, x, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta);
+            if (afterRender != null)
+                afterRender.onAfterRender(delegate, matrices, index, y, x, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta);
         }
 
         @Override
         public void postRender(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-            if(beforePostRender != null) beforePostRender.onBeforePostRender(delegate, matrices, mouseX, mouseY, delta);
+            if (beforePostRender != null)
+                beforePostRender.onBeforePostRender(delegate, matrices, mouseX, mouseY, delta);
             delegate.postRender(matrices, mouseX, mouseY, delta);
-            if(afterPostRender != null) afterPostRender.onAfterPostRender(delegate, matrices, mouseX, mouseY, delta);
+            if (afterPostRender != null) afterPostRender.onAfterPostRender(delegate, matrices, mouseX, mouseY, delta);
         }
 
         @Override
@@ -213,11 +216,6 @@ public class CustomOptionListWidget extends OptionListWidget {
         }
 
         @Override
-        public void setFocused(@Nullable Element focused) {
-            delegate.setFocused(focused);
-        }
-
-        @Override
         @Nullable
         public Element getFocused() {
             return delegate.getFocused();
@@ -236,13 +234,18 @@ public class CustomOptionListWidget extends OptionListWidget {
         }
 
         @Override
-        public void setFocused(boolean focused) {
+        public boolean isFocused() {
+            return delegate.isFocused();
+        }
+
+        @Override
+        public void setFocused(@Nullable Element focused) {
             delegate.setFocused(focused);
         }
 
         @Override
-        public boolean isFocused() {
-            return delegate.isFocused();
+        public void setFocused(boolean focused) {
+            delegate.setFocused(focused);
         }
 
         @Override
@@ -293,7 +296,8 @@ public class CustomOptionListWidget extends OptionListWidget {
         }
 
         @Override
-        public void render(MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {}
+        public void render(MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
+        }
 
         @Override
         public int getItemHeight() {

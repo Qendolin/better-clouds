@@ -47,17 +47,21 @@ public class SelectController<T> implements Controller<Integer> {
 
     public void cycle(int direction) {
         int index = option.pendingValue();
-        if(direction > 0) {
+        if (direction > 0) {
             index = (index + 1) % values.size();
-        } else if(direction < 0) {
-            index = index <= 0 ? values.size()-1 : index-1;
+        } else if (direction < 0) {
+            index = index <= 0 ? values.size() - 1 : index - 1;
         }
         option.requestSet(index);
     }
 
-    @Override
-    public Option<Integer> option() {
-        return option;
+    public List<Text> formatValues() {
+        formattedValues.set(getSelectedIndex(), formatValue());
+        return ImmutableList.copyOf(formattedValues);
+    }
+
+    public int getSelectedIndex() {
+        return option().pendingValue();
     }
 
     @Override
@@ -66,13 +70,9 @@ public class SelectController<T> implements Controller<Integer> {
         return valueFormatter.apply(index, values.get(index));
     }
 
-    public int getSelectedIndex() {
-        return option().pendingValue();
-    }
-
-    public List<Text> formatValues() {
-        formattedValues.set(getSelectedIndex(), formatValue());
-        return ImmutableList.copyOf(formattedValues);
+    @Override
+    public Option<Integer> option() {
+        return option;
     }
 
     @Override
@@ -108,9 +108,16 @@ public class SelectController<T> implements Controller<Integer> {
             expandedBounds = Dimension.ofInt(dim.x(), yStart, dim.width(), ySpan);
         }
 
-        protected void updateArrowBounds() {
-            Dimension<Integer> dim = getDimension();
-            arrowBounds = Dimension.ofInt(dim.xLimit() - ARROW_SPACE - 2*getXPadding(), dim.y(), ARROW_SPACE + 2*getXPadding(), dim.height());
+        protected int getLineCount() {
+            return Math.min(control.formatValues().size(), 5);
+        }
+
+        protected int getLineHeight() {
+            return textRenderer.fontHeight + getLinePadding();
+        }
+
+        protected int getLinePadding() {
+            return 2;
         }
 
         @Override
@@ -120,44 +127,20 @@ public class SelectController<T> implements Controller<Integer> {
             updateArrowBounds();
         }
 
-        public void cycle(int direction) {
-            MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK.value(), 2.0F, 0.1f));
-            control.cycle(direction);
-        }
-
-        public void setMouseInteracted(boolean mouseInteracted) {
-            this.mouseInteracted = mouseInteracted;
-        }
-
-        public boolean isMouseInteracted() {
-            return mouseInteracted;
-        }
-
-        protected int getLineCount() {
-            return Math.min(control.formatValues().size(), 5);
-        }
-
-        protected int getLinePadding() {
-            return 2;
-        }
-
-        protected int getLineHeight() {
-            return textRenderer.fontHeight + getLinePadding();
-        }
-
-        public Dimension<Integer> getExpandedBounds() {
-            return expandedBounds;
+        protected void updateArrowBounds() {
+            Dimension<Integer> dim = getDimension();
+            arrowBounds = Dimension.ofInt(dim.xLimit() - ARROW_SPACE - 2 * getXPadding(), dim.y(), ARROW_SPACE + 2 * getXPadding(), dim.height());
         }
 
         @Override
         public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
             super.render(matrices, mouseX, mouseY, delta);
-            if(isHovered() && hoveringStart == 0) {
+            if (isHovered() && hoveringStart == 0) {
                 hoveringStart = Util.getEpochTimeMs();
-            } else if(!isHovered()) {
+            } else if (!isHovered()) {
                 hoveringStart = 0;
             }
-            if(mouseInteracted && !isHovered()) mouseInteracted = false;
+            if (mouseInteracted && !isHovered()) mouseInteracted = false;
         }
 
         @Override
@@ -168,11 +151,17 @@ public class SelectController<T> implements Controller<Integer> {
             matrices.translate(getDimension().xLimit() - getXPadding() - ARROW_SPACE / 2f, dim.y() + dim.height() / 2f, 0);
             matrices.scale(1.5f, 1f, 1);
             int hoveredArrow = getHoveredArrow(mouseX, mouseY);
-            textRenderer.draw(matrices, UP_ARROW, -arrowWidth/2f, -textRenderer.fontHeight+1, 0xff404040);
-            textRenderer.draw(matrices, DOWN_ARROW, -arrowWidth/2f, 1f, 0xff404040);
-            textRenderer.draw(matrices, UP_ARROW, -arrowWidth/2f, -textRenderer.fontHeight+2, hoveredArrow == -1 ? -1 : 0xffc0c0c0);
-            textRenderer.draw(matrices, DOWN_ARROW, -arrowWidth/2f, 0f, hoveredArrow == 1 ? -1 : 0xffc0c0c0);
+            textRenderer.draw(matrices, UP_ARROW, -arrowWidth / 2f, -textRenderer.fontHeight + 1, 0xff404040);
+            textRenderer.draw(matrices, DOWN_ARROW, -arrowWidth / 2f, 1f, 0xff404040);
+            textRenderer.draw(matrices, UP_ARROW, -arrowWidth / 2f, -textRenderer.fontHeight + 2, hoveredArrow == -1 ? -1 : 0xffc0c0c0);
+            textRenderer.draw(matrices, DOWN_ARROW, -arrowWidth / 2f, 0f, hoveredArrow == 1 ? -1 : 0xffc0c0c0);
             matrices.pop();
+        }
+
+        protected int getHoveredArrow(int mouseX, int mouseY) {
+            if (!arrowBounds.isPointInside(mouseX, mouseY)) return 0;
+            boolean upper = ((mouseY - arrowBounds.y()) / (float) arrowBounds.height()) < 0.5f;
+            return upper ? -1 : 1;
         }
 
         @Override
@@ -184,17 +173,11 @@ public class SelectController<T> implements Controller<Integer> {
             matrices.pop();
         }
 
-        protected int getHoveredArrow(int mouseX, int mouseY) {
-            if(!arrowBounds.isPointInside(mouseX, mouseY)) return 0;
-            boolean upper = ((mouseY - arrowBounds.y()) / (float) arrowBounds.height()) < 0.5f;
-            return upper ? -1 : 1;
-        }
-
         @Override
         public void postRender(MatrixStack matrices, int mouseX, int mouseY, float delta) {
             super.postRender(matrices, mouseX, mouseY, delta);
 
-            if((!isMouseInteracted() && !isFocused()) || !isAvailable()) return;
+            if ((!isMouseInteracted() && !isFocused()) || !isAvailable()) return;
 
             List<Text> values = control.formatValues();
             Dimension<Integer> dim = getExpandedBounds();
@@ -204,9 +187,9 @@ public class SelectController<T> implements Controller<Integer> {
             int lineHeight = getLineHeight();
             int selected = control.getSelectedIndex();
 
-            int indexFrom = MathHelper.clamp(selected - lines/2 , 0, values.size()-lines);
+            int indexFrom = MathHelper.clamp(selected - lines / 2, 0, values.size() - lines);
 
-            DrawableHelper.fill(matrices, dim.x()+1, dim.y()+1, dim.xLimit()-1, dim.yLimit()-1, 0xb0000000);
+            DrawableHelper.fill(matrices, dim.x() + 1, dim.y() + 1, dim.xLimit() - 1, dim.yLimit() - 1, 0xb0000000);
             drawOutline(matrices, dim.x(), dim.y(), dim.xLimit(), dim.yLimit(), 1, -1);
 
             for (int line = 0; line < lines; line++) {
@@ -214,13 +197,24 @@ public class SelectController<T> implements Controller<Integer> {
                 Text text = values.get(i);
                 int x = dim.xLimit() - textRenderer.getWidth(text) - getXPadding();
                 int y = dim.y() + padding + lineHeight * line;
-                if(selected == i) {
+                if (selected == i) {
                     DrawableHelper.fill(matrices, dim.x(), y - padding, dim.xLimit(), y + lineHeight - 1, 0x80ffffff);
                 }
                 textRenderer.drawWithShadow(matrices, text, x, y, getValueColor());
             }
         }
 
+        public boolean isMouseInteracted() {
+            return mouseInteracted;
+        }
+
+        public void setMouseInteracted(boolean mouseInteracted) {
+            this.mouseInteracted = mouseInteracted;
+        }
+
+        public Dimension<Integer> getExpandedBounds() {
+            return expandedBounds;
+        }
 
         @Override
         protected Text getValueText() {
@@ -242,24 +236,12 @@ public class SelectController<T> implements Controller<Integer> {
         }
 
         @Override
-        public boolean isMouseOver(double mouseX, double mouseY) {
-            Dimension<Integer> dim = getDimension();
-            if (dim == null) return false;
-
-            if(dim.isPointInside((int) mouseX, (int) mouseY)) return true;
-            Dimension<Integer> expanded = getExpandedBounds();
-            //noinspection RedundantIfStatement
-            if(isFocused() && expanded.isPointInside((int) mouseX, (int) mouseY)) return true;
-            return false;
-        }
-
-        @Override
         public boolean mouseClicked(double mouseX, double mouseY, int button) {
             if (!isMouseOver(mouseX, mouseY) || (button != 0 && button != 1) || !isAvailable())
                 return false;
 
             int hoveredArrow = getHoveredArrow((int) mouseX, (int) mouseY);
-            if(hoveredArrow != 0) {
+            if (hoveredArrow != 0) {
                 cycle(hoveredArrow);
                 setMouseInteracted(true);
                 return true;
@@ -271,10 +253,27 @@ public class SelectController<T> implements Controller<Integer> {
         }
 
         @Override
+        public boolean isMouseOver(double mouseX, double mouseY) {
+            Dimension<Integer> dim = getDimension();
+            if (dim == null) return false;
+
+            if (dim.isPointInside((int) mouseX, (int) mouseY)) return true;
+            Dimension<Integer> expanded = getExpandedBounds();
+            //noinspection RedundantIfStatement
+            if (isFocused() && expanded.isPointInside((int) mouseX, (int) mouseY)) return true;
+            return false;
+        }
+
+        public void cycle(int direction) {
+            MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK.value(), 2.0F, 0.1f));
+            control.cycle(direction);
+        }
+
+        @Override
         public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
-            if(!isMouseOver(mouseX, mouseY) || !isAvailable()) return false;
-            if(hoveringStart == 0 || Util.getEpochTimeMs() - hoveringStart <= 100) return false;
-            if(amount == 0) return false;
+            if (!isMouseOver(mouseX, mouseY) || !isAvailable()) return false;
+            if (hoveringStart == 0 || Util.getEpochTimeMs() - hoveringStart <= 100) return false;
+            if (amount == 0) return false;
             cycle(amount > 0 ? -1 : 1);
             setMouseInteracted(true);
             return true;

@@ -80,15 +80,15 @@ public class GLCompat {
         // OpenGL 3.2 is required to play the game
         openGl32 = caps.OpenGL32;
 
-        if(caps.OpenGL46) openGlMax = 46;
-        else if(caps.OpenGL45) openGlMax = 45;
-        else if(caps.OpenGL44) openGlMax = 44;
-        else if(caps.OpenGL43) openGlMax = 43;
-        else if(caps.OpenGL42) openGlMax = 42;
-        else if(caps.OpenGL41) openGlMax = 41;
-        else if(caps.OpenGL40) openGlMax = 40;
-        else if(caps.OpenGL33) openGlMax = 33;
-        else if(caps.OpenGL32) openGlMax = 32;
+        if (caps.OpenGL46) openGlMax = 46;
+        else if (caps.OpenGL45) openGlMax = 45;
+        else if (caps.OpenGL44) openGlMax = 44;
+        else if (caps.OpenGL43) openGlMax = 43;
+        else if (caps.OpenGL42) openGlMax = 42;
+        else if (caps.OpenGL41) openGlMax = 41;
+        else if (caps.OpenGL40) openGlMax = 40;
+        else if (caps.OpenGL33) openGlMax = 33;
+        else if (caps.OpenGL32) openGlMax = 32;
         else openGlMax = 0;
 
         khrDebug = caps.GL_KHR_debug;
@@ -115,26 +115,26 @@ public class GLCompat {
         arbExplicitAttribLocation = caps.GL_ARB_explicit_attrib_location;
 
         List<String> supportedExtensions = new ArrayList<>();
-        if(khrDebug) supportedExtensions.add("GL_KHR_debug");
-        if(amdDebugOutput) supportedExtensions.add("GL_AMD_debug_output");
-        if(arbDebugOutput) supportedExtensions.add("GL_ARB_debug_output");
-        if(extDebugLabel) supportedExtensions.add("GL_EXT_debug_label");
-        if(extDebugMarker) supportedExtensions.add("GL_EXT_debug_marker");
-        if(arbTextureView) supportedExtensions.add("GL_ARB_texture_view");
-        if(arbBaseInstance) supportedExtensions.add("GL_ARB_base_instance");
-        if(arbTextureStorage) supportedExtensions.add("GL_ARB_texture_storage");
-        if(extTextureStorage) supportedExtensions.add("GL_EXT_texture_storage");
-        if(arbDirectStateAccess) supportedExtensions.add("GL_ARB_direct_state_access");
-        if(extDirectStateAccess) supportedExtensions.add("GL_EXT_direct_state_access");
-        if(arbStencilTexturing) supportedExtensions.add("GL_ARB_stencil_texturing");
-        if(arbBufferStorage) supportedExtensions.add("GL_ARB_buffer_storage");
-        if(arbInstancedArrays) supportedExtensions.add("GL_ARB_instanced_arrays");
-        if(nvCopyDepthToColor) supportedExtensions.add("GL_NV_copy_depth_to_color");
-        if(arbSeparateShaderObjects) supportedExtensions.add("GL_ARB_separate_shader_objects");
-        if(arbConservativeDepth) supportedExtensions.add("GL_ARB_conservative_depth");
-        if(arbShaderImageLoadStore) supportedExtensions.add("GL_ARB_shader_image_load_store");
-        if(extShaderImageLoadStore) supportedExtensions.add("GL_EXT_shader_image_load_store");
-        if(arbExplicitAttribLocation) supportedExtensions.add("GL_ARB_explicit_attrib_location");
+        if (khrDebug) supportedExtensions.add("GL_KHR_debug");
+        if (amdDebugOutput) supportedExtensions.add("GL_AMD_debug_output");
+        if (arbDebugOutput) supportedExtensions.add("GL_ARB_debug_output");
+        if (extDebugLabel) supportedExtensions.add("GL_EXT_debug_label");
+        if (extDebugMarker) supportedExtensions.add("GL_EXT_debug_marker");
+        if (arbTextureView) supportedExtensions.add("GL_ARB_texture_view");
+        if (arbBaseInstance) supportedExtensions.add("GL_ARB_base_instance");
+        if (arbTextureStorage) supportedExtensions.add("GL_ARB_texture_storage");
+        if (extTextureStorage) supportedExtensions.add("GL_EXT_texture_storage");
+        if (arbDirectStateAccess) supportedExtensions.add("GL_ARB_direct_state_access");
+        if (extDirectStateAccess) supportedExtensions.add("GL_EXT_direct_state_access");
+        if (arbStencilTexturing) supportedExtensions.add("GL_ARB_stencil_texturing");
+        if (arbBufferStorage) supportedExtensions.add("GL_ARB_buffer_storage");
+        if (arbInstancedArrays) supportedExtensions.add("GL_ARB_instanced_arrays");
+        if (nvCopyDepthToColor) supportedExtensions.add("GL_NV_copy_depth_to_color");
+        if (arbSeparateShaderObjects) supportedExtensions.add("GL_ARB_separate_shader_objects");
+        if (arbConservativeDepth) supportedExtensions.add("GL_ARB_conservative_depth");
+        if (arbShaderImageLoadStore) supportedExtensions.add("GL_ARB_shader_image_load_store");
+        if (extShaderImageLoadStore) supportedExtensions.add("GL_EXT_shader_image_load_store");
+        if (arbExplicitAttribLocation) supportedExtensions.add("GL_ARB_explicit_attrib_location");
         supportedCheckedExtensions = ImmutableList.copyOf(supportedExtensions);
 
         glObjectLabel = caps.glObjectLabel != MemoryUtil.NULL;
@@ -148,15 +148,15 @@ public class GLCompat {
         glVertexAttribDivisor = caps.glVertexAttribDivisor != MemoryUtil.NULL;
 
         List<String> supportedFunctions = new ArrayList<>();
-        if(glObjectLabel) supportedFunctions.add("glObjectLabel");
-        if(glPushDebugGroup) supportedFunctions.add("glPushDebugGroup");
-        if(glPopDebugGroup) supportedFunctions.add("glPopDebugGroup");
-        if(glDebugMessageInsert) supportedFunctions.add("glDebugMessageInsert");
-        if(glTextureView) supportedFunctions.add("glTextureView");
-        if(glDrawArraysInstancedBaseInstance) supportedFunctions.add("glDrawArraysInstancedBaseInstance");
-        if(glTexStorage2D) supportedFunctions.add("glTexStorage2D");
-        if(glBufferStorage) supportedFunctions.add("glBufferStorage");
-        if(glVertexAttribDivisor) supportedFunctions.add("glVertexAttribDivisor");
+        if (glObjectLabel) supportedFunctions.add("glObjectLabel");
+        if (glPushDebugGroup) supportedFunctions.add("glPushDebugGroup");
+        if (glPopDebugGroup) supportedFunctions.add("glPopDebugGroup");
+        if (glDebugMessageInsert) supportedFunctions.add("glDebugMessageInsert");
+        if (glTextureView) supportedFunctions.add("glTextureView");
+        if (glDrawArraysInstancedBaseInstance) supportedFunctions.add("glDrawArraysInstancedBaseInstance");
+        if (glTexStorage2D) supportedFunctions.add("glTexStorage2D");
+        if (glBufferStorage) supportedFunctions.add("glBufferStorage");
+        if (glVertexAttribDivisor) supportedFunctions.add("glVertexAttribDivisor");
         supportedCheckedFunctions = ImmutableList.copyOf(supportedFunctions);
 
         compatible = openGl32 &&
@@ -183,7 +183,7 @@ public class GLCompat {
     }
 
     public void objectLabel(int type, int name, String label) {
-        if(!isDev) return;
+        if (!isDev) return;
         String typeString = switch (type) {
             case GL43.GL_TEXTURE -> "tex";
             case GL43.GL_BUFFER -> "buf";
@@ -199,11 +199,11 @@ public class GLCompat {
             default -> "unk";
         };
         String fullLabel = Main.MODID + ":" + label + ":" + typeString;
-        if(glObjectLabel) {
+        if (glObjectLabel) {
             GL43.glObjectLabel(type, name, fullLabel);
-        } else if(khrDebug) {
+        } else if (khrDebug) {
             KHRDebug.glObjectLabel(type, name, fullLabel);
-        } else if(extDebugLabel) {
+        } else if (extDebugLabel) {
             int extType = switch (type) {
                 case GL43.GL_TEXTURE -> GL43.GL_TEXTURE;
                 case GL43.GL_BUFFER -> EXTDebugLabel.GL_BUFFER_OBJECT_EXT;
@@ -223,87 +223,87 @@ public class GLCompat {
     }
 
     public void pushDebugGroup(String name) {
-        if(!isDev) return;
-        if(glPushDebugGroup) {
-            GL43.glPushDebugGroup(GL43.GL_DEBUG_SOURCE_APPLICATION, 1337, name+"\0");
-        } else if(khrDebug) {
-            KHRDebug.glPushDebugGroup(GL43.GL_DEBUG_SOURCE_APPLICATION, 1337, name+"\0");
-        } else if(extDebugMarker) {
-            EXTDebugMarker.glPushGroupMarkerEXT(name+"\0");
+        if (!isDev) return;
+        if (glPushDebugGroup) {
+            GL43.glPushDebugGroup(GL43.GL_DEBUG_SOURCE_APPLICATION, 1337, name + "\0");
+        } else if (khrDebug) {
+            KHRDebug.glPushDebugGroup(GL43.GL_DEBUG_SOURCE_APPLICATION, 1337, name + "\0");
+        } else if (extDebugMarker) {
+            EXTDebugMarker.glPushGroupMarkerEXT(name + "\0");
         }
     }
 
     public void popDebugGroup() {
-        if(!isDev) return;
-        if(glPopDebugGroup) {
+        if (!isDev) return;
+        if (glPopDebugGroup) {
             GL43.glPopDebugGroup();
-        } else if(khrDebug) {
+        } else if (khrDebug) {
             KHRDebug.glPopDebugGroup();
-        } else if(extDebugMarker) {
+        } else if (extDebugMarker) {
             EXTDebugMarker.glPopGroupMarkerEXT();
         }
     }
 
     public void debugMessage(String message) {
-        if(!isDev) return;
-        if(glDebugMessageInsert) {
-            GL43.glDebugMessageInsert(GL43.GL_DEBUG_SOURCE_APPLICATION, GL43.GL_DEBUG_TYPE_OTHER, 0, GL43.GL_DEBUG_SEVERITY_NOTIFICATION, message+"\0");
-        } else if(khrDebug) {
-            KHRDebug.glDebugMessageInsert(KHRDebug.GL_DEBUG_SOURCE_APPLICATION, KHRDebug.GL_DEBUG_TYPE_OTHER, 0, KHRDebug.GL_DEBUG_SEVERITY_NOTIFICATION, message+"\0");
-        } else if(extDebugMarker) {
-            EXTDebugMarker.glInsertEventMarkerEXT(message+"\0");
+        if (!isDev) return;
+        if (glDebugMessageInsert) {
+            GL43.glDebugMessageInsert(GL43.GL_DEBUG_SOURCE_APPLICATION, GL43.GL_DEBUG_TYPE_OTHER, 0, GL43.GL_DEBUG_SEVERITY_NOTIFICATION, message + "\0");
+        } else if (khrDebug) {
+            KHRDebug.glDebugMessageInsert(KHRDebug.GL_DEBUG_SOURCE_APPLICATION, KHRDebug.GL_DEBUG_TYPE_OTHER, 0, KHRDebug.GL_DEBUG_SEVERITY_NOTIFICATION, message + "\0");
+        } else if (extDebugMarker) {
+            EXTDebugMarker.glInsertEventMarkerEXT(message + "\0");
         }
     }
 
     public void enableDebugOutputSynchronous() {
-        if(!isDev) return;
-        if(openGl43) {
+        if (!isDev) return;
+        if (openGl43) {
             GL43.glEnable(ARBDebugOutput.GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
-        } else if(arbDebugOutput) {
+        } else if (arbDebugOutput) {
             GL32.glEnable(ARBDebugOutput.GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
-        } else if(khrDebug) {
+        } else if (khrDebug) {
             GL32.glEnable(KHRDebug.GL_DEBUG_OUTPUT_SYNCHRONOUS);
         }
     }
 
     public void textureView(int texture, int target, int origtexture, int internalformat, int minlevel, int numlevels, int minlayer, int numlayers) {
-        if(glTextureView) {
+        if (glTextureView) {
             GL43.glTextureView(texture, target, origtexture, internalformat, minlevel, numlevels, minlayer, numlayers);
-        } else if(arbTextureView) {
+        } else if (arbTextureView) {
             ARBTextureView.glTextureView(texture, target, origtexture, internalformat, minlevel, numlevels, minlayer, numlayers);
         }
     }
 
     public void drawArraysInstancedBaseInstance(int mode, int first, int count, int primcount, int baseinstance) {
-        if(glDrawArraysInstancedBaseInstance) {
+        if (glDrawArraysInstancedBaseInstance) {
             GL42.glDrawArraysInstancedBaseInstance(mode, first, count, primcount, baseinstance);
-        } else if(arbBaseInstance) {
+        } else if (arbBaseInstance) {
             ARBBaseInstance.glDrawArraysInstancedBaseInstance(mode, first, count, primcount, baseinstance);
         }
     }
 
     public void texStorage2D(int target, int levels, int internalformat, int width, int height) {
-        if(glTexStorage2D) {
+        if (glTexStorage2D) {
             GL42.glTexStorage2D(target, levels, internalformat, width, height);
-        } else if(arbTextureStorage) {
+        } else if (arbTextureStorage) {
             ARBTextureStorage.glTexStorage2D(target, levels, internalformat, width, height);
-        } else if(extTextureStorage) {
+        } else if (extTextureStorage) {
             EXTTextureStorage.glTexStorage2DEXT(target, levels, internalformat, width, height);
         }
     }
 
     public void bufferStorage(int target, long size, int flags) {
-        if(glBufferStorage) {
+        if (glBufferStorage) {
             GL44.glBufferStorage(target, size, flags);
-        } else if(arbBufferStorage) {
+        } else if (arbBufferStorage) {
             ARBBufferStorage.glBufferStorage(target, size, flags);
         }
     }
 
     public void vertexAttribDivisor(int index, int divisor) {
-        if(glVertexAttribDivisor) {
+        if (glVertexAttribDivisor) {
             GL33.glVertexAttribDivisor(index, divisor);
-        } else if(arbInstancedArrays) {
+        } else if (arbInstancedArrays) {
             ARBInstancedArrays.glVertexAttribDivisorARB(index, divisor);
         }
     }

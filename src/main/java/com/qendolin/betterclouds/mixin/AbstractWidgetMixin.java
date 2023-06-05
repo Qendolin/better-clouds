@@ -14,12 +14,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(AbstractWidget.class)
 public abstract class AbstractWidgetMixin {
-    @Shadow @Final protected MinecraftClient client;
+    @Shadow
+    @Final
+    protected MinecraftClient client;
 
     @Inject(method = "drawButtonRect", at = @At("HEAD"), cancellable = true)
     private void onDrawButtonRect(MatrixStack matrices, int x1, int y1, int x2, int y2, boolean hovered, boolean enabled, CallbackInfo ci) {
         // This is so hacky, but I don't expect it to bread until YACL 3.0.0 is released
-        if(client == null || client.world == null || !(client.currentScreen instanceof ConfigScreen)) {
+        if (client == null || client.world == null || !(client.currentScreen instanceof ConfigScreen)) {
             return;
         }
         ci.cancel();
@@ -37,14 +39,14 @@ public abstract class AbstractWidgetMixin {
         }
 
         int color = 0;
-        if(!enabled) {
+        if (!enabled) {
             color = 0xffa0a0a0;
         } else if (hovered) {
             color = -1;
         }
 
         DrawableHelper.fill(matrices, x1, y1, x2, y2, 0x6b000000);
-        if(color != 0) {
+        if (color != 0) {
             drawOutline(matrices, x1, y1, x2, y2, 1, color);
         }
     }

@@ -174,7 +174,7 @@ public class ConfigGUI {
             .binding(defaults.fadeEdge, () -> config.fadeEdge, val -> config.fadeEdge = val)
             .controller(opt -> new FloatSliderController(opt, 0.1f, 0.5f, 0.01f, ConfigGUI::formatAsPercent))
             .build();
-        this.irisDisclaimer = LabelOption.create(Text.translatable(LANG_KEY_PREFIX+".text.shaders"));
+        this.irisDisclaimer = LabelOption.create(Text.translatable(LANG_KEY_PREFIX + ".text.shaders"));
         this.irisSupport = createOption(boolean.class, "irisSupport")
             .binding(defaults.irisSupport, () -> config.irisSupport, val -> config.irisSupport = val)
             .controller(TickBoxController::new)
@@ -200,13 +200,13 @@ public class ConfigGUI {
         this.selectedPreset = createOption(int.class, "shaderPreset")
             .binding(defaults.selectedPreset, () -> config.selectedPreset, val -> config.selectedPreset = val)
             .controller(opt -> new SelectController<>(opt, config.presets, (i, preset) -> {
-                if(preset.title.isBlank()) {
-                    return Text.translatable(LANG_KEY_PREFIX+".entry.shaderPreset.untitled")
+                if (preset.title.isBlank()) {
+                    return Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.untitled")
                         .styled(style -> style.withColor(Formatting.GRAY).withItalic(true));
-                } else if(!preset.editable) {
+                } else if (!preset.editable) {
                     return Text.literal(preset.title)
                         .styled(style -> style.withItalic(true));
-                } else if(presetsToBeDeleted.contains(preset)) {
+                } else if (presetsToBeDeleted.contains(preset)) {
                     return Text.literal(preset.title).styled(style -> style.withStrikethrough(true));
                 } else {
                     return Text.literal(preset.title);
@@ -215,7 +215,7 @@ public class ConfigGUI {
             .listener((opt, i) -> {
                 // The 'instant' listener gets called later, applyValue is called now manually
                 opt.applyValue();
-                if(opt.controller() instanceof SelectController select) {
+                if (opt.controller() instanceof SelectController select) {
                     select.updateValues();
                 }
                 for (Option<?> option : shaderConfigPresetOptions) {
@@ -308,11 +308,11 @@ public class ConfigGUI {
             .name(() -> presetsToBeDeleted.contains(config.preset()) ? removeButtonRestoreText : removeButtonRemoveText)
             .available(config.presets.size() > 1)
             .action((screen, option) -> {
-                if(config.presets.size() <= 1 || !config.preset().editable) {
+                if (config.presets.size() <= 1 || !config.preset().editable) {
                     option.setAvailable(false);
                     return;
                 }
-                if(presetsToBeDeleted.contains(config.preset())) {
+                if (presetsToBeDeleted.contains(config.preset())) {
                     presetsToBeDeleted.remove(config.preset());
                 } else {
                     presetsToBeDeleted.add(config.preset());
@@ -329,7 +329,7 @@ public class ConfigGUI {
                 preset.markAsCopy();
                 config.presets.add(0, preset);
                 selectedPreset.requestSet(0);
-                if(selectedPreset.controller() instanceof SelectController select) {
+                if (selectedPreset.controller() instanceof SelectController select) {
                     select.updateValues();
                 }
                 updateRemovePresetButton();
@@ -347,7 +347,7 @@ public class ConfigGUI {
         commonGenerationGroup.addAll(List.of(sizeXZ, sizeY, spacing, samplingScale, distance));
         commonCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("common.appearance")), commonAppearanceGroup));
-        commonAppearanceGroup.addAll(List.of(enabled,  opacity, opacityFactor));
+        commonAppearanceGroup.addAll(List.of(enabled, opacity, opacityFactor));
         commonCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("common.shaders")), commonShadersGroup));
         commonShadersGroup.addAll(List.of(irisDisclaimer, irisSupport, gamma, dayBrightness, nightBrightness, sunPathAngle));
@@ -409,8 +409,14 @@ public class ConfigGUI {
     }
 
     private void updateRemovePresetButton() {
-        if(removePresetButton == null) return;
+        if (removePresetButton == null) return;
         removePresetButton.setAvailable(config.preset().editable && config.presets.size() > 1);
+    }
+
+    public static ConfigScreen create(Screen parent) {
+        YetAnotherConfigLib yacl = YetAnotherConfigLib.create(Main.getConfigInstance(),
+            (defaults, config, builder) -> new ConfigGUI(defaults, config).apply(builder));
+        return new ConfigScreen(yacl, parent);
     }
 
     public YetAnotherConfigLib.Builder apply(YetAnotherConfigLib.Builder builder) {
@@ -428,7 +434,7 @@ public class ConfigGUI {
         for (Pair<ConfigCategory.Builder, List<Pair<OptionGroup.Builder, List<Option<?>>>>> categoryPair : categories) {
             ConfigCategory.Builder categoryBuilder = categoryPair.getLeft();
             for (Pair<OptionGroup.Builder, List<Option<?>>> groupPair : categoryPair.getRight()) {
-                if(groupPair.getRight().isEmpty()) continue;
+                if (groupPair.getRight().isEmpty()) continue;
                 OptionGroup.Builder groupBuilder = groupPair.getLeft();
                 groupBuilder.options(groupPair.getRight());
                 categoryBuilder.group(groupBuilder.build());
@@ -439,12 +445,6 @@ public class ConfigGUI {
         return builder;
     }
 
-    public static ConfigScreen create(Screen parent) {
-        YetAnotherConfigLib yacl = YetAnotherConfigLib.create(Main.getConfigInstance(),
-            (defaults, config, builder) -> new ConfigGUI(defaults, config).apply(builder));
-        return new ConfigScreen(yacl, parent);
-    }
-
     private static <T> Option.Builder<T> createOption(Class<T> typeClass, String key) {
         return createOption(typeClass, key, true);
     }
@@ -453,42 +453,42 @@ public class ConfigGUI {
         Option.Builder<T> builder = Option.createBuilder(typeClass)
             .name(optionLabel(key))
             .instant(true);
-        if(tooltip) builder = builder.tooltip(optionTooltip(key));
+        if (tooltip) builder = builder.tooltip(optionTooltip(key));
         return builder;
     }
 
     public static final String LANG_KEY_PREFIX = Main.MODID + ".config";
 
     private static Text formatAsBlocksPerSecond(Float value) {
-        return Text.translatable(LANG_KEY_PREFIX+".unit.blocks_per_second", String.format("%.1f", value*20));
+        return Text.translatable(LANG_KEY_PREFIX + ".unit.blocks_per_second", String.format("%.1f", value * 20));
     }
 
     private static Text formatAsPercent(float value) {
-        return Text.translatable(LANG_KEY_PREFIX+".unit.percent", ((int) (value*100)));
+        return Text.translatable(LANG_KEY_PREFIX + ".unit.percent", ((int) (value * 100)));
     }
 
     private static Text formatAsTimes(float value) {
-        return Text.translatable(LANG_KEY_PREFIX+".unit.times", String.format("%.2f", value));
+        return Text.translatable(LANG_KEY_PREFIX + ".unit.times", String.format("%.2f", value));
     }
 
     private static Text formatAsDegrees(Float value) {
-        return Text.translatable(LANG_KEY_PREFIX+".unit.degrees", String.format("%.0f", value));
+        return Text.translatable(LANG_KEY_PREFIX + ".unit.degrees", String.format("%.0f", value));
     }
 
     private static Text categoryLabel(String key) {
-        return Text.translatable(LANG_KEY_PREFIX+".category."+key);
+        return Text.translatable(LANG_KEY_PREFIX + ".category." + key);
     }
 
     private static Text groupLabel(String key) {
-        return Text.translatable(LANG_KEY_PREFIX+".group."+key);
+        return Text.translatable(LANG_KEY_PREFIX + ".group." + key);
     }
 
     private static Text optionLabel(String key) {
-        return Text.translatable(LANG_KEY_PREFIX+".entry."+key);
+        return Text.translatable(LANG_KEY_PREFIX + ".entry." + key);
     }
 
     private static Text optionTooltip(String key) {
-        return Text.translatable(LANG_KEY_PREFIX+".entry."+key+".tooltip");
+        return Text.translatable(LANG_KEY_PREFIX + ".entry." + key + ".tooltip");
     }
 
 }

@@ -12,8 +12,10 @@ import java.util.*;
 public class Config {
 
     public static final String DEFAULT_PRESET_KEY = "default";
+
     @SuppressWarnings("unused")
-    public Config() {}
+    public Config() {
+    }
 
     public Config(Config other) {
         this.distance = other.distance;
@@ -101,11 +103,6 @@ public class Config {
     @ConfigEntry
     public boolean gpuIncompatibleMessageEnabled = true;
 
-    public void addFirstPreset() {
-        if(presets.size() != 0) return;
-        presets.add(new ShaderConfigPreset(""));
-    }
-
     public void loadDefaultPresets() {
         // Remember which default preset was selected, if any
         String selectedDefaultPreset = preset().key;
@@ -114,19 +111,19 @@ public class Config {
         presets.removeIf(preset -> preset.key != null && !preset.editable && defaults.containsKey(preset.key));
         presets.addAll(defaults.values());
 
-        if(selectedDefaultPreset != null) {
+        if (selectedDefaultPreset != null) {
             // Restore the selected default preset
             presets.stream()
                 .filter(preset -> selectedDefaultPreset.equals(preset.key)).findFirst()
                 .ifPresentOrElse(prevSelectedPreset -> selectedPreset = presets.indexOf(prevSelectedPreset), () -> selectedPreset = 0);
         }
 
-        if(missingDefault) {
+        if (missingDefault) {
             // No preset with the key 'default' was present,
             // so it is assumed that the presets are not initialized
             presets.removeIf(Config::isPresetEqualToEmpty);
             ShaderConfigPreset defaultPreset = defaults.get(DEFAULT_PRESET_KEY);
-            if(defaultPreset != null) {
+            if (defaultPreset != null) {
                 ShaderConfigPreset defaultCopy = new ShaderConfigPreset(defaultPreset);
                 defaultCopy.markAsCopy();
                 presets.add(defaultCopy);
@@ -136,8 +133,17 @@ public class Config {
         sortPresets();
     }
 
+    @NotNull
+    public ShaderConfigPreset preset() {
+        if (presets.size() == 0) {
+            addFirstPreset();
+        }
+        selectedPreset = MathHelper.clamp(selectedPreset, 0, presets.size() - 1);
+        return presets.get(selectedPreset);
+    }
+
     private static boolean isPresetEqualToEmpty(ShaderConfigPreset preset) {
-        if(preset == null) return true;
+        if (preset == null) return true;
         String title = preset.title;
         // The title does not matter
         preset.title = ShaderConfigPreset.EMPTY_PRESET.title;
@@ -154,6 +160,11 @@ public class Config {
             .thenComparing(preset -> preset.title);
         presets.sort(comparator);
         selectedPreset = presets.indexOf(selected);
+    }
+
+    public void addFirstPreset() {
+        if (presets.size() != 0) return;
+        presets.add(new ShaderConfigPreset(""));
     }
 
     public static class ShaderConfigPreset {
@@ -226,10 +237,10 @@ public class Config {
         public float tintBlue = 1f;
 
         public float gamma() {
-            if(gamma > 0) {
+            if (gamma > 0) {
                 return gamma;
             } else {
-                return -1/gamma;
+                return -1 / gamma;
             }
         }
 
@@ -262,15 +273,6 @@ public class Config {
                 Objects.equal(title, preset.title) &&
                 Objects.equal(key, preset.key);
         }
-    }
-
-    @NotNull
-    public ShaderConfigPreset preset() {
-        if(presets.size() == 0) {
-            addFirstPreset();
-        }
-        selectedPreset = MathHelper.clamp(selectedPreset, 0, presets.size()-1);
-        return presets.get(selectedPreset);
     }
 
     public int blockDistance() {

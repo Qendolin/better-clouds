@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 public interface ExtendedShaderAccessor {
     @Accessor(value = "writingToBeforeTranslucent", remap = false)
     GlFramebuffer getWritingToBeforeTranslucent();
+
     @Accessor(value = "writingToAfterTranslucent", remap = false)
     GlFramebuffer getWritingToAfterTranslucent();
 }

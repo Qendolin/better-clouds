@@ -33,7 +33,7 @@ public class ShaderPresetLoader implements SimpleResourceReloadListener<Map<Stri
     private Map<String, Config.ShaderConfigPreset> presets = null;
 
     public Map<String, Config.ShaderConfigPreset> presets() {
-        if(presets == null) return Map.of();
+        if (presets == null) return Map.of();
         return ImmutableMap.copyOf(presets);
     }
 
@@ -46,14 +46,14 @@ public class ShaderPresetLoader implements SimpleResourceReloadListener<Map<Stri
     public CompletableFuture<Map<String, Config.ShaderConfigPreset>> load(ResourceManager manager, Profiler profiler, Executor executor) {
         return CompletableFuture.supplyAsync(() -> {
             Map<String, Config.ShaderConfigPreset> mergedPresets = new HashMap<>();
-            Type mapType = new TypeToken<Map<String, Config.ShaderConfigPreset>>() {}.getType();
+            Type mapType = new TypeToken<Map<String, Config.ShaderConfigPreset>>() {
+            }.getType();
             for (Resource resource : manager.getAllResources(RESOURCE_ID)) {
                 try (BufferedReader reader = resource.getReader()) {
                     Map<String, Config.ShaderConfigPreset> presets = GSON.fromJson(reader, mapType);
-                    if(presets == null) continue;
+                    if (presets == null) continue;
                     mergedPresets.putAll(presets);
-                }
-                catch (Exception exception) {
+                } catch (Exception exception) {
                     Main.LOGGER.warn("Failed to parse shader presets {} in pack {}", RESOURCE_ID, resource.getResourcePackName(), exception);
                 }
             }
@@ -72,7 +72,7 @@ public class ShaderPresetLoader implements SimpleResourceReloadListener<Map<Stri
     @Override
     public CompletableFuture<Void> apply(Map<String, Config.ShaderConfigPreset> data, ResourceManager manager, Profiler profiler, Executor executor) {
         presets = data;
-        if(Main.getConfig() != null) {
+        if (Main.getConfig() != null) {
             Main.getConfig().loadDefaultPresets();
         }
         return CompletableFuture.completedFuture(null);

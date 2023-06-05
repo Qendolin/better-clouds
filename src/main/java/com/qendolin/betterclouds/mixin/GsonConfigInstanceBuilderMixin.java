@@ -11,7 +11,8 @@ import java.util.function.UnaryOperator;
 @Mixin(value = GsonConfigInstance.Builder.class, remap = false)
 public abstract class GsonConfigInstanceBuilderMixin<T> implements GsonConfigInstanceBuilderDuck<T> {
 
-    @Shadow private UnaryOperator<GsonBuilder> gsonBuilder;
+    @Shadow
+    private UnaryOperator<GsonBuilder> gsonBuilder;
 
     // GsonConfigInstance.Builder#appendGsonBuilder causes infinite recursion, see issue 64
     public GsonConfigInstance.Builder<T> betterclouds$appendGsonBuilder(UnaryOperator<GsonBuilder> operator) {

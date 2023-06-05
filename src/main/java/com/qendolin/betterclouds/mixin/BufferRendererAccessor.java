@@ -8,11 +8,12 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 @Mixin(BufferRenderer.class)
 public interface BufferRendererAccessor {
     @Accessor("currentVertexBuffer")
-    static void setCurrentVertexBuffer(VertexBuffer buffer) {
+    static VertexBuffer getCurrentVertexBuffer() {
         throw new AssertionError();
     }
+
     @Accessor("currentVertexBuffer")
-    static VertexBuffer getCurrentVertexBuffer() {
+    static void setCurrentVertexBuffer(VertexBuffer buffer) {
         throw new AssertionError();
     }
 

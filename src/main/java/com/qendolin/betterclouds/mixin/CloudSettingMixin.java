@@ -15,13 +15,17 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(value = GameOptions.class, priority = 1000)
 public abstract class CloudSettingMixin {
 
-    @Shadow @Final private SimpleOption<Integer> viewDistance;
+    @Shadow
+    @Final
+    private SimpleOption<Integer> viewDistance;
 
-    @Shadow @Final private SimpleOption<CloudRenderMode> cloudRenderMode;
+    @Shadow
+    @Final
+    private SimpleOption<CloudRenderMode> cloudRenderMode;
 
     @Inject(at = @At("HEAD"), method = "getCloudRenderModeValue", cancellable = true)
     private void overrideCloudSetting(CallbackInfoReturnable<CloudRenderMode> cir) {
-        if(!Main.getConfig().cloudOverride) return;
+        if (!Main.getConfig().cloudOverride) return;
         if (viewDistance.getValue() < 4) {
             return;
         }

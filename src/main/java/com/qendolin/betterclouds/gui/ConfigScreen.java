@@ -46,6 +46,18 @@ public class ConfigScreen extends YACLScreen {
         hiddenScreen = new HiddenScreen(title, hideShowButton);
     }
 
+    public void setHidden(boolean hidden) {
+        assert client != null;
+        this.hidden = hidden;
+        if (hidden) {
+            hideShowButton.setMessage(Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".show"));
+            client.setScreen(hiddenScreen);
+        } else {
+            hideShowButton.setMessage(Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".hide"));
+            client.setScreen(this);
+        }
+    }
+
     @Override
     public void tick() {
         super.tick();
@@ -62,18 +74,6 @@ public class ConfigScreen extends YACLScreen {
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         return super.keyPressed(keyCode, scanCode, modifiers);
-    }
-
-    public void setHidden(boolean hidden) {
-        assert client != null;
-        this.hidden = hidden;
-        if (hidden) {
-            hideShowButton.setMessage(Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".show"));
-            client.setScreen(hiddenScreen);
-        } else {
-            hideShowButton.setMessage(Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".hide"));
-            client.setScreen(this);
-        }
     }
 
     @Override

@@ -45,25 +45,32 @@ public abstract class Uniform {
         }
 
         @Override
-        public void setMat4(Matrix4f mat) {}
+        public void setMat4(Matrix4f mat) {
+        }
 
         @Override
-        public void setVec4(float x, float y, float z, float w) {}
+        public void setVec4(float x, float y, float z, float w) {
+        }
 
         @Override
-        public void setVec3(float x, float y, float z) {}
+        public void setVec3(float x, float y, float z) {
+        }
 
         @Override
-        public void setVec3(Vector3f v) {}
+        public void setVec3(Vector3f v) {
+        }
 
         @Override
-        public void setVec2(float x, float y) {}
+        public void setVec2(float x, float y) {
+        }
 
         @Override
-        public void setFloat(float f) {}
+        public void setFloat(float f) {
+        }
 
         @Override
-        public void setInt(int i) {}
+        public void setInt(int i) {
+        }
     }
 
     public static class Simple extends Uniform {
@@ -116,13 +123,6 @@ public abstract class Uniform {
             super(name, location);
         }
 
-        private boolean checkCache(float x, float y, float z, float w) {
-            return x == cache[0] && y == cache[1] && z == cache[2] && w == cache[3];
-        }
-        private void setCache(float x, float y, float z, float w) {
-            cache[0] = x; cache[1] = y; cache[2] = z; cache[3] = w;
-        }
-
         @Override
         public void setMat4(Matrix4f mat) {
             throw new NotImplementedException();
@@ -130,16 +130,20 @@ public abstract class Uniform {
 
         @Override
         public void setVec4(float x, float y, float z, float w) {
-            if(checkCache(x, y, z, w)) return;
+            if (checkCache(x, y, z, w)) return;
             setCache(x, y, z, w);
             glUniform4f(location, x, y, z, w);
         }
 
-        @Override
-        public void setVec3(float x, float y, float z) {
-            if(checkCache(x, y, z, 0)) return;
-            setCache(x, y, z, 0);
-            glUniform3f(location, x, y, z);
+        private boolean checkCache(float x, float y, float z, float w) {
+            return x == cache[0] && y == cache[1] && z == cache[2] && w == cache[3];
+        }
+
+        private void setCache(float x, float y, float z, float w) {
+            cache[0] = x;
+            cache[1] = y;
+            cache[2] = z;
+            cache[3] = w;
         }
 
         @Override
@@ -148,15 +152,22 @@ public abstract class Uniform {
         }
 
         @Override
+        public void setVec3(float x, float y, float z) {
+            if (checkCache(x, y, z, 0)) return;
+            setCache(x, y, z, 0);
+            glUniform3f(location, x, y, z);
+        }
+
+        @Override
         public void setVec2(float x, float y) {
-            if(checkCache(x, y, 0, 0)) return;
+            if (checkCache(x, y, 0, 0)) return;
             setCache(x, y, 0, 0);
             glUniform2f(location, x, y);
         }
 
         @Override
         public void setFloat(float f) {
-            if(checkCache(f, 0, 0, 0)) return;
+            if (checkCache(f, 0, 0, 0)) return;
             setCache(f, 0, 0, 0);
             glUniform1f(location, f);
         }

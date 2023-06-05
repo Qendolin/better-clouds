@@ -64,10 +64,16 @@ public class Renderer implements AutoCloseable {
         Main.LOGGER.info("Cloud renderer initialized");
     }
 
-    private Config getGeneratorConfig() {
-        Config config = res.generator().config();
-        if(config != null) return config;
-        return Main.getConfig();
+    private boolean isFancyMode() {
+        return client.options.getCloudRenderModeValue() == CloudRenderMode.FANCY;
+    }
+
+    private int scaledFramebufferWidth() {
+        return (int) (Main.getConfig().preset().upscaleResolutionFactor * client.getFramebuffer().textureWidth);
+    }
+
+    private int scaledFramebufferHeight() {
+        return (int) (Main.getConfig().preset().upscaleResolutionFactor * client.getFramebuffer().textureHeight);
     }
 
     public boolean prepare(MatrixStack matrices, Matrix4f projMat, float tickDelta, Vector3d cam) {
@@ -75,18 +81,18 @@ public class Renderer implements AutoCloseable {
         client.getProfiler().swap("render_setup");
         Config config = Main.getConfig();
 
-        if(res.failedToLoadCritical()) return false;
-        if(!config.irisSupport && IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled()) return false;
+        if (res.failedToLoadCritical()) return false;
+        if (!config.irisSupport && IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled()) return false;
 
         DimensionEffects effects = world.getDimensionEffects();
-        if(SodiumExtraCompat.IS_LOADED && effects.getSkyType() == DimensionEffects.SkyType.NORMAL) {
+        if (SodiumExtraCompat.IS_LOADED && effects.getSkyType() == DimensionEffects.SkyType.NORMAL) {
             cloudsHeight = SodiumExtraCompat.getCloudsHeight() + config.yOffset;
         } else {
             cloudsHeight = effects.getCloudsHeight() + config.yOffset;
         }
 
         res.generator().bind();
-        if(shaderInvalidator.hasChanged(client.options.getCloudRenderModeValue(), config.blockDistance(),
+        if (shaderInvalidator.hasChanged(client.options.getCloudRenderModeValue(), config.blockDistance(),
             config.fadeEdge, config.sizeXZ, config.sizeY, config.writeDepth)) {
             res.reloadShaders(client.getResourceManager());
         }
@@ -96,13 +102,13 @@ public class Renderer implements AutoCloseable {
         float cloudiness = raininess * 0.3f + 0.5f;
 
         res.generator().update(cam, tickDelta, Main.getConfig(), cloudiness);
-        if(res.generator().canGenerate() && !res.generator().generating() && !Debug.generatorPause) {
+        if (res.generator().canGenerate() && !res.generator().generating() && !Debug.generatorPause) {
             client.getProfiler().swap("generate_clouds");
             res.generator().generate();
             client.getProfiler().swap("render_setup");
         }
 
-        if(res.generator().canSwap()) {
+        if (res.generator().canSwap()) {
             client.getProfiler().swap("swap");
             res.generator().swap();
             client.getProfiler().swap("render_setup");
@@ -110,7 +116,7 @@ public class Renderer implements AutoCloseable {
 
         tempMatrix.set(matrices.peek().getPositionMatrix());
 
-        matrices.translate(res.generator().renderOriginX(cam.x), cloudsHeight-cam.y, res.generator().renderOriginZ(cam.z));
+        matrices.translate(res.generator().renderOriginX(cam.x), cloudsHeight - cam.y, res.generator().renderOriginZ(cam.z));
 
         rotationProjectionMatrix.set(projMat);
         // This is fixes issue #14, not entirely sure why, but it forces the matrix to be homogenous
@@ -135,17 +141,17 @@ public class Renderer implements AutoCloseable {
     // Don't forget to push / pop matrix stack outside
     public void render(int ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
         // Rendering clouds when underwater was making them very visible in unloaded chunks
-        if(client.gameRenderer.getCamera().getSubmersionType() != CameraSubmersionType.NONE) return;
+        if (client.gameRenderer.getCamera().getSubmersionType() != CameraSubmersionType.NONE) return;
 
         client.getProfiler().swap("render_setup");
-        if(Main.isProfilingEnabled()) {
-            if(res.timer() == null) res.reloadTimer();
+        if (Main.isProfilingEnabled()) {
+            if (res.timer() == null) res.reloadTimer();
             res.timer().start();
         }
 
         Config config = Main.getConfig();
 
-        if(isFramebufferStale()) {
+        if (isFramebufferStale()) {
             res.reloadFramebuffer(scaledFramebufferWidth(), scaledFramebufferHeight());
         }
 
@@ -158,10 +164,10 @@ public class Renderer implements AutoCloseable {
         drawDepth();
 
         client.getProfiler().swap("draw_coverage");
-        drawCoverage(ticks+tickDelta, cam, frustumPos, frustum);
+        drawCoverage(ticks + tickDelta, cam, frustumPos, frustum);
 
         client.getProfiler().swap("draw_shading");
-        if(IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled() && config.useIrisFBO) {
+        if (IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled() && config.useIrisFBO) {
             IrisCompat.bindFramebuffer();
         } else {
             GlStateManager._glBindFramebuffer(GL_DRAW_FRAMEBUFFER, defaultFbo);
@@ -182,23 +188,23 @@ public class Renderer implements AutoCloseable {
         glDisable(GL_STENCIL_TEST);
         glStencilFunc(GL_ALWAYS, 0x0, 0xff);
 
-        if(Debug.frustumCulling) {
+        if (Debug.frustumCulling) {
             glCompat.pushDebugGroup("Frustum Culling Debug Draw");
             Debug.drawFrustumCulling(cam, frustum, frustumPos, res.generator(), cloudsHeight);
             glCompat.popDebugGroup();
         }
 
-        if(Main.isProfilingEnabled() && res.timer() != null) {
+        if (Main.isProfilingEnabled() && res.timer() != null) {
             res.timer().stop();
 
-            if(res.timer().frames() >= Debug.profileInterval) {
+            if (res.timer().frames() >= Debug.profileInterval) {
                 List<Double> times = res.timer().get();
                 times.sort(Double::compare);
-                double median = times.get(times.size()/2);
-                double p25 = times.get((int) Math.ceil(times.size()*0.25));
-                double p75 = times.get((int) Math.ceil(times.size()*0.75));
+                double median = times.get(times.size() / 2);
+                double p25 = times.get((int) Math.ceil(times.size() * 0.25));
+                double p75 = times.get((int) Math.ceil(times.size() * 0.75));
                 double min = times.get(0);
-                double max = times.get(times.size()-1);
+                double max = times.get(times.size() - 1);
                 double average = times.stream().mapToDouble(d -> d).average().orElse(0);
                 Main.debugChatMessage("profiling.gpuTimes", min, average, max, p25, median, p75);
                 res.timer().reset();
@@ -206,10 +212,79 @@ public class Renderer implements AutoCloseable {
         }
     }
 
+    private boolean isFramebufferStale() {
+        return res.fboWidth() != scaledFramebufferWidth() || res.fboHeight() != scaledFramebufferHeight();
+    }
+
+    private void drawDepth() {
+        RenderSystem.disableBlend();
+        RenderSystem.colorMask(false, false, false, false);
+        RenderSystem.enableDepthTest();
+        RenderSystem.depthFunc(GL_ALWAYS);
+        RenderSystem.depthMask(true);
+
+        res.depthShader().bind();
+
+        RenderSystem.activeTexture(GL_TEXTURE0);
+        RenderSystem.bindTexture(client.getFramebuffer().getDepthAttachment());
+
+        glBindVertexArray(res.cubeVao());
+        glDrawArrays(GL_TRIANGLES, 0, Mesh.QUAD_MESH_VERTEX_COUNT);
+    }
+
+    private void drawCoverage(float ticks, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
+        glEnable(GL_STENCIL_TEST);
+        glStencilMask(0xff);
+        glStencilOp(GL_KEEP, GL_INCR, GL_INCR);
+        glStencilFunc(GL_ALWAYS, 0xff, 0xff);
+        RenderSystem.depthFunc(GL_LESS);
+        RenderSystem.depthMask(true);
+        RenderSystem.colorMask(true, true, true, true);
+        glClear(GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+        Config generatorConfig = getGeneratorConfig();
+        Config config = Main.getConfig();
+
+        res.coverageShader().bind();
+        res.coverageShader().uMVPMatrix.setMat4(mvpMatrix);
+        res.coverageShader().uOriginOffset.setVec3((float) -res.generator().renderOriginX(cam.x), (float) cam.y - cloudsHeight, (float) -res.generator().renderOriginZ(cam.z));
+        res.coverageShader().uBoundingBox.setVec4((float) cam.x, (float) cam.z, generatorConfig.blockDistance() - generatorConfig.chunkSize / 2f, generatorConfig.yRange + config.sizeY);
+        res.coverageShader().uTime.setFloat(ticks / 20);
+        res.coverageShader().uMiscellaneous.setVec2(config.scaleFalloffMin, config.windFactor);
+
+        RenderSystem.activeTexture(GL_TEXTURE5);
+        client.getTextureManager().getTexture(Resources.NOISE_TEXTURE).bindTexture();
+
+        res.generator().bind();
+
+        Frustum frustumAtOrigin = new Frustum(frustum);
+        frustumAtOrigin.setPosition(frustumPos.x - res.generator().originX(), frustumPos.y, frustumPos.z - res.generator().originZ());
+        if (res.generator().canRender()) {
+            int runStart = -1;
+            int runCount = 0;
+            for (ChunkedGenerator.ChunkIndex chunk : res.generator().chunks()) {
+                Box bounds = chunk.bounds(cloudsHeight, config.sizeXZ, config.sizeY);
+                if (!frustumAtOrigin.isVisible(bounds)) {
+                    if (runCount != 0) {
+                        glCompat.drawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
+                    }
+                    runStart = -1;
+                    runCount = 0;
+                } else {
+                    if (runStart == -1) runStart = chunk.start();
+                    runCount += chunk.count();
+                }
+            }
+            if (runCount != 0) {
+                glCompat.drawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
+            }
+        }
+    }
+
     private void drawShading(float tickDelta) {
         Config config = Main.getConfig();
 
-        if(config.writeDepth) {
+        if (config.writeDepth) {
             RenderSystem.depthMask(true);
             RenderSystem.enableDepthTest();
             RenderSystem.depthFunc(GL_ALWAYS);
@@ -239,14 +314,14 @@ public class Renderer implements AutoCloseable {
         float skyAngleRad = world.getSkyAngleRadians(tickDelta);
         float sunPathAngleRad = (float) Math.toRadians(config.preset().sunPathAngle);
         float dayNightFactor = interpolateDayNightFactor(skyTime, config.preset().sunriseStartTime, config.preset().sunriseEndTime, config.preset().sunsetStartTime, config.preset().sunsetEndTime);
-        float brightness = (1-dayNightFactor) * config.preset().nightBrightness + dayNightFactor * config.preset().dayBrightness;
-        Vector3f sunDir = new Vector3f(1, 0, 0).rotateAxis(skyAngleRad+MathHelper.HALF_PI, 0, MathHelper.sin(sunPathAngleRad), MathHelper.cos(sunPathAngleRad));
+        float brightness = (1 - dayNightFactor) * config.preset().nightBrightness + dayNightFactor * config.preset().dayBrightness;
+        Vector3f sunDir = new Vector3f(1, 0, 0).rotateAxis(skyAngleRad + MathHelper.HALF_PI, 0, MathHelper.sin(sunPathAngleRad), MathHelper.cos(sunPathAngleRad));
 
         res.shadingShader().bind();
         res.shadingShader().uVPMatrix.setMat4(rotationProjectionMatrix);
-        res.shadingShader().uSunDirection.setVec4(sunDir.x, sunDir.y, sunDir.z,(world.getTimeOfDay()%24000)/24000f);
+        res.shadingShader().uSunDirection.setVec4(sunDir.x, sunDir.y, sunDir.z, (world.getTimeOfDay() % 24000) / 24000f);
         res.shadingShader().uOpacity.setVec2(config.preset().opacity, config.preset().opacityFactor);
-        res.shadingShader().uColorGrading.setVec4(brightness, 1f/config.preset().gamma(), effectLuma, config.preset().saturation);
+        res.shadingShader().uColorGrading.setVec4(brightness, 1f / config.preset().gamma(), effectLuma, config.preset().saturation);
         res.shadingShader().uTint.setVec3(config.preset().tintRed, config.preset().tintGreen, config.preset().tintBlue);
         res.shadingShader().uNoiseFactor.setFloat(config.colorVariationFactor);
 
@@ -255,89 +330,10 @@ public class Renderer implements AutoCloseable {
         glDrawArrays(GL_TRIANGLES, 0, Mesh.CUBE_MESH_VERTEX_COUNT);
     }
 
-    private float interpolateDayNightFactor(float time, float riseStart, float riseEnd, float setStart, float setEnd) {
-        if(time <= 6000 || time > 18000) {
-            // sunrise time
-            if(time > 18000) time -= 24000;
-            return smoothstep(time, riseStart, riseEnd);
-        } else {
-            // sunset time
-            return 1 - smoothstep(time, setStart, setEnd);
-        }
-    }
-
-    private void drawCoverage(float ticks, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
-        glEnable(GL_STENCIL_TEST);
-        glStencilMask(0xff);
-        glStencilOp(GL_KEEP, GL_INCR, GL_INCR);
-        glStencilFunc(GL_ALWAYS, 0xff, 0xff);
-        RenderSystem.depthFunc(GL_LESS);
-        RenderSystem.depthMask(true);
-        RenderSystem.colorMask(true, true, true, true);
-        glClear(GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
-        Config generatorConfig = getGeneratorConfig();
-        Config config = Main.getConfig();
-
-        res.coverageShader().bind();
-        res.coverageShader().uMVPMatrix.setMat4(mvpMatrix);
-        res.coverageShader().uOriginOffset.setVec3((float) -res.generator().renderOriginX(cam.x), (float) cam.y-cloudsHeight, (float) -res.generator().renderOriginZ(cam.z));
-        res.coverageShader().uBoundingBox.setVec4((float) cam.x, (float) cam.z, generatorConfig.blockDistance() - generatorConfig.chunkSize/2f, generatorConfig.yRange + config.sizeY);
-        res.coverageShader().uTime.setFloat(ticks/20);
-        res.coverageShader().uMiscellaneous.setVec2(config.scaleFalloffMin, config.windFactor);
-
-        RenderSystem.activeTexture(GL_TEXTURE5);
-        client.getTextureManager().getTexture(Resources.NOISE_TEXTURE).bindTexture();
-
-        res.generator().bind();
-
-        Frustum frustumAtOrigin = new Frustum(frustum);
-        frustumAtOrigin.setPosition(frustumPos.x - res.generator().originX(), frustumPos.y, frustumPos.z - res.generator().originZ());
-        if(res.generator().canRender()) {
-            int runStart = -1;
-            int runCount = 0;
-            for (ChunkedGenerator.ChunkIndex chunk : res.generator().chunks()) {
-                Box bounds = chunk.bounds(cloudsHeight, config.sizeXZ, config.sizeY);
-                if(!frustumAtOrigin.isVisible(bounds)) {
-                    if(runCount != 0) {
-                        glCompat.drawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
-                    }
-                    runStart = -1;
-                    runCount = 0;
-                } else {
-                    if(runStart == -1) runStart = chunk.start();
-                    runCount += chunk.count();
-                }
-            }
-            if(runCount != 0) {
-                glCompat.drawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
-            }
-        }
-    }
-
-    private void drawDepth() {
-        RenderSystem.disableBlend();
-        RenderSystem.colorMask(false, false, false, false);
-        RenderSystem.enableDepthTest();
-        RenderSystem.depthFunc(GL_ALWAYS);
-        RenderSystem.depthMask(true);
-
-        res.depthShader().bind();
-
-        RenderSystem.activeTexture(GL_TEXTURE0);
-        RenderSystem.bindTexture(client.getFramebuffer().getDepthAttachment());
-
-        glBindVertexArray(res.cubeVao());
-        glDrawArrays(GL_TRIANGLES, 0, Mesh.QUAD_MESH_VERTEX_COUNT);
-    }
-
-    private boolean isFancyMode() {
-        return client.options.getCloudRenderModeValue() == CloudRenderMode.FANCY;
-    }
-
-    private float smoothstep(float x, float e0, float e1) {
-        x = MathHelper.clamp((x-e0) / (e1-e0), 0, 1);
-        return x * x * (3 - 2*x);
+    private Config getGeneratorConfig() {
+        Config config = res.generator().config();
+        if (config != null) return config;
+        return Main.getConfig();
     }
 
     private float getEffectLuminance(float tickDelta) {
@@ -355,16 +351,20 @@ public class Renderer implements AutoCloseable {
         return luma;
     }
 
-    private boolean isFramebufferStale() {
-        return res.fboWidth() != scaledFramebufferWidth() || res.fboHeight() != scaledFramebufferHeight();
+    private float interpolateDayNightFactor(float time, float riseStart, float riseEnd, float setStart, float setEnd) {
+        if (time <= 6000 || time > 18000) {
+            // sunrise time
+            if (time > 18000) time -= 24000;
+            return smoothstep(time, riseStart, riseEnd);
+        } else {
+            // sunset time
+            return 1 - smoothstep(time, setStart, setEnd);
+        }
     }
 
-    private int scaledFramebufferWidth() {
-        return (int) (Main.getConfig().preset().upscaleResolutionFactor * client.getFramebuffer().textureWidth);
-    }
-
-    private int scaledFramebufferHeight() {
-        return (int) (Main.getConfig().preset().upscaleResolutionFactor * client.getFramebuffer().textureHeight);
+    private float smoothstep(float x, float e0, float e1) {
+        x = MathHelper.clamp((x - e0) / (e1 - e0), 0, 1);
+        return x * x * (3 - 2 * x);
     }
 
     public void close() {

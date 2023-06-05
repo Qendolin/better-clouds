@@ -40,7 +40,7 @@ public class Telemetry {
 
     protected Telemetry(URL url) {
         this.url = url;
-        if(LocalDateTime.now().isAfter(EXPIRATION_DATE)) {
+        if (LocalDateTime.now().isAfter(EXPIRATION_DATE)) {
             // To prevent errors if the telemetry server shuts down in the future
             enabled = false;
         }
@@ -56,8 +56,57 @@ public class Telemetry {
         return null;
     }
 
+    public CompletableFuture<Boolean> sendSystemInfo() {
+        return sendPayload("", SYSTEM_INFORMATION);
+    }
+
+    protected CompletableFuture<Boolean> sendPayload(String payload, String... labels) {
+        if (!enabled) return CompletableFuture.completedFuture(false);
+        try {
+            RequestBody body = new RequestBody(new SystemDetails(), List.of(labels), payload, Main.getVersion().getFriendlyString(), VERSION);
+            String json = gson.toJson(body);
+            final byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+            return postAsync(bytes);
+        } catch (Throwable e) {
+            Main.LOGGER.error("Failed to send system information: ", e);
+            return CompletableFuture.completedFuture(false);
+        }
+    }
+
+    protected CompletableFuture<Boolean> postAsync(byte[] body) {
+        return CompletableFuture.supplyAsync(() -> post(body));
+    }
+
+    protected boolean post(byte[] body) {
+        final HttpURLConnection conn = createConnection();
+        if (conn == null) return false;
+        OutputStream outputStream = null;
+        try {
+            conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+            conn.setRequestProperty("Content-Length", "" + body.length);
+            conn.setRequestMethod("POST");
+            conn.setDoOutput(true);
+            outputStream = conn.getOutputStream();
+            Main.LOGGER.info("Sending telemetry...");
+            IOUtils.write(body, outputStream);
+
+            InputStreamReader is = new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8);
+            String response = IOUtils.toString(is);
+            if (response == null || !response.trim().equalsIgnoreCase("ok")) {
+                Main.LOGGER.warn("Failed to post: bad request");
+                return false;
+            }
+            return true;
+        } catch (Throwable e) {
+            Main.LOGGER.error("Failed to post to telemetry endpoint: ", e);
+            return false;
+        } finally {
+            IOUtils.closeQuietly(outputStream);
+        }
+    }
+
     protected HttpURLConnection createConnection() {
-        if(!enabled) return null;
+        if (!enabled) return null;
         try {
             final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
@@ -71,71 +120,22 @@ public class Telemetry {
         return null;
     }
 
-    protected CompletableFuture<Boolean> postAsync(byte[] body) {
-        return CompletableFuture.supplyAsync(() -> post(body));
-    }
-
-    protected boolean post(byte[] body) {
-        final HttpURLConnection conn = createConnection();
-        if(conn == null) return false;
-        OutputStream outputStream = null;
-        try {
-            conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
-            conn.setRequestProperty("Content-Length", "" + body.length);
-            conn.setRequestMethod("POST");
-            conn.setDoOutput(true);
-            outputStream = conn.getOutputStream();
-            Main.LOGGER.info("Sending telemetry...");
-            IOUtils.write(body, outputStream);
-
-            InputStreamReader is = new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8);
-            String response = IOUtils.toString(is);
-            if(response == null || !response.trim().equalsIgnoreCase("ok")) {
-                Main.LOGGER.warn("Failed to post: bad request");
-                return false;
-            }
-            return true;
-        } catch (Throwable e) {
-            Main.LOGGER.error("Failed to post to telemetry endpoint: ", e);
-            return false;
-        } finally {
-            IOUtils.closeQuietly(outputStream);
-        }
-    }
-
-    protected CompletableFuture<Boolean> sendPayload(String payload, String ...labels) {
-        if(!enabled) return CompletableFuture.completedFuture(false);
-        try {
-            RequestBody body = new RequestBody(new SystemDetails(), List.of(labels), payload, Main.getVersion().getFriendlyString(), VERSION);
-            String json = gson.toJson(body);
-            final byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
-            return postAsync(bytes);
-        } catch (Throwable e) {
-            Main.LOGGER.error("Failed to send system information: ", e);
-            return CompletableFuture.completedFuture(false);
-        }
-    }
-
-    public CompletableFuture<Boolean> sendSystemInfo() {
-        return sendPayload("", SYSTEM_INFORMATION);
-    }
-
     public void sendShaderCompileError(String error) {
-        if(lazyOpenCache()) {
+        if (lazyOpenCache()) {
             String hash = cache.hash(error);
-            if(cache.contains(SHADER_COMPILE_ERROR, hash)) return;
+            if (cache.contains(SHADER_COMPILE_ERROR, hash)) return;
         }
         sendPayload(error, SHADER_COMPILE_ERROR)
-        .whenComplete((success, throwable) -> {
-            if(success) {
-                String hash = cache.hash(error);
-                cache.add(SHADER_COMPILE_ERROR, hash);
-            }
-        });
+            .whenComplete((success, throwable) -> {
+                if (success) {
+                    String hash = cache.hash(error);
+                    cache.add(SHADER_COMPILE_ERROR, hash);
+                }
+            });
     }
 
     protected boolean lazyOpenCache() {
-        if(!cache.isOpened()) {
+        if (!cache.isOpened()) {
             try {
                 cache.open();
             } catch (IOException e) {
@@ -145,7 +145,9 @@ public class Telemetry {
         return cache.isAvailable();
     }
 
-    public record RequestBody (SystemDetails systemDetails, List<String> labels, String payload, String modVersion, int telemetryVersion) {}
+    public record RequestBody(SystemDetails systemDetails, List<String> labels, String payload, String modVersion,
+                              int telemetryVersion) {
+    }
 
     public static final class SystemDetails {
         public final String os;

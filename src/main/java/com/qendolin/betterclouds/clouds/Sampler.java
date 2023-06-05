@@ -19,18 +19,8 @@ public class Sampler {
     private final OctaveSimplexNoiseSampler NOISE = new OctaveSimplexNoiseSampler(RANDOM, OCTAVES);
     private final SimplexNoiseSampler BIG_NOISE = new SimplexNoiseSampler(RANDOM);
 
-    // Jenkins hash function
-    private int hash(int... values) {
-        int hash = 0;
-        for (int value : values) {
-            hash += value;
-            hash += hash << 10;
-            hash ^= hash >> 6;
-        }
-        hash += hash << 3;
-        hash ^= hash >> 11;
-        hash += hash << 15;
-        return hash;
+    public float randomOffsetX(int x, int z) {
+        return hashToFloat(x, z, 'X');
     }
 
     // https://stackoverflow.com/a/17479300/7448536
@@ -47,8 +37,18 @@ public class Sampler {
         return f - 1;
     }
 
-    public float randomOffsetX(int x, int z) {
-        return hashToFloat(x, z, 'X');
+    // Jenkins hash function
+    private int hash(int... values) {
+        int hash = 0;
+        for (int value : values) {
+            hash += value;
+            hash += hash << 10;
+            hash ^= hash >> 6;
+        }
+        hash += hash << 3;
+        hash ^= hash >> 11;
+        hash += hash << 15;
+        return hash;
     }
 
     public float randomOffsetZ(int x, int z) {
@@ -59,7 +59,7 @@ public class Sampler {
         double value = NOISE.sample(x / scale / 128f, z / scale / 128f, false);
         value = value / 2 + 0.5;
         value = (value - (1 - cloudiness)) / cloudiness;
-        value *= smoothstep(-0.6*cloudiness-0.3, -0.6*cloudiness, BIG_NOISE.sample(x / 1024f, z / 1024f));
+        value *= smoothstep(-0.6 * cloudiness - 0.3, -0.6 * cloudiness, BIG_NOISE.sample(x / 1024f, z / 1024f));
 
         float random = hashToFloat(x, z);
         if (random > value + (1 - fuzziness)) {

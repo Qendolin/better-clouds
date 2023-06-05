@@ -9,6 +9,7 @@ public class PrimitiveChangeDetector {
     public PrimitiveChangeDetector() {
         initialResult = true;
     }
+
     public PrimitiveChangeDetector(boolean initialResult) {
         this.initialResult = initialResult;
     }
@@ -17,14 +18,14 @@ public class PrimitiveChangeDetector {
         this.values = null;
     }
 
-    public boolean hasChanged(Object ...values) {
-        if(this.values == null) {
+    public boolean hasChanged(Object... values) {
+        if (this.values == null) {
             this.values = values;
             return initialResult;
         }
 
         for (int i = 0; i < this.values.length; i++) {
-            if(!Objects.equals(values[i], this.values[i])) {
+            if (!Objects.equals(values[i], this.values[i])) {
                 this.values = values;
                 return true;
             }

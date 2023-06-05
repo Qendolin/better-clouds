@@ -38,37 +38,44 @@ public abstract class WorldRendererMixin {
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void init(MinecraftClient client, EntityRenderDispatcher entityRenderDispatcher, BlockEntityRenderDispatcher blockEntityRenderDispatcher, BufferBuilderStorage bufferBuilders, CallbackInfo ci) {
-        if(glCompat.isIncompatible()) return;
+        if (glCompat.isIncompatible()) return;
         cloudRenderer = new Renderer(client);
     }
 
-    @Shadow private @Nullable Frustum capturedFrustum;
+    @Shadow
+    private @Nullable Frustum capturedFrustum;
 
-    @Shadow @Final private Vector3d capturedFrustumPosition;
+    @Shadow
+    @Final
+    private Vector3d capturedFrustumPosition;
 
-    @Shadow @Final private MinecraftClient client;
+    @Shadow
+    @Final
+    private MinecraftClient client;
 
-    @Shadow private @Nullable ClientWorld world;
+    @Shadow
+    private @Nullable ClientWorld world;
 
-    @Shadow private int ticks;
+    @Shadow
+    private int ticks;
 
     @Inject(at = @At("TAIL"), method = "reload(Lnet/minecraft/resource/ResourceManager;)V")
     private void onReload(ResourceManager manager, CallbackInfo ci) {
-        if(glCompat.isIncompatible()) return;
-        if(cloudRenderer != null) cloudRenderer.reload(manager);
+        if (glCompat.isIncompatible()) return;
+        if (cloudRenderer != null) cloudRenderer.reload(manager);
     }
 
     @Inject(at = @At("TAIL"), method = "setWorld")
     private void onSetWorld(ClientWorld world, CallbackInfo ci) {
-        if(cloudRenderer != null) cloudRenderer.setWorld(world);
+        if (cloudRenderer != null) cloudRenderer.setWorld(world);
     }
 
     @Inject(at = @At("HEAD"), method = "renderClouds(Lnet/minecraft/client/util/math/MatrixStack;Lorg/joml/Matrix4f;FDDD)V", cancellable = true)
     private void renderClouds(MatrixStack matrices, Matrix4f projMat, float tickDelta, double camX, double camY, double camZ, CallbackInfo ci) {
-        if(cloudRenderer == null) return;
-        if(glCompat.isIncompatible()) return;
-        if(world == null || !world.getDimensionEntry().matchesKey(DimensionTypes.OVERWORLD)) return;
-        if(!Main.getConfig().enabled) return;
+        if (cloudRenderer == null) return;
+        if (glCompat.isIncompatible()) return;
+        if (world == null || !world.getDimensionEntry().matchesKey(DimensionTypes.OVERWORLD)) return;
+        if (!Main.getConfig().enabled) return;
 
         client.getProfiler().push(Main.MODID);
         glCompat.pushDebugGroup("Better Clouds");
@@ -82,17 +89,17 @@ public abstract class WorldRendererMixin {
             frustumPos = capturedFrustumPosition;
         }
 
-        if(Main.isProfilingEnabled()) GL32.glFinish();
+        if (Main.isProfilingEnabled()) GL32.glFinish();
         long startTime = System.nanoTime();
 
         matrices.push();
-        if(cloudRenderer.prepare(matrices, projMat, tickDelta, cam)) {
+        if (cloudRenderer.prepare(matrices, projMat, tickDelta, cam)) {
             ci.cancel();
             cloudRenderer.render(ticks, tickDelta, cam, frustumPos, frustum);
         }
         matrices.pop();
 
-        if(Main.isProfilingEnabled()) {
+        if (Main.isProfilingEnabled()) {
             GL32.glFinish();
             profTimeAcc += (System.nanoTime() - startTime) / 1e6;
             profFrames++;
@@ -110,6 +117,6 @@ public abstract class WorldRendererMixin {
 
     @Inject(at = @At("HEAD"), method = "close")
     private void close(CallbackInfo ci) {
-        if(cloudRenderer != null) cloudRenderer.close();
+        if (cloudRenderer != null) cloudRenderer.close();
     }
 }

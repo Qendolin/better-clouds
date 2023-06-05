@@ -131,13 +131,13 @@ public class CustomButtonOption implements ButtonOption {
 
     protected static class EmptyBinderImpl implements Binding<BiConsumer<YACLScreen, ButtonOption>> {
         @Override
-        public void setValue(BiConsumer<YACLScreen, ButtonOption> value) {
-
+        public BiConsumer<YACLScreen, ButtonOption> getValue() {
+            throw new UnsupportedOperationException();
         }
 
         @Override
-        public BiConsumer<YACLScreen, ButtonOption> getValue() {
-            throw new UnsupportedOperationException();
+        public void setValue(BiConsumer<YACLScreen, ButtonOption> value) {
+
         }
 
         @Override

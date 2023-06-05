@@ -29,7 +29,7 @@ public class GlTimer implements AutoCloseable {
         queryWaiting = query;
         query = done;
 
-        if(first) {
+        if (first) {
             first = false;
             return;
         }
@@ -53,6 +53,6 @@ public class GlTimer implements AutoCloseable {
     }
 
     public void close() {
-        glDeleteQueries(new int[] {query, queryWaiting});
+        glDeleteQueries(new int[]{query, queryWaiting});
     }
 }

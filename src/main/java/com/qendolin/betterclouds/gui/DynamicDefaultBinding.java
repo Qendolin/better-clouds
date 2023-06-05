@@ -17,13 +17,13 @@ public class DynamicDefaultBinding<T> implements Binding<T> {
     }
 
     @Override
-    public void setValue(T value) {
-        setter.accept(value);
+    public T getValue() {
+        return getter.get();
     }
 
     @Override
-    public T getValue() {
-        return getter.get();
+    public void setValue(T value) {
+        setter.accept(value);
     }
 
     @Override

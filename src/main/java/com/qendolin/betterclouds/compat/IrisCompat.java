@@ -16,9 +16,9 @@ public class IrisCompat {
 
     public static void bindFramebuffer() {
         WorldRenderingPipeline pipeline = Iris.getPipelineManager().getPipelineNullable();
-        if(pipeline instanceof NewWorldRenderingPipeline corePipeline) {
+        if (pipeline instanceof NewWorldRenderingPipeline corePipeline) {
             ExtendedShaderAccessor irisShader = (ExtendedShaderAccessor) corePipeline.getShaderMap().getShader(ShaderKey.CLOUDS);
-            if(corePipeline.isBeforeTranslucent) {
+            if (corePipeline.isBeforeTranslucent) {
                 irisShader.getWritingToBeforeTranslucent().bindAsDrawBuffer();
             } else {
                 irisShader.getWritingToAfterTranslucent().bindAsDrawBuffer();

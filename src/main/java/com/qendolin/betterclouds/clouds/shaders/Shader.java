@@ -73,7 +73,7 @@ public class Shader implements AutoCloseable {
 
     @Override
     public void close() {
-        if(programId != 0) glDeleteProgram(programId);
+        if (programId != 0) glDeleteProgram(programId);
         programId = 0;
     }
 
@@ -91,16 +91,16 @@ public class Shader implements AutoCloseable {
 
     public static void unbind() {
         int previousProgramId = ShaderProgramAccessor.getActiveProgramGlRef();
-        if(previousProgramId > 0)
+        if (previousProgramId > 0)
             glUseProgram(previousProgramId);
     }
 
     protected Uniform getUniform(String name, boolean cached) {
         int location = glGetUniformLocation(programId, name);
-        if(location < 0) {
+        if (location < 0) {
             return new Uniform.Noop(name, location);
         }
-        if(cached) {
+        if (cached) {
             return new Uniform.Cached(name, location);
         }
         return new Uniform.Simple(name, location);

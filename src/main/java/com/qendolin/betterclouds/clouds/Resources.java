@@ -101,33 +101,27 @@ public class Resources implements Closeable {
     }
 
     public boolean failedToLoadCritical() {
-        if(depthShader == null || coverageShader == null || shadingShader == null) return true;
-        if(depthShader.isIncomplete() || coverageShader.isIncomplete() || shadingShader.isIncomplete()) return true;
-        if(generator == null) return true;
-        if(oitFbo == UNASSIGNED) return true;
-        if(oitDataTexture == UNASSIGNED || oitCoverageTexture == UNASSIGNED || oitCoverageDepthView == UNASSIGNED) return true;
-        if(cubeVao == UNASSIGNED || cubeVbo == UNASSIGNED) return true;
+        if (depthShader == null || coverageShader == null || shadingShader == null) return true;
+        if (depthShader.isIncomplete() || coverageShader.isIncomplete() || shadingShader.isIncomplete()) return true;
+        if (generator == null) return true;
+        if (oitFbo == UNASSIGNED) return true;
+        if (oitDataTexture == UNASSIGNED || oitCoverageTexture == UNASSIGNED || oitCoverageDepthView == UNASSIGNED)
+            return true;
+        if (cubeVao == UNASSIGNED || cubeVbo == UNASSIGNED) return true;
 
         return false;
-    }
-
-    public void deleteTimer() {
-        if(timer != null) timer.close();
-        timer = null;
     }
 
     public void reloadTimer() {
         deleteTimer();
 
-        if(!Main.isProfilingEnabled()) return;
+        if (!Main.isProfilingEnabled()) return;
         timer = new GlTimer();
     }
 
-    public void deleteMeshPrimitives() {
-        if(cubeVbo != 0) glDeleteBuffers(cubeVbo);
-        if(cubeVao != 0) glDeleteVertexArrays(cubeVao);
-        cubeVbo = UNASSIGNED;
-        cubeVao = UNASSIGNED;
+    public void deleteTimer() {
+        if (timer != null) timer.close();
+        timer = null;
     }
 
     public void reloadMeshPrimitives() {
@@ -144,6 +138,13 @@ public class Resources implements Closeable {
         glBufferData(GL_ARRAY_BUFFER, Mesh.CUBE_MESH, GL_STATIC_DRAW);
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+    }
+
+    public void deleteMeshPrimitives() {
+        if (cubeVbo != 0) glDeleteBuffers(cubeVbo);
+        if (cubeVao != 0) glDeleteVertexArrays(cubeVao);
+        cubeVbo = UNASSIGNED;
+        cubeVao = UNASSIGNED;
     }
 
     public void reloadTextures(MinecraftClient client) {
@@ -164,11 +165,6 @@ public class Resources implements Closeable {
         RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_MAG_FILTER, GlConst.GL_LINEAR);
     }
 
-    public void deleteGenerator() {
-        if(generator != null) generator.close();
-        generator = null;
-    }
-
     public void reloadGenerator(boolean fancy) {
         deleteGenerator();
         generator = new ChunkedGenerator();
@@ -176,15 +172,9 @@ public class Resources implements Closeable {
         generator.clear();
     }
 
-    public void deleteFramebuffer() {
-        if(oitFbo != 0) glDeleteFramebuffers(oitFbo);
-        if(oitDataTexture != 0) RenderSystem.deleteTexture(oitDataTexture);
-        if(oitCoverageTexture != 0) RenderSystem.deleteTexture(oitCoverageTexture);
-        if(oitCoverageDepthView != 0) RenderSystem.deleteTexture(oitCoverageDepthView);
-        oitFbo = UNASSIGNED;
-        oitDataTexture = UNASSIGNED;
-        oitCoverageTexture = UNASSIGNED;
-        oitCoverageDepthView = UNASSIGNED;
+    public void deleteGenerator() {
+        if (generator != null) generator.close();
+        generator = null;
     }
 
     public void reloadFramebuffer(int width, int height) {
@@ -231,13 +221,15 @@ public class Resources implements Closeable {
         }
     }
 
-    public void deleteShaders() {
-        if(depthShader != null) depthShader.close();
-        if(coverageShader != null) coverageShader.close();
-        if(shadingShader != null) shadingShader.close();
-        depthShader = null;
-        coverageShader = null;
-        shadingShader = null;
+    public void deleteFramebuffer() {
+        if (oitFbo != 0) glDeleteFramebuffers(oitFbo);
+        if (oitDataTexture != 0) RenderSystem.deleteTexture(oitDataTexture);
+        if (oitCoverageTexture != 0) RenderSystem.deleteTexture(oitCoverageTexture);
+        if (oitCoverageDepthView != 0) RenderSystem.deleteTexture(oitCoverageDepthView);
+        oitFbo = UNASSIGNED;
+        oitDataTexture = UNASSIGNED;
+        oitCoverageTexture = UNASSIGNED;
+        oitCoverageDepthView = UNASSIGNED;
     }
 
     public void reloadShaders(ResourceManager manager) {
@@ -249,7 +241,7 @@ public class Resources implements Closeable {
             } catch (Exception e) {
                 Main.sendGpuIncompatibleChatMessage();
                 Main.LOGGER.error(e);
-                if(Telemetry.INSTANCE != null) {
+                if (Telemetry.INSTANCE != null) {
                     Telemetry.INSTANCE.sendShaderCompileError(e.toString());
                 }
                 deleteShaders();
@@ -279,6 +271,15 @@ public class Resources implements Closeable {
         shadingShader.uCoverageTexture.setInt(3);
         shadingShader.uLightTexture.setInt(4);
         glCompat.objectLabel(glCompat.GL_PROGRAM, shadingShader.glId(), "shading");
+    }
+
+    public void deleteShaders() {
+        if (depthShader != null) depthShader.close();
+        if (coverageShader != null) coverageShader.close();
+        if (shadingShader != null) shadingShader.close();
+        depthShader = null;
+        coverageShader = null;
+        shadingShader = null;
     }
 
     @Override
