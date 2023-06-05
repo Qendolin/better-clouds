@@ -8,7 +8,6 @@ import dev.isxander.yacl.gui.controllers.TickBoxController;
 import dev.isxander.yacl.gui.controllers.slider.FloatSliderController;
 import dev.isxander.yacl.gui.controllers.slider.IntegerSliderController;
 import dev.isxander.yacl.gui.controllers.string.StringController;
-import dev.isxander.yacl.gui.controllers.string.number.IntegerFieldController;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -51,6 +50,7 @@ public class ConfigGUI {
     public final Option<Boolean> enabled;
     public final Option<Float> opacity;
     public final Option<Float> opacityFactor;
+    public final Option<Float> opacityExponent;
     public final Option<Float> fadeEdge;
     public final LabelOption irisDisclaimer;
     public final Option<Boolean> irisSupport;
@@ -240,7 +240,7 @@ public class ConfigGUI {
             .build();
         this.gamma = createOption(float.class, "gamma")
             .binding(defaults.preset().gamma, () -> config.preset().gamma, val -> config.preset().gamma = val)
-            .controller(opt -> new FloatSliderController(opt, -5, 5, 0.01f, value -> Text.literal(String.format("%,.2f", value).replaceAll("[\u00a0\u202F]", " "))))
+            .controller(opt -> new FloatSliderController(opt, -5, 5, 0.01f, ConfigGUI::formatAsTwoDecimals))
             .build();
         this.dayBrightness = createOption(float.class, "dayBrightness")
             .binding(defaults.preset().dayBrightness, () -> config.preset().dayBrightness, val -> config.preset().dayBrightness = val)
@@ -278,6 +278,10 @@ public class ConfigGUI {
             .binding(defaults.preset().opacityFactor, () -> config.preset().opacityFactor, val -> config.preset().opacityFactor = val)
             .controller(opt -> new FloatSliderController(opt, 0, 1, 0.01f, ConfigGUI::formatAsPercent))
             .build();
+        this.opacityExponent = createOption(float.class, "opacityExponent")
+            .binding(defaults.preset().opacityExponent, () -> config.preset().opacityExponent, val -> config.preset().opacityExponent = val)
+            .controller(opt -> new FloatSliderController(opt, 0.25f, 4f, 0.01f, ConfigGUI::formatAsTwoDecimals))
+            .build();
         this.opacity = createOption(float.class, "opacity")
             .binding(defaults.preset().opacity, () -> config.preset().opacity, val -> config.preset().opacity = val)
             .controller(opt -> new FloatSliderController(opt, 0, 1, 0.01f, ConfigGUI::formatAsPercent))
@@ -295,6 +299,7 @@ public class ConfigGUI {
             upscaleResolutionFactor,
             sunPathAngle,
             opacityFactor,
+            opacityExponent,
             opacity));
         shaderConfigPresetOptions.forEach(opt -> opt.setAvailable(config.preset().editable));
 
@@ -367,7 +372,7 @@ public class ConfigGUI {
         appearanceGeometryGroup.addAll(List.of(sizeXZ, sizeY, scaleFalloffMin, travelSpeed, windFactor));
         appearanceCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("appearance.visibility")), appearanceVisibilityGroup));
-        appearanceVisibilityGroup.addAll(List.of(enabled, opacity, opacityFactor, fadeEdge));
+        appearanceVisibilityGroup.addAll(List.of(enabled, opacity, opacityFactor, opacityExponent, fadeEdge));
         appearanceCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("appearance.color")), appearanceColorGroup));
         appearanceColorGroup.addAll(List.of(colorVariationFactor, gamma, dayBrightness, nightBrightness, saturation, tint));
@@ -412,11 +417,11 @@ public class ConfigGUI {
 
     public static ConfigScreen create(Screen parent) {
         YetAnotherConfigLib yacl = YetAnotherConfigLib.create(Main.getConfigInstance(),
-            (defaults, config, builder) -> new ConfigGUI(defaults, config).apply(builder));
+            (defaults, config, builder) -> new ConfigGUI(defaults, config).formatAsTwoDecimals(builder));
         return new ConfigScreen(yacl, parent);
     }
 
-    public YetAnotherConfigLib.Builder apply(YetAnotherConfigLib.Builder builder) {
+    public YetAnotherConfigLib.Builder formatAsTwoDecimals(YetAnotherConfigLib.Builder builder) {
         builder = builder
             .save(() -> {
                 for (Config.ShaderConfigPreset preset : presetsToBeDeleted) {
@@ -488,4 +493,7 @@ public class ConfigGUI {
         return Text.translatable(LANG_KEY_PREFIX + ".entry." + key + ".tooltip");
     }
 
+    private static Text formatAsTwoDecimals(Float value) {
+        return Text.literal(String.format("%,.2f", value).replaceAll("[\u00a0\u202F]", " "));
+    }
 }

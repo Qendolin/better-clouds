@@ -147,7 +147,7 @@ public class Config {
         String title = preset.title;
         // The title does not matter
         preset.title = ShaderConfigPreset.EMPTY_PRESET.title;
-        boolean equal = preset.equals(ShaderConfigPreset.EMPTY_PRESET);
+        boolean equal = preset.isEqualTo(ShaderConfigPreset.EMPTY_PRESET);
         preset.title = title;
         return equal;
     }
@@ -191,11 +191,12 @@ public class Config {
             this.saturation = other.saturation;
             this.opacity = other.opacity;
             this.opacityFactor = other.opacityFactor;
+            this.opacityExponent = other.opacityExponent;
             this.tintRed = other.tintRed;
             this.tintGreen = other.tintGreen;
             this.tintBlue = other.tintBlue;
 
-            // NOTE: Don't forget to update `equals`
+            //!! NOTE: Don't forget to update `isEqualTo` when adding fields
         }
 
         @ConfigEntry
@@ -230,6 +231,8 @@ public class Config {
         @ConfigEntry
         public float opacityFactor = 1f;
         @ConfigEntry
+        public float opacityExponent = 1.5f;
+        @ConfigEntry
         public float tintRed = 1f;
         @ConfigEntry
         public float tintGreen = 1f;
@@ -249,29 +252,28 @@ public class Config {
             key = null;
         }
 
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            ShaderConfigPreset preset = (ShaderConfigPreset) o;
-            return editable == preset.editable &&
-                Float.compare(preset.upscaleResolutionFactor, upscaleResolutionFactor) == 0 &&
-                Float.compare(preset.gamma, gamma) == 0 &&
-                Float.compare(preset.sunPathAngle, sunPathAngle) == 0 &&
-                sunriseStartTime == preset.sunriseStartTime &&
-                sunriseEndTime == preset.sunriseEndTime &&
-                sunsetStartTime == preset.sunsetStartTime &&
-                sunsetEndTime == preset.sunsetEndTime &&
-                Float.compare(preset.dayBrightness, dayBrightness) == 0 &&
-                Float.compare(preset.nightBrightness, nightBrightness) == 0 &&
-                Float.compare(preset.saturation, saturation) == 0 &&
-                Float.compare(preset.opacity, opacity) == 0 &&
-                Float.compare(preset.opacityFactor, opacityFactor) == 0 &&
-                Float.compare(preset.tintRed, tintRed) == 0 &&
-                Float.compare(preset.tintGreen, tintGreen) == 0 &&
-                Float.compare(preset.tintBlue, tintBlue) == 0 &&
-                Objects.equal(title, preset.title) &&
-                Objects.equal(key, preset.key);
+        public boolean isEqualTo(ShaderConfigPreset other) {
+            if (this == other) return true;
+            if (other == null) return false;
+            return editable == other.editable &&
+                Float.compare(other.upscaleResolutionFactor, upscaleResolutionFactor) == 0 &&
+                Float.compare(other.gamma, gamma) == 0 &&
+                Float.compare(other.sunPathAngle, sunPathAngle) == 0 &&
+                sunriseStartTime == other.sunriseStartTime &&
+                sunriseEndTime == other.sunriseEndTime &&
+                sunsetStartTime == other.sunsetStartTime &&
+                sunsetEndTime == other.sunsetEndTime &&
+                Float.compare(other.dayBrightness, dayBrightness) == 0 &&
+                Float.compare(other.nightBrightness, nightBrightness) == 0 &&
+                Float.compare(other.saturation, saturation) == 0 &&
+                Float.compare(other.opacity, opacity) == 0 &&
+                Float.compare(other.opacityFactor, opacityFactor) == 0 &&
+                Float.compare(other.opacityExponent, opacityExponent) == 0 &&
+                Float.compare(other.tintRed, tintRed) == 0 &&
+                Float.compare(other.tintGreen, tintGreen) == 0 &&
+                Float.compare(other.tintBlue, tintBlue) == 0 &&
+                Objects.equal(title, other.title) &&
+                Objects.equal(key, other.key);
         }
     }
 

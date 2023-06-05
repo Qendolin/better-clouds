@@ -35,6 +35,8 @@ public class Renderer implements AutoCloseable {
     private final Matrix4f mvpMatrix = new Matrix4f();
     private final Matrix4f rotationProjectionMatrix = new Matrix4f();
     private final Matrix4f tempMatrix = new Matrix4f();
+    private final Vector3f tempVector = new Vector3f();
+    private final Frustum tempFrustum = new Frustum(new Matrix4f().identity(), new Matrix4f().identity());
     private final PrimitiveChangeDetector shaderInvalidator = new PrimitiveChangeDetector(false);
 
     private final Resources res = new Resources();
@@ -257,7 +259,8 @@ public class Renderer implements AutoCloseable {
 
         res.generator().bind();
 
-        Frustum frustumAtOrigin = new Frustum(frustum);
+        setFrustumTo(tempFrustum, frustum);
+        Frustum frustumAtOrigin = tempFrustum;
         frustumAtOrigin.setPosition(frustumPos.x - res.generator().originX(), frustumPos.y, frustumPos.z - res.generator().originZ());
         if (res.generator().canRender()) {
             int runStart = -1;
@@ -315,12 +318,15 @@ public class Renderer implements AutoCloseable {
         float sunPathAngleRad = (float) Math.toRadians(config.preset().sunPathAngle);
         float dayNightFactor = interpolateDayNightFactor(skyTime, config.preset().sunriseStartTime, config.preset().sunriseEndTime, config.preset().sunsetStartTime, config.preset().sunsetEndTime);
         float brightness = (1 - dayNightFactor) * config.preset().nightBrightness + dayNightFactor * config.preset().dayBrightness;
-        Vector3f sunDir = new Vector3f(1, 0, 0).rotateAxis(skyAngleRad + MathHelper.HALF_PI, 0, MathHelper.sin(sunPathAngleRad), MathHelper.cos(sunPathAngleRad));
+        float sunAxisY = MathHelper.sin(sunPathAngleRad);
+        float sunAxisZ = MathHelper.cos(sunPathAngleRad);
+        Vector3f sunDir = tempVector.set(1, 0, 0).rotateAxis(skyAngleRad + MathHelper.HALF_PI, 0, sunAxisY, sunAxisZ);
 
         res.shadingShader().bind();
         res.shadingShader().uVPMatrix.setMat4(rotationProjectionMatrix);
         res.shadingShader().uSunDirection.setVec4(sunDir.x, sunDir.y, sunDir.z, (world.getTimeOfDay() % 24000) / 24000f);
-        res.shadingShader().uOpacity.setVec2(config.preset().opacity, config.preset().opacityFactor);
+        res.shadingShader().uSunAxis.setVec3(0, sunAxisY, sunAxisZ);
+        res.shadingShader().uOpacity.setVec3(config.preset().opacity, config.preset().opacityFactor,  config.preset().opacityExponent);
         res.shadingShader().uColorGrading.setVec4(brightness, 1f / config.preset().gamma(), effectLuma, config.preset().saturation);
         res.shadingShader().uTint.setVec3(config.preset().tintRed, config.preset().tintGreen, config.preset().tintBlue);
         res.shadingShader().uNoiseFactor.setFloat(config.colorVariationFactor);
@@ -365,6 +371,15 @@ public class Renderer implements AutoCloseable {
     private float smoothstep(float x, float e0, float e1) {
         x = MathHelper.clamp((x - e0) / (e1 - e0), 0, 1);
         return x * x * (3 - 2 * x);
+    }
+
+    private void setFrustumTo(Frustum dst, Frustum src) {
+        dst.frustumIntersection.set(src.field_40824);
+        dst.field_40824.set(src.field_40824);
+        dst.x = src.x;
+        dst.y = src.y;
+        dst.z = src.z;
+        dst.field_34821 = src.field_34821;
     }
 
     public void close() {

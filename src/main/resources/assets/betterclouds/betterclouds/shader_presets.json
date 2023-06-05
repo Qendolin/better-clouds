@@ -67,8 +67,9 @@
     "sunset_end_time": 13000,
     "day_brightness": 4.0,
     "night_brightness": 0.46,
-    "opacity": 0.4,
-    "opacity_factor": 0.7
+    "opacity": 0.2,
+    "opacity_factor": 1.0,
+    "opacity_exponent": 0.75
   },
   "rethinking_voxels_v0": {
     "title": "Rethinking Voxels",

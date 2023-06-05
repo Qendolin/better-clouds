@@ -1,8 +1,11 @@
-
 plugins {
-	id 'fabric-loom' version '1.0-SNAPSHOT'
+	id 'fabric-loom' version '1.2-SNAPSHOT'
 	id 'maven-publish'
 	id "com.modrinth.minotaur" version "2.+"
+}
+
+loom {
+	accessWidenerPath = file("src/main/resources/betterclouds.accesswidener")
 }
 
 sourceCompatibility = JavaVersion.VERSION_17
