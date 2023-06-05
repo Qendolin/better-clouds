@@ -254,7 +254,7 @@ public class Resources implements Closeable {
 
         Config config = Main.getConfig();
 
-        depthShader = DepthShader.create(manager, (glCompat.openGl42 || glCompat.arbConservativeDepth) && !safeMode);
+        depthShader = DepthShader.create(manager);
         depthShader.bind();
         depthShader.uDepthTexture.setInt(0);
         glCompat.objectLabel(glCompat.GL_PROGRAM, depthShader.glId(), "depth");

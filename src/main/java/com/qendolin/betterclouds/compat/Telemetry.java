@@ -87,7 +87,7 @@ public class Telemetry {
             conn.setRequestMethod("POST");
             conn.setDoOutput(true);
             outputStream = conn.getOutputStream();
-            Main.LOGGER.info("Sending telemetry...");
+            Main.LOGGER.info("Sending telemetry, see https://github.com/Qendolin/better-clouds/blob/main/Telemetry.md for mor information");
             IOUtils.write(body, outputStream);
 
             InputStreamReader is = new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8);

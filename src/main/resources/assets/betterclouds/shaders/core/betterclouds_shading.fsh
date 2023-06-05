@@ -1,5 +1,7 @@
 #version 330
 
+#extension GL_ARB_separate_shader_objects : enable
+
 #define BLIT_DEPTH _BLIT_DEPTH_
 
 in vec3 pass_dir;
