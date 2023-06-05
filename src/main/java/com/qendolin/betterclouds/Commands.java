@@ -13,23 +13,22 @@ import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.lit
 public class Commands {
 
     static void register(CommandDispatcher<FabricClientCommandSource> dispatcher) {
-        dispatcher.register(
-            literal(Main.MODID+":profile")
-                .then(argument("interval", IntegerArgumentType.integer(30))
-                    .executes(context -> {
-                        int interval = IntegerArgumentType.getInteger(context, "interval");
-                        Main.debugChatMessage("profiling.enabled", interval);
-                        Debug.profileInterval = interval;
-                        return 1;
-                    }))
-                .then(literal("stop")
-                    .executes(context -> {
-                        Main.debugChatMessage("profiling.disabled");
-                        Debug.profileInterval = 0;
-                        return 1;
-                    }))
+        dispatcher.register(literal(Main.MODID + ":profile")
+            .then(argument("interval", IntegerArgumentType.integer(30))
+                .executes(context -> {
+                    int interval = IntegerArgumentType.getInteger(context, "interval");
+                    Main.debugChatMessage("profiling.enabled", interval);
+                    Debug.profileInterval = interval;
+                    return 1;
+                }))
+            .then(literal("stop")
+                .executes(context -> {
+                    Main.debugChatMessage("profiling.disabled");
+                    Debug.profileInterval = 0;
+                    return 1;
+                }))
         );
-        dispatcher.register(literal(Main.MODID+":frustum")
+        dispatcher.register(literal(Main.MODID + ":frustum")
             .then(literal("capture")
                 .executes(context -> {
                     context.getSource().getClient().worldRenderer.captureFrustum();
@@ -46,7 +45,7 @@ public class Commands {
                         Debug.frustumCulling = BoolArgumentType.getBool(context, "enable");
                         return 1;
                     }))));
-        dispatcher.register(literal(Main.MODID+":generator")
+        dispatcher.register(literal(Main.MODID + ":generator")
             .then(literal("pause")
                 .executes(context -> {
                     Debug.generatorPause = true;
@@ -59,19 +58,29 @@ public class Commands {
                     Main.debugChatMessage("generatorResumed");
                     return 1;
                 })));
-        dispatcher.register(literal(Main.MODID+":config")
-            .executes(context -> {
+        dispatcher.register(literal(Main.MODID + ":config")
+            .then(literal("open").executes(context -> {
                 MinecraftClient client = context.getSource().getClient();
                 // The chat screen will call setScreen(null) after the command handler
                 // which would override our call, so we delay it
                 client.send(() -> client.setScreen(ConfigGUI.create(null)));
                 return 1;
-            })
+            }))
             .then(literal("reload").executes(context -> {
                 Main.debugChatMessage("reloadingConfig");
                 Main.getConfigInstance().load();
                 Main.debugChatMessage("configReloaded");
                 return 1;
-            })));
+            }))
+            .then(literal("gpuIncompatibleMessage")
+                .then(argument("enable", BoolArgumentType.bool())
+                    .executes(context -> {
+                        boolean enable = BoolArgumentType.getBool(context, "enable");
+                        if (Main.getConfig().gpuIncompatibleMessageEnabled == enable) return 1;
+                        Main.getConfig().gpuIncompatibleMessageEnabled = enable;
+                        Main.getConfigInstance().save();
+                        Main.debugChatMessage("updatedPreferences");
+                        return 1;
+                    }))));
     }
 }

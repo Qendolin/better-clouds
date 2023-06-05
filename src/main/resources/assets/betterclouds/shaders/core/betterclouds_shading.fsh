@@ -1,14 +1,6 @@
 #version 330
 
-#extension GL_ARB_shader_image_load_store : enable
-#extension EXT_shader_image_load_store : enable
-
 #define BLIT_DEPTH _BLIT_DEPTH_
-#define EARLY_FRAGMENT_TESTS _EARLY_FRAGMENT_TESTS_
-
-#if !BLIT_DEPTH && EARLY_FRAGMENT_TESTS
-layout(early_fragment_tests) in;
-#endif
 
 in vec3 pass_dir;
 in vec2 pass_uv;

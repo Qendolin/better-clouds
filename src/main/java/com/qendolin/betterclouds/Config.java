@@ -12,7 +12,6 @@ import java.util.*;
 public class Config {
 
     public static final String DEFAULT_PRESET_KEY = "default";
-
     @SuppressWarnings("unused")
     public Config() {}
 
@@ -44,6 +43,7 @@ public class Config {
         this.presets = other.presets;
         this.presets.replaceAll(ShaderConfigPreset::new);
         this.lastTelemetryVersion = other.lastTelemetryVersion;
+        this.gpuIncompatibleMessageEnabled = other.gpuIncompatibleMessageEnabled;
     }
 
     @ConfigEntry
@@ -98,6 +98,8 @@ public class Config {
     public List<ShaderConfigPreset> presets = new ArrayList<>();
     @ConfigEntry
     public int lastTelemetryVersion = 0;
+    @ConfigEntry
+    public boolean gpuIncompatibleMessageEnabled = true;
 
     public void addFirstPreset() {
         if(presets.size() != 0) return;

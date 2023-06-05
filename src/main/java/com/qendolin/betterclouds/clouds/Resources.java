@@ -13,6 +13,7 @@ import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 
 import java.io.Closeable;
+import java.io.IOException;
 
 import static com.qendolin.betterclouds.Main.glCompat;
 import static org.lwjgl.opengl.GL32.*;
@@ -240,53 +241,44 @@ public class Resources implements Closeable {
     }
 
     public void reloadShaders(ResourceManager manager) {
+        try {
+            reloadShadersInternal(manager, false);
+        } catch (Exception ignored) {
+            try {
+                reloadShadersInternal(manager, true);
+            } catch (Exception e) {
+                Main.sendGpuIncompatibleChatMessage();
+                Main.LOGGER.error(e);
+                if(Telemetry.INSTANCE != null) {
+                    Telemetry.INSTANCE.sendShaderCompileError(e.toString());
+                }
+                deleteShaders();
+            }
+        }
+    }
+
+    protected void reloadShadersInternal(ResourceManager manager, boolean safeMode) throws IOException {
         deleteShaders();
 
         Config config = Main.getConfig();
 
-        try {
-            depthShader = DepthShader.create(manager, (glCompat.openGl42 || glCompat.arbConservativeDepth));
-            depthShader.bind();
-            depthShader.uDepthTexture.setInt(0);
-            glCompat.objectLabel(glCompat.GL_PROGRAM, depthShader.glId(), "depth");
-        } catch (Exception e) {
-            Main.LOGGER.error(e);
-            if(Telemetry.INSTANCE != null) {
-                Telemetry.INSTANCE.sendShaderCompileError(e.toString());
-            }
-            deleteShaders();
-            return;
-        }
+        depthShader = DepthShader.create(manager, (glCompat.openGl42 || glCompat.arbConservativeDepth) && !safeMode);
+        depthShader.bind();
+        depthShader.uDepthTexture.setInt(0);
+        glCompat.objectLabel(glCompat.GL_PROGRAM, depthShader.glId(), "depth");
 
-        try {
-            coverageShader = CoverageShader.create(manager, config.sizeXZ, config.sizeY, (int) (config.fadeEdge * config.blockDistance()));
-            coverageShader.bind();
-            coverageShader.uNoiseTexture.setInt(5);
-            glCompat.objectLabel(glCompat.GL_PROGRAM, coverageShader.glId(), "coverage");
-        } catch (Exception e) {
-            Main.LOGGER.error(e);
-            if(Telemetry.INSTANCE != null) {
-                Telemetry.INSTANCE.sendShaderCompileError(e.toString());
-            }
-            deleteShaders();
-            return;
-        }
+        coverageShader = CoverageShader.create(manager, config.sizeXZ, config.sizeY, (int) (config.fadeEdge * config.blockDistance()));
+        coverageShader.bind();
+        coverageShader.uNoiseTexture.setInt(5);
+        glCompat.objectLabel(glCompat.GL_PROGRAM, coverageShader.glId(), "coverage");
 
-        try {
-            shadingShader = ShadingShader.create(manager, config.writeDepth, glCompat.openGl42 || glCompat.arbShaderImageLoadStore || glCompat.extShaderImageLoadStore);
-            shadingShader.bind();
-            shadingShader.uDepthTexture.setInt(1);
-            shadingShader.uDataTexture.setInt(2);
-            shadingShader.uCoverageTexture.setInt(3);
-            shadingShader.uLightTexture.setInt(4);
-            glCompat.objectLabel(glCompat.GL_PROGRAM, shadingShader.glId(), "shading");
-        } catch (Exception e) {
-            Main.LOGGER.error(e);
-            if(Telemetry.INSTANCE != null) {
-                Telemetry.INSTANCE.sendShaderCompileError(e.toString());
-            }
-            deleteShaders();
-        }
+        shadingShader = ShadingShader.create(manager, config.writeDepth);
+        shadingShader.bind();
+        shadingShader.uDepthTexture.setInt(1);
+        shadingShader.uDataTexture.setInt(2);
+        shadingShader.uCoverageTexture.setInt(3);
+        shadingShader.uLightTexture.setInt(4);
+        glCompat.objectLabel(glCompat.GL_PROGRAM, shadingShader.glId(), "shading");
     }
 
     @Override

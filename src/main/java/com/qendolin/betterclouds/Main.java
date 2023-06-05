@@ -9,6 +9,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
@@ -16,12 +17,16 @@ import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.impl.util.version.StringVersion;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.resource.ResourceType;
+import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.opengl.GL32;
 
 import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 
 public class Main implements ClientModInitializer {
@@ -76,6 +81,17 @@ public class Main implements ClientModInitializer {
 		}
 	}
 
+	public static void sendGpuIncompatibleChatMessage() {
+		if(!getConfig().gpuIncompatibleMessageEnabled) return;
+		debugChatMessage(
+			Text.translatable(debugChatMessageKey("gpuIncompatible"))
+				.append(Text.literal("\n - "))
+				.append(Text.translatable(debugChatMessageKey("gpuIncompatible.disable"))
+					.styled(style -> style.withItalic(true).withUnderline(true).withColor(Formatting.GRAY)
+						.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
+							"/betterclouds:config gpuIncompatibleMessage false")))));
+	}
+
 	public static boolean isProfilingEnabled() {
 		return Debug.profileInterval > 0;
 	}
@@ -116,6 +132,12 @@ public class Main implements ClientModInitializer {
 		else version = new StringVersion("unknown");
 
 		ClientLifecycleEvents.CLIENT_STARTED.register(client -> glCompat.enableDebugOutputSynchronous());
+
+		ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+			if(!glCompat.isIncompatible()) return;
+			CompletableFuture.delayedExecutor(3, TimeUnit.SECONDS)
+					.execute(() -> client.execute(Main::sendGpuIncompatibleChatMessage));
+		});
 
 		ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES)
 				.registerReloadListener(ShaderPresetLoader.INSTANCE);
