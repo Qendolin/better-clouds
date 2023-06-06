@@ -95,7 +95,7 @@ public abstract class WorldRendererMixin {
         long startTime = System.nanoTime();
 
         matrices.push();
-        if (cloudRenderer.prepare(matrices, projMat, tickDelta, cam)) {
+        if (cloudRenderer.prepare(matrices, projMat, ticks, tickDelta, cam)) {
             ci.cancel();
             cloudRenderer.render(ticks, tickDelta, cam, frustumPos, frustum);
         }

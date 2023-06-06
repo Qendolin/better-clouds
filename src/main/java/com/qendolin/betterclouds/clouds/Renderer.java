@@ -78,7 +78,7 @@ public class Renderer implements AutoCloseable {
         return (int) (Main.getConfig().preset().upscaleResolutionFactor * client.getFramebuffer().textureHeight);
     }
 
-    public boolean prepare(MatrixStack matrices, Matrix4f projMat, float tickDelta, Vector3d cam) {
+    public boolean prepare(MatrixStack matrices, Matrix4f projMat, int ticks, float tickDelta, Vector3d cam) {
         assert RenderSystem.isOnRenderThread();
         client.getProfiler().swap("render_setup");
         Config config = Main.getConfig();
@@ -103,7 +103,7 @@ public class Renderer implements AutoCloseable {
         float raininess = Math.max(0.6f * world.getRainGradient(tickDelta), world.getThunderGradient(tickDelta));
         float cloudiness = raininess * 0.3f + 0.5f;
 
-        res.generator().update(cam, tickDelta, Main.getConfig(), cloudiness);
+        res.generator().update(cam, ticks+tickDelta, Main.getConfig(), cloudiness);
         if (res.generator().canGenerate() && !res.generator().generating() && !Debug.generatorPause) {
             client.getProfiler().swap("generate_clouds");
             res.generator().generate();

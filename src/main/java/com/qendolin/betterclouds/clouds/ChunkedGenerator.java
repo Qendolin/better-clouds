@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ChunkedGenerator implements AutoCloseable {
     private double originX;
     private double originZ;
+    private float prevTime = Float.POSITIVE_INFINITY;
 
     private Buffer buffer;
     private final Sampler sampler = new Sampler();
@@ -97,6 +98,7 @@ public class ChunkedGenerator implements AutoCloseable {
         buffer.unbind();
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public synchronized boolean reallocateIfStale(Config options, boolean fancy) {
         int bufferSize = calcBufferSize(options);
 
@@ -132,7 +134,11 @@ public class ChunkedGenerator implements AutoCloseable {
         clear();
     }
 
-    public synchronized void update(Vector3d camera, float timeDelta, Config options, float cloudiness) {
+    public synchronized void update(Vector3d camera, float time, Config options, float cloudiness) {
+        // This isn't quite right but whatever
+        float timeDelta = MathHelper.clamp(time - prevTime, 0, 200);
+        prevTime = time;
+
         originX -= timeDelta * options.travelSpeed;
         originZ = 0;
         double worldOriginX = camera.x - this.originX;
