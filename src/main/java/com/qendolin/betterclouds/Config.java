@@ -1,17 +1,20 @@
 package com.qendolin.betterclouds;
 
 import com.google.common.base.Objects;
+import com.google.gson.InstanceCreator;
 import dev.isxander.yacl.config.ConfigEntry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Type;
 import java.util.*;
 
 public class Config {
 
     public static final String DEFAULT_PRESET_KEY = "default";
+    public static final InstanceCreator<Config> INSTANCE_CREATOR = type -> new Config();
 
     @SuppressWarnings("unused")
     public Config() {
@@ -164,12 +167,21 @@ public class Config {
 
     public void addFirstPreset() {
         if (presets.size() != 0) return;
-        presets.add(new ShaderConfigPreset(""));
+        presets.add(new ShaderConfigPreset());
+    }
+
+    public int blockDistance() {
+        return (int) (this.distance * MinecraftClient.getInstance().options.getViewDistance().getValue() * 16);
     }
 
     public static class ShaderConfigPreset {
 
-        protected static final ShaderConfigPreset EMPTY_PRESET = new ShaderConfigPreset("");
+        public static final InstanceCreator<ShaderConfigPreset> INSTANCE_CREATOR = type -> new ShaderConfigPreset();
+        protected static final ShaderConfigPreset EMPTY_PRESET = new ShaderConfigPreset();
+
+        public ShaderConfigPreset() {
+            this("");
+        }
 
         public ShaderConfigPreset(String title) {
             this.title = title;
@@ -275,9 +287,5 @@ public class Config {
                 Objects.equal(title, other.title) &&
                 Objects.equal(key, other.key);
         }
-    }
-
-    public int blockDistance() {
-        return (int) (this.distance * MinecraftClient.getInstance().options.getViewDistance().getValue() * 16);
     }
 }

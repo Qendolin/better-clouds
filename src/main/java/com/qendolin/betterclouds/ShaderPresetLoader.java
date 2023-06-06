@@ -24,7 +24,7 @@ public class ShaderPresetLoader implements SimpleResourceReloadListener<Map<Stri
     private static final Gson GSON = new GsonBuilder()
         .setLenient()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-        .registerTypeAdapter(Config.ShaderConfigPreset.class, (InstanceCreator<Config.ShaderConfigPreset>) type -> new Config.ShaderConfigPreset(""))
+        .registerTypeAdapter(Config.ShaderConfigPreset.class, Config.ShaderConfigPreset.INSTANCE_CREATOR)
         .create();
     public static final Identifier ID = new Identifier(Main.MODID, "shader_presets");
     public static final Identifier RESOURCE_ID = new Identifier(Main.MODID, "betterclouds/shader_presets.json");
