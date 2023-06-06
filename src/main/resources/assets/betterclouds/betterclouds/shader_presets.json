@@ -43,7 +43,7 @@
     "upscale_resolution_factor": 1.0,
     "gamma": 1.0,
     "sun_path_angle": 0.0,
-    "day_brightness": 1.21,
+    "day_brightness": 1.2,
     "night_brightness": 1.0,
     "saturation": 1.1
   },
@@ -79,5 +79,17 @@
     "day_brightness": 1.5,
     "night_brightness": 1.0,
     "saturation": 0.75
+  },
+  "solas_v1":     {
+    "title": "Solas V1",
+    "gamma": 1.0,
+    "sun_path_angle": -40.0,
+    "sunrise_start_time": -785,
+    "sunrise_end_time": 1163,
+    "sunset_start_time": 10837,
+    "sunset_end_time": 12785,
+    "day_brightness": 0.86,
+    "night_brightness": 1.0,
+    "saturation": 0.8
   }
 }

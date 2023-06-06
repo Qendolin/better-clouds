@@ -192,7 +192,7 @@ public class Renderer implements AutoCloseable {
 
         if (Debug.frustumCulling) {
             glCompat.pushDebugGroup("Frustum Culling Debug Draw");
-            Debug.drawFrustumCulling(cam, frustum, frustumPos, res.generator(), cloudsHeight);
+            Debug.drawFrustumCulledBoxes(cam);
             glCompat.popDebugGroup();
         }
 
@@ -262,18 +262,21 @@ public class Renderer implements AutoCloseable {
         setFrustumTo(tempFrustum, frustum);
         Frustum frustumAtOrigin = tempFrustum;
         frustumAtOrigin.setPosition(frustumPos.x - res.generator().originX(), frustumPos.y, frustumPos.z - res.generator().originZ());
+        Debug.clearFrustumCulledBoxed();
         if (res.generator().canRender()) {
             int runStart = -1;
             int runCount = 0;
             for (ChunkedGenerator.ChunkIndex chunk : res.generator().chunks()) {
                 Box bounds = chunk.bounds(cloudsHeight, config.sizeXZ, config.sizeY);
                 if (!frustumAtOrigin.isVisible(bounds)) {
+                    Debug.addFrustumCulledBox(bounds, false);
                     if (runCount != 0) {
                         glCompat.drawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
                     }
                     runStart = -1;
                     runCount = 0;
                 } else {
+                    Debug.addFrustumCulledBox(bounds, true);
                     if (runStart == -1) runStart = chunk.start();
                     runCount += chunk.count();
                 }
@@ -322,6 +325,7 @@ public class Renderer implements AutoCloseable {
         float sunAxisZ = MathHelper.cos(sunPathAngleRad);
         Vector3f sunDir = tempVector.set(1, 0, 0).rotateAxis(skyAngleRad + MathHelper.HALF_PI, 0, sunAxisY, sunAxisZ);
 
+        // TODO: fit light gradient rotation to configured sunset / sunrise values. Solas shader looks weird at sunset
         res.shadingShader().bind();
         res.shadingShader().uVPMatrix.setMat4(rotationProjectionMatrix);
         res.shadingShader().uSunDirection.setVec4(sunDir.x, sunDir.y, sunDir.z, (world.getTimeOfDay() % 24000) / 24000f);
