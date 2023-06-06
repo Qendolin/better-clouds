@@ -242,6 +242,8 @@ public class Renderer implements AutoCloseable {
         RenderSystem.depthFunc(GL_LESS);
         RenderSystem.depthMask(true);
         RenderSystem.colorMask(true, true, true, true);
+        if(isFancyMode()) RenderSystem.enableCull();
+        else RenderSystem.disableCull();
         glClear(GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
         Config generatorConfig = getGeneratorConfig();
@@ -285,6 +287,8 @@ public class Renderer implements AutoCloseable {
                 glCompat.drawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
             }
         }
+
+        RenderSystem.enableCull();
     }
 
     private void drawShading(float tickDelta) {

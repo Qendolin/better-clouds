@@ -4,7 +4,6 @@
   },
   "soft_voxels_lite_v1": {
     "title": "Soft Voxels Lite V1",
-    "editable": true,
     "upscale_resolution_factor": 0.5,
     "gamma": -2.2,
     "sun_path_angle": -25.0,
@@ -72,7 +71,7 @@
     "opacity_exponent": 0.75
   },
   "rethinking_voxels_v0": {
-    "title": "Rethinking Voxels",
+    "title": "Rethinking Voxels V0",
     "upscale_resolution_factor": 1.0,
     "gamma": 1.5,
     "sun_path_angle": 0.0,
