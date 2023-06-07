@@ -124,6 +124,6 @@
   "betterclouds.config.entry.sunPathAngle": "太阳/月亮的角度",
   "betterclouds.config.entry.sunPathAngle.tooltip": "太阳/月亮旋转轴的倾斜度，以兼容支持该选项的光影",
   "betterclouds.config.entry.upscaleResolutionFactor": "向上缩放分辨率",
-  "betterclouds.config.entry.upscaleResolutionFactor.tooltip": "用于向上缩放的分辨率，以便与支持TAAU的着色器兼容,
+  "betterclouds.config.entry.upscaleResolutionFactor.tooltip": "用于向上缩放的分辨率，以便与支持TAAU的着色器兼容",
   "betterclouds.config.text.shaders": "§4光影支持是实验性的！§r\n一部分光影会工作，而还有其他的不工作。\n如果有选项提供，最好在光影包设置中关闭云，或者将它们设置为「原版」。\n如果云层看起来不对，你可以调整下面的颜色设置。"
 }
