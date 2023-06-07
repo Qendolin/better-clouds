@@ -1,5 +1,7 @@
 #version 330
 
+#extension GL_ARB_separate_shader_objects : enable
+
 // Geometry attributes
 #define SIZE vec3(_SIZE_XZ_, _SIZE_Y_, _SIZE_XZ_)
 #define NEAR_VISIBILITY_START 10.0 + _SIZE_XZ_

@@ -2,7 +2,6 @@
   "schemaVersion": 1,
   "id": "betterclouds",
   "version": "${version}",
-
   "name": "Better Clouds",
   "description": "Beautiful clouds in touch with the vanilla style.",
   "authors": [
@@ -27,6 +26,7 @@
   "mixins": [
     "betterclouds.mixins.json"
   ],
+  "accessWidener" : "betterclouds.accesswidener",
 
   "depends": {
     "fabricloader": ">=0.11.3",

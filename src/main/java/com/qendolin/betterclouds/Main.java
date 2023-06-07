@@ -1,5 +1,6 @@
 package com.qendolin.betterclouds;
 
+import com.google.gson.InstanceCreator;
 import com.qendolin.betterclouds.clouds.Debug;
 import com.qendolin.betterclouds.compat.GLCompat;
 import com.qendolin.betterclouds.compat.GsonConfigInstanceBuilderDuck;
@@ -48,7 +49,10 @@ public class Main implements ClientModInitializer {
             if (builder instanceof GsonConfigInstanceBuilderDuck) {
                 //noinspection unchecked
                 GsonConfigInstanceBuilderDuck<Config> duck = (GsonConfigInstanceBuilderDuck<Config>) builder;
-                builder = duck.betterclouds$appendGsonBuilder(b -> b.setLenient().setPrettyPrinting());
+                builder = duck.betterclouds$appendGsonBuilder(b -> b
+                    .setLenient().setPrettyPrinting()
+                    .registerTypeAdapter(Config.class, Config.INSTANCE_CREATOR)
+                    .registerTypeAdapter(Config.ShaderConfigPreset.class, Config.ShaderConfigPreset.INSTANCE_CREATOR));
             }
             CONFIG = builder.build();
         } else {

@@ -4,7 +4,6 @@
   },
   "soft_voxels_lite_v1": {
     "title": "Soft Voxels Lite V1",
-    "editable": true,
     "upscale_resolution_factor": 0.5,
     "gamma": -2.2,
     "sun_path_angle": -25.0,
@@ -43,7 +42,7 @@
     "upscale_resolution_factor": 1.0,
     "gamma": 1.0,
     "sun_path_angle": 0.0,
-    "day_brightness": 1.21,
+    "day_brightness": 1.2,
     "night_brightness": 1.0,
     "saturation": 1.1
   },
@@ -59,18 +58,37 @@
   "kappa_v5": {
     "title": "Kappa V5",
     "upscale_resolution_factor": 0.75,
-    "gamma": -3.00,
-    "sun_path_angle": -40.0,
-    "day_brightness": 3.0,
-    "night_brightness": 1.0
+    "gamma": -2.4,
+    "sun_path_angle": -35.0,
+    "sunrise_start_time": -1500,
+    "sunrise_end_time": 500,
+    "sunset_start_time": 11500,
+    "sunset_end_time": 13000,
+    "day_brightness": 4.0,
+    "night_brightness": 0.46,
+    "opacity": 0.2,
+    "opacity_factor": 1.0,
+    "opacity_exponent": 0.75
   },
   "rethinking_voxels_v0": {
-    "title": "Rethinking Voxels",
+    "title": "Rethinking Voxels V0",
     "upscale_resolution_factor": 1.0,
     "gamma": 1.5,
     "sun_path_angle": 0.0,
     "day_brightness": 1.5,
     "night_brightness": 1.0,
     "saturation": 0.75
+  },
+  "solas_v1":     {
+    "title": "Solas V1",
+    "gamma": 1.0,
+    "sun_path_angle": -40.0,
+    "sunrise_start_time": -785,
+    "sunrise_end_time": 1163,
+    "sunset_start_time": 10837,
+    "sunset_end_time": 12785,
+    "day_brightness": 0.86,
+    "night_brightness": 1.0,
+    "saturation": 0.8
   }
 }

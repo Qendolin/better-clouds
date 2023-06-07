@@ -48,6 +48,8 @@
   "betterclouds.config.entry.opacity.tooltip": "The opacity of an individual cloud cube",
   "betterclouds.config.entry.opacityFactor": "Opacity Factor",
   "betterclouds.config.entry.opacityFactor.tooltip": "The final opacity is scaled by this factor",
+  "betterclouds.config.entry.opacityExponent": "Opacity Exponent",
+  "betterclouds.config.entry.opacityExponent.tooltip": "Affects how quickly the maximum opacity is reached",
   "betterclouds.config.entry.gamma": "Gamma",
   "betterclouds.config.entry.gamma.tooltip": "Affects the brightness and contrast\nNegative values represent 1/γ",
   "betterclouds.config.entry.dayBrightness": "Day Brightness",

@@ -1,5 +1,7 @@
 #version 130
 
+#extension GL_ARB_separate_shader_objects : enable
+
 const float dither_matrix[16] = float[](
     0.0, 0.5, 0.125, 0.625,
     0.75, 0.25, 0.875, 0.375,

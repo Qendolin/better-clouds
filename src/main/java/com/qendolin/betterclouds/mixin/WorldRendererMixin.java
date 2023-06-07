@@ -29,6 +29,8 @@ import static com.qendolin.betterclouds.Main.glCompat;
 @Mixin(WorldRenderer.class)
 public abstract class WorldRendererMixin {
 
+    private final Vector3d tempVector = new Vector3d();
+
     private Renderer cloudRenderer;
     @Shadow
     private Frustum frustum;
@@ -80,7 +82,7 @@ public abstract class WorldRendererMixin {
         client.getProfiler().push(Main.MODID);
         glCompat.pushDebugGroup("Better Clouds");
 
-        Vector3d cam = new Vector3d(camX, camY, camZ);
+        Vector3d cam = tempVector.set(camX, camY, camZ);
         Frustum frustum = this.frustum;
         Vector3d frustumPos = cam;
         if (capturedFrustum != null) {
@@ -93,7 +95,7 @@ public abstract class WorldRendererMixin {
         long startTime = System.nanoTime();
 
         matrices.push();
-        if (cloudRenderer.prepare(matrices, projMat, tickDelta, cam)) {
+        if (cloudRenderer.prepare(matrices, projMat, ticks, tickDelta, cam)) {
             ci.cancel();
             cloudRenderer.render(ticks, tickDelta, cam, frustumPos, frustum);
         }

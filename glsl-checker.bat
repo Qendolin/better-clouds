@@ -7,7 +7,7 @@ REM Requires glslangValidator.exe under ./local/
 REM you can get it at https://github.com/KhronosGroup/glslang/releases/tag/main-tot
 
 REM define any missing shader constants
-set "defines=-D_SIZE_XZ_=1 -D_SIZE_Y_=1 -D_VISIBILITY_EDGE_=1 -D_DEPTH_LAYOUT_QUALIFIER_=0 -D_EARLY_FRAGMENT_TESTS_=0"
+set "defines=-D_SIZE_XZ_=1 -D_SIZE_Y_=1 -D_VISIBILITY_EDGE_=1"
 set "glslangValidator=local\glslangValidator.exe"
 set "folder=src\main\resources\assets\betterclouds\shaders\core"
 set "versions=460, 450, 440, 430, 420, 410, 400, 330, 150, 140, 130, 120, 110"

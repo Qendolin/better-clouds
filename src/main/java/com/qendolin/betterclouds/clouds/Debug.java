@@ -4,27 +4,45 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.Main;
 import net.minecraft.client.gl.ShaderProgram;
 import net.minecraft.client.render.*;
+import net.minecraft.util.Pair;
 import net.minecraft.util.math.Box;
 import org.joml.Vector3d;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Debug {
     public static int profileInterval = 0;
     public static boolean frustumCulling = false;
     public static boolean generatorPause = false;
 
-    public static void drawFrustumCulling(Vector3d cam, Frustum frustum, Vector3d frustumPos, ChunkedGenerator generator, float cloudsHeight) {
+    public static final List<Pair<Box, Boolean>> frustumCulledBoxes = new ArrayList<>();
+
+    public static void clearFrustumCulledBoxed() {
+        if(frustumCulling) {
+            frustumCulledBoxes.clear();
+        } else if(!frustumCulledBoxes.isEmpty()) {
+            frustumCulledBoxes.clear();
+        }
+    }
+
+    public static void addFrustumCulledBox(Box box, boolean visible) {
+        if(!frustumCulling) return;
+        frustumCulledBoxes.add(new Pair<>(box, visible));
+    }
+
+    public static void drawFrustumCulledBoxes(Vector3d cam) {
+        if(!frustumCulling) return;
         BufferBuilder vertices = Tessellator.getInstance().getBuffer();
         vertices.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
         ShaderProgram prevShader = RenderSystem.getShader();
         RenderSystem.setShader(GameRenderer::getPositionColorProgram);
-        Frustum frustumAtOrigin = new Frustum(frustum);
-        frustumAtOrigin.setPosition(frustumPos.x - generator.originX(), frustumPos.y, frustumPos.z - generator.originZ());
-        for (ChunkedGenerator.ChunkIndex chunk : generator.chunks()) {
-            Box bounds = chunk.bounds(cloudsHeight, Main.getConfig().sizeXZ, Main.getConfig().sizeY);
-            if (frustumAtOrigin.isVisible(bounds)) {
-                drawBox(cam, vertices, bounds, 0.6f, 1f, 0.5f, 1f);
+        for (Pair<Box, Boolean> pair : frustumCulledBoxes) {
+            Box box = pair.getLeft();
+            if(pair.getRight()) {
+                drawBox(cam, vertices, box, 0.6f, 1f, 0.5f, 1f);
             } else {
-                drawBox(cam, vertices, bounds, 1f, 0.6f, 0.5f, 1f);
+                drawBox(cam, vertices, box, 1f, 0.6f, 0.5f, 1f);
             }
         }
         Tessellator.getInstance().draw();

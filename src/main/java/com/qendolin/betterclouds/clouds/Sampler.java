@@ -56,6 +56,7 @@ public class Sampler {
     }
 
     public float sample(int x, int z, float cloudiness, float fuzziness, float scale) {
+        // TODO: A vanilla like cloud distribution is not possible with this function
         double value = NOISE.sample(x / scale / 128f, z / scale / 128f, false);
         value = value / 2 + 0.5;
         value = (value - (1 - cloudiness)) / cloudiness;

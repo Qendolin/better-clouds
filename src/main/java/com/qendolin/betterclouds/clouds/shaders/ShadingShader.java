@@ -19,6 +19,7 @@ public class ShadingShader extends Shader {
     public final Uniform uLightTexture;
     public final Uniform uVPMatrix;
     public final Uniform uSunDirection;
+    public final Uniform uSunAxis;
     public final Uniform uColorGrading;
     public final Uniform uOpacity;
     public final Uniform uTint;
@@ -33,6 +34,7 @@ public class ShadingShader extends Shader {
         uLightTexture = getUniform("u_light_texture", false);
         uVPMatrix = getUniform("u_vp_matrix", false);
         uSunDirection = getUniform("u_sun_direction", true);
+        uSunAxis = getUniform("u_sun_axis", true);
         uColorGrading = getUniform("u_color_grading", true);
         uOpacity = getUniform("u_opacity", true);
         uTint = getUniform("u_tint", true);

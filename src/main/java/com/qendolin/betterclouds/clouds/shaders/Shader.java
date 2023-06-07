@@ -19,7 +19,6 @@ import static org.lwjgl.opengl.GL32.*;
 
 public class Shader implements AutoCloseable {
 
-    public static final String DEF_VERSION_KEY = "_VERSION_";
     private final Map<String, String> defs;
 
     protected int programId;

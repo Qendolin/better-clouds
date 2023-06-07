@@ -1,5 +1,7 @@
 #version 330
 
+#extension GL_ARB_separate_shader_objects : enable
+
 #define BLIT_DEPTH _BLIT_DEPTH_
 
 in vec3 pass_dir;
@@ -14,10 +16,12 @@ uniform sampler2D u_depth_texture;
 uniform sampler2D u_data_texture;
 uniform usampler2D u_coverage_texture;
 uniform sampler2D u_light_texture;
-// x, y, z, tilt
+// x, y, z, time of day
 uniform vec4 u_sun_direction;
-// opacity, opacity factor
-uniform vec2 u_opacity;
+// x, y, z
+uniform vec3 u_sun_axis;
+// opacity, opacity factor, opacity exponent
+uniform vec3 u_opacity;
 // brightness, gamma, desaturated brightness, saturation
 uniform vec4 u_color_grading;
 // r, g, b
@@ -39,18 +43,24 @@ void main() {
     float coverage = float(texelFetch(u_coverage_texture, ivec2(gl_FragCoord), 0).r);
     // This is the "correct" formula
     // frag_color.a = 1.0 - pow((1.0-u_opacity.x), coverage);
-    out_color.a = pow(coverage, 1.5) / (1.0/(u_opacity.x)+pow(coverage, 1.5)-1.0);
+    out_color.a = pow(coverage, u_opacity.z) / (1.0/(u_opacity.x)+pow(coverage, u_opacity.z)-1.0);
 
     vec3 sunDir = u_sun_direction.xyz;
     vec3 fragDir = normalize(pass_dir);
 
     vec3 xzProj = fragDir - sunDir * dot(fragDir, sunDir);
-    float projAngle = acos(dot(normalize(xzProj), vec3(0.0, 0.0, 1.0)));
+    float projAngle = acos(dot(normalize(xzProj), u_sun_axis));
 
     // if sunDir.z is always 0, this can be optimized, but who cares
     float sphere = dot(sunDir, fragDir);
     // TODO: document how I arrived at this formula
-    float superellipse = ((1.0 + (1.0/3.0) * (pow(sin(2.0*projAngle + pi/2.0), 2.0))) * (1.0-abs(dot(sunDir, fragDir))) - 1.0) * sign(dot(sunDir, -fragDir));
+    float superellipseFalloff = dot(sunDir, fragDir);
+    // Higher values -> smaller size
+    const float superellipseSize = 3.0;
+    float superellipse = (
+        (1.0 + (1.0/3.0) * (pow(sin(2.0*projAngle + pi/2.0), 2.0)))
+        * (superellipseSize-abs(superellipseFalloff)*superellipseSize) - 1.0
+    ) * sign(-superellipseFalloff);
     float lightUVx = mix(sphere, superellipse, smoothstep(0.75, 1.0, abs(sphere)));
 
     // (1, 0) to (0.5, 1)
