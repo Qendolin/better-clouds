@@ -1,8 +1,8 @@
 package com.qendolin.betterclouds.gui;
 
 import com.google.common.collect.ImmutableSet;
-import dev.isxander.yacl.api.*;
-import dev.isxander.yacl.gui.YACLScreen;
+import dev.isxander.yacl3.api.*;
+import dev.isxander.yacl3.gui.YACLScreen;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.apache.commons.lang3.Validate;
@@ -13,7 +13,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class CustomButtonOption implements ButtonOption {
@@ -29,14 +28,13 @@ public class CustomButtonOption implements ButtonOption {
         @NotNull Supplier<Text> name,
         @Nullable Text tooltip,
         @NotNull BiConsumer<YACLScreen, ButtonOption> action,
-        boolean available,
-        @NotNull Function<ButtonOption, Controller<BiConsumer<YACLScreen, ButtonOption>>> controlGetter
+        boolean available
     ) {
         this.name = name;
-        this.tooltip = tooltip;
+        this.tooltip = tooltip == null ? Text.of(null) : tooltip;
         this.action = action;
         this.available = available;
-        this.controller = controlGetter.apply(this);
+        this.controller = new CustomActionController(this);
         this.binding = new EmptyBinderImpl();
     }
 
@@ -47,6 +45,12 @@ public class CustomButtonOption implements ButtonOption {
     @Override
     public @NotNull Text name() {
         return name.get();
+    }
+
+    @Override
+    public @NotNull OptionDescription description() {
+        // TODO
+        return null;
     }
 
     @Override
@@ -77,11 +81,6 @@ public class CustomButtonOption implements ButtonOption {
     @Override
     public @NotNull Binding<BiConsumer<YACLScreen, ButtonOption>> binding() {
         return binding;
-    }
-
-    @Override
-    public @NotNull Class<BiConsumer<YACLScreen, ButtonOption>> typeClass() {
-        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -151,7 +150,6 @@ public class CustomButtonOption implements ButtonOption {
         private Supplier<Text> name;
         private final List<Text> tooltipLines = new ArrayList<>();
         private boolean available = true;
-        private Function<ButtonOption, Controller<BiConsumer<YACLScreen, ButtonOption>>> controlGetter;
         private BiConsumer<YACLScreen, ButtonOption> action;
 
         public Builder name(@NotNull Supplier<Text> name) {
@@ -181,16 +179,8 @@ public class CustomButtonOption implements ButtonOption {
             return this;
         }
 
-        public Builder controller(@NotNull Function<ButtonOption, Controller<BiConsumer<YACLScreen, ButtonOption>>> control) {
-            Validate.notNull(control, "`control` cannot be null");
-
-            this.controlGetter = control;
-            return this;
-        }
-
         public ButtonOption build() {
             Validate.notNull(name, "`name` must not be null when building `Option`");
-            Validate.notNull(controlGetter, "`control` must not be null when building `Option`");
             Validate.notNull(action, "`action` must not be null when building `Option`");
 
             MutableText concatenatedTooltip = Text.empty();
@@ -202,7 +192,7 @@ public class CustomButtonOption implements ButtonOption {
                 concatenatedTooltip.append(line);
             }
 
-            return new CustomButtonOption(name, concatenatedTooltip, action, available, controlGetter);
+            return new CustomButtonOption(name, concatenatedTooltip, action, available);
         }
     }
 }
