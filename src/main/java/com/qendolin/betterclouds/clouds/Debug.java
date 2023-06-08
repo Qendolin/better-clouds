@@ -1,7 +1,6 @@
 package com.qendolin.betterclouds.clouds;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.qendolin.betterclouds.Main;
 import net.minecraft.client.gl.ShaderProgram;
 import net.minecraft.client.render.*;
 import net.minecraft.util.Pair;

@@ -1,11 +1,10 @@
 package com.qendolin.betterclouds;
 
-import com.google.gson.InstanceCreator;
 import com.qendolin.betterclouds.clouds.Debug;
 import com.qendolin.betterclouds.compat.GLCompat;
 import com.qendolin.betterclouds.compat.GsonConfigInstanceBuilderDuck;
 import com.qendolin.betterclouds.compat.Telemetry;
-import dev.isxander.yacl.config.GsonConfigInstance;
+import dev.isxander.yacl3.config.GsonConfigInstance;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;

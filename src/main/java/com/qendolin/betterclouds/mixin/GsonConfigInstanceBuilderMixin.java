@@ -2,7 +2,7 @@ package com.qendolin.betterclouds.mixin;
 
 import com.google.gson.GsonBuilder;
 import com.qendolin.betterclouds.compat.GsonConfigInstanceBuilderDuck;
-import dev.isxander.yacl.config.GsonConfigInstance;
+import dev.isxander.yacl3.config.GsonConfigInstance;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 

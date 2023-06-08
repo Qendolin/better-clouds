@@ -1,12 +1,12 @@
 package com.qendolin.betterclouds.gui;
 
 import com.qendolin.betterclouds.ConfigGUI;
-import dev.isxander.yacl.api.YetAnotherConfigLib;
-import dev.isxander.yacl.gui.TooltipButtonWidget;
-import dev.isxander.yacl.gui.YACLScreen;
+import dev.isxander.yacl3.api.YetAnotherConfigLib;
+import dev.isxander.yacl3.gui.TooltipButtonWidget;
+import dev.isxander.yacl3.gui.YACLScreen;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 
 public class ConfigScreen extends YACLScreen {
@@ -22,26 +22,27 @@ public class ConfigScreen extends YACLScreen {
     @Override
     protected void init() {
         super.init();
-        remove(undoButton);
-
-        hideShowButton = new TooltipButtonWidget(
-            this,
-            undoButton.getX(),
-            undoButton.getY(),
-            undoButton.getWidth(),
-            undoButton.getHeight(),
-            Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".hide"),
-            Text.empty(),
-            btn -> setHidden(!hidden)
-        );
-        addDrawableChild(hideShowButton);
-        hideShowButton.active = client != null && client.world != null;
-
-        cancelResetButton.active = false;
-
-        remove(optionList);
-        optionList = new CustomOptionListWidget(this, client, width, height);
-        addSelectableChild(optionList);
+        // TODO:
+//        remove(undoButton);
+//
+//        hideShowButton = new TooltipButtonWidget(
+//            this,
+//            undoButton.getX(),
+//            undoButton.getY(),
+//            undoButton.getWidth(),
+//            undoButton.getHeight(),
+//            Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".hide"),
+//            Text.empty(),
+//            btn -> setHidden(!hidden)
+//        );
+//        addDrawableChild(hideShowButton);
+//        hideShowButton.active = client != null && client.world != null;
+//
+//        cancelResetButton.active = false;
+//
+//        remove(optionList);
+//        optionList = new CustomOptionListWidget(this, client, width, height);
+//        addSelectableChild(optionList);
 
         hiddenScreen = new HiddenScreen(title, hideShowButton);
     }
@@ -62,13 +63,14 @@ public class ConfigScreen extends YACLScreen {
     public void tick() {
         super.tick();
 
-        if (Screen.hasShiftDown()) {
-            cancelResetButton.active = true;
-            cancelResetButton.setTooltip(Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".reset.tooltip"));
-        } else {
-            cancelResetButton.active = false;
-            cancelResetButton.setTooltip(Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".reset.tooltip.holdShift"));
-        }
+        // TODO:
+//        if (Screen.hasShiftDown()) {
+//            cancelResetButton.active = true;
+//            cancelResetButton.setTooltip(Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".reset.tooltip"));
+//        } else {
+//            cancelResetButton.active = false;
+//            cancelResetButton.setTooltip(Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".reset.tooltip.holdShift"));
+//        }
     }
 
     @Override
@@ -77,22 +79,23 @@ public class ConfigScreen extends YACLScreen {
     }
 
     @Override
-    public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         if (hidden) {
-            hideShowButton.render(matrices, mouseX, mouseY, delta);
-            hideShowButton.renderHoveredTooltip(matrices);
+            hideShowButton.render(context, mouseX, mouseY, delta);
+            // TODO:
+//            hideShowButton.renderHoveredTooltip(context);
             return;
         }
 
-        super.render(matrices, mouseX, mouseY, delta);
+        super.render(context, mouseX, mouseY, delta);
     }
 
     @Override
-    public void renderBackground(MatrixStack matrices) {
+    public void renderBackground(DrawContext context) {
         if (client == null || client.world == null) {
-            super.renderBackground(matrices);
+            super.renderBackground(context);
         } else {
-            fill(matrices, 0, 0, width / 3, height, 0x6b000000);
+            context.fill(0, 0, width / 3, height, 0x6b000000);
         }
     }
 
@@ -119,11 +122,11 @@ public class ConfigScreen extends YACLScreen {
         }
 
         @Override
-        public void renderBackground(MatrixStack matrices) {
+        public void renderBackground(DrawContext context) {
             if (client == null || client.world == null) {
-                super.renderBackground(matrices);
+                super.renderBackground(context);
             } else {
-                fill(matrices, 0, 0, width / 3, height, 0x6B000000);
+                context.fill(0, 0, width / 3, height, 0x6B000000);
             }
         }
     }
