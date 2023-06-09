@@ -50,7 +50,7 @@ public class CustomButtonOption implements ButtonOption {
     @Override
     public @NotNull OptionDescription description() {
         // TODO
-        return null;
+        return OptionDescription.EMPTY;
     }
 
     @Override
