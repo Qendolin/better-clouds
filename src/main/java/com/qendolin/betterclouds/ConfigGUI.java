@@ -326,8 +326,8 @@ public class ConfigGUI {
             })
             .build();
         updateRemovePresetButton();
-        this.copyPresetButton = ButtonOption.createBuilder()
-            .name(Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.copy"))
+        this.copyPresetButton = CustomButtonOption.createBuilder()
+            .name(() -> Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.copy"))
             .action((screen, buttonOption) -> {
                 Config.ShaderConfigPreset preset = new Config.ShaderConfigPreset(config.preset());
                 preset.title = Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.copyOf", config.preset().title).getString();

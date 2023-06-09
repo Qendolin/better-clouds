@@ -1,19 +1,24 @@
 package com.qendolin.betterclouds.gui;
 
 import com.qendolin.betterclouds.ConfigGUI;
+import dev.isxander.yacl3.api.ConfigCategory;
+import dev.isxander.yacl3.api.PlaceholderCategory;
 import dev.isxander.yacl3.api.YetAnotherConfigLib;
+import dev.isxander.yacl3.api.utils.OptionUtils;
 import dev.isxander.yacl3.gui.TooltipButtonWidget;
 import dev.isxander.yacl3.gui.YACLScreen;
+import dev.isxander.yacl3.gui.tab.ScrollableNavigationBar;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.Drawable;
+import net.minecraft.client.gui.ScreenRect;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.text.Text;
 
-public class ConfigScreen extends YACLScreen {
+import java.util.concurrent.atomic.AtomicBoolean;
 
-    public TooltipButtonWidget hideShowButton;
-    protected Screen hiddenScreen;
-    protected boolean hidden;
+public class ConfigScreen extends YACLScreen {
 
     public ConfigScreen(YetAnotherConfigLib config, Screen parent) {
         super(config, parent);
@@ -21,56 +26,40 @@ public class ConfigScreen extends YACLScreen {
 
     @Override
     protected void init() {
-        super.init();
-        // TODO:
-//        remove(undoButton);
-//
-//        hideShowButton = new TooltipButtonWidget(
-//            this,
-//            undoButton.getX(),
-//            undoButton.getY(),
-//            undoButton.getWidth(),
-//            undoButton.getHeight(),
-//            Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".hide"),
-//            Text.empty(),
-//            btn -> setHidden(!hidden)
-//        );
-//        addDrawableChild(hideShowButton);
-//        hideShowButton.active = client != null && client.world != null;
-//
-//        cancelResetButton.active = false;
-//
-//        remove(optionList);
-//        optionList = new CustomOptionListWidget(this, client, width, height);
-//        addSelectableChild(optionList);
+        assert client != null;
+        tabNavigationBar = new CustomScrollableNavigationBar(this.width, tabManager, config.categories()
+            .stream()
+            .map(category -> {
+                if (category instanceof PlaceholderCategory placeholder)
+                    return new PlaceholderTab(placeholder);
+                return new CustomCategoryTab(client, this, () -> tabArea, category);
+            }).toList());
+        tabNavigationBar.selectTab(0, false);
+        tabNavigationBar.init();
+        ScreenRect navBarArea = tabNavigationBar.getNavigationFocus();
+        tabArea = new ScreenRect(0, navBarArea.height() - 1, this.width, this.height - navBarArea.height() + 1);
+        tabManager.setTabArea(tabArea);
+        addDrawableChild(tabNavigationBar);
 
-        hiddenScreen = new HiddenScreen(title, hideShowButton);
+        config.initConsumer().accept(this);
     }
 
-    public void setHidden(boolean hidden) {
-        assert client != null;
-        this.hidden = hidden;
-        if (hidden) {
-            hideShowButton.setMessage(Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".show"));
-            client.setScreen(hiddenScreen);
-        } else {
-            hideShowButton.setMessage(Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".hide"));
-            client.setScreen(this);
-        }
+    public boolean pendingChanges() {
+        AtomicBoolean pendingChanges = new AtomicBoolean(false);
+        OptionUtils.consumeOptions(config, (option) -> {
+            if (option.changed()) {
+                pendingChanges.set(true);
+                return true;
+            }
+            return false;
+        });
+
+        return pendingChanges.get();
     }
 
     @Override
-    public void tick() {
-        super.tick();
-
-        // TODO:
-//        if (Screen.hasShiftDown()) {
-//            cancelResetButton.active = true;
-//            cancelResetButton.setTooltip(Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".reset.tooltip"));
-//        } else {
-//            cancelResetButton.active = false;
-//            cancelResetButton.setTooltip(Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".reset.tooltip.holdShift"));
-//        }
+    public void cancelOrReset() {
+        super.cancelOrReset();
     }
 
     @Override
@@ -79,23 +68,19 @@ public class ConfigScreen extends YACLScreen {
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        if (hidden) {
-            hideShowButton.render(context, mouseX, mouseY, delta);
-            // TODO:
-//            hideShowButton.renderHoveredTooltip(context);
-            return;
-        }
-
-        super.render(context, mouseX, mouseY, delta);
-    }
-
-    @Override
     public void renderBackground(DrawContext context) {
         if (client == null || client.world == null) {
             super.renderBackground(context);
         } else {
             context.fill(0, 0, width / 3, height, 0x6b000000);
+        }
+    }
+
+    public void renderBackgroundTexture(DrawContext context) {
+        if (client == null || client.world == null) {
+            super.renderBackgroundTexture(context);
+        } else {
+            context.fill(width / 3 * 2 + 1, tabArea.getTop(), width, tabArea.getBottom(), 0x6b000000);
         }
     }
 
@@ -110,7 +95,7 @@ public class ConfigScreen extends YACLScreen {
         super.close();
     }
 
-    private static class HiddenScreen extends Screen {
+    public static class HiddenScreen extends Screen {
         public HiddenScreen(Text title, ButtonWidget showButton) {
             super(title);
             addDrawableChild(showButton);
