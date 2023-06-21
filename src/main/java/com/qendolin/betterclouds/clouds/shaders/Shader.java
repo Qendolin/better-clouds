@@ -50,6 +50,7 @@ public class Shader implements AutoCloseable {
         try {
             InputStream stream = resMan.getResourceOrThrow(resource).getInputStream();
             shaderSrc = IOUtils.toString(stream, StandardCharsets.UTF_8);
+            shaderSrc = shaderSrc.strip();
         } catch (IOException ex) {
             InvalidHierarchicalFileException fileEx = InvalidHierarchicalFileException.wrap(ex);
             fileEx.addInvalidFile(resource.toString());

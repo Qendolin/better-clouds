@@ -5,7 +5,6 @@ import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.gui.YACLScreen;
 import net.minecraft.text.Text;
 import org.apache.commons.lang3.Validate;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiConsumer;
@@ -140,7 +139,6 @@ public class CustomButtonOption implements ButtonOption {
         }
     }
 
-    @ApiStatus.Internal
     public static final class Builder {
         private Supplier<Text> name;
         private OptionDescription description = OptionDescription.EMPTY;
