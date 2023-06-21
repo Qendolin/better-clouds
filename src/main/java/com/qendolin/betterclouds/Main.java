@@ -21,7 +21,6 @@ import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.lwjgl.opengl.GL32;
 
 import java.nio.file.Path;
@@ -31,8 +30,8 @@ import java.util.concurrent.TimeUnit;
 
 public class Main implements ClientModInitializer {
     public static final String MODID = "betterclouds";
-    public static final Logger LOGGER = LogManager.getLogger(MODID);
     public static final boolean IS_DEV = FabricLoader.getInstance().isDevelopmentEnvironment();
+    public static final NamedLogger LOGGER = new NamedLogger(LogManager.getLogger(MODID), !IS_DEV);
 
     public static GLCompat glCompat;
     public static Version version;
@@ -57,6 +56,7 @@ public class Main implements ClientModInitializer {
         } else {
             CONFIG = null;
         }
+
     }
 
     public static void initGlCompat() {
