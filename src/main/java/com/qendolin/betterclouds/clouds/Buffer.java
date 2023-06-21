@@ -24,6 +24,7 @@ public class Buffer implements AutoCloseable {
     private FloatBuffer drawBuffer;
     private FloatBuffer writeBuffer;
     private int swapCount = 0;
+    private long prevInstancePointer = -1;
 
     public Buffer(int size, boolean fancy, boolean usePersistent) {
         this.usePersistent = usePersistent && (glCompat.arbBufferStorage || glCompat.openGl44);
@@ -74,9 +75,8 @@ public class Buffer implements AutoCloseable {
         }
 
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+        setVAPointerToInstance(0);
         glCompat.vertexAttribDivisor(0, 1);
-        glCompat.vertexAttribDivisor(3, 1);
 
         restoreVao();
         restoreVbo();
@@ -154,12 +154,25 @@ public class Buffer implements AutoCloseable {
         swapCount++;
     }
 
+    public void setVAPointerToInstance(int baseInstance) {
+        // The caller must bind the vao and vbo
+        int stride = Float.BYTES * 3;
+        long pointer = (long) stride * baseInstance;
+        if(pointer == prevInstancePointer) return;
+        prevInstancePointer = pointer;
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, stride, pointer);
+    }
+
     public int swapCount() {
         return swapCount;
     }
 
     public void bind() {
         glBindVertexArray(vaoId);
+    }
+
+    public void bindDrawBuffer() {
+        glBindBuffer(GL_ARRAY_BUFFER, drawBufferId);
     }
 
     public void unbind() {

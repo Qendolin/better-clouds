@@ -42,6 +42,11 @@ public class Telemetry {
         this.url = url;
         if (LocalDateTime.now().isAfter(EXPIRATION_DATE)) {
             // To prevent errors if the telemetry server shuts down in the future
+            Main.LOGGER.info("Telemetry is expired, telemetry will not be sent");
+            enabled = false;
+        }
+        if(Main.IS_DEV) {
+            Main.LOGGER.info("Started in dev mode, telemetry will not be sent");
             enabled = false;
         }
     }

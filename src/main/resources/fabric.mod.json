@@ -33,7 +33,7 @@
     "minecraft": "1.20.x",
     "java": ">=17",
     "fabric": "*",
-    "yet_another_config_lib_v3": "^3.0.1"
+    "yet_another_config_lib_v3": "^3.0.2"
   },
   "recommends": {
     "modmenu": "*",

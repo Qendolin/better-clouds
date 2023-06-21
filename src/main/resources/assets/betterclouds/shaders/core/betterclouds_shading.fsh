@@ -3,6 +3,7 @@
 #extension GL_ARB_separate_shader_objects : enable
 
 #define BLIT_DEPTH _BLIT_DEPTH_
+#define UINT_COVERAGE _UINT_COVERAGE_
 
 in vec3 pass_dir;
 in vec2 pass_uv;
@@ -14,7 +15,11 @@ uniform sampler2D u_depth_texture;
 #endif
 
 uniform sampler2D u_data_texture;
+#if UINT_COVERAGE
 uniform usampler2D u_coverage_texture;
+#else
+uniform sampler2D u_coverage_texture;
+#endif
 uniform sampler2D u_light_texture;
 // x, y, z, time of day
 uniform vec4 u_sun_direction;
@@ -40,7 +45,11 @@ void main() {
     if(cloudData == vec3(0.0)) return;
     #endif
 
+#if UINT_COVERAGE
     float coverage = float(texelFetch(u_coverage_texture, ivec2(gl_FragCoord), 0).r);
+#else
+    float coverage = texelFetch(u_coverage_texture, ivec2(gl_FragCoord), 0).r * 255.0;
+#endif
     // This is the "correct" formula
     // frag_color.a = 1.0 - pow((1.0-u_opacity.x), coverage);
     out_color.a = pow(coverage, u_opacity.z) / (1.0/(u_opacity.x)+pow(coverage, u_opacity.z)-1.0);

@@ -95,7 +95,7 @@ public class Renderer implements AutoCloseable {
 
         res.generator().bind();
         if (shaderInvalidator.hasChanged(client.options.getCloudRenderModeValue(), config.blockDistance(),
-            config.fadeEdge, config.sizeXZ, config.sizeY, config.writeDepth)) {
+            config.fadeEdge, config.sizeXZ, config.sizeY, config.writeDepth, glCompat.useStencilTextureFallback)) {
             res.reloadShaders(client.getResourceManager());
         }
         res.generator().reallocateIfStale(config, isFancyMode());
@@ -187,8 +187,10 @@ public class Renderer implements AutoCloseable {
         RenderSystem.depthFunc(GL_LEQUAL);
         RenderSystem.activeTexture(GL_TEXTURE0);
         RenderSystem.colorMask(true, true, true, true);
-        glDisable(GL_STENCIL_TEST);
-        glStencilFunc(GL_ALWAYS, 0x0, 0xff);
+        if(!glCompat.useStencilTextureFallback) {
+            glDisable(GL_STENCIL_TEST);
+            glStencilFunc(GL_ALWAYS, 0x0, 0xff);
+        }
 
         if (Debug.frustumCulling) {
             glCompat.pushDebugGroup("Frustum Culling Debug Draw");
@@ -235,13 +237,24 @@ public class Renderer implements AutoCloseable {
     }
 
     private void drawCoverage(float ticks, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
-        glEnable(GL_STENCIL_TEST);
-        glStencilMask(0xff);
-        glStencilOp(GL_KEEP, GL_INCR, GL_INCR);
-        glStencilFunc(GL_ALWAYS, 0xff, 0xff);
         RenderSystem.depthFunc(GL_LESS);
-        RenderSystem.depthMask(true);
         RenderSystem.colorMask(true, true, true, true);
+
+        if(glCompat.useStencilTextureFallback) {
+            RenderSystem.enableBlend();
+            RenderSystem.blendEquation(GL_FUNC_ADD);
+            // FIXME: buf0 needs depth sorting
+            glCompat.blendFunci(0, GL_ONE, GL_ZERO);
+            glCompat.blendFunci(1, GL_ONE, GL_ONE);
+            RenderSystem.depthMask(false);
+        } else {
+            glEnable(GL_STENCIL_TEST);
+            glStencilMask(0xff);
+            glStencilOp(GL_KEEP, GL_INCR, GL_INCR);
+            glStencilFunc(GL_ALWAYS, 0xff, 0xff);
+            RenderSystem.depthMask(true);
+        }
+
         if(isFancyMode()) RenderSystem.enableCull();
         else RenderSystem.disableCull();
         glClear(GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -260,6 +273,9 @@ public class Renderer implements AutoCloseable {
         client.getTextureManager().getTexture(Resources.NOISE_TEXTURE).bindTexture();
 
         res.generator().bind();
+        if(glCompat.useBaseInstanceFallback) {
+            res.generator().buffer().bindDrawBuffer();
+        }
 
         setFrustumTo(tempFrustum, frustum);
         Frustum frustumAtOrigin = tempFrustum;
@@ -273,7 +289,10 @@ public class Renderer implements AutoCloseable {
                 if (!frustumAtOrigin.isVisible(bounds)) {
                     Debug.addFrustumCulledBox(bounds, false);
                     if (runCount != 0) {
-                        glCompat.drawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
+                        if(glCompat.useBaseInstanceFallback) {
+                            res.generator().buffer().setVAPointerToInstance(runStart);
+                        }
+                        glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
                     }
                     runStart = -1;
                     runCount = 0;
@@ -284,7 +303,10 @@ public class Renderer implements AutoCloseable {
                 }
             }
             if (runCount != 0) {
-                glCompat.drawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
+                if(glCompat.useBaseInstanceFallback) {
+                    res.generator().buffer().setVAPointerToInstance(runStart);
+                }
+                glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
             }
         }
 
@@ -307,11 +329,16 @@ public class Renderer implements AutoCloseable {
         RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ZERO, GlStateManager.DstFactor.ONE);
         RenderSystem.colorMask(false, false, false, false);
         glColorMaski(0, true, true, true, true);
-        glStencilFunc(GL_GREATER, 0x0, 0xff);
-        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+        if(glCompat.useStencilTextureFallback) {
+            RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ZERO);
+            glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
+        } else {
+            glStencilFunc(GL_GREATER, 0x0, 0xff);
+            glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+        }
 
         RenderSystem.activeTexture(GL_TEXTURE1);
-        RenderSystem.bindTexture(res.oitCoverageDepthView());
+        RenderSystem.bindTexture(res.oitCoverageDepthTexture());
         RenderSystem.activeTexture(GL_TEXTURE2);
         RenderSystem.bindTexture(res.oitDataTexture());
         RenderSystem.activeTexture(GL_TEXTURE3);

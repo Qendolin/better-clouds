@@ -48,6 +48,10 @@ public class ChunkedGenerator implements AutoCloseable {
         return swappedTask.chunks();
     }
 
+    public Buffer buffer() {
+        return buffer;
+    }
+
     public synchronized int instanceVertexCount() {
         if (swappedTask == null) return 0;
         return swappedTask.instanceVertexCount();

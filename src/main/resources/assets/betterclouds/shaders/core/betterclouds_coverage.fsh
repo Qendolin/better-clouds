@@ -1,4 +1,4 @@
-#version 130
+#version 330
 
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -13,7 +13,8 @@ const float dither_matrix[16] = float[](
 flat in float pass_opacity;
 in vec3 pass_color;
 
-out vec3 out_color;
+layout (location=0) out vec3 out_color;
+layout (location=1) out float out_one;
 
 void main() {
     int x = int(gl_FragCoord.x) % 4;
@@ -22,8 +23,10 @@ void main() {
 
     if(pass_opacity <= dither_matrix[index]) {
         // TODO: Maybe there is a way to achieve the same without using discard, to enable the early z test
+        // Just 'return' doesn't work because the color is still written, just as (0,0,0) and beaks near visibility
         discard;
     }
 
     out_color = pass_color;
+    out_one = 1.0 / 255.0;
 }

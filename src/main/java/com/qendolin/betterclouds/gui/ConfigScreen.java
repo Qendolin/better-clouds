@@ -1,19 +1,13 @@
 package com.qendolin.betterclouds.gui;
 
-import com.qendolin.betterclouds.ConfigGUI;
-import dev.isxander.yacl3.api.ConfigCategory;
 import dev.isxander.yacl3.api.PlaceholderCategory;
 import dev.isxander.yacl3.api.YetAnotherConfigLib;
 import dev.isxander.yacl3.api.utils.OptionUtils;
-import dev.isxander.yacl3.gui.TooltipButtonWidget;
 import dev.isxander.yacl3.gui.YACLScreen;
-import dev.isxander.yacl3.gui.tab.ScrollableNavigationBar;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.ScreenRect;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.text.Text;
 
 import java.util.concurrent.atomic.AtomicBoolean;
