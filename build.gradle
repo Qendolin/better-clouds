@@ -120,7 +120,7 @@ modrinth  { // Make sure it runs after build!
 		// The scope can be `required`, `optional`, `incompatible`, or `embedded`
 		// The type can either be `project` or `version`
 		required.project "fabric-api"
-		required.version "1eAoo2KR" // yacl 3.0.2
+		required.version "zJ1Wh6pM" // yacl 3.0.2
 		optional.project "sodium"
 		optional.project "iris"
 		optional.project "modmenu"
