@@ -91,7 +91,7 @@ public class ChunkedGenerator implements AutoCloseable {
 
     @Override
     public void close() {
-        buffer.close();
+        if (buffer != null) buffer.close();
     }
 
     public void bind() {

@@ -4,6 +4,7 @@ import com.qendolin.betterclouds.mixin.BufferRendererAccessor;
 import com.qendolin.betterclouds.mixin.VertexBufferAccessor;
 import org.lwjgl.system.MemoryUtil;
 
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
 import static com.qendolin.betterclouds.Main.glCompat;
@@ -55,11 +56,11 @@ public class Buffer implements AutoCloseable {
         writeBufferId = glGenBuffers();
         drawBufferId = glGenBuffers();
         long vboSize = (long) size * size * 3 * Float.BYTES;
-        if (usePersistent) {
+        if (this.usePersistent) {
             int flags = GL_MAP_WRITE_BIT | glCompat.GL_MAP_PERSISTENT_BIT | glCompat.GL_MAP_COHERENT_BIT;
             glBindBuffer(GL_ARRAY_BUFFER, writeBufferId);
             glCompat.bufferStorage(GL_ARRAY_BUFFER, vboSize, flags);
-            writeBuffer = glMapBufferRange(GL_ARRAY_BUFFER, 0, vboSize, flags).asFloatBuffer();
+            writeBuffer = glMapBufferRange(GL_ARRAY_BUFFER, 0, vboSize, flags).asFloatBuffer();;
             glCompat.objectLabel(glCompat.GL_BUFFER, writeBufferId, "cloud_positions_a");
 
             glBindBuffer(GL_ARRAY_BUFFER, drawBufferId);
