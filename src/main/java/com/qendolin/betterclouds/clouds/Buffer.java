@@ -82,6 +82,15 @@ public class Buffer implements AutoCloseable {
         restoreVbo();
     }
 
+    public void setVAPointerToInstance(int baseInstance) {
+        // The caller must bind the vao and vbo
+        int stride = Float.BYTES * 3;
+        long pointer = (long) stride * baseInstance;
+        if (pointer == prevInstancePointer) return;
+        prevInstancePointer = pointer;
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, stride, pointer);
+    }
+
     private void restoreVao() {
         VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
         if (buffer == null) return;
@@ -125,7 +134,6 @@ public class Buffer implements AutoCloseable {
         writeBuffer.clear();
     }
 
-
     public void put(float x, float y, float z) {
         writeBuffer.put(x);
         writeBuffer.put(y);
@@ -152,15 +160,6 @@ public class Buffer implements AutoCloseable {
             glBufferSubData(GL_ARRAY_BUFFER, 0, writeBuffer);
         }
         swapCount++;
-    }
-
-    public void setVAPointerToInstance(int baseInstance) {
-        // The caller must bind the vao and vbo
-        int stride = Float.BYTES * 3;
-        long pointer = (long) stride * baseInstance;
-        if(pointer == prevInstancePointer) return;
-        prevInstancePointer = pointer;
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, stride, pointer);
     }
 
     public int swapCount() {

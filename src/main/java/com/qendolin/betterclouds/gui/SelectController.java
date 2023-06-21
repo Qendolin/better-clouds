@@ -145,37 +145,6 @@ public class SelectController<T> implements Controller<Integer> {
             drawList(context);
         }
 
-        @Override
-        protected void drawHoveredControl(DrawContext context, int mouseX, int mouseY, float delta) {
-            Dimension<Integer> dim = getDimension();
-            MatrixStack matrices = context.getMatrices();
-            matrices.push();
-            int arrowWidth = textRenderer.getWidth(UP_ARROW);
-            matrices.translate(getDimension().xLimit() - getXPadding() - ARROW_SPACE / 2f, dim.y() + dim.height() / 2f, 0);
-            matrices.scale(1.5f, 1f, 1);
-            int hoveredArrow = getHoveredArrow(mouseX, mouseY);
-            context.drawText(textRenderer, UP_ARROW, -arrowWidth / 2, -textRenderer.fontHeight + 1, 0xff404040, false);
-            context.drawText(textRenderer, DOWN_ARROW, -arrowWidth / 2, 1, 0xff404040, false);
-            context.drawText(textRenderer, UP_ARROW, -arrowWidth / 2, -textRenderer.fontHeight + 2, hoveredArrow == -1 ? -1 : 0xffc0c0c0, false);
-            context.drawText(textRenderer, DOWN_ARROW, -arrowWidth / 2, 0, hoveredArrow == 1 ? -1 : 0xffc0c0c0, false);
-            matrices.pop();
-        }
-
-        protected int getHoveredArrow(int mouseX, int mouseY) {
-            if (!arrowBounds.isPointInside(mouseX, mouseY)) return 0;
-            boolean upper = ((mouseY - arrowBounds.y()) / (float) arrowBounds.height()) < 0.5f;
-            return upper ? -1 : 1;
-        }
-
-        @Override
-        protected void drawValueText(DrawContext context, int mouseX, int mouseY, float delta) {
-            context.getMatrices().push();
-            if (isHovered())
-                context.getMatrices().translate(-ARROW_SPACE - getXPadding(), 0, 0);
-            super.drawValueText(context, mouseX, mouseY, delta);
-            context.getMatrices().pop();
-        }
-
         protected void drawList(DrawContext context) {
             if ((!isMouseInteracted() && !isFocused()) || !isAvailable()) return;
 
@@ -219,6 +188,37 @@ public class SelectController<T> implements Controller<Integer> {
 
         public Dimension<Integer> getExpandedBounds() {
             return expandedBounds;
+        }
+
+        @Override
+        protected void drawHoveredControl(DrawContext context, int mouseX, int mouseY, float delta) {
+            Dimension<Integer> dim = getDimension();
+            MatrixStack matrices = context.getMatrices();
+            matrices.push();
+            int arrowWidth = textRenderer.getWidth(UP_ARROW);
+            matrices.translate(getDimension().xLimit() - getXPadding() - ARROW_SPACE / 2f, dim.y() + dim.height() / 2f, 0);
+            matrices.scale(1.5f, 1f, 1);
+            int hoveredArrow = getHoveredArrow(mouseX, mouseY);
+            context.drawText(textRenderer, UP_ARROW, -arrowWidth / 2, -textRenderer.fontHeight + 1, 0xff404040, false);
+            context.drawText(textRenderer, DOWN_ARROW, -arrowWidth / 2, 1, 0xff404040, false);
+            context.drawText(textRenderer, UP_ARROW, -arrowWidth / 2, -textRenderer.fontHeight + 2, hoveredArrow == -1 ? -1 : 0xffc0c0c0, false);
+            context.drawText(textRenderer, DOWN_ARROW, -arrowWidth / 2, 0, hoveredArrow == 1 ? -1 : 0xffc0c0c0, false);
+            matrices.pop();
+        }
+
+        protected int getHoveredArrow(int mouseX, int mouseY) {
+            if (!arrowBounds.isPointInside(mouseX, mouseY)) return 0;
+            boolean upper = ((mouseY - arrowBounds.y()) / (float) arrowBounds.height()) < 0.5f;
+            return upper ? -1 : 1;
+        }
+
+        @Override
+        protected void drawValueText(DrawContext context, int mouseX, int mouseY, float delta) {
+            context.getMatrices().push();
+            if (isHovered())
+                context.getMatrices().translate(-ARROW_SPACE - getXPadding(), 0, 0);
+            super.drawValueText(context, mouseX, mouseY, delta);
+            context.getMatrices().pop();
         }
 
         @Override

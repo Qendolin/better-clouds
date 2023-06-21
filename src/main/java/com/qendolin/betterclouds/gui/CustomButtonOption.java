@@ -44,13 +44,13 @@ public class CustomButtonOption implements ButtonOption {
     }
 
     @Override
-    public @NotNull OptionDescription description() {
-        return description;
+    public @NotNull Text tooltip() {
+        return description().text();
     }
 
     @Override
-    public @NotNull Text tooltip() {
-        return description().text();
+    public @NotNull OptionDescription description() {
+        return description;
     }
 
     @Override

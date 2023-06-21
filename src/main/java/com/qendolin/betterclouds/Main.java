@@ -69,12 +69,12 @@ public class Main implements ClientModInitializer {
             LOGGER.info(" - GLSL Version: {}", GL32.glGetString(GL32.GL_SHADING_LANGUAGE_VERSION));
             LOGGER.info(" - Extensions:   {}", String.join(", ", glCompat.supportedCheckedExtensions));
             LOGGER.info(" - Functions:    {}", String.join(", ", glCompat.supportedCheckedFunctions));
-        } else if(glCompat.isPartiallyIncompatible()) {
+        } else if (glCompat.isPartiallyIncompatible()) {
             LOGGER.warn("Your GPU is not fully compatible with Better Clouds.");
-            if(glCompat.useBaseInstanceFallback) LOGGER.info(" - Using base instance fallback");
-            if(glCompat.useDepthWriteFallback) LOGGER.info(" - Using depth view fallback");
-            if(glCompat.useStencilTextureFallback) LOGGER.info(" - Using stencil buffer fallback");
-            if(glCompat.useTexStorageFallback) LOGGER.info(" - Using texture storage fallback");
+            if (glCompat.useBaseInstanceFallback) LOGGER.info(" - Using base instance fallback");
+            if (glCompat.useDepthWriteFallback) LOGGER.info(" - Using depth view fallback");
+            if (glCompat.useStencilTextureFallback) LOGGER.info(" - Using stencil buffer fallback");
+            if (glCompat.useTexStorageFallback) LOGGER.info(" - Using texture storage fallback");
         }
 
         if (getConfig().lastTelemetryVersion < Telemetry.VERSION && Telemetry.INSTANCE != null) {

@@ -307,7 +307,7 @@ public class GLCompat {
     }
 
     public void drawArraysInstancedBaseInstanceFallback(int mode, int first, int count, int primcount, int baseinstance) {
-        if(useBaseInstanceFallback) {
+        if (useBaseInstanceFallback) {
             GL32.glDrawArraysInstanced(mode, first, count, primcount);
         } else {
             drawArraysInstancedBaseInstance(mode, first, count, primcount, baseinstance);
@@ -323,9 +323,9 @@ public class GLCompat {
     }
 
     public void texStorage2DFallback(int target, int levels, int internalformat, int width, int height, int format, int type) {
-        if(useTexStorageFallback) {
+        if (useTexStorageFallback) {
             GL32.glTexImage2D(target, 0, internalformat, width, height, 0, format, type, 0);
-            GL32.glTexParameteri(target, GL32.GL_TEXTURE_MAX_LEVEL, levels-1);
+            GL32.glTexParameteri(target, GL32.GL_TEXTURE_MAX_LEVEL, levels - 1);
         } else {
             texStorage2D(target, levels, internalformat, width, height);
         }
@@ -358,9 +358,9 @@ public class GLCompat {
     }
 
     public void blendFunci(int buf, int sfactor, int dfactor) {
-        if(glBlendFunci) {
+        if (glBlendFunci) {
             GL40.glBlendFunci(buf, sfactor, dfactor);
-        } else if(arbDrawBuffersBlend) {
+        } else if (arbDrawBuffersBlend) {
             ARBDrawBuffersBlend.glBlendFunciARB(buf, sfactor, dfactor);
         }
     }

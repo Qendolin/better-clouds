@@ -45,7 +45,7 @@ public class Telemetry {
             Main.LOGGER.info("Telemetry is expired, telemetry will not be sent");
             enabled = false;
         }
-        if(Main.IS_DEV) {
+        if (Main.IS_DEV) {
             Main.LOGGER.info("Started in dev mode, telemetry will not be sent");
             enabled = false;
         }

@@ -20,12 +20,6 @@ public abstract class TabButtonWidgetMixin extends ClickableWidget {
         super(x, y, width, height, message);
     }
 
-    @Shadow public abstract void drawMessage(DrawContext context, TextRenderer textRenderer, int color);
-
-    @Shadow public abstract boolean isCurrentTab();
-
-    @Shadow protected abstract void drawCurrentTabLine(DrawContext context, TextRenderer textRenderer, int color);
-
     @Inject(method = "renderButton", at = @At("HEAD"), cancellable = true)
     private void onRenderButton(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
         MinecraftClient client = MinecraftClient.getInstance();
@@ -41,4 +35,13 @@ public abstract class TabButtonWidgetMixin extends ClickableWidget {
             this.drawCurrentTabLine(context, textRenderer, i);
         }
     }
+
+    @Shadow
+    public abstract void drawMessage(DrawContext context, TextRenderer textRenderer, int color);
+
+    @Shadow
+    public abstract boolean isCurrentTab();
+
+    @Shadow
+    protected abstract void drawCurrentTabLine(DrawContext context, TextRenderer textRenderer, int color);
 }

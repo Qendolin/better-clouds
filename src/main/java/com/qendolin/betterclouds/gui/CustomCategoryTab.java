@@ -4,7 +4,9 @@ import com.qendolin.betterclouds.ConfigGUI;
 import dev.isxander.yacl3.api.ConfigCategory;
 import dev.isxander.yacl3.api.utils.Dimension;
 import dev.isxander.yacl3.api.utils.MutableDimension;
-import dev.isxander.yacl3.gui.*;
+import dev.isxander.yacl3.gui.OptionDescriptionWidget;
+import dev.isxander.yacl3.gui.OptionListWidget;
+import dev.isxander.yacl3.gui.SearchFieldWidget;
 import dev.isxander.yacl3.gui.tab.ListHolderWidget;
 import dev.isxander.yacl3.gui.tab.TabExt;
 import dev.isxander.yacl3.gui.utils.GuiUtils;
@@ -101,7 +103,7 @@ public class CustomCategoryTab implements TabExt {
     }
 
     public void hideOrShow() {
-        if(client.currentScreen == screen) {
+        if (client.currentScreen == screen) {
             hideShowButton.setMessage(Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".show"));
             Screen hiddenScreen = new ConfigScreen.HiddenScreen(screen.getTitle(), hideShowButton);
             client.setScreen(hiddenScreen);
@@ -109,6 +111,23 @@ public class CustomCategoryTab implements TabExt {
             hideShowButton.setMessage(Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".hide"));
             client.setScreen(screen);
         }
+    }
+
+    private void updateButtons() {
+        boolean pendingChanges = screen.pendingChanges();
+
+        if (Screen.hasShiftDown()) {
+            cancelResetButton.active = true;
+            cancelResetButton.setTooltip(Tooltip.of(Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".reset.tooltip")));
+        } else {
+            cancelResetButton.active = false;
+            cancelResetButton.setTooltip(Tooltip.of(Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".reset.tooltip.holdShift")));
+        }
+
+        saveFinishedButton.setMessage(pendingChanges ? Text.translatable("yacl.gui.save") : GuiUtils.translatableFallback("yacl.gui.done", ScreenTexts.DONE));
+        saveFinishedButton.setTooltip(Tooltip.of(pendingChanges ? Text.translatable("yacl.gui.save.tooltip") : Text.translatable("yacl.gui.finished.tooltip")));
+        cancelResetButton.setMessage(pendingChanges ? GuiUtils.translatableFallback("yacl.gui.cancel", ScreenTexts.CANCEL) : Text.translatable("controls.reset"));
+        cancelResetButton.setTooltip(Tooltip.of(pendingChanges ? Text.translatable("yacl.gui.cancel.tooltip") : Text.translatable("yacl.gui.reset.tooltip")));
     }
 
     @Override
@@ -142,23 +161,6 @@ public class CustomCategoryTab implements TabExt {
     @Override
     public Tooltip getTooltip() {
         return tooltip;
-    }
-
-    private void updateButtons() {
-        boolean pendingChanges = screen.pendingChanges();
-
-        if (Screen.hasShiftDown()) {
-            cancelResetButton.active = true;
-            cancelResetButton.setTooltip(Tooltip.of(Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".reset.tooltip")));
-        } else {
-            cancelResetButton.active = false;
-            cancelResetButton.setTooltip(Tooltip.of(Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".reset.tooltip.holdShift")));
-        }
-
-        saveFinishedButton.setMessage(pendingChanges ? Text.translatable("yacl.gui.save") : GuiUtils.translatableFallback("yacl.gui.done", ScreenTexts.DONE));
-        saveFinishedButton.setTooltip(Tooltip.of(pendingChanges ? Text.translatable("yacl.gui.save.tooltip") : Text.translatable("yacl.gui.finished.tooltip")));
-        cancelResetButton.setMessage(pendingChanges ? GuiUtils.translatableFallback("yacl.gui.cancel", ScreenTexts.CANCEL) : Text.translatable("controls.reset"));
-        cancelResetButton.setTooltip(Tooltip.of(pendingChanges ? Text.translatable("yacl.gui.cancel.tooltip") : Text.translatable("yacl.gui.reset.tooltip")));
     }
 
 }

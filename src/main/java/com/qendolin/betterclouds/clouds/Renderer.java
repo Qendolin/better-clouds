@@ -103,7 +103,7 @@ public class Renderer implements AutoCloseable {
         float raininess = Math.max(0.6f * world.getRainGradient(tickDelta), world.getThunderGradient(tickDelta));
         float cloudiness = raininess * 0.3f + 0.5f;
 
-        res.generator().update(cam, ticks+tickDelta, Main.getConfig(), cloudiness);
+        res.generator().update(cam, ticks + tickDelta, Main.getConfig(), cloudiness);
         if (res.generator().canGenerate() && !res.generator().generating() && !Debug.generatorPause) {
             client.getProfiler().swap("generate_clouds");
             res.generator().generate();
@@ -187,7 +187,7 @@ public class Renderer implements AutoCloseable {
         RenderSystem.depthFunc(GL_LEQUAL);
         RenderSystem.activeTexture(GL_TEXTURE0);
         RenderSystem.colorMask(true, true, true, true);
-        if(!glCompat.useStencilTextureFallback) {
+        if (!glCompat.useStencilTextureFallback) {
             glDisable(GL_STENCIL_TEST);
             glStencilFunc(GL_ALWAYS, 0x0, 0xff);
         }
@@ -240,7 +240,7 @@ public class Renderer implements AutoCloseable {
         RenderSystem.depthFunc(GL_LESS);
         RenderSystem.colorMask(true, true, true, true);
 
-        if(glCompat.useStencilTextureFallback) {
+        if (glCompat.useStencilTextureFallback) {
             RenderSystem.enableBlend();
             RenderSystem.blendEquation(GL_FUNC_ADD);
             // FIXME: buf0 needs depth sorting
@@ -255,7 +255,7 @@ public class Renderer implements AutoCloseable {
             RenderSystem.depthMask(true);
         }
 
-        if(isFancyMode()) RenderSystem.enableCull();
+        if (isFancyMode()) RenderSystem.enableCull();
         else RenderSystem.disableCull();
         glClear(GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
@@ -273,7 +273,7 @@ public class Renderer implements AutoCloseable {
         client.getTextureManager().getTexture(Resources.NOISE_TEXTURE).bindTexture();
 
         res.generator().bind();
-        if(glCompat.useBaseInstanceFallback) {
+        if (glCompat.useBaseInstanceFallback) {
             res.generator().buffer().bindDrawBuffer();
         }
 
@@ -289,7 +289,7 @@ public class Renderer implements AutoCloseable {
                 if (!frustumAtOrigin.isVisible(bounds)) {
                     Debug.addFrustumCulledBox(bounds, false);
                     if (runCount != 0) {
-                        if(glCompat.useBaseInstanceFallback) {
+                        if (glCompat.useBaseInstanceFallback) {
                             res.generator().buffer().setVAPointerToInstance(runStart);
                         }
                         glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
@@ -303,7 +303,7 @@ public class Renderer implements AutoCloseable {
                 }
             }
             if (runCount != 0) {
-                if(glCompat.useBaseInstanceFallback) {
+                if (glCompat.useBaseInstanceFallback) {
                     res.generator().buffer().setVAPointerToInstance(runStart);
                 }
                 glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
@@ -329,7 +329,7 @@ public class Renderer implements AutoCloseable {
         RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ZERO, GlStateManager.DstFactor.ONE);
         RenderSystem.colorMask(false, false, false, false);
         glColorMaski(0, true, true, true, true);
-        if(glCompat.useStencilTextureFallback) {
+        if (glCompat.useStencilTextureFallback) {
             RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ZERO);
             glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
         } else {
@@ -361,7 +361,7 @@ public class Renderer implements AutoCloseable {
         res.shadingShader().uVPMatrix.setMat4(rotationProjectionMatrix);
         res.shadingShader().uSunDirection.setVec4(sunDir.x, sunDir.y, sunDir.z, (world.getTimeOfDay() % 24000) / 24000f);
         res.shadingShader().uSunAxis.setVec3(0, sunAxisY, sunAxisZ);
-        res.shadingShader().uOpacity.setVec3(config.preset().opacity, config.preset().opacityFactor,  config.preset().opacityExponent);
+        res.shadingShader().uOpacity.setVec3(config.preset().opacity, config.preset().opacityFactor, config.preset().opacityExponent);
         res.shadingShader().uColorGrading.setVec4(brightness, 1f / config.preset().gamma(), effectLuma, config.preset().saturation);
         res.shadingShader().uTint.setVec3(config.preset().tintRed, config.preset().tintGreen, config.preset().tintBlue);
         res.shadingShader().uNoiseFactor.setFloat(config.colorVariationFactor);
@@ -375,6 +375,15 @@ public class Renderer implements AutoCloseable {
         Config config = res.generator().config();
         if (config != null) return config;
         return Main.getConfig();
+    }
+
+    private void setFrustumTo(Frustum dst, Frustum src) {
+        dst.frustumIntersection.set(src.field_40824);
+        dst.field_40824.set(src.field_40824);
+        dst.x = src.x;
+        dst.y = src.y;
+        dst.z = src.z;
+        dst.field_34821 = src.field_34821;
     }
 
     private float getEffectLuminance(float tickDelta) {
@@ -406,15 +415,6 @@ public class Renderer implements AutoCloseable {
     private float smoothstep(float x, float e0, float e1) {
         x = MathHelper.clamp((x - e0) / (e1 - e0), 0, 1);
         return x * x * (3 - 2 * x);
-    }
-
-    private void setFrustumTo(Frustum dst, Frustum src) {
-        dst.frustumIntersection.set(src.field_40824);
-        dst.field_40824.set(src.field_40824);
-        dst.x = src.x;
-        dst.y = src.y;
-        dst.z = src.z;
-        dst.field_34821 = src.field_34821;
     }
 
     public void close() {
