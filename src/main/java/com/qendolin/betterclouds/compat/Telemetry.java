@@ -3,6 +3,10 @@ package com.qendolin.betterclouds.compat;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.qendolin.betterclouds.Main;
+import net.fabricmc.loader.api.SemanticVersion;
+import net.fabricmc.loader.api.Version;
+import net.fabricmc.loader.api.VersionParsingException;
+import net.minecraft.MinecraftVersion;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.Nullable;
@@ -19,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class Telemetry {
@@ -26,7 +31,7 @@ public class Telemetry {
     public static final int CONNECT_TIMEOUT_MS = 5000;
     public static final int READ_TIMEOUT_MS = 5000;
     public static final LocalDateTime EXPIRATION_DATE = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
-    public static final int VERSION = 1;
+    public static final int VERSION = 2;
     @Nullable
     public static final Telemetry INSTANCE = tryCreate();
     public static final String SHADER_COMPILE_ERROR = "SHADER_COMPILE_ERROR";
@@ -68,7 +73,7 @@ public class Telemetry {
     protected CompletableFuture<Boolean> sendPayload(String payload, String... labels) {
         if (!enabled) return CompletableFuture.completedFuture(false);
         try {
-            RequestBody body = new RequestBody(new SystemDetails(), List.of(labels), payload, Main.getVersion().getFriendlyString(), VERSION);
+            RequestBody body = new RequestBody(new SystemDetails(), List.of(labels), payload, Main.getVersion(), VERSION);
             String json = gson.toJson(body);
             final byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
             return postAsync(bytes);
@@ -150,8 +155,73 @@ public class Telemetry {
         return cache.isAvailable();
     }
 
-    public record RequestBody(SystemDetails systemDetails, List<String> labels, String payload, String modVersion,
-                              int telemetryVersion) {
+    public static final class SemVer {
+        public final int major;
+        public final int minor;
+        public final int patch;
+        public final String build;
+        public final String prerelease;
+
+        public SemVer(int major, int minor, int patch, String build, String prerelease) {
+            this.major = major;
+            this.minor = minor;
+            this.patch = patch;
+            this.build = build;
+            this.prerelease = prerelease;
+        }
+
+        public static Optional<SemVer> fromString(String s) {
+            try {
+                SemanticVersion v = SemanticVersion.parse(s);
+                return fromFabricVersion(v);
+            } catch (VersionParsingException e) {
+                return Optional.empty();
+            }
+        }
+
+        public static Optional<SemVer> fromFabricVersion(Version version) {
+            if (!(version instanceof SemanticVersion semver)) {
+                return Optional.empty();
+            }
+            int major = 0, minor = 0, patch = 0;
+            int count = semver.getVersionComponentCount();
+            if(count == 0) return Optional.empty();
+            if(count >= 1) major = semver.getVersionComponent(0);
+            if(count >= 2) minor = semver.getVersionComponent(1);
+            if(count >= 3) patch = semver.getVersionComponent(2);
+            return Optional.of(new SemVer(major, minor, patch, semver.getBuildKey().orElse(""), semver.getPrereleaseKey().orElse("")));
+        }
+    }
+
+    public static final class RequestBody {
+        public final SystemDetails systemDetails;
+        public final List<String> labels;
+        public final String payload;
+        public final int telemetryVersion;
+        public final MetaInfo metaInfo;
+
+        public RequestBody(SystemDetails systemDetails, List<String> labels, String payload, Version modVersion,
+                           int telemetryVersion) {
+            this.systemDetails = systemDetails;
+            this.labels = labels;
+            this.payload = payload;
+            this.telemetryVersion = telemetryVersion;
+            this.metaInfo = new MetaInfo(modVersion);
+        }
+
+        public static final class MetaInfo {
+            public final SemVer modSemVer;
+            public final String mcVersion;
+            public final SemVer mcSemVer;
+            public final String modVersion;
+
+            public MetaInfo(Version modVersion) {
+                this.modVersion = modVersion.getFriendlyString();
+                this.modSemVer = SemVer.fromFabricVersion(modVersion).orElse(null);
+                this.mcVersion = MinecraftVersion.CURRENT.getName();
+                this.mcSemVer = SemVer.fromString(MinecraftVersion.CURRENT.getName()).orElse(null);
+            }
+        }
     }
 
     public static final class SystemDetails {
@@ -166,8 +236,10 @@ public class Telemetry {
         public final String glslVersion;
         public final List<String> extensions;
         public final List<String> functions;
+        public final List<String> fallbacks;
         public final String cpuName;
         public final boolean compatible;
+        public final boolean partiallyIncompatible;
 
         public SystemDetails() {
             this.os = SystemUtils.OS_NAME;
@@ -181,7 +253,9 @@ public class Telemetry {
             this.glslVersion = GL32.glGetString(GL32.GL_SHADING_LANGUAGE_VERSION);
             this.extensions = Main.glCompat.supportedCheckedExtensions;
             this.functions = Main.glCompat.supportedCheckedFunctions;
+            this.fallbacks = Main.glCompat.usedFallbacks;
             this.compatible = !Main.glCompat.isIncompatible();
+            this.partiallyIncompatible = Main.glCompat.isPartiallyIncompatible();
 
             String cpuName;
             try {

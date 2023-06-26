@@ -24,6 +24,9 @@ This allows me to identify and address any issues related to shader compilation 
 
 `META_INFORMATION` includes:
 - `modVersion` The version of this mod
+- `modSemVer` The version of this mod, but more detailed
+- `mcVersion` The version of the game
+- `mcSemVer` The version of the game, but more detailed
 
 `SYSTEM_INFORMATION` telemetry includes:
 

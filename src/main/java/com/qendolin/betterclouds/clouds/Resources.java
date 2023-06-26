@@ -15,6 +15,7 @@ import net.minecraft.util.Identifier;
 import java.io.Closeable;
 import java.io.IOException;
 
+import static com.qendolin.betterclouds.Main.LOGGER;
 import static com.qendolin.betterclouds.Main.glCompat;
 import static org.lwjgl.opengl.GL32.*;
 
@@ -223,8 +224,8 @@ public class Resources implements Closeable {
             glTexParameteri(GL_TEXTURE_2D, glCompat.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_STENCIL_INDEX);
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, oitCoverageTexture, 0);
 
-
             if (glCompat.useDepthWriteFallback) {
+                LOGGER.error("Can not create depth texture, configuration not supported");
                 oitCoverageDepthTexture = UNASSIGNED;
             } else {
                 oitCoverageDepthTexture = glGenTextures();

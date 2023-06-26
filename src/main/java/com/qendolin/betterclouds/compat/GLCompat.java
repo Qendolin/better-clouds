@@ -67,12 +67,14 @@ public class GLCompat {
     public final boolean glVertexAttribDivisor;
     public final boolean glBlendFunci;
 
+    public final ImmutableList<String> supportedCheckedFunctions;
+
     public final boolean useBaseInstanceFallback;
     public final boolean useStencilTextureFallback;
     public final boolean useDepthWriteFallback;
     public final boolean useTexStorageFallback;
 
-    public final ImmutableList<String> supportedCheckedFunctions;
+    public final ImmutableList<String> usedFallbacks;
 
     private final boolean compatible;
     private final boolean partiallyIncompatible;
@@ -188,6 +190,13 @@ public class GLCompat {
         useStencilTextureFallback = !canReadStencil;
         useTexStorageFallback = !supportsTextureView;
         useDepthWriteFallback = !canWriteDepth;
+
+        List<String> usedFallbacks = new ArrayList<>();
+        if(useBaseInstanceFallback) usedFallbacks.add("base_instance");
+        if(useStencilTextureFallback) usedFallbacks.add("stencil_texture");
+        if(useTexStorageFallback) usedFallbacks.add("texture_storage");
+        if(useDepthWriteFallback) usedFallbacks.add("depth_view_write");
+        this.usedFallbacks = ImmutableList.copyOf(usedFallbacks);
 
         //noinspection ConstantConditions
         partiallyIncompatible = useBaseInstanceFallback || useStencilTextureFallback || useDepthWriteFallback || useTexStorageFallback;
