@@ -265,9 +265,7 @@ public class Resources implements Closeable {
             } catch (Exception e) {
                 Main.sendGpuIncompatibleChatMessage();
                 Main.LOGGER.error(e);
-                if (Telemetry.INSTANCE != null) {
-                    Telemetry.INSTANCE.sendShaderCompileError(e.toString());
-                }
+                Telemetry.INSTANCE.sendShaderCompileError(e.toString());
                 deleteShaders();
             }
         }

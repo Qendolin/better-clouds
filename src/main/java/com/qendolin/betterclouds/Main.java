@@ -30,7 +30,8 @@ import java.util.concurrent.TimeUnit;
 
 public class Main implements ClientModInitializer {
     public static final String MODID = "betterclouds";
-    public static final boolean IS_DEV = FabricLoader.getInstance().isDevelopmentEnvironment();
+    public static final boolean IS_DEV = false; //FabricLoader.getInstance().isDevelopmentEnvironment();
+    public static final boolean IS_CLIENT = FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT;
     public static final NamedLogger LOGGER = new NamedLogger(LogManager.getLogger(MODID), !IS_DEV);
 
     public static GLCompat glCompat;
@@ -39,7 +40,7 @@ public class Main implements ClientModInitializer {
     private static final GsonConfigInstance<Config> CONFIG;
 
     static {
-        if (FabricLoader.getInstance().getEnvironmentType().equals(EnvType.CLIENT)) {
+        if (IS_CLIENT) {
             GsonConfigInstance.Builder<Config> builder = GsonConfigInstance
                 .createBuilder(Config.class)
                 .setPath(Path.of("config/betterclouds-v1.json"));
@@ -60,7 +61,13 @@ public class Main implements ClientModInitializer {
     }
 
     public static void initGlCompat() {
-        glCompat = new GLCompat(IS_DEV);
+        try {
+            glCompat = new GLCompat(IS_DEV);
+        } catch (Exception e) {
+            Telemetry.INSTANCE.sendUnhandledException(e);
+            throw e;
+        }
+
         if (glCompat.isIncompatible()) {
             LOGGER.warn("Your GPU is not compatible with Better Clouds. Try updating your drivers?");
             LOGGER.info(" - Vendor:       {}", GL32.glGetString(GL32.GL_VENDOR));
@@ -76,7 +83,7 @@ public class Main implements ClientModInitializer {
             }
         }
 
-        if (getConfig().lastTelemetryVersion < Telemetry.VERSION && Telemetry.INSTANCE != null) {
+        if (getConfig().lastTelemetryVersion < Telemetry.VERSION) {
             Telemetry.INSTANCE.sendSystemInfo()
                 .whenComplete((success, throwable) -> {
                     MinecraftClient client = MinecraftClient.getInstance();
@@ -122,8 +129,9 @@ public class Main implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        if (CONFIG == null)
+        if (!IS_CLIENT)
             throw new IllegalStateException("Fabric environment is " + FabricLoader.getInstance().getEnvironmentType().name() + " but onInitializeClient was called");
+        assert CONFIG != null;
         CONFIG.load();
 
         ModContainer mod = FabricLoader.getInstance().getModContainer(MODID).orElse(null);

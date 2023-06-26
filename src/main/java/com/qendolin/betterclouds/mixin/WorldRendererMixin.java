@@ -3,6 +3,7 @@ package com.qendolin.betterclouds.mixin;
 import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.clouds.Debug;
 import com.qendolin.betterclouds.clouds.Renderer;
+import com.qendolin.betterclouds.compat.Telemetry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.BufferBuilderStorage;
 import net.minecraft.client.render.Frustum;
@@ -64,7 +65,12 @@ public abstract class WorldRendererMixin {
     @Inject(at = @At("TAIL"), method = "reload(Lnet/minecraft/resource/ResourceManager;)V")
     private void onReload(ResourceManager manager, CallbackInfo ci) {
         if (glCompat.isIncompatible()) return;
-        if (cloudRenderer != null) cloudRenderer.reload(manager);
+        try {
+            if (cloudRenderer != null) cloudRenderer.reload(manager);
+        } catch (Exception e) {
+            Telemetry.INSTANCE.sendUnhandledException(e);
+            throw e;
+        }
     }
 
     @Inject(at = @At("TAIL"), method = "setWorld")
@@ -95,9 +101,14 @@ public abstract class WorldRendererMixin {
         long startTime = System.nanoTime();
 
         matrices.push();
-        if (cloudRenderer.prepare(matrices, projMat, ticks, tickDelta, cam)) {
-            ci.cancel();
-            cloudRenderer.render(ticks, tickDelta, cam, frustumPos, frustum);
+        try {
+            if (cloudRenderer.prepare(matrices, projMat, ticks, tickDelta, cam)) {
+                ci.cancel();
+                cloudRenderer.render(ticks, tickDelta, cam, frustumPos, frustum);
+            }
+        } catch (Exception e) {
+            Telemetry.INSTANCE.sendUnhandledException(e);
+            throw e;
         }
         matrices.pop();
 

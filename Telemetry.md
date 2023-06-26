@@ -50,6 +50,12 @@ This allows me to identify and address any issues related to shader compilation 
 - `payload` The shader compiler log and the shader source code
 - `SYSTEM_INFORMATION`
 
+`UNHANDLED_EXCEPTION` telemetry includes
+
+- `payload` The exception message and it's stack trace
+- `SYSTEM_INFORMATION`
+
+
 Additionally, by the nature of HTTP requests your IP address is transmitted to the collection server, 
 but it is not stored.
 

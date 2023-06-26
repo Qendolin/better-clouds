@@ -9,7 +9,7 @@ import net.fabricmc.loader.api.VersionParsingException;
 import net.minecraft.MinecraftVersion;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
-import org.jetbrains.annotations.Nullable;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.lwjgl.opengl.GL32;
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
@@ -26,16 +26,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-public class Telemetry {
+public class Telemetry implements ITelemetry {
     public static final String ENDPOINT = "https://europe-west3-better-clouds.cloudfunctions.net/collect_telemetry";
     public static final int CONNECT_TIMEOUT_MS = 5000;
     public static final int READ_TIMEOUT_MS = 5000;
     public static final LocalDateTime EXPIRATION_DATE = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
     public static final int VERSION = 2;
-    @Nullable
-    public static final Telemetry INSTANCE = tryCreate();
     public static final String SHADER_COMPILE_ERROR = "SHADER_COMPILE_ERROR";
     public static final String SYSTEM_INFORMATION = "SYSTEM_INFORMATION";
+    public static final String UNHANDLED_EXCEPTION = "UNHANDLED_EXCEPTION";
 
     public boolean enabled = true;
     protected final TelemetryCache cache = new TelemetryCache();
@@ -54,20 +53,6 @@ public class Telemetry {
             Main.LOGGER.info("Started in dev mode, telemetry will not be sent");
             enabled = false;
         }
-    }
-
-    public static Telemetry tryCreate() {
-        try {
-            URL url = new URL(ENDPOINT);
-            return new Telemetry(url);
-        } catch (Throwable e) {
-            Main.LOGGER.error("Failed to create telemetry service: ", e);
-        }
-        return null;
-    }
-
-    public CompletableFuture<Boolean> sendSystemInfo() {
-        return sendPayload("", SYSTEM_INFORMATION);
     }
 
     protected CompletableFuture<Boolean> sendPayload(String payload, String... labels) {
@@ -130,7 +115,13 @@ public class Telemetry {
         return null;
     }
 
+    public CompletableFuture<Boolean> sendSystemInfo() {
+        return sendPayload("", SYSTEM_INFORMATION);
+    }
+
     public void sendShaderCompileError(String error) {
+        if(error == null || error.strip().equals("")) return;
+
         if (lazyOpenCache()) {
             String hash = cache.hash(error);
             if (cache.contains(SHADER_COMPILE_ERROR, hash)) return;
@@ -140,6 +131,22 @@ public class Telemetry {
                 if (success) {
                     String hash = cache.hash(error);
                     cache.add(SHADER_COMPILE_ERROR, hash);
+                }
+            });
+    }
+
+    public void sendUnhandledException(Exception e) {
+        if(e == null) return;
+        String message = ExceptionUtils.getStackTrace(e);
+        if (lazyOpenCache()) {
+            String hash = cache.hash(message);
+            if (cache.contains(UNHANDLED_EXCEPTION, hash)) return;
+        }
+        sendPayload(message, UNHANDLED_EXCEPTION)
+            .whenComplete((success, throwable) -> {
+                if (success) {
+                    String hash = cache.hash(message);
+                    cache.add(UNHANDLED_EXCEPTION, hash);
                 }
             });
     }
