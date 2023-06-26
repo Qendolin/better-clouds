@@ -86,7 +86,9 @@ public abstract class WorldRendererMixin {
         if (!Main.getConfig().enabled) return;
 
         client.getProfiler().push(Main.MODID);
-        glCompat.pushDebugGroup("Better Clouds");
+        glCompat.pushDebugGroupDev("Better Clouds");
+
+        Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("renderClouds called"));
 
         Vector3d cam = tempVector.set(camX, camY, camZ);
         Frustum frustum = this.frustum;
@@ -104,7 +106,10 @@ public abstract class WorldRendererMixin {
         try {
             if (cloudRenderer.prepare(matrices, projMat, ticks, tickDelta, cam)) {
                 ci.cancel();
+                Debug.trace.ifPresent(Debug.DebugTrace::recordFrame);
                 cloudRenderer.render(ticks, tickDelta, cam, frustumPos, frustum);
+            } else {
+                Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("renderer prepare returned false"));
             }
         } catch (Exception e) {
             Telemetry.INSTANCE.sendUnhandledException(e);
@@ -124,7 +129,7 @@ public abstract class WorldRendererMixin {
         }
 
         client.getProfiler().pop();
-        glCompat.popDebugGroup();
+        glCompat.popDebugGroupDev();
     }
 
 

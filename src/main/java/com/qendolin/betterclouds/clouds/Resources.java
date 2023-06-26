@@ -115,8 +115,9 @@ public class Resources implements Closeable {
 
     public void reloadTimer() {
         deleteTimer();
-
         if (!Main.isProfilingEnabled()) return;
+
+        Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("reloading timers"));
         timer = new GlTimer();
     }
 
@@ -127,14 +128,15 @@ public class Resources implements Closeable {
 
     public void reloadMeshPrimitives() {
         deleteMeshPrimitives();
+        Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("reloading mesh primitives"));
 
         cubeVao = glGenVertexArrays();
         glBindVertexArray(cubeVao);
-        glCompat.objectLabel(glCompat.GL_VERTEX_ARRAY, cubeVao, "cube");
+        glCompat.objectLabelDev(glCompat.GL_VERTEX_ARRAY, cubeVao, "cube");
 
         cubeVbo = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, cubeVbo);
-        glCompat.objectLabel(glCompat.GL_BUFFER, cubeVbo, "cube");
+        glCompat.objectLabelDev(glCompat.GL_BUFFER, cubeVbo, "cube");
 
         glBufferData(GL_ARRAY_BUFFER, Mesh.CUBE_MESH, GL_STATIC_DRAW);
         glEnableVertexAttribArray(0);
@@ -149,17 +151,18 @@ public class Resources implements Closeable {
     }
 
     public void reloadTextures(MinecraftClient client) {
+        Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("reloading textures"));
         int noiseTexture = client.getTextureManager().getTexture(NOISE_TEXTURE).getGlId();
         RenderSystem.activeTexture(GL_TEXTURE0);
         RenderSystem.bindTexture(noiseTexture);
-        glCompat.objectLabel(GL_TEXTURE, noiseTexture, "noise");
+        glCompat.objectLabelDev(GL_TEXTURE, noiseTexture, "noise");
         RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_WRAP_S, GL_REPEAT);
         RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_WRAP_T, GL_REPEAT);
         RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_MIN_FILTER, GlConst.GL_LINEAR);
         RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_MAG_FILTER, GlConst.GL_LINEAR);
         int lightingTexture = client.getTextureManager().getTexture(LIGHTING_TEXTURE).getGlId();
         RenderSystem.bindTexture(lightingTexture);
-        glCompat.objectLabel(GL_TEXTURE, lightingTexture, "lighting");
+        glCompat.objectLabelDev(GL_TEXTURE, lightingTexture, "lighting");
         RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_WRAP_T, GL_REPEAT);
         RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_MIN_FILTER, GlConst.GL_LINEAR);
@@ -168,6 +171,8 @@ public class Resources implements Closeable {
 
     public void reloadGenerator(boolean fancy) {
         deleteGenerator();
+        Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("reloading generator"));
+
         generator = new ChunkedGenerator();
         generator.allocate(Main.getConfig(), fancy);
         generator.clear();
@@ -180,17 +185,18 @@ public class Resources implements Closeable {
 
     public void reloadFramebuffer(int width, int height) {
         deleteFramebuffer();
+        Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("reloading framebuffer"));
 
         oitFbo = glGenFramebuffers();
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, oitFbo);
-        glCompat.objectLabel(GL_FRAMEBUFFER, oitFbo, "coverage");
+        glCompat.objectLabelDev(GL_FRAMEBUFFER, oitFbo, "coverage");
 
         fboWidth = width;
         fboHeight = height;
 
         oitDataTexture = glGenTextures();
         RenderSystem.bindTexture(oitDataTexture);
-        glCompat.objectLabel(GL_TEXTURE, oitDataTexture, "coverage_color");
+        glCompat.objectLabelDev(GL_TEXTURE, oitDataTexture, "coverage_color");
         glCompat.texStorage2DFallback(GL_TEXTURE_2D, 1, GL_RGB8, fboWidth, fboHeight, GL_RGB, GL_BYTE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -200,7 +206,7 @@ public class Resources implements Closeable {
         if (glCompat.useStencilTextureFallback) {
             oitCoverageTexture = glGenTextures();
             RenderSystem.bindTexture(oitCoverageTexture);
-            glCompat.objectLabel(GL_TEXTURE, oitCoverageTexture, "coverage_color_fallback");
+            glCompat.objectLabelDev(GL_TEXTURE, oitCoverageTexture, "coverage_color_fallback");
             glCompat.texStorage2DFallback(GL_TEXTURE_2D, 1, GL_R8, fboWidth, fboHeight, GL_RED, GL_UNSIGNED_BYTE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -209,7 +215,7 @@ public class Resources implements Closeable {
 
             oitCoverageDepthTexture = glGenTextures();
             glBindTexture(GL_TEXTURE_2D, oitCoverageDepthTexture);
-            glCompat.objectLabel(GL_TEXTURE, oitCoverageDepthTexture, "coverage_depth");
+            glCompat.objectLabelDev(GL_TEXTURE, oitCoverageDepthTexture, "coverage_depth");
             glCompat.texStorage2DFallback(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT24, fboWidth, fboHeight, GL_DEPTH_COMPONENT, GL_FLOAT);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -217,7 +223,7 @@ public class Resources implements Closeable {
         } else {
             oitCoverageTexture = glGenTextures();
             RenderSystem.bindTexture(oitCoverageTexture);
-            glCompat.objectLabel(GL_TEXTURE, oitCoverageTexture, "coverage_stencil");
+            glCompat.objectLabelDev(GL_TEXTURE, oitCoverageTexture, "coverage_stencil");
             glCompat.texStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH24_STENCIL8, fboWidth, fboHeight);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -231,7 +237,7 @@ public class Resources implements Closeable {
                 oitCoverageDepthTexture = glGenTextures();
                 glCompat.textureView(oitCoverageDepthTexture, GL_TEXTURE_2D, oitCoverageTexture, GL_DEPTH24_STENCIL8, 0, 1, 0, 1);
                 glBindTexture(GL_TEXTURE_2D, oitCoverageDepthTexture);
-                glCompat.objectLabel(GL_TEXTURE, oitCoverageDepthTexture, "coverage_depth");
+                glCompat.objectLabelDev(GL_TEXTURE, oitCoverageDepthTexture, "coverage_depth");
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
                 glTexParameteri(GL_TEXTURE_2D, glCompat.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_DEPTH_COMPONENT);
@@ -257,6 +263,7 @@ public class Resources implements Closeable {
     }
 
     public void reloadShaders(ResourceManager manager) {
+        Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("reloading shaders"));
         try {
             reloadShadersInternal(manager, false);
         } catch (Exception ignored) {
@@ -279,13 +286,13 @@ public class Resources implements Closeable {
         depthShader = DepthShader.create(manager);
         depthShader.bind();
         depthShader.uDepthTexture.setInt(0);
-        glCompat.objectLabel(glCompat.GL_PROGRAM, depthShader.glId(), "depth");
+        glCompat.objectLabelDev(glCompat.GL_PROGRAM, depthShader.glId(), "depth");
 
         int edgeFade = (int) (config.fadeEdge * config.blockDistance());
         coverageShader = CoverageShader.create(manager, config.sizeXZ, config.sizeY, edgeFade, glCompat.useStencilTextureFallback);
         coverageShader.bind();
         coverageShader.uNoiseTexture.setInt(5);
-        glCompat.objectLabel(glCompat.GL_PROGRAM, coverageShader.glId(), "coverage");
+        glCompat.objectLabelDev(glCompat.GL_PROGRAM, coverageShader.glId(), "coverage");
 
         shadingShader = ShadingShader.create(manager, config.writeDepth, glCompat.useStencilTextureFallback);
         shadingShader.bind();
@@ -293,7 +300,7 @@ public class Resources implements Closeable {
         shadingShader.uDataTexture.setInt(2);
         shadingShader.uCoverageTexture.setInt(3);
         shadingShader.uLightTexture.setInt(4);
-        glCompat.objectLabel(glCompat.GL_PROGRAM, shadingShader.glId(), "shading");
+        glCompat.objectLabelDev(glCompat.GL_PROGRAM, shadingShader.glId(), "shading");
     }
 
     public void deleteShaders() {

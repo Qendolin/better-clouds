@@ -28,8 +28,8 @@ public class Shader implements AutoCloseable {
         int vsh = compileShader(GL_VERTEX_SHADER, vshId, resMan);
         int fsh = compileShader(GL_FRAGMENT_SHADER, fshId, resMan);
 
-        Main.glCompat.objectLabel(Main.glCompat.GL_SHADER, vsh, vshId.getPath());
-        Main.glCompat.objectLabel(Main.glCompat.GL_SHADER, fsh, fshId.getPath());
+        Main.glCompat.objectLabelDev(Main.glCompat.GL_SHADER, vsh, vshId.getPath());
+        Main.glCompat.objectLabelDev(Main.glCompat.GL_SHADER, fsh, fshId.getPath());
 
         programId = GlStateManager.glCreateProgram();
         glAttachShader(programId, vsh);

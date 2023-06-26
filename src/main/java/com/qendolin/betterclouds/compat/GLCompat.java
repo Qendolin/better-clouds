@@ -1,7 +1,10 @@
 package com.qendolin.betterclouds.compat;
 
 import com.google.common.collect.ImmutableList;
+import com.mojang.blaze3d.platform.GLX;
 import com.qendolin.betterclouds.Main;
+import net.minecraft.client.gl.GlDebug;
+import net.minecraft.client.util.Untracker;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.MemoryUtil;
 
@@ -223,8 +226,12 @@ public class GLCompat {
         return partiallyIncompatible;
     }
 
-    public void objectLabel(int type, int name, String label) {
+    public void objectLabelDev(int type, int name, String label) {
         if (!isDev) return;
+        objectLabel(type, name, label);
+    }
+
+    public void objectLabel(int type, int name, String label) {
         String typeString = switch (type) {
             case GL43.GL_TEXTURE -> "tex";
             case GL43.GL_BUFFER -> "buf";
@@ -263,8 +270,12 @@ public class GLCompat {
         }
     }
 
-    public void pushDebugGroup(String name) {
+    public void pushDebugGroupDev(String name) {
         if (!isDev) return;
+        pushDebugGroup(name);
+    }
+
+    public void pushDebugGroup(String name) {
         if (glPushDebugGroup) {
             GL43.glPushDebugGroup(GL43.GL_DEBUG_SOURCE_APPLICATION, 1337, name + "\0");
         } else if (khrDebug) {
@@ -274,8 +285,12 @@ public class GLCompat {
         }
     }
 
-    public void popDebugGroup() {
+    public void popDebugGroupDev() {
         if (!isDev) return;
+        popDebugGroup();
+    }
+
+    public void popDebugGroup() {
         if (glPopDebugGroup) {
             GL43.glPopDebugGroup();
         } else if (khrDebug) {
@@ -285,8 +300,12 @@ public class GLCompat {
         }
     }
 
-    public void debugMessage(String message) {
+    public void debugMessageDev(String message) {
         if (!isDev) return;
+        debugMessage(message);
+    }
+
+    public void debugMessage(String message) {
         if (glDebugMessageInsert) {
             GL43.glDebugMessageInsert(GL43.GL_DEBUG_SOURCE_APPLICATION, GL43.GL_DEBUG_TYPE_OTHER, 0, GL43.GL_DEBUG_SEVERITY_NOTIFICATION, message + "\0");
         } else if (khrDebug) {
@@ -296,14 +315,48 @@ public class GLCompat {
         }
     }
 
-    public void enableDebugOutputSynchronous() {
+    public void enableDebugOutputSynchronousDev() {
         if (!isDev) return;
+        enableDebugOutputSynchronous();
+    }
+
+    public void enableDebugOutputSynchronous() {
         if (openGl43) {
             GL43.glEnable(ARBDebugOutput.GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
         } else if (arbDebugOutput) {
             GL32.glEnable(ARBDebugOutput.GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
         } else if (khrDebug) {
             GL32.glEnable(KHRDebug.GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        }
+    }
+
+    public void debugMessageCallbackDev(GLDebugMessageCallbackI callback) {
+        if (!isDev) return;
+        debugMessageCallback(callback);
+    }
+
+    public void debugMessageCallback(GLDebugMessageCallbackI callback) {
+        if (openGl43) {
+            GL43.glDebugMessageCallback(GLX.make(GLDebugMessageCallback.create(callback), Untracker::untrack), 0);
+        } else if (arbDebugOutput) {
+            ARBDebugOutput.glDebugMessageCallbackARB(GLX.make(GLDebugMessageARBCallback.create(callback::invoke), Untracker::untrack), 0);
+        } else if (khrDebug) {
+            KHRDebug.glDebugMessageCallback(GLX.make(GLDebugMessageCallback.create(callback), Untracker::untrack), 0);
+        }
+    }
+
+    public void debugMessageControlDev(int source, int type, int severity, int[] ids, boolean enabled) {
+        if (!isDev) return;
+        debugMessageControl(source, type, severity, ids, enabled);
+    }
+
+    public void debugMessageControl(int source, int type, int severity, int[] ids, boolean enabled) {
+        if (openGl43) {
+            GL43.glDebugMessageControl(source, type, severity, ids, enabled);
+        } else if (arbDebugOutput) {
+            ARBDebugOutput.glDebugMessageControlARB(source, type, severity, ids, enabled);
+        } else if (khrDebug) {
+            KHRDebug.glDebugMessageControl(source, type, severity, ids, enabled);
         }
     }
 

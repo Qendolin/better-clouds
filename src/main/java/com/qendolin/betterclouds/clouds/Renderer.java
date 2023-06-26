@@ -83,8 +83,14 @@ public class Renderer implements AutoCloseable {
         client.getProfiler().swap("render_setup");
         Config config = Main.getConfig();
 
-        if (res.failedToLoadCritical()) return false;
-        if (!config.irisSupport && IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled()) return false;
+        if (res.failedToLoadCritical()) {
+            Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("prepare failed: critical resource not loaded"));
+            return false;
+        }
+        if (!config.irisSupport && IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled()) {
+            Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("prepare failed: iris support disabled"));
+            return false;
+        }
 
         DimensionEffects effects = world.getDimensionEffects();
         if (SodiumExtraCompat.IS_LOADED && effects.getSkyType() == DimensionEffects.SkyType.NORMAL) {
@@ -146,6 +152,7 @@ public class Renderer implements AutoCloseable {
         if (client.gameRenderer.getCamera().getSubmersionType() != CameraSubmersionType.NONE) return;
 
         client.getProfiler().swap("render_setup");
+        Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("render setup"));
         if (Main.isProfilingEnabled()) {
             if (res.timer() == null) res.reloadTimer();
             res.timer().start();
@@ -157,18 +164,35 @@ public class Renderer implements AutoCloseable {
             res.reloadFramebuffer(scaledFramebufferWidth(), scaledFramebufferHeight());
         }
 
+
         RenderSystem.viewport(0, 0, res.fboWidth(), res.fboHeight());
         GlStateManager._glBindFramebuffer(GL_DRAW_FRAMEBUFFER, res.oitFbo());
         RenderSystem.clearDepth(1);
         RenderSystem.clearColor(0, 0, 0, 0);
 
         client.getProfiler().swap("draw_depth");
+        Debug.trace.ifPresent(snapshot -> {
+            snapshot.recordEvent("draw depth");
+            snapshot.recordFramebuffer("oit-start", res.oitFbo());
+        });
+
         drawDepth();
 
+
         client.getProfiler().swap("draw_coverage");
+        Debug.trace.ifPresent(snapshot -> {
+            snapshot.recordEvent("draw coverage");
+            snapshot.recordFramebuffer("oit-after_depth", res.oitFbo());
+        });
+
         drawCoverage(ticks + tickDelta, cam, frustumPos, frustum);
 
+
         client.getProfiler().swap("draw_shading");
+        Debug.trace.ifPresent(snapshot -> {
+            snapshot.recordEvent("draw shading");
+            snapshot.recordFramebuffer("oit-after_coverage", res.oitFbo());
+        });
         if (IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled() && config.useIrisFBO) {
             IrisCompat.bindFramebuffer();
         } else {
@@ -177,7 +201,12 @@ public class Renderer implements AutoCloseable {
 
         drawShading(tickDelta);
 
+
         client.getProfiler().swap("render_cleanup");
+        Debug.trace.ifPresent(snapshot -> {
+            snapshot.recordEvent("render cleanup");
+            snapshot.recordFramebuffer("oit-after_end", res.oitFbo());
+        });
 
         res.generator().unbind();
         Shader.unbind();
@@ -193,9 +222,9 @@ public class Renderer implements AutoCloseable {
         }
 
         if (Debug.frustumCulling) {
-            glCompat.pushDebugGroup("Frustum Culling Debug Draw");
+            glCompat.pushDebugGroupDev("Frustum Culling Debug Draw");
             Debug.drawFrustumCulledBoxes(cam);
-            glCompat.popDebugGroup();
+            glCompat.popDebugGroupDev();
         }
 
         if (Main.isProfilingEnabled() && res.timer() != null) {
@@ -258,6 +287,10 @@ public class Renderer implements AutoCloseable {
         if (isFancyMode()) RenderSystem.enableCull();
         else RenderSystem.disableCull();
         glClear(GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+        Debug.trace.ifPresent(snapshot -> {
+            snapshot.recordFramebuffer("oit-after_in_coverage-after_clear", res.oitFbo());
+        });
 
         Config generatorConfig = getGeneratorConfig();
         Config config = Main.getConfig();

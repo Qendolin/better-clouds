@@ -138,7 +138,7 @@ public class Main implements ClientModInitializer {
         if (mod != null) version = mod.getMetadata().getVersion();
         else version = new StringVersion("unknown");
 
-        ClientLifecycleEvents.CLIENT_STARTED.register(client -> glCompat.enableDebugOutputSynchronous());
+        ClientLifecycleEvents.CLIENT_STARTED.register(client -> glCompat.enableDebugOutputSynchronousDev());
 
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             if (glCompat.isIncompatible()) {
