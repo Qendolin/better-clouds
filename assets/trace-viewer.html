@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Framebuffer Dump Viewer</title>
+		<style>
+			html {
+				width: 100vw;
+				height: 100vh;
+			}
+			body {
+				margin: 0;
+				width: 100%;
+				height: 100%;
+				overflow: hidden;
+			}
+			main {
+				width: 100%;
+				height: 100%;
+				display: grid;
+				grid-template: 'center' 100% / 100%;
+				justify-content: center;
+				align-items: center;
+			}
+			#viewer {
+				width: 100%;
+				height: 100%;
+				grid-area: center;
+			}
+			#hint {
+				grid-area: center;
+				text-align: center;
+			}
+			#ui {
+				grid-area: center;
+				width: 100%;
+				height: 100%;
+			}
+
+			button.pressed {
+				background-color: darkgray;
+			}
+		</style>
+	</head>
+	<body>
+		<main>
+			<canvas id="viewer"> </canvas>
+			<h1 id="hint">Drag & Drop a .f32 Image</h1>
+			<div id="ui" style="display: none">
+				<label>
+					Low:
+					<input
+						id="lowInput"
+						type="number"
+						onchange="mapParams.low = parseFloat(this.value); mapImage()"
+						value="0"
+						step="0.01"
+					/>
+				</label>
+				<br />
+				<label>
+					High:
+					<input
+						id="highInput"
+						type="number"
+						onchange="mapParams.high = parseFloat(this.value); mapImage()"
+						value="1"
+						step="0.01"
+					/>
+				</label>
+				<br />
+				<button onclick="autoFitRange()">Fit</button>
+				<button onclick="mapParams.depth = !mapParams.depth; mapImage(); this.classList.toggle('pressed')">
+					Depth
+				</button>
+				<br />
+				<button
+					onclick="mapParams.red = !mapParams.red; mapImage(); this.classList.toggle('pressed')"
+					class="pressed"
+				>
+					R
+				</button>
+				<button
+					onclick="mapParams.green = !mapParams.green; mapImage(); this.classList.toggle('pressed')"
+					class="pressed"
+				>
+					G
+				</button>
+				<button
+					onclick="mapParams.blue = !mapParams.blue; mapImage(); this.classList.toggle('pressed')"
+					class="pressed"
+				>
+					B
+				</button>
+				<button onclick="mapParams.alpha = !mapParams.alpha; mapImage(); this.classList.toggle('pressed')">
+					A
+				</button>
+			</div>
+		</main>
+
+		<script>
+			const viewer = document.getElementById('viewer');
+			/** @type {CanvasRenderingContext2D} */
+			const ctx = viewer.getContext('2d');
+
+			let hdrImage, ldrImage;
+			const mapParams = {
+				low: 0.0,
+				high: 1.0,
+				red: true,
+				blue: true,
+				green: true,
+				alpha: true,
+				depth: false,
+			};
+
+			function draw() {
+				if (viewer.width != viewer.clientWidth) viewer.width = viewer.clientWidth;
+				if (viewer.height != viewer.clientHeight) viewer.height = viewer.clientHeight;
+				ctx.resetTransform();
+				ctx.clearRect(0, 0, viewer.width, viewer.height);
+
+				if (ldrImage != null) {
+					const scale = Math.min(viewer.width / ldrImage.width, viewer.height / ldrImage.height);
+					ctx.translate(viewer.width / 2, viewer.height / 2);
+					ctx.scale(scale, -scale);
+					ctx.drawImage(ldrImage, -ldrImage.width / 2, -ldrImage.height / 2);
+				}
+
+				requestAnimationFrame(draw);
+			}
+
+			document.documentElement.ondragover = (ev) => {
+				ev.preventDefault();
+			};
+			document.documentElement.ondrop = (ev) => {
+				ev.preventDefault();
+
+				let file;
+				if (ev.dataTransfer.items) {
+					file = [...ev.dataTransfer.items].find((item) => item.kind == 'file')?.getAsFile();
+				} else {
+					file = ev.dataTransfer.files[0];
+				}
+
+				if (!file) return;
+				if (!file.name.endsWith('.f32')) {
+					alert('Must be a .f32 file');
+					return;
+				}
+
+				file.arrayBuffer().then((buffer) => loadImage(buffer));
+			};
+
+			function loadImage(buffer) {
+				document.getElementById('hint').style.display = 'none';
+				document.getElementById('ui').style.display = 'block';
+
+				const uintView = new Uint32Array(buffer);
+				const floatView = new Float32Array(buffer, 12);
+				const width = uintView[0];
+				const height = uintView[1];
+				const channels = uintView[2];
+
+				const data = floatView;
+				hdrImage = {
+					width,
+					height,
+					channels,
+					data,
+				};
+				mapImage();
+			}
+
+			function mapImage() {
+				ldrImage = new OffscreenCanvas(hdrImage.width, hdrImage.height);
+				const ldrData = ctx.createImageData(hdrImage.width, hdrImage.height, { colorSpace: 'srgb' });
+				const channels = hdrImage.channels;
+				for (let y = 0; y < hdrImage.height; y++) {
+					for (let x = 0; x < hdrImage.width; x++) {
+						const i = (y * hdrImage.width + x) * channels;
+
+						let rgba = [0, 0, 0, 1];
+						if (channels >= 1)
+							rgba[0] = mapParams.red * map(hdrImage.data[i + 0], mapParams.low, mapParams.high);
+						if (channels >= 2)
+							rgba[1] = mapParams.green * map(hdrImage.data[i + 1], mapParams.low, mapParams.high);
+						if (channels >= 3)
+							rgba[2] = mapParams.blue * map(hdrImage.data[i + 2], mapParams.low, mapParams.high);
+						if (channels >= 4)
+							rgba[3] = mapParams.alpha * map(hdrImage.data[i + 3], mapParams.low, mapParams.high);
+
+						if (mapParams.red + mapParams.green + mapParams.blue == 1) {
+							rgba[0] = rgba[1] = rgba[2] = Math.max(rgba[0], rgba[1], rgba[2]);
+						}
+						const j = (y * hdrImage.width + x) * 4;
+						ldrData.data[j + 0] = 0xff * rgba[0];
+						ldrData.data[j + 1] = 0xff * rgba[1];
+						ldrData.data[j + 2] = 0xff * rgba[2];
+						ldrData.data[j + 3] = 0xff; // alpha is not implemented
+					}
+				}
+				ldrImage.getContext('2d').putImageData(ldrData, 0, 0);
+			}
+
+			function autoFitRange() {
+				let low = 1;
+				let high = 0;
+				const channels = hdrImage.channels;
+				for (let y = 0; y < hdrImage.height; y++) {
+					for (let x = 0; x < hdrImage.width; x++) {
+						const i = (y * hdrImage.width + x) * channels;
+						let rgba = [0, 0, 0, 1];
+						if (channels >= 1) rgba[0] = hdrImage.data[i + 0];
+						if (channels >= 2) rgba[1] = hdrImage.data[i + 1];
+						if (channels >= 3) rgba[2] = hdrImage.data[i + 2];
+						if (channels >= 4) rgba[3] = hdrImage.data[i + 3];
+						rgba = rgba.slice(0, channels);
+						low = Math.min(low, ...rgba);
+						high = Math.max(high, ...rgba);
+					}
+				}
+				mapParams.low = low;
+				mapParams.high = high;
+				document.getElementById('lowInput').value = low;
+				document.getElementById('highInput').value = high;
+				mapImage();
+			}
+
+			function map(t, min, max) {
+				if (mapParams.depth) {
+					return clamp((2.0 * min) / (max + min - t * (max - min)));
+				}
+				return clamp((t - min) / (max - min));
+			}
+
+			function clamp(t, min = 0, max = 1) {
+				return Math.min(Math.max(t, min), max);
+			}
+			draw();
+		</script>
+	</body>
+</html>
