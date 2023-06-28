@@ -16,6 +16,10 @@ in vec3 pass_color;
 out vec3 out_color;
 
 void main() {
+    // initialize out variables
+    out_color = vec3(0.0);
+    out_one = 0.0;
+
     int x = int(gl_FragCoord.x) % 4;
     int y = int(gl_FragCoord.y) % 4;
     int index = x + y * 4;

@@ -240,6 +240,7 @@ public class Renderer implements AutoCloseable {
     private void drawCoverage(float ticks, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
         glEnable(GL_STENCIL_TEST);
         glStencilMask(0xff);
+        glClearStencil(0);
         glStencilOp(GL_KEEP, GL_INCR, GL_INCR);
         glStencilFunc(GL_ALWAYS, 0xff, 0xff);
         RenderSystem.depthFunc(GL_LESS);
