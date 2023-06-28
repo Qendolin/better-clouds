@@ -1,6 +1,5 @@
 package com.qendolin.betterclouds;
 
-import com.google.gson.InstanceCreator;
 import com.qendolin.betterclouds.clouds.Debug;
 import com.qendolin.betterclouds.compat.GLCompat;
 import com.qendolin.betterclouds.compat.GsonConfigInstanceBuilderDuck;

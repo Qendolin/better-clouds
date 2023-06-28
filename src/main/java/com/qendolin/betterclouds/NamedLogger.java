@@ -9,7 +9,7 @@ public class NamedLogger {
 
     public NamedLogger(Logger delegate, boolean prefix) {
         this.delegate = delegate;
-        this.prefix = prefix ? "["+ delegate.getName() +"] " : "";
+        this.prefix = prefix ? "[" + delegate.getName() + "] " : "";
     }
 
     public void debug(CharSequence message) {

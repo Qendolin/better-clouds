@@ -1,7 +1,6 @@
 package com.qendolin.betterclouds.clouds;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.qendolin.betterclouds.Main;
 import net.minecraft.client.gl.ShaderProgram;
 import net.minecraft.client.render.*;
 import net.minecraft.util.Pair;
@@ -19,27 +18,27 @@ public class Debug {
     public static final List<Pair<Box, Boolean>> frustumCulledBoxes = new ArrayList<>();
 
     public static void clearFrustumCulledBoxed() {
-        if(frustumCulling) {
+        if (frustumCulling) {
             frustumCulledBoxes.clear();
-        } else if(!frustumCulledBoxes.isEmpty()) {
+        } else if (!frustumCulledBoxes.isEmpty()) {
             frustumCulledBoxes.clear();
         }
     }
 
     public static void addFrustumCulledBox(Box box, boolean visible) {
-        if(!frustumCulling) return;
+        if (!frustumCulling) return;
         frustumCulledBoxes.add(new Pair<>(box, visible));
     }
 
     public static void drawFrustumCulledBoxes(Vector3d cam) {
-        if(!frustumCulling) return;
+        if (!frustumCulling) return;
         BufferBuilder vertices = Tessellator.getInstance().getBuffer();
         vertices.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
         ShaderProgram prevShader = RenderSystem.getShader();
         RenderSystem.setShader(GameRenderer::getPositionColorProgram);
         for (Pair<Box, Boolean> pair : frustumCulledBoxes) {
             Box box = pair.getLeft();
-            if(pair.getRight()) {
+            if (pair.getRight()) {
                 drawBox(cam, vertices, box, 0.6f, 1f, 0.5f, 1f);
             } else {
                 drawBox(cam, vertices, box, 1f, 0.6f, 0.5f, 1f);
