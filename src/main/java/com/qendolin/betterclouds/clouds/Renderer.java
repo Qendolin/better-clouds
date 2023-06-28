@@ -92,6 +92,11 @@ public class Renderer implements AutoCloseable {
             return false;
         }
 
+        // Rendering clouds when underwater was making them very visible in unloaded chunks
+        if (client.gameRenderer.getCamera().getSubmersionType() != CameraSubmersionType.NONE) {
+            return false;
+        }
+
         DimensionEffects effects = world.getDimensionEffects();
         if (SodiumExtraCompat.IS_LOADED && effects.getSkyType() == DimensionEffects.SkyType.NORMAL) {
             cloudsHeight = SodiumExtraCompat.getCloudsHeight() + config.yOffset;
@@ -147,10 +152,8 @@ public class Renderer implements AutoCloseable {
     }
 
     // Don't forget to push / pop matrix stack outside
+    // Note: render must not return early, this will cause corruption because prepare binds stuff
     public void render(int ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
-        // Rendering clouds when underwater was making them very visible in unloaded chunks
-        if (client.gameRenderer.getCamera().getSubmersionType() != CameraSubmersionType.NONE) return;
-
         client.getProfiler().swap("render_setup");
         Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("render setup"));
         if (Main.isProfilingEnabled()) {
