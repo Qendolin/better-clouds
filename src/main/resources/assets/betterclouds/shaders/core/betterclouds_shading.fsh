@@ -38,6 +38,9 @@ const float pi = 3.14159265359;
 const float sqrt2 = 1.41421356237;
 
 void main() {
+    // initialize out variables
+    out_color = vec4(0.0);
+
     vec3 cloudData = texelFetch(u_data_texture, ivec2(gl_FragCoord), 0).rgb;
     #if BLIT_DEPTH
     if(cloudData == vec3(0.0)) discard;

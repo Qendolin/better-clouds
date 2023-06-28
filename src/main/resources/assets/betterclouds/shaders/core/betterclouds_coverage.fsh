@@ -17,6 +17,10 @@ layout (location=0) out vec3 out_color;
 layout (location=1) out float out_one;
 
 void main() {
+    // initialize out variables
+    out_color = vec3(0.0);
+    out_one = 0.0;
+
     int x = int(gl_FragCoord.x) % 4;
     int y = int(gl_FragCoord.y) % 4;
     int index = x + y * 4;

@@ -282,6 +282,7 @@ public class Renderer implements AutoCloseable {
         } else {
             glEnable(GL_STENCIL_TEST);
             glStencilMask(0xff);
+            glClearStencil(0);
             glStencilOp(GL_KEEP, GL_INCR, GL_INCR);
             glStencilFunc(GL_ALWAYS, 0xff, 0xff);
             RenderSystem.depthMask(true);
