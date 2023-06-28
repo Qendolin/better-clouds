@@ -3,7 +3,6 @@ package com.qendolin.betterclouds.compat;
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.platform.GLX;
 import com.qendolin.betterclouds.Main;
-import net.minecraft.client.gl.GlDebug;
 import net.minecraft.client.util.Untracker;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.MemoryUtil;
@@ -195,10 +194,10 @@ public class GLCompat {
         useDepthWriteFallback = !canWriteDepth;
 
         List<String> usedFallbacks = new ArrayList<>();
-        if(useBaseInstanceFallback) usedFallbacks.add("base_instance");
-        if(useStencilTextureFallback) usedFallbacks.add("stencil_texture");
-        if(useTexStorageFallback) usedFallbacks.add("texture_storage");
-        if(useDepthWriteFallback) usedFallbacks.add("depth_view_write");
+        if (useBaseInstanceFallback) usedFallbacks.add("base_instance");
+        if (useStencilTextureFallback) usedFallbacks.add("stencil_texture");
+        if (useTexStorageFallback) usedFallbacks.add("texture_storage");
+        if (useDepthWriteFallback) usedFallbacks.add("depth_view_write");
         this.usedFallbacks = ImmutableList.copyOf(usedFallbacks);
 
         //noinspection ConstantConditions

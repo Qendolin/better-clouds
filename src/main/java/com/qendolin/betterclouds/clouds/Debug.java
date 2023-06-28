@@ -9,7 +9,6 @@ import net.minecraft.client.render.*;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.Box;
 import org.apache.commons.lang3.NotImplementedException;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3d;
 import org.lwjgl.BufferUtils;
@@ -122,18 +121,18 @@ public class Debug {
         File file = path.toFile();
         try {
             file.getParentFile().mkdirs();
-            if(!file.exists()) {
+            if (!file.exists()) {
                 file.createNewFile();
             }
         } catch (IOException e) {
             Main.LOGGER.error("Failed to write debug snapshot: ", e);
             return null;
         }
-        try(
+        try (
             FileOutputStream fos = new FileOutputStream(path.toFile());
             ZipOutputStream zip = new ZipOutputStream(fos)) {
-                zip.setLevel(8);
-                writeDebugTrace(snapshot, zip);
+            zip.setLevel(8);
+            writeDebugTrace(snapshot, zip);
         } catch (Exception e) {
             file.delete();
             Main.LOGGER.error("Failed to write debug snapshot: ", e);
@@ -154,11 +153,11 @@ public class Debug {
 
         int frame = 0;
         for (DebugTrace.Record record : log) {
-            if(record instanceof DebugTrace.FrameRecord frameRecord) {
+            if (record instanceof DebugTrace.FrameRecord frameRecord) {
                 frame = frameRecord.nr();
             }
 
-            if(!record.hasAttachment()) continue;
+            if (!record.hasAttachment()) continue;
             zip.putNextEntry(new ZipEntry(String.format("%03d-%s", frame, record.attachmentName())));
             record.writeAttachment(zip);
         }
@@ -198,14 +197,14 @@ public class Debug {
         }
 
         public void startRecording() {
-            if(finished.get()) return;
-            if(recording.getAndSet(true)) return;
+            if (finished.get()) return;
+            if (recording.getAndSet(true)) return;
             Debug.trace = Optional.of(this);
         }
 
         public void stopRecording() {
-            if(!recording.getAndSet(false)) return;
-            if(finished.getAndSet(true)) return;
+            if (!recording.getAndSet(false)) return;
+            if (finished.getAndSet(true)) return;
             Debug.trace = Optional.empty();
             onFinish.accept(this);
         }
@@ -219,28 +218,28 @@ public class Debug {
         }
 
         public void recordFrame() {
-            if(!recording.get()) return;
+            if (!recording.get()) return;
             frame++;
             log.add(new FrameRecord(frame));
         }
 
         public void recordEvent(String name) {
-            if(!recording.get()) return;
-            if(!captureEvents) return;
+            if (!recording.get()) return;
+            if (!captureEvents) return;
             log.add(new EventRecord(name));
         }
 
         public void recordFramebuffer(String name, int id) {
-            if(!recording.get()) return;
-            if(!captureFramebuffers) return;
-            if(!captureTextures) return;
+            if (!recording.get()) return;
+            if (!captureFramebuffers) return;
+            if (!captureTextures) return;
             glBindFramebuffer(GL_READ_FRAMEBUFFER, id);
             int type, attachmentId;
             for (int i = 0; i < glGetInteger(GL_MAX_COLOR_ATTACHMENTS); i++) {
-                type = glGetFramebufferAttachmentParameteri(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+i, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE);
-                if(type != GL_TEXTURE) continue;
-                attachmentId = glGetFramebufferAttachmentParameteri(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+i, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME);
-                if(attachmentId <= 0) continue;
+                type = glGetFramebufferAttachmentParameteri(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE);
+                if (type != GL_TEXTURE) continue;
+                attachmentId = glGetFramebufferAttachmentParameteri(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME);
+                if (attachmentId <= 0) continue;
                 recordRGBATexture2D(String.format("%s-color%d", name, i), attachmentId);
             }
 
@@ -251,7 +250,7 @@ public class Debug {
                 glBindTexture(GL_TEXTURE_2D, attachmentId);
                 int width = glGetTexLevelParameteri(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH);
                 int height = glGetTexLevelParameteri(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT);
-                ByteBuffer buffer = BufferUtils.createByteBuffer(width*height*Float.BYTES);
+                ByteBuffer buffer = BufferUtils.createByteBuffer(width * height * Float.BYTES);
                 buffer.order(ByteOrder.LITTLE_ENDIAN);
                 glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, buffer);
                 log.add(new TextureRecord(String.format("%s-depth", name), width, height, 1, buffer));
@@ -259,21 +258,21 @@ public class Debug {
         }
 
         public void recordRGBATexture2D(String name, int id) {
-            if(!recording.get()) return;
-            if(!captureTextures) return;
+            if (!recording.get()) return;
+            if (!captureTextures) return;
             RenderSystem.bindTexture(id);
             glBindTexture(GL_TEXTURE_2D, id);
             int width = glGetTexLevelParameteri(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH);
             int height = glGetTexLevelParameteri(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT);
-            ByteBuffer buffer = BufferUtils.createByteBuffer(width*height*4*Float.BYTES);
+            ByteBuffer buffer = BufferUtils.createByteBuffer(width * height * 4 * Float.BYTES);
             buffer.order(ByteOrder.LITTLE_ENDIAN);
             glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, buffer);
             log.add(new TextureRecord(name, width, height, 4, buffer));
         }
 
         public void recordGlMessage(int source, int type, int id, int severity, int length, long messagePointer, long userParam) {
-            if(!recording.get()) return;
-            if(!captureGlMessages) return;
+            if (!recording.get()) return;
+            if (!captureGlMessages) return;
             synchronized (log) {
                 String message = GLDebugMessageCallback.getMessage(length, messagePointer);
                 log.add(new DebugMessageRecord(source, type, id, severity, message));
@@ -283,18 +282,22 @@ public class Debug {
         public interface Record {
             @NotNull
             String description();
+
             default boolean hasAttachment() {
                 return false;
             }
+
             default String attachmentName() {
                 return null;
             }
+
             default void writeAttachment(OutputStream out) throws IOException {
                 throw new NotImplementedException();
             }
         }
 
-        public record TextureRecord(String name, int width, int height, int channels, ByteBuffer buffer) implements Record {
+        public record TextureRecord(String name, int width, int height, int channels,
+                                    ByteBuffer buffer) implements Record {
             @Override
             public @NotNull String description() {
                 return String.format("texture: %s", name);

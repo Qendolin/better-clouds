@@ -92,7 +92,7 @@ public class Commands {
                 .executes(context -> {
                     Debug.DebugTrace trace = Debug.captureDebugTrace(snap -> {
                         File file = Debug.writeDebugTrace(snap);
-                        if(file == null) {
+                        if (file == null) {
                             Main.debugChatMessage(Text.literal("Failed to write debug trace"));
                         } else {
                             Main.debugChatMessage(Text.literal("Saved debug trace at " + file.getAbsolutePath()));
@@ -103,14 +103,14 @@ public class Commands {
                     AtomicInteger endFrame = new AtomicInteger(6000);
                     CompletableFuture.runAsync(() -> {
                         while (trace.isRecording()) {
-                            if(trace.getRecordedFrames() > endFrame.get()) {
+                            if (trace.getRecordedFrames() > endFrame.get()) {
                                 trace.stopRecording();
                             }
                         }
                     });
                     context.getSource().getClient().reloadResources().whenComplete((unused, throwable) -> {
                         trace.captureFramebuffers = true;
-                        endFrame.set(trace.getRecordedFrames()+3);
+                        endFrame.set(trace.getRecordedFrames() + 3);
                     });
                     return 1;
                 })));

@@ -31,9 +31,11 @@ public interface ITelemetry {
         }
 
         @Override
-        public void sendShaderCompileError(String error) {}
+        public void sendShaderCompileError(String error) {
+        }
 
         @Override
-        public void sendUnhandledException(Exception e) {}
+        public void sendUnhandledException(Exception e) {
+        }
     }
 }

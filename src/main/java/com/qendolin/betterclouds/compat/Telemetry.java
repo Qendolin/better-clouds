@@ -55,6 +55,10 @@ public class Telemetry implements ITelemetry {
         }
     }
 
+    public CompletableFuture<Boolean> sendSystemInfo() {
+        return sendPayload("", SYSTEM_INFORMATION);
+    }
+
     protected CompletableFuture<Boolean> sendPayload(String payload, String... labels) {
         if (!enabled) return CompletableFuture.completedFuture(false);
         try {
@@ -115,12 +119,8 @@ public class Telemetry implements ITelemetry {
         return null;
     }
 
-    public CompletableFuture<Boolean> sendSystemInfo() {
-        return sendPayload("", SYSTEM_INFORMATION);
-    }
-
     public void sendShaderCompileError(String error) {
-        if(error == null || error.strip().equals("")) return;
+        if (error == null || error.strip().equals("")) return;
 
         if (lazyOpenCache()) {
             String hash = cache.hash(error);
@@ -135,8 +135,19 @@ public class Telemetry implements ITelemetry {
             });
     }
 
+    protected boolean lazyOpenCache() {
+        if (!cache.isOpened()) {
+            try {
+                cache.open();
+            } catch (IOException e) {
+                Main.LOGGER.warn("Failed to open telemetry cache: ", e);
+            }
+        }
+        return cache.isAvailable();
+    }
+
     public void sendUnhandledException(Exception e) {
-        if(e == null) return;
+        if (e == null) return;
         String message = ExceptionUtils.getStackTrace(e);
         if (lazyOpenCache()) {
             String hash = cache.hash(message);
@@ -149,17 +160,6 @@ public class Telemetry implements ITelemetry {
                     cache.add(UNHANDLED_EXCEPTION, hash);
                 }
             });
-    }
-
-    protected boolean lazyOpenCache() {
-        if (!cache.isOpened()) {
-            try {
-                cache.open();
-            } catch (IOException e) {
-                Main.LOGGER.warn("Failed to open telemetry cache: ", e);
-            }
-        }
-        return cache.isAvailable();
     }
 
     public static final class SemVer {
@@ -192,10 +192,10 @@ public class Telemetry implements ITelemetry {
             }
             int major = 0, minor = 0, patch = 0;
             int count = semver.getVersionComponentCount();
-            if(count == 0) return Optional.empty();
-            if(count >= 1) major = semver.getVersionComponent(0);
-            if(count >= 2) minor = semver.getVersionComponent(1);
-            if(count >= 3) patch = semver.getVersionComponent(2);
+            if (count == 0) return Optional.empty();
+            if (count >= 1) major = semver.getVersionComponent(0);
+            if (count >= 2) minor = semver.getVersionComponent(1);
+            if (count >= 3) patch = semver.getVersionComponent(2);
             return Optional.of(new SemVer(major, minor, patch, semver.getBuildKey().orElse(""), semver.getPrereleaseKey().orElse("")));
         }
     }

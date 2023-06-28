@@ -329,6 +329,7 @@ public class ChunkedGenerator implements AutoCloseable {
             return ran.get();
         }
 
+        @SuppressWarnings("BooleanMethodIsAlwaysInverted")
         public boolean cancelled() {
             return cancelled.get();
         }
