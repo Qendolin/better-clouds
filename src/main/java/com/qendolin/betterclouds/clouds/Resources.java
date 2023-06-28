@@ -1,13 +1,18 @@
 package com.qendolin.betterclouds.clouds;
 
 import com.mojang.blaze3d.platform.GlConst;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.Config;
 import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.clouds.shaders.CoverageShader;
 import com.qendolin.betterclouds.clouds.shaders.DepthShader;
+import com.qendolin.betterclouds.clouds.shaders.Shader;
 import com.qendolin.betterclouds.clouds.shaders.ShadingShader;
 import com.qendolin.betterclouds.compat.Telemetry;
+import com.qendolin.betterclouds.mixin.BufferRendererAccessor;
+import com.qendolin.betterclouds.mixin.ShaderProgramAccessor;
+import com.qendolin.betterclouds.mixin.VertexBufferAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
@@ -138,6 +143,9 @@ public class Resources implements Closeable {
         glBufferData(GL_ARRAY_BUFFER, Mesh.CUBE_MESH, GL_STATIC_DRAW);
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+
+        unbindVao();
+        unbindVbo();
     }
 
     public void deleteMeshPrimitives() {
@@ -163,6 +171,8 @@ public class Resources implements Closeable {
         RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_WRAP_T, GL_REPEAT);
         RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_MIN_FILTER, GlConst.GL_LINEAR);
         RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_MAG_FILTER, GlConst.GL_LINEAR);
+
+        RenderSystem.bindTexture(0);
     }
 
     public void reloadGenerator(boolean fancy) {
@@ -170,6 +180,7 @@ public class Resources implements Closeable {
         generator = new ChunkedGenerator();
         generator.allocate(Main.getConfig(), fancy);
         generator.clear();
+        generator.unbind();
     }
 
     public void deleteGenerator() {
@@ -181,13 +192,14 @@ public class Resources implements Closeable {
         deleteFramebuffer();
 
         oitFbo = glGenFramebuffers();
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, oitFbo);
+        GlStateManager._glBindFramebuffer(GL_DRAW_FRAMEBUFFER, oitFbo);
         glCompat.objectLabel(GL_FRAMEBUFFER, oitFbo, "coverage");
 
         fboWidth = width;
         fboHeight = height;
 
         oitDataTexture = glGenTextures();
+        RenderSystem.activeTexture(GL_TEXTURE0);
         RenderSystem.bindTexture(oitDataTexture);
         glCompat.objectLabel(GL_TEXTURE, oitDataTexture, "coverage_color");
         glCompat.texStorage2D(GL_TEXTURE_2D, 1, GL_RGB8, fboWidth, fboHeight);
@@ -208,12 +220,13 @@ public class Resources implements Closeable {
 
         oitCoverageDepthView = glGenTextures();
         glCompat.textureView(oitCoverageDepthView, GL_TEXTURE_2D, oitCoverageTexture, GL_DEPTH24_STENCIL8, 0, 1, 0, 1);
-        glBindTexture(GL_TEXTURE_2D, oitCoverageDepthView);
+        RenderSystem.bindTexture(oitCoverageDepthView);
         glCompat.objectLabel(GL_TEXTURE, oitCoverageDepthView, "coverage_depth");
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, glCompat.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_DEPTH_COMPONENT);
 
+        RenderSystem.bindTexture(0);
 
         int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
         if (status != GL_FRAMEBUFFER_COMPLETE) {
@@ -247,6 +260,7 @@ public class Resources implements Closeable {
                 deleteShaders();
             }
         }
+        unbindShader();
     }
 
     protected void reloadShadersInternal(ResourceManager manager, boolean safeMode) throws IOException {
@@ -289,5 +303,27 @@ public class Resources implements Closeable {
         deleteGenerator();
         deleteShaders();
         deleteTimer();
+    }
+
+    public static void unbindShader() {
+        int previousProgramId = ShaderProgramAccessor.getActiveProgramGlRef();
+        if (previousProgramId > 0)
+            glUseProgram(previousProgramId);
+    }
+
+    public static void unbindVao() {
+        VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
+        if (buffer == null) return;
+        int previousVaoId = buffer.getVertexArrayId();
+        if (previousVaoId > 0)
+            glBindVertexArray(previousVaoId);
+    }
+
+    public static void unbindVbo() {
+        VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
+        if (buffer == null) return;
+        int previousVboId = buffer.getVertexBufferId();
+        if (previousVboId > 0)
+            glBindBuffer(GL_ARRAY_BUFFER, previousVboId);
     }
 }

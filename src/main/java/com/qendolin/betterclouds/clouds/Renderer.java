@@ -183,7 +183,7 @@ public class Renderer implements AutoCloseable {
         client.getProfiler().swap("render_cleanup");
 
         res.generator().unbind();
-        Shader.unbind();
+        Resources.unbindShader();
         RenderSystem.disableBlend();
         RenderSystem.enableDepthTest();
         RenderSystem.depthMask(true);
