@@ -78,8 +78,8 @@ public class Buffer implements AutoCloseable {
         setVAPointerToInstance(0);
         glCompat.vertexAttribDivisor(0, 1);
 
-        restoreVao();
-        restoreVbo();
+        Resources.unbindVao();
+        Resources.unbindVbo();
     }
 
     public void setVAPointerToInstance(int baseInstance) {
@@ -89,22 +89,6 @@ public class Buffer implements AutoCloseable {
         if (pointer == prevInstancePointer) return;
         prevInstancePointer = pointer;
         glVertexAttribPointer(0, 3, GL_FLOAT, false, stride, pointer);
-    }
-
-    private void restoreVao() {
-        VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
-        if (buffer == null) return;
-        int previousVaoId = buffer.getVertexArrayId();
-        if (previousVaoId > 0)
-            glBindVertexArray(previousVaoId);
-    }
-
-    private void restoreVbo() {
-        VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
-        if (buffer == null) return;
-        int previousVboId = buffer.getVertexBufferId();
-        if (previousVboId > 0)
-            glBindBuffer(GL_ARRAY_BUFFER, previousVboId);
     }
 
     public boolean hasChanged(int size, boolean fancy, boolean persistent) {
@@ -175,6 +159,6 @@ public class Buffer implements AutoCloseable {
     }
 
     public void unbind() {
-        restoreVao();
+        Resources.unbindVao();
     }
 }

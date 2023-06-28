@@ -1,6 +1,7 @@
 package com.qendolin.betterclouds.clouds;
 
 import com.mojang.blaze3d.platform.GlConst;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.Config;
 import com.qendolin.betterclouds.Main;
@@ -8,6 +9,9 @@ import com.qendolin.betterclouds.clouds.shaders.CoverageShader;
 import com.qendolin.betterclouds.clouds.shaders.DepthShader;
 import com.qendolin.betterclouds.clouds.shaders.ShadingShader;
 import com.qendolin.betterclouds.compat.Telemetry;
+import com.qendolin.betterclouds.mixin.BufferRendererAccessor;
+import com.qendolin.betterclouds.mixin.ShaderProgramAccessor;
+import com.qendolin.betterclouds.mixin.VertexBufferAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
@@ -141,6 +145,9 @@ public class Resources implements Closeable {
         glBufferData(GL_ARRAY_BUFFER, Mesh.CUBE_MESH, GL_STATIC_DRAW);
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+
+        unbindVao();
+        unbindVbo();
     }
 
     public void deleteMeshPrimitives() {
@@ -167,6 +174,8 @@ public class Resources implements Closeable {
         RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_WRAP_T, GL_REPEAT);
         RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_MIN_FILTER, GlConst.GL_LINEAR);
         RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_MAG_FILTER, GlConst.GL_LINEAR);
+
+        RenderSystem.bindTexture(0);
     }
 
     public void reloadGenerator(boolean fancy) {
@@ -176,6 +185,7 @@ public class Resources implements Closeable {
         generator = new ChunkedGenerator();
         generator.allocate(Main.getConfig(), fancy);
         generator.clear();
+        generator.unbind();
     }
 
     public void deleteGenerator() {
@@ -188,13 +198,14 @@ public class Resources implements Closeable {
         Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("reloading framebuffer"));
 
         oitFbo = glGenFramebuffers();
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, oitFbo);
+        GlStateManager._glBindFramebuffer(GL_DRAW_FRAMEBUFFER, oitFbo);
         glCompat.objectLabelDev(GL_FRAMEBUFFER, oitFbo, "coverage");
 
         fboWidth = width;
         fboHeight = height;
 
         oitDataTexture = glGenTextures();
+        RenderSystem.activeTexture(GL_TEXTURE0);
         RenderSystem.bindTexture(oitDataTexture);
         glCompat.objectLabelDev(GL_TEXTURE, oitDataTexture, "coverage_color");
         glCompat.texStorage2DFallback(GL_TEXTURE_2D, 1, GL_RGB8, fboWidth, fboHeight, GL_RGB, GL_BYTE);
@@ -244,6 +255,7 @@ public class Resources implements Closeable {
             }
         }
 
+        RenderSystem.bindTexture(0);
 
         int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
         if (status != GL_FRAMEBUFFER_COMPLETE) {
@@ -276,6 +288,7 @@ public class Resources implements Closeable {
                 deleteShaders();
             }
         }
+        unbindShader();
     }
 
     protected void reloadShadersInternal(ResourceManager manager, boolean safeMode) throws IOException {
@@ -319,5 +332,27 @@ public class Resources implements Closeable {
         deleteGenerator();
         deleteShaders();
         deleteTimer();
+    }
+
+    public static void unbindShader() {
+        int previousProgramId = ShaderProgramAccessor.getActiveProgramGlRef();
+        if (previousProgramId > 0)
+            glUseProgram(previousProgramId);
+    }
+
+    public static void unbindVao() {
+        VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
+        if (buffer == null) return;
+        int previousVaoId = buffer.getVertexArrayId();
+        if (previousVaoId > 0)
+            glBindVertexArray(previousVaoId);
+    }
+
+    public static void unbindVbo() {
+        VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
+        if (buffer == null) return;
+        int previousVboId = buffer.getVertexBufferId();
+        if (previousVboId > 0)
+            glBindBuffer(GL_ARRAY_BUFFER, previousVboId);
     }
 }

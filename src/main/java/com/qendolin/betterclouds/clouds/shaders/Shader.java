@@ -2,6 +2,7 @@ package com.qendolin.betterclouds.clouds.shaders;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.clouds.Resources;
 import com.qendolin.betterclouds.mixin.ShaderProgramAccessor;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
@@ -89,10 +90,8 @@ public class Shader implements AutoCloseable {
         return programId;
     }
 
-    public static void unbind() {
-        int previousProgramId = ShaderProgramAccessor.getActiveProgramGlRef();
-        if (previousProgramId > 0)
-            glUseProgram(previousProgramId);
+    public void unbind() {
+        Resources.unbindShader();
     }
 
     protected Uniform getUniform(String name, boolean cached) {
