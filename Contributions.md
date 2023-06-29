@@ -15,6 +15,8 @@
    - Rendering issue when picking up items – [#4](https://github.com/Qendolin/better-clouds/issues/4)
  - wilebaldo
    - Support for Apple M1 GPUs – [#24](https://github.com/Qendolin/better-clouds/issues/24)
+ - Spittys
+   - Rendering issue where stencil buffers where used inappropriately – [#28](https://github.com/Qendolin/better-clouds/issues/28)
 
 ... were especially helpful when troubleshooting errors
 
