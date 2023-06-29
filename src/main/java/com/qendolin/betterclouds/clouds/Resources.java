@@ -157,6 +157,22 @@ public class Resources implements Closeable {
         cubeVao = UNASSIGNED;
     }
 
+    public static void unbindVao() {
+        VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
+        if (buffer == null) return;
+        int previousVaoId = buffer.getVertexArrayId();
+        if (previousVaoId > 0)
+            glBindVertexArray(previousVaoId);
+    }
+
+    public static void unbindVbo() {
+        VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
+        if (buffer == null) return;
+        int previousVboId = buffer.getVertexBufferId();
+        if (previousVboId > 0)
+            glBindBuffer(GL_ARRAY_BUFFER, previousVboId);
+    }
+
     public void reloadTextures(MinecraftClient client) {
         Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("reloading textures"));
         int noiseTexture = client.getTextureManager().getTexture(NOISE_TEXTURE).getGlId();
@@ -325,6 +341,12 @@ public class Resources implements Closeable {
         shadingShader = null;
     }
 
+    public static void unbindShader() {
+        int previousProgramId = ShaderProgramAccessor.getActiveProgramGlRef();
+        if (previousProgramId > 0)
+            glUseProgram(previousProgramId);
+    }
+
     @Override
     public void close() {
         deleteFramebuffer();
@@ -332,27 +354,5 @@ public class Resources implements Closeable {
         deleteGenerator();
         deleteShaders();
         deleteTimer();
-    }
-
-    public static void unbindShader() {
-        int previousProgramId = ShaderProgramAccessor.getActiveProgramGlRef();
-        if (previousProgramId > 0)
-            glUseProgram(previousProgramId);
-    }
-
-    public static void unbindVao() {
-        VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
-        if (buffer == null) return;
-        int previousVaoId = buffer.getVertexArrayId();
-        if (previousVaoId > 0)
-            glBindVertexArray(previousVaoId);
-    }
-
-    public static void unbindVbo() {
-        VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
-        if (buffer == null) return;
-        int previousVboId = buffer.getVertexBufferId();
-        if (previousVboId > 0)
-            glBindBuffer(GL_ARRAY_BUFFER, previousVboId);
     }
 }

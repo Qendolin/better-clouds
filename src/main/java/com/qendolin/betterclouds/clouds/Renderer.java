@@ -4,7 +4,6 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.Config;
 import com.qendolin.betterclouds.Main;
-import com.qendolin.betterclouds.clouds.shaders.Shader;
 import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.compat.SodiumExtraCompat;
 import net.minecraft.client.MinecraftClient;
