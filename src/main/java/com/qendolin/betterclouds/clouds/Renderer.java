@@ -192,6 +192,7 @@ public class Renderer implements AutoCloseable {
         RenderSystem.colorMask(true, true, true, true);
         glDisable(GL_STENCIL_TEST);
         glStencilFunc(GL_ALWAYS, 0x0, 0xff);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
         if (Debug.frustumCulling) {
             glCompat.pushDebugGroup("Frustum Culling Debug Draw");
@@ -311,8 +312,7 @@ public class Renderer implements AutoCloseable {
         RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ZERO, GlStateManager.DstFactor.ONE);
         RenderSystem.colorMask(false, false, false, false);
         glColorMaski(0, true, true, true, true);
-        glStencilFunc(GL_GREATER, 0x0, 0xff);
-        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+        glDisable(GL_STENCIL_TEST);
 
         RenderSystem.activeTexture(GL_TEXTURE1);
         RenderSystem.bindTexture(res.oitCoverageDepthView());
