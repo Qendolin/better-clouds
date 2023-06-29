@@ -9,6 +9,8 @@
     "BufferRendererAccessor",
     "CloudSettingMixin",
     "ExtendedShaderAccessor",
+    "FallbackShaderAccessor",
+    "GsonConfigInstanceBuilderMixin",
     "RenderSystemMixin",
     "ShaderProgramAccessor",
     "VertexBufferAccessor",
