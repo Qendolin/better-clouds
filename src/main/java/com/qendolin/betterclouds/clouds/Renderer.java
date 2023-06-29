@@ -222,6 +222,7 @@ public class Renderer implements AutoCloseable {
         if (!glCompat.useStencilTextureFallback) {
             glDisable(GL_STENCIL_TEST);
             glStencilFunc(GL_ALWAYS, 0x0, 0xff);
+            glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
         }
 
         if (Debug.frustumCulling) {
@@ -279,6 +280,8 @@ public class Renderer implements AutoCloseable {
             glCompat.blendFunci(0, GL_ONE, GL_ZERO);
             glCompat.blendFunci(1, GL_ONE, GL_ONE);
             RenderSystem.depthMask(false);
+            // Just to make sure, if some other part forgets to disable it
+            glDisable(GL_STENCIL_TEST);
         } else {
             glEnable(GL_STENCIL_TEST);
             glStencilMask(0xff);
@@ -370,8 +373,7 @@ public class Renderer implements AutoCloseable {
             RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ZERO);
             glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
         } else {
-            glStencilFunc(GL_GREATER, 0x0, 0xff);
-            glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+            glDisable(GL_STENCIL_TEST);
         }
 
         RenderSystem.activeTexture(GL_TEXTURE1);
