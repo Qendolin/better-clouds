@@ -1,7 +1,9 @@
 package com.qendolin.betterclouds.compat;
 
 import com.google.common.collect.ImmutableList;
+import com.mojang.blaze3d.platform.GLX;
 import com.qendolin.betterclouds.Main;
+import net.minecraft.client.util.Untracker;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.MemoryUtil;
 
@@ -9,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GLCompat {
-
     public final int GL_VERTEX_ARRAY;
     public final int GL_BUFFER;
     public final int GL_PROGRAM;
@@ -21,12 +22,12 @@ public class GLCompat {
     public final int GL_MAP_PERSISTENT_BIT;
     public final int GL_MAP_COHERENT_BIT;
 
-
     private final boolean isDev;
 
     public final boolean openGl44;
     public final boolean openGl43;
     public final boolean openGl42;
+    public final boolean openGl40;
     public final boolean openGl32;
     public final boolean openGl33;
 
@@ -47,6 +48,7 @@ public class GLCompat {
     public final boolean arbBufferStorage;
     public final boolean arbInstancedArrays;
     public final boolean nvCopyDepthToColor;
+    public final boolean arbDrawBuffersBlend;
 
     public final boolean arbSeparateShaderObjects;
     public final boolean arbConservativeDepth;
@@ -65,10 +67,19 @@ public class GLCompat {
     public final boolean glTexStorage2D;
     public final boolean glBufferStorage;
     public final boolean glVertexAttribDivisor;
+    public final boolean glBlendFunci;
 
     public final ImmutableList<String> supportedCheckedFunctions;
 
+    public final boolean useBaseInstanceFallback;
+    public final boolean useStencilTextureFallback;
+    public final boolean useDepthWriteFallback;
+    public final boolean useTexStorageFallback;
+
+    public final ImmutableList<String> usedFallbacks;
+
     private final boolean compatible;
+    private final boolean partiallyIncompatible;
 
     public GLCompat(boolean isDev) {
         this.isDev = isDev;
@@ -76,6 +87,7 @@ public class GLCompat {
         openGl44 = caps.OpenGL44;
         openGl43 = caps.OpenGL43;
         openGl42 = caps.OpenGL42;
+        openGl40 = caps.OpenGL40;
         openGl33 = caps.OpenGL33;
         // OpenGL 3.2 is required to play the game
         openGl32 = caps.OpenGL32;
@@ -106,6 +118,7 @@ public class GLCompat {
         arbBufferStorage = caps.GL_ARB_buffer_storage;
         arbInstancedArrays = caps.GL_ARB_instanced_arrays;
         nvCopyDepthToColor = caps.GL_NV_copy_depth_to_color;
+        arbDrawBuffersBlend = caps.GL_ARB_draw_buffers_blend;
 
         // glsl related
         arbSeparateShaderObjects = caps.GL_ARB_separate_shader_objects;
@@ -135,6 +148,7 @@ public class GLCompat {
         if (arbShaderImageLoadStore) supportedExtensions.add("GL_ARB_shader_image_load_store");
         if (extShaderImageLoadStore) supportedExtensions.add("GL_EXT_shader_image_load_store");
         if (arbExplicitAttribLocation) supportedExtensions.add("GL_ARB_explicit_attrib_location");
+        if (arbDrawBuffersBlend) supportedExtensions.add("GL_ARB_draw_buffers_blend");
         supportedCheckedExtensions = ImmutableList.copyOf(supportedExtensions);
 
         glObjectLabel = caps.glObjectLabel != MemoryUtil.NULL;
@@ -146,6 +160,7 @@ public class GLCompat {
         glTexStorage2D = caps.glTexStorage2D != MemoryUtil.NULL;
         glBufferStorage = caps.glBufferStorage != MemoryUtil.NULL;
         glVertexAttribDivisor = caps.glVertexAttribDivisor != MemoryUtil.NULL;
+        glBlendFunci = caps.glBlendFunci != MemoryUtil.NULL;
 
         List<String> supportedFunctions = new ArrayList<>();
         if (glObjectLabel) supportedFunctions.add("glObjectLabel");
@@ -157,12 +172,36 @@ public class GLCompat {
         if (glTexStorage2D) supportedFunctions.add("glTexStorage2D");
         if (glBufferStorage) supportedFunctions.add("glBufferStorage");
         if (glVertexAttribDivisor) supportedFunctions.add("glVertexAttribDivisor");
+        if (glBlendFunci) supportedFunctions.add("glBlendFunci");
         supportedCheckedFunctions = ImmutableList.copyOf(supportedFunctions);
+
+        boolean supportsBaseInstance = glDrawArraysInstancedBaseInstance || arbBaseInstance;
+        boolean supportsTextureStorage = glTexStorage2D || arbTextureStorage || extTextureStorage;
+        boolean supportsTextureView = supportsTextureStorage && (glTextureView || arbTextureView);
+        boolean supportsStencilTexturing = arbStencilTexturing || openGl43;
+
+        //noinspection UnnecessaryLocalVariable
+        boolean canReadStencil = supportsStencilTexturing;
+        boolean canWriteDepth = !canReadStencil || supportsTextureView;
 
         compatible = openGl32 &&
             (openGl33 || (glVertexAttribDivisor || arbInstancedArrays)) &&
-            (openGl42 || ((glDrawArraysInstancedBaseInstance || arbBaseInstance) && (glTexStorage2D || arbTextureStorage || extTextureStorage))) &&
-            (openGl43 || ((glTextureView || arbTextureView) && arbStencilTexturing));
+            (supportsStencilTexturing || (openGl40 || glBlendFunci || arbDrawBuffersBlend));
+
+        useBaseInstanceFallback = !supportsBaseInstance;
+        useStencilTextureFallback = !canReadStencil;
+        useTexStorageFallback = !supportsTextureView;
+        useDepthWriteFallback = !canWriteDepth;
+
+        List<String> usedFallbacks = new ArrayList<>();
+        if (useBaseInstanceFallback) usedFallbacks.add("base_instance");
+        if (useStencilTextureFallback) usedFallbacks.add("stencil_texture");
+        if (useTexStorageFallback) usedFallbacks.add("texture_storage");
+        if (useDepthWriteFallback) usedFallbacks.add("depth_view_write");
+        this.usedFallbacks = ImmutableList.copyOf(usedFallbacks);
+
+        //noinspection ConstantConditions
+        partiallyIncompatible = useBaseInstanceFallback || useStencilTextureFallback || useDepthWriteFallback || useTexStorageFallback;
 
         GL_VERTEX_ARRAY = GL32.GL_VERTEX_ARRAY;
         GL_BUFFER = KHRDebug.GL_BUFFER;
@@ -182,8 +221,16 @@ public class GLCompat {
         return !compatible;
     }
 
-    public void objectLabel(int type, int name, String label) {
+    public boolean isPartiallyIncompatible() {
+        return partiallyIncompatible;
+    }
+
+    public void objectLabelDev(int type, int name, String label) {
         if (!isDev) return;
+        objectLabel(type, name, label);
+    }
+
+    public void objectLabel(int type, int name, String label) {
         String typeString = switch (type) {
             case GL43.GL_TEXTURE -> "tex";
             case GL43.GL_BUFFER -> "buf";
@@ -222,8 +269,12 @@ public class GLCompat {
         }
     }
 
-    public void pushDebugGroup(String name) {
+    public void pushDebugGroupDev(String name) {
         if (!isDev) return;
+        pushDebugGroup(name);
+    }
+
+    public void pushDebugGroup(String name) {
         if (glPushDebugGroup) {
             GL43.glPushDebugGroup(GL43.GL_DEBUG_SOURCE_APPLICATION, 1337, name + "\0");
         } else if (khrDebug) {
@@ -233,8 +284,12 @@ public class GLCompat {
         }
     }
 
-    public void popDebugGroup() {
+    public void popDebugGroupDev() {
         if (!isDev) return;
+        popDebugGroup();
+    }
+
+    public void popDebugGroup() {
         if (glPopDebugGroup) {
             GL43.glPopDebugGroup();
         } else if (khrDebug) {
@@ -244,8 +299,12 @@ public class GLCompat {
         }
     }
 
-    public void debugMessage(String message) {
+    public void debugMessageDev(String message) {
         if (!isDev) return;
+        debugMessage(message);
+    }
+
+    public void debugMessage(String message) {
         if (glDebugMessageInsert) {
             GL43.glDebugMessageInsert(GL43.GL_DEBUG_SOURCE_APPLICATION, GL43.GL_DEBUG_TYPE_OTHER, 0, GL43.GL_DEBUG_SEVERITY_NOTIFICATION, message + "\0");
         } else if (khrDebug) {
@@ -255,14 +314,48 @@ public class GLCompat {
         }
     }
 
-    public void enableDebugOutputSynchronous() {
+    public void enableDebugOutputSynchronousDev() {
         if (!isDev) return;
+        enableDebugOutputSynchronous();
+    }
+
+    public void enableDebugOutputSynchronous() {
         if (openGl43) {
             GL43.glEnable(ARBDebugOutput.GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
         } else if (arbDebugOutput) {
             GL32.glEnable(ARBDebugOutput.GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
         } else if (khrDebug) {
             GL32.glEnable(KHRDebug.GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        }
+    }
+
+    public void debugMessageCallbackDev(GLDebugMessageCallbackI callback) {
+        if (!isDev) return;
+        debugMessageCallback(callback);
+    }
+
+    public void debugMessageCallback(GLDebugMessageCallbackI callback) {
+        if (openGl43) {
+            GL43.glDebugMessageCallback(GLX.make(GLDebugMessageCallback.create(callback), Untracker::untrack), 0);
+        } else if (arbDebugOutput) {
+            ARBDebugOutput.glDebugMessageCallbackARB(GLX.make(GLDebugMessageARBCallback.create(callback::invoke), Untracker::untrack), 0);
+        } else if (khrDebug) {
+            KHRDebug.glDebugMessageCallback(GLX.make(GLDebugMessageCallback.create(callback), Untracker::untrack), 0);
+        }
+    }
+
+    public void debugMessageControlDev(int source, int type, int severity, int[] ids, boolean enabled) {
+        if (!isDev) return;
+        debugMessageControl(source, type, severity, ids, enabled);
+    }
+
+    public void debugMessageControl(int source, int type, int severity, int[] ids, boolean enabled) {
+        if (openGl43) {
+            GL43.glDebugMessageControl(source, type, severity, ids, enabled);
+        } else if (arbDebugOutput) {
+            ARBDebugOutput.glDebugMessageControlARB(source, type, severity, ids, enabled);
+        } else if (khrDebug) {
+            KHRDebug.glDebugMessageControl(source, type, severity, ids, enabled);
         }
     }
 
@@ -274,11 +367,28 @@ public class GLCompat {
         }
     }
 
+    public void drawArraysInstancedBaseInstanceFallback(int mode, int first, int count, int primcount, int baseinstance) {
+        if (useBaseInstanceFallback) {
+            GL32.glDrawArraysInstanced(mode, first, count, primcount);
+        } else {
+            drawArraysInstancedBaseInstance(mode, first, count, primcount, baseinstance);
+        }
+    }
+
     public void drawArraysInstancedBaseInstance(int mode, int first, int count, int primcount, int baseinstance) {
         if (glDrawArraysInstancedBaseInstance) {
             GL42.glDrawArraysInstancedBaseInstance(mode, first, count, primcount, baseinstance);
         } else if (arbBaseInstance) {
             ARBBaseInstance.glDrawArraysInstancedBaseInstance(mode, first, count, primcount, baseinstance);
+        }
+    }
+
+    public void texStorage2DFallback(int target, int levels, int internalformat, int width, int height, int format, int type) {
+        if (useTexStorageFallback) {
+            GL32.glTexImage2D(target, 0, internalformat, width, height, 0, format, type, 0);
+            GL32.glTexParameteri(target, GL32.GL_TEXTURE_MAX_LEVEL, levels - 1);
+        } else {
+            texStorage2D(target, levels, internalformat, width, height);
         }
     }
 
@@ -305,6 +415,14 @@ public class GLCompat {
             GL33.glVertexAttribDivisor(index, divisor);
         } else if (arbInstancedArrays) {
             ARBInstancedArrays.glVertexAttribDivisorARB(index, divisor);
+        }
+    }
+
+    public void blendFunci(int buf, int sfactor, int dfactor) {
+        if (glBlendFunci) {
+            GL40.glBlendFunci(buf, sfactor, dfactor);
+        } else if (arbDrawBuffersBlend) {
+            ARBDrawBuffersBlend.glBlendFunciARB(buf, sfactor, dfactor);
         }
     }
 }

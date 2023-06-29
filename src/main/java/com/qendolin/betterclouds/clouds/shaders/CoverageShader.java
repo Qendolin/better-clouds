@@ -12,6 +12,7 @@ public class CoverageShader extends Shader {
     public static final String DEF_SIZE_XZ_KEY = "_SIZE_XZ_";
     public static final String DEF_SIZE_Y_KEY = "_SIZE_Y_";
     public static final String DEF_FADE_EDGE_KEY = "_VISIBILITY_EDGE_";
+    public static final String DEF_POSITIONAL_COLORING = "_POSITIONAL_COLORING_";
 
     public static final Identifier VERTEX_SHADER_ID = new Identifier(Main.MODID, "shaders/core/betterclouds_coverage.vsh");
     public static final Identifier FRAGMENT_SHADER_ID = new Identifier(Main.MODID, "shaders/core/betterclouds_coverage.fsh");
@@ -35,11 +36,12 @@ public class CoverageShader extends Shader {
         uMiscellaneous = getUniform("u_miscellaneous", true);
     }
 
-    public static CoverageShader create(ResourceManager manager, float sizeXZ, float sizeY, int edgeFade) throws IOException {
+    public static CoverageShader create(ResourceManager manager, float sizeXZ, float sizeY, int edgeFade, boolean stencilFallback) throws IOException {
         Map<String, String> defs = ImmutableMap.ofEntries(
             Map.entry(CoverageShader.DEF_SIZE_XZ_KEY, Float.toString(sizeXZ)),
             Map.entry(CoverageShader.DEF_SIZE_Y_KEY, Float.toString(sizeY)),
-            Map.entry(CoverageShader.DEF_FADE_EDGE_KEY, Integer.toString(edgeFade))
+            Map.entry(CoverageShader.DEF_FADE_EDGE_KEY, Integer.toString(edgeFade)),
+            Map.entry(CoverageShader.DEF_POSITIONAL_COLORING, stencilFallback ? "0" : "1")
         );
         return new CoverageShader(manager, defs);
     }

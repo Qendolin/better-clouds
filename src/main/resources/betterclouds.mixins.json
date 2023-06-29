@@ -9,11 +9,13 @@
     "BufferRendererAccessor",
     "CloudSettingMixin",
     "ExtendedShaderAccessor",
+    "GsonConfigInstanceBuilderMixin",
     "RenderSystemMixin",
     "ShaderProgramAccessor",
+    "TabButtonWidgetMixin",
+    "TabNavigationWidgetAccessor",
     "VertexBufferAccessor",
-    "WorldRendererMixin",
-    "GsonConfigInstanceBuilderMixin"
+    "WorldRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

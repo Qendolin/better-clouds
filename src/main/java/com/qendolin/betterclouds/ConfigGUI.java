@@ -1,13 +1,16 @@
 package com.qendolin.betterclouds;
 
-import com.qendolin.betterclouds.gui.*;
-import dev.isxander.yacl.api.*;
-import dev.isxander.yacl.gui.controllers.BooleanController;
-import dev.isxander.yacl.gui.controllers.ColorController;
-import dev.isxander.yacl.gui.controllers.TickBoxController;
-import dev.isxander.yacl.gui.controllers.slider.FloatSliderController;
-import dev.isxander.yacl.gui.controllers.slider.IntegerSliderController;
-import dev.isxander.yacl.gui.controllers.string.StringController;
+import com.qendolin.betterclouds.gui.ConfigScreen;
+import com.qendolin.betterclouds.gui.CustomButtonOption;
+import com.qendolin.betterclouds.gui.CustomIntegerFieldController;
+import com.qendolin.betterclouds.gui.SelectController;
+import dev.isxander.yacl3.api.*;
+import dev.isxander.yacl3.gui.controllers.BooleanController;
+import dev.isxander.yacl3.gui.controllers.ColorController;
+import dev.isxander.yacl3.gui.controllers.TickBoxController;
+import dev.isxander.yacl3.gui.controllers.slider.FloatSliderController;
+import dev.isxander.yacl3.gui.controllers.slider.IntegerSliderController;
+import dev.isxander.yacl3.gui.controllers.string.StringController;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -101,103 +104,103 @@ public class ConfigGUI {
 
         this.chunkSize = createOption(int.class, "chunkSize")
             .binding(defaults.chunkSize, () -> config.chunkSize, val -> config.chunkSize = val)
-            .controller(opt -> new IntegerSliderController(opt, 16, 128, 8))
+            .customController(opt -> new IntegerSliderController(opt, 16, 128, 8))
             .build();
         this.distance = createOption(float.class, "distance")
             .binding(defaults.distance, () -> config.distance, val -> config.distance = val)
-            .controller(opt -> new FloatSliderController(opt, 1, 4, 0.05f, ConfigGUI::formatAsTimes))
+            .customController(opt -> new FloatSliderController(opt, 1, 4, 0.05f, ConfigGUI::formatAsTimes))
             .build();
         this.fuzziness = createOption(float.class, "fuzziness")
             .binding(defaults.fuzziness, () -> config.fuzziness, val -> config.fuzziness = val)
-            .controller(opt -> new FloatSliderController(opt, 0, 1, 0.01f, ConfigGUI::formatAsPercent))
+            .customController(opt -> new FloatSliderController(opt, 0, 1, 0.01f, ConfigGUI::formatAsPercent))
             .build();
         this.spacing = createOption(float.class, "spacing")
             .binding(defaults.spacing, () -> config.spacing, val -> config.spacing = val)
-            .controller(opt -> new FloatSliderController(opt, 2, 64, 0.25f))
+            .customController(opt -> new FloatSliderController(opt, 2, 64, 0.25f))
             .build();
         this.sparsity = createOption(float.class, "sparsity")
             .binding(defaults.sparsity, () -> config.sparsity, val -> config.sparsity = val)
-            .controller(opt -> new FloatSliderController(opt, 0, 1, 0.01f, ConfigGUI::formatAsPercent))
+            .customController(opt -> new FloatSliderController(opt, 0, 1, 0.01f, ConfigGUI::formatAsPercent))
             .build();
         this.shuffle = createOption(boolean.class, "shuffle")
             .binding(defaults.shuffle, () -> config.shuffle, val -> config.shuffle = val)
-            .controller(TickBoxController::new)
+            .customController(TickBoxController::new)
             .build();
         this.randomPlacement = createOption(float.class, "randomPlacement")
             .binding(defaults.randomPlacement, () -> config.randomPlacement, val -> config.randomPlacement = val)
-            .controller(opt -> new FloatSliderController(opt, 0, 1, 0.01f, ConfigGUI::formatAsPercent))
+            .customController(opt -> new FloatSliderController(opt, 0, 1, 0.01f, ConfigGUI::formatAsPercent))
             .build();
         this.yRange = createOption(float.class, "yRange")
             .binding(defaults.yRange, () -> config.yRange, val -> config.yRange = val)
-            .controller(opt -> new FloatSliderController(opt, 0, 128, 0.5f))
+            .customController(opt -> new FloatSliderController(opt, 0, 128, 0.5f))
             .build();
         this.yOffset = createOption(float.class, "yOffset")
             .binding(defaults.yOffset, () -> config.yOffset, val -> config.yOffset = val)
-            .controller(opt -> new FloatSliderController(opt, -64, 256, 8))
+            .customController(opt -> new FloatSliderController(opt, -64, 256, 8))
             .build();
         this.samplingScale = createOption(float.class, "samplingScale")
             .binding(defaults.samplingScale, () -> config.samplingScale, val -> config.samplingScale = val)
-            .controller(opt -> new FloatSliderController(opt, 0.25f, 4, 0.01f, ConfigGUI::formatAsTimes))
+            .customController(opt -> new FloatSliderController(opt, 0.25f, 4, 0.01f, ConfigGUI::formatAsTimes))
             .build();
         this.sizeXZ = createOption(float.class, "sizeXZ")
             .binding(defaults.sizeXZ, () -> config.sizeXZ, val -> config.sizeXZ = val)
-            .controller(opt -> new FloatSliderController(opt, 2, 64, 1))
+            .customController(opt -> new FloatSliderController(opt, 2, 64, 1))
             .build();
         this.sizeY = createOption(float.class, "sizeY")
             .binding(defaults.sizeY, () -> config.sizeY, val -> config.sizeY = val)
-            .controller(opt -> new FloatSliderController(opt, 1, 32, 1))
+            .customController(opt -> new FloatSliderController(opt, 1, 32, 1))
             .build();
         this.scaleFalloffMin = createOption(float.class, "scaleFalloffMin")
             .binding(defaults.scaleFalloffMin, () -> config.scaleFalloffMin, val -> config.scaleFalloffMin = val)
-            .controller(opt -> new FloatSliderController(opt, 0, 1, 0.05f, ConfigGUI::formatAsPercent))
+            .customController(opt -> new FloatSliderController(opt, 0, 1, 0.05f, ConfigGUI::formatAsPercent))
             .build();
         this.travelSpeed = createOption(float.class, "travelSpeed")
             .binding(defaults.travelSpeed, () -> config.travelSpeed, val -> config.travelSpeed = val)
-            .controller(opt -> new FloatSliderController(opt, 0, 0.1f, 0.005f, ConfigGUI::formatAsBlocksPerSecond))
+            .customController(opt -> new FloatSliderController(opt, 0, 0.1f, 0.005f, ConfigGUI::formatAsBlocksPerSecond))
             .build();
         this.windFactor = createOption(float.class, "windFactor")
             .binding(defaults.windFactor, () -> config.windFactor, val -> config.windFactor = val)
-            .controller(opt -> new FloatSliderController(opt, 0, 1, 0.05f, ConfigGUI::formatAsPercent))
+            .customController(opt -> new FloatSliderController(opt, 0, 1, 0.05f, ConfigGUI::formatAsPercent))
             .build();
         this.colorVariationFactor = createOption(float.class, "colorVariationFactor")
             .binding(defaults.colorVariationFactor, () -> config.colorVariationFactor, val -> config.colorVariationFactor = val)
-            .controller(opt -> new FloatSliderController(opt, 0, 1, 0.05f, ConfigGUI::formatAsPercent))
+            .customController(opt -> new FloatSliderController(opt, 0, 1, 0.05f, ConfigGUI::formatAsPercent))
             .build();
         this.enabled = createOption(boolean.class, "enabled")
             .binding(defaults.enabled, () -> config.enabled, val -> config.enabled = val)
-            .controller(opt -> new BooleanController(opt, val -> Text.translatable(LANG_KEY_PREFIX + ".entry.enabled." + val), false))
+            .customController(opt -> new BooleanController(opt, val -> Text.translatable(LANG_KEY_PREFIX + ".entry.enabled." + val), false))
             .build();
         this.fadeEdge = createOption(float.class, "fadeEdge")
             .binding(defaults.fadeEdge, () -> config.fadeEdge, val -> config.fadeEdge = val)
-            .controller(opt -> new FloatSliderController(opt, 0.1f, 0.5f, 0.01f, ConfigGUI::formatAsPercent))
+            .customController(opt -> new FloatSliderController(opt, 0.1f, 0.5f, 0.01f, ConfigGUI::formatAsPercent))
             .build();
         this.irisDisclaimer = LabelOption.create(Text.translatable(LANG_KEY_PREFIX + ".text.shaders"));
         this.irisSupport = createOption(boolean.class, "irisSupport")
             .binding(defaults.irisSupport, () -> config.irisSupport, val -> config.irisSupport = val)
-            .controller(TickBoxController::new)
+            .customController(TickBoxController::new)
             .build();
         this.cloudOverride = createOption(boolean.class, "cloudOverride")
             .binding(defaults.cloudOverride, () -> config.cloudOverride, val -> config.cloudOverride = val)
-            .controller(TickBoxController::new)
+            .customController(TickBoxController::new)
             .build();
         this.useIrisFBO = createOption(boolean.class, "useIrisFBO")
             .binding(defaults.useIrisFBO, () -> config.useIrisFBO, val -> config.useIrisFBO = val)
-            .controller(TickBoxController::new)
+            .customController(TickBoxController::new)
             .build();
         this.writeDepth = createOption(boolean.class, "writeDepth")
             .binding(defaults.writeDepth, () -> config.writeDepth, val -> config.writeDepth = val)
-            .controller(TickBoxController::new)
+            .customController(TickBoxController::new)
             .build();
         this.usePersistentBuffers = createOption(boolean.class, "usePersistentBuffers")
             .binding(defaults.usePersistentBuffers, () -> config.usePersistentBuffers, val -> config.usePersistentBuffers = val)
-            .controller(TickBoxController::new)
+            .customController(TickBoxController::new)
             .build();
 
         // FIXME: defaults.preset() gives default values defined in the code, not from the `default` preset
 
         this.selectedPreset = createOption(int.class, "shaderPreset")
             .binding(defaults.selectedPreset, () -> config.selectedPreset, val -> config.selectedPreset = val)
-            .controller(opt -> new SelectController<>(opt, config.presets, (i, preset) -> {
+            .customController(opt -> new SelectController<>(opt, config.presets, (i, preset) -> {
                 if (preset.title.isBlank()) {
                     return Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.untitled")
                         .styled(style -> style.withColor(Formatting.GRAY).withItalic(true));
@@ -225,11 +228,11 @@ public class ConfigGUI {
             .build();
         this.presetTitle = createOption(String.class, "presetTitle", false)
             .binding("", () -> config.preset().title, val -> config.preset().title = val)
-            .controller(StringController::new)
+            .customController(StringController::new)
             .build();
         this.saturation = createOption(float.class, "saturation")
             .binding(defaults.preset().saturation, () -> config.preset().saturation, val -> config.preset().saturation = val)
-            .controller(opt -> new FloatSliderController(opt, 0, 2, 0.05f, ConfigGUI::formatAsPercent))
+            .customController(opt -> new FloatSliderController(opt, 0, 2, 0.05f, ConfigGUI::formatAsPercent))
             .build();
         this.tint = createOption(Color.class, "tint")
             .binding(new Color(defaults.preset().tintRed, defaults.preset().tintGreen, defaults.preset().tintBlue), () -> new Color(config.preset().tintRed, config.preset().tintGreen, config.preset().tintBlue), val -> {
@@ -237,55 +240,55 @@ public class ConfigGUI {
                 config.preset().tintGreen = val.getGreen() / 255f;
                 config.preset().tintBlue = val.getBlue() / 255f;
             })
-            .controller(ColorController::new)
+            .customController(ColorController::new)
             .build();
         this.gamma = createOption(float.class, "gamma")
             .binding(defaults.preset().gamma, () -> config.preset().gamma, val -> config.preset().gamma = val)
-            .controller(opt -> new FloatSliderController(opt, -5, 5, 0.01f, ConfigGUI::formatAsTwoDecimals))
+            .customController(opt -> new FloatSliderController(opt, -5, 5, 0.01f, ConfigGUI::formatAsTwoDecimals))
             .build();
         this.dayBrightness = createOption(float.class, "dayBrightness")
             .binding(defaults.preset().dayBrightness, () -> config.preset().dayBrightness, val -> config.preset().dayBrightness = val)
-            .controller(opt -> new FloatSliderController(opt, 0.1f, 4, 0.01f, ConfigGUI::formatAsPercent))
+            .customController(opt -> new FloatSliderController(opt, 0.1f, 4, 0.01f, ConfigGUI::formatAsPercent))
             .build();
         this.nightBrightness = createOption(float.class, "nightBrightness")
             .binding(defaults.preset().nightBrightness, () -> config.preset().nightBrightness, val -> config.preset().nightBrightness = val)
-            .controller(opt -> new FloatSliderController(opt, 0.1f, 4, 0.01f, ConfigGUI::formatAsPercent))
+            .customController(opt -> new FloatSliderController(opt, 0.1f, 4, 0.01f, ConfigGUI::formatAsPercent))
             .build();
         this.sunriseStartTime = createOption(int.class, "sunriseStartTime")
             .binding(defaults.preset().sunriseStartTime, () -> config.preset().sunriseStartTime, val -> config.preset().sunriseStartTime = val)
-            .controller(opt -> new CustomIntegerFieldController(opt, -6000, 6000))
+            .customController(opt -> new CustomIntegerFieldController(opt, -6000, 6000))
             .build();
         this.sunriseEndTime = createOption(int.class, "sunriseEndTime")
             .binding(defaults.preset().sunriseEndTime, () -> config.preset().sunriseEndTime, val -> config.preset().sunriseEndTime = val)
-            .controller(opt -> new CustomIntegerFieldController(opt, -6000, 6000))
+            .customController(opt -> new CustomIntegerFieldController(opt, -6000, 6000))
             .build();
         this.sunsetStartTime = createOption(int.class, "sunsetStartTime")
             .binding(defaults.preset().sunsetStartTime, () -> config.preset().sunsetStartTime, val -> config.preset().sunsetStartTime = val)
-            .controller(opt -> new CustomIntegerFieldController(opt, 6000, 18000))
+            .customController(opt -> new CustomIntegerFieldController(opt, 6000, 18000))
             .build();
         this.sunsetEndTime = createOption(int.class, "sunsetEndTime")
             .binding(defaults.preset().sunsetEndTime, () -> config.preset().sunsetEndTime, val -> config.preset().sunsetEndTime = val)
-            .controller(opt -> new CustomIntegerFieldController(opt, 6000, 18000))
+            .customController(opt -> new CustomIntegerFieldController(opt, 6000, 18000))
             .build();
         this.upscaleResolutionFactor = createOption(float.class, "upscaleResolutionFactor")
             .binding(defaults.preset().upscaleResolutionFactor, () -> config.preset().upscaleResolutionFactor, val -> config.preset().upscaleResolutionFactor = val)
-            .controller(opt -> new FloatSliderController(opt, 0.25f, 1.0f, 0.01f, ConfigGUI::formatAsPercent))
+            .customController(opt -> new FloatSliderController(opt, 0.25f, 1.0f, 0.01f, ConfigGUI::formatAsPercent))
             .build();
         this.sunPathAngle = createOption(float.class, "sunPathAngle")
             .binding(defaults.preset().sunPathAngle, () -> config.preset().sunPathAngle, val -> config.preset().sunPathAngle = val)
-            .controller(opt -> new FloatSliderController(opt, -60f, 60f, 1f, ConfigGUI::formatAsDegrees))
+            .customController(opt -> new FloatSliderController(opt, -60f, 60f, 1f, ConfigGUI::formatAsDegrees))
             .build();
         this.opacityFactor = createOption(float.class, "opacityFactor")
             .binding(defaults.preset().opacityFactor, () -> config.preset().opacityFactor, val -> config.preset().opacityFactor = val)
-            .controller(opt -> new FloatSliderController(opt, 0, 1, 0.01f, ConfigGUI::formatAsPercent))
+            .customController(opt -> new FloatSliderController(opt, 0, 1, 0.01f, ConfigGUI::formatAsPercent))
             .build();
         this.opacityExponent = createOption(float.class, "opacityExponent")
             .binding(defaults.preset().opacityExponent, () -> config.preset().opacityExponent, val -> config.preset().opacityExponent = val)
-            .controller(opt -> new FloatSliderController(opt, 0.25f, 4f, 0.01f, ConfigGUI::formatAsTwoDecimals))
+            .customController(opt -> new FloatSliderController(opt, 0.25f, 4f, 0.01f, ConfigGUI::formatAsTwoDecimals))
             .build();
         this.opacity = createOption(float.class, "opacity")
             .binding(defaults.preset().opacity, () -> config.preset().opacity, val -> config.preset().opacity = val)
-            .controller(opt -> new FloatSliderController(opt, 0, 1, 0.01f, ConfigGUI::formatAsPercent))
+            .customController(opt -> new FloatSliderController(opt, 0, 1, 0.01f, ConfigGUI::formatAsPercent))
             .build();
         shaderConfigPresetOptions.addAll(List.of(presetTitle,
             saturation,
@@ -321,11 +324,10 @@ public class ConfigGUI {
                     presetsToBeDeleted.add(config.preset());
                 }
             })
-            .controller(CustomActionController::new)
             .build();
         updateRemovePresetButton();
-        this.copyPresetButton = ButtonOption.createBuilder()
-            .name(Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.copy"))
+        this.copyPresetButton = CustomButtonOption.createBuilder()
+            .name(() -> Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.copy"))
             .action((screen, buttonOption) -> {
                 Config.ShaderConfigPreset preset = new Config.ShaderConfigPreset(config.preset());
                 preset.title = Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.copyOf", config.preset().title).getString();
@@ -337,7 +339,6 @@ public class ConfigGUI {
                 }
                 updateRemovePresetButton();
             })
-            .controller(CustomActionController::new)
             .build();
 
         categories.add(new Pair<>(ConfigCategory.createBuilder()
@@ -452,11 +453,11 @@ public class ConfigGUI {
         return createOption(typeClass, key, true);
     }
 
-    private static <T> Option.Builder<T> createOption(Class<T> typeClass, String key, boolean tooltip) {
-        Option.Builder<T> builder = Option.createBuilder(typeClass)
+    private static <T> Option.Builder<T> createOption(Class<T> typeClass, String key, boolean hasDescription) {
+        Option.Builder<T> builder = Option.<T>createBuilder()
             .name(optionLabel(key))
             .instant(true);
-        if (tooltip) builder = builder.tooltip(optionTooltip(key));
+        if (hasDescription) builder.description(OptionDescription.of(optionDescription(key)));
         return builder;
     }
 
@@ -490,8 +491,8 @@ public class ConfigGUI {
         return Text.translatable(LANG_KEY_PREFIX + ".entry." + key);
     }
 
-    private static Text optionTooltip(String key) {
-        return Text.translatable(LANG_KEY_PREFIX + ".entry." + key + ".tooltip");
+    private static Text optionDescription(String key) {
+        return Text.translatable(LANG_KEY_PREFIX + ".entry." + key + ".description");
     }
 
     private static Text formatAsTwoDecimals(Float value) {

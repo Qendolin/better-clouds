@@ -4,7 +4,6 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.Config;
 import com.qendolin.betterclouds.Main;
-import com.qendolin.betterclouds.clouds.shaders.Shader;
 import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.compat.SodiumExtraCompat;
 import net.minecraft.client.MinecraftClient;
@@ -83,8 +82,19 @@ public class Renderer implements AutoCloseable {
         client.getProfiler().swap("render_setup");
         Config config = Main.getConfig();
 
-        if (res.failedToLoadCritical()) return false;
-        if (!config.irisSupport && IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled()) return false;
+        if (res.failedToLoadCritical()) {
+            Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("prepare failed: critical resource not loaded"));
+            return false;
+        }
+        if (!config.irisSupport && IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled()) {
+            Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("prepare failed: iris support disabled"));
+            return false;
+        }
+
+        // Rendering clouds when underwater was making them very visible in unloaded chunks
+        if (client.gameRenderer.getCamera().getSubmersionType() != CameraSubmersionType.NONE) {
+            return false;
+        }
 
         DimensionEffects effects = world.getDimensionEffects();
         if (SodiumExtraCompat.IS_LOADED && effects.getSkyType() == DimensionEffects.SkyType.NORMAL) {
@@ -95,7 +105,7 @@ public class Renderer implements AutoCloseable {
 
         res.generator().bind();
         if (shaderInvalidator.hasChanged(client.options.getCloudRenderModeValue(), config.blockDistance(),
-            config.fadeEdge, config.sizeXZ, config.sizeY, config.writeDepth)) {
+            config.fadeEdge, config.sizeXZ, config.sizeY, config.writeDepth, glCompat.useStencilTextureFallback)) {
             res.reloadShaders(client.getResourceManager());
         }
         res.generator().reallocateIfStale(config, isFancyMode());
@@ -103,7 +113,7 @@ public class Renderer implements AutoCloseable {
         float raininess = Math.max(0.6f * world.getRainGradient(tickDelta), world.getThunderGradient(tickDelta));
         float cloudiness = raininess * 0.3f + 0.5f;
 
-        res.generator().update(cam, ticks+tickDelta, Main.getConfig(), cloudiness);
+        res.generator().update(cam, ticks + tickDelta, Main.getConfig(), cloudiness);
         if (res.generator().canGenerate() && !res.generator().generating() && !Debug.generatorPause) {
             client.getProfiler().swap("generate_clouds");
             res.generator().generate();
@@ -141,11 +151,10 @@ public class Renderer implements AutoCloseable {
     }
 
     // Don't forget to push / pop matrix stack outside
+    // Note: render must not return early, this will cause corruption because prepare binds stuff
     public void render(int ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
-        // Rendering clouds when underwater was making them very visible in unloaded chunks
-        if (client.gameRenderer.getCamera().getSubmersionType() != CameraSubmersionType.NONE) return;
-
         client.getProfiler().swap("render_setup");
+        Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("render setup"));
         if (Main.isProfilingEnabled()) {
             if (res.timer() == null) res.reloadTimer();
             res.timer().start();
@@ -157,18 +166,35 @@ public class Renderer implements AutoCloseable {
             res.reloadFramebuffer(scaledFramebufferWidth(), scaledFramebufferHeight());
         }
 
+
         RenderSystem.viewport(0, 0, res.fboWidth(), res.fboHeight());
         GlStateManager._glBindFramebuffer(GL_DRAW_FRAMEBUFFER, res.oitFbo());
         RenderSystem.clearDepth(1);
         RenderSystem.clearColor(0, 0, 0, 0);
 
         client.getProfiler().swap("draw_depth");
+        Debug.trace.ifPresent(snapshot -> {
+            snapshot.recordEvent("draw depth");
+            snapshot.recordFramebuffer("oit-start", res.oitFbo());
+        });
+
         drawDepth();
 
+
         client.getProfiler().swap("draw_coverage");
+        Debug.trace.ifPresent(snapshot -> {
+            snapshot.recordEvent("draw coverage");
+            snapshot.recordFramebuffer("oit-after_depth", res.oitFbo());
+        });
+
         drawCoverage(ticks + tickDelta, cam, frustumPos, frustum);
 
+
         client.getProfiler().swap("draw_shading");
+        Debug.trace.ifPresent(snapshot -> {
+            snapshot.recordEvent("draw shading");
+            snapshot.recordFramebuffer("oit-after_coverage", res.oitFbo());
+        });
         if (IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled() && config.useIrisFBO) {
             IrisCompat.bindFramebuffer();
         } else {
@@ -177,23 +203,31 @@ public class Renderer implements AutoCloseable {
 
         drawShading(tickDelta);
 
+
         client.getProfiler().swap("render_cleanup");
+        Debug.trace.ifPresent(snapshot -> {
+            snapshot.recordEvent("render cleanup");
+            snapshot.recordFramebuffer("oit-after_end", res.oitFbo());
+        });
 
         res.generator().unbind();
-        Shader.unbind();
+        Resources.unbindShader();
         RenderSystem.disableBlend();
         RenderSystem.enableDepthTest();
         RenderSystem.depthMask(true);
         RenderSystem.depthFunc(GL_LEQUAL);
         RenderSystem.activeTexture(GL_TEXTURE0);
         RenderSystem.colorMask(true, true, true, true);
-        glDisable(GL_STENCIL_TEST);
-        glStencilFunc(GL_ALWAYS, 0x0, 0xff);
+        if (!glCompat.useStencilTextureFallback) {
+            glDisable(GL_STENCIL_TEST);
+            glStencilFunc(GL_ALWAYS, 0x0, 0xff);
+            glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+        }
 
         if (Debug.frustumCulling) {
-            glCompat.pushDebugGroup("Frustum Culling Debug Draw");
+            glCompat.pushDebugGroupDev("Frustum Culling Debug Draw");
             Debug.drawFrustumCulledBoxes(cam);
-            glCompat.popDebugGroup();
+            glCompat.popDebugGroupDev();
         }
 
         if (Main.isProfilingEnabled() && res.timer() != null) {
@@ -235,16 +269,34 @@ public class Renderer implements AutoCloseable {
     }
 
     private void drawCoverage(float ticks, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
-        glEnable(GL_STENCIL_TEST);
-        glStencilMask(0xff);
-        glStencilOp(GL_KEEP, GL_INCR, GL_INCR);
-        glStencilFunc(GL_ALWAYS, 0xff, 0xff);
         RenderSystem.depthFunc(GL_LESS);
-        RenderSystem.depthMask(true);
         RenderSystem.colorMask(true, true, true, true);
-        if(isFancyMode()) RenderSystem.enableCull();
+
+        if (glCompat.useStencilTextureFallback) {
+            RenderSystem.enableBlend();
+            RenderSystem.blendEquation(GL_FUNC_ADD);
+            // FIXME: buf0 needs depth sorting
+            glCompat.blendFunci(0, GL_ONE, GL_ZERO);
+            glCompat.blendFunci(1, GL_ONE, GL_ONE);
+            RenderSystem.depthMask(false);
+            // Just to make sure, if some other part forgets to disable it
+            glDisable(GL_STENCIL_TEST);
+        } else {
+            glEnable(GL_STENCIL_TEST);
+            glStencilMask(0xff);
+            glClearStencil(0);
+            glStencilOp(GL_KEEP, GL_INCR, GL_INCR);
+            glStencilFunc(GL_ALWAYS, 0xff, 0xff);
+            RenderSystem.depthMask(true);
+        }
+
+        if (isFancyMode()) RenderSystem.enableCull();
         else RenderSystem.disableCull();
         glClear(GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+        Debug.trace.ifPresent(snapshot -> {
+            snapshot.recordFramebuffer("oit-after_in_coverage-after_clear", res.oitFbo());
+        });
 
         Config generatorConfig = getGeneratorConfig();
         Config config = Main.getConfig();
@@ -260,6 +312,9 @@ public class Renderer implements AutoCloseable {
         client.getTextureManager().getTexture(Resources.NOISE_TEXTURE).bindTexture();
 
         res.generator().bind();
+        if (glCompat.useBaseInstanceFallback) {
+            res.generator().buffer().bindDrawBuffer();
+        }
 
         setFrustumTo(tempFrustum, frustum);
         Frustum frustumAtOrigin = tempFrustum;
@@ -273,7 +328,10 @@ public class Renderer implements AutoCloseable {
                 if (!frustumAtOrigin.isVisible(bounds)) {
                     Debug.addFrustumCulledBox(bounds, false);
                     if (runCount != 0) {
-                        glCompat.drawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
+                        if (glCompat.useBaseInstanceFallback) {
+                            res.generator().buffer().setVAPointerToInstance(runStart);
+                        }
+                        glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
                     }
                     runStart = -1;
                     runCount = 0;
@@ -284,7 +342,10 @@ public class Renderer implements AutoCloseable {
                 }
             }
             if (runCount != 0) {
-                glCompat.drawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
+                if (glCompat.useBaseInstanceFallback) {
+                    res.generator().buffer().setVAPointerToInstance(runStart);
+                }
+                glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
             }
         }
 
@@ -307,11 +368,15 @@ public class Renderer implements AutoCloseable {
         RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ZERO, GlStateManager.DstFactor.ONE);
         RenderSystem.colorMask(false, false, false, false);
         glColorMaski(0, true, true, true, true);
-        glStencilFunc(GL_GREATER, 0x0, 0xff);
-        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+        if (glCompat.useStencilTextureFallback) {
+            RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ZERO);
+            glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
+        } else {
+            glDisable(GL_STENCIL_TEST);
+        }
 
         RenderSystem.activeTexture(GL_TEXTURE1);
-        RenderSystem.bindTexture(res.oitCoverageDepthView());
+        RenderSystem.bindTexture(res.oitCoverageDepthTexture());
         RenderSystem.activeTexture(GL_TEXTURE2);
         RenderSystem.bindTexture(res.oitDataTexture());
         RenderSystem.activeTexture(GL_TEXTURE3);
@@ -334,7 +399,7 @@ public class Renderer implements AutoCloseable {
         res.shadingShader().uVPMatrix.setMat4(rotationProjectionMatrix);
         res.shadingShader().uSunDirection.setVec4(sunDir.x, sunDir.y, sunDir.z, (world.getTimeOfDay() % 24000) / 24000f);
         res.shadingShader().uSunAxis.setVec3(0, sunAxisY, sunAxisZ);
-        res.shadingShader().uOpacity.setVec3(config.preset().opacity, config.preset().opacityFactor,  config.preset().opacityExponent);
+        res.shadingShader().uOpacity.setVec3(config.preset().opacity, config.preset().opacityFactor, config.preset().opacityExponent);
         res.shadingShader().uColorGrading.setVec4(brightness, 1f / config.preset().gamma(), effectLuma, config.preset().saturation);
         res.shadingShader().uTint.setVec3(config.preset().tintRed, config.preset().tintGreen, config.preset().tintBlue);
         res.shadingShader().uNoiseFactor.setFloat(config.colorVariationFactor);
@@ -348,6 +413,15 @@ public class Renderer implements AutoCloseable {
         Config config = res.generator().config();
         if (config != null) return config;
         return Main.getConfig();
+    }
+
+    private void setFrustumTo(Frustum dst, Frustum src) {
+        dst.frustumIntersection.set(src.field_40824);
+        dst.field_40824.set(src.field_40824);
+        dst.x = src.x;
+        dst.y = src.y;
+        dst.z = src.z;
+        dst.field_34821 = src.field_34821;
     }
 
     private float getEffectLuminance(float tickDelta) {
@@ -379,15 +453,6 @@ public class Renderer implements AutoCloseable {
     private float smoothstep(float x, float e0, float e1) {
         x = MathHelper.clamp((x - e0) / (e1 - e0), 0, 1);
         return x * x * (3 - 2 * x);
-    }
-
-    private void setFrustumTo(Frustum dst, Frustum src) {
-        dst.frustumIntersection.set(src.field_40824);
-        dst.field_40824.set(src.field_40824);
-        dst.x = src.x;
-        dst.y = src.y;
-        dst.z = src.z;
-        dst.field_34821 = src.field_34821;
     }
 
     public void close() {

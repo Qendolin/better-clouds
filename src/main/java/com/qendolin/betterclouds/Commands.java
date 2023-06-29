@@ -6,6 +6,11 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.qendolin.betterclouds.clouds.Debug;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.text.Text;
+
+import java.io.File;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.argument;
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
@@ -82,5 +87,32 @@ public class Commands {
                         Main.debugChatMessage("updatedPreferences");
                         return 1;
                     }))));
+        dispatcher.register(literal(Main.MODID + ":debug")
+            .then(literal("trace")
+                .executes(context -> {
+                    Debug.DebugTrace trace = Debug.captureDebugTrace(snap -> {
+                        File file = Debug.writeDebugTrace(snap);
+                        if (file == null) {
+                            Main.debugChatMessage(Text.literal("Failed to write debug trace"));
+                        } else {
+                            Main.debugChatMessage(Text.literal("Saved debug trace at " + file.getAbsolutePath()));
+                        }
+                    });
+                    trace.captureFramebuffers = false;
+                    trace.startRecording();
+                    AtomicInteger endFrame = new AtomicInteger(6000);
+                    CompletableFuture.runAsync(() -> {
+                        while (trace.isRecording()) {
+                            if (trace.getRecordedFrames() > endFrame.get()) {
+                                trace.stopRecording();
+                            }
+                        }
+                    });
+                    context.getSource().getClient().reloadResources().whenComplete((unused, throwable) -> {
+                        trace.captureFramebuffers = true;
+                        endFrame.set(trace.getRecordedFrames() + 3);
+                    });
+                    return 1;
+                })));
     }
 }

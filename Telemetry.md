@@ -24,6 +24,9 @@ This allows me to identify and address any issues related to shader compilation 
 
 `META_INFORMATION` includes:
 - `modVersion` The version of this mod
+- `modSemVer` The version of this mod, but more detailed
+- `mcVersion` The version of the game
+- `mcSemVer` The version of the game, but more detailed
 
 `SYSTEM_INFORMATION` telemetry includes:
 
@@ -46,6 +49,12 @@ This allows me to identify and address any issues related to shader compilation 
 
 - `payload` The shader compiler log and the shader source code
 - `SYSTEM_INFORMATION`
+
+`UNHANDLED_EXCEPTION` telemetry includes
+
+- `payload` The exception message and it's stack trace
+- `SYSTEM_INFORMATION`
+
 
 Additionally, by the nature of HTTP requests your IP address is transmitted to the collection server, 
 but it is not stored.

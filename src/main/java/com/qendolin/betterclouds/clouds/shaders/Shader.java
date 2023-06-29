@@ -2,7 +2,7 @@ package com.qendolin.betterclouds.clouds.shaders;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.qendolin.betterclouds.Main;
-import com.qendolin.betterclouds.mixin.ShaderProgramAccessor;
+import com.qendolin.betterclouds.clouds.Resources;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.InvalidHierarchicalFileException;
@@ -28,8 +28,8 @@ public class Shader implements AutoCloseable {
         int vsh = compileShader(GL_VERTEX_SHADER, vshId, resMan);
         int fsh = compileShader(GL_FRAGMENT_SHADER, fshId, resMan);
 
-        Main.glCompat.objectLabel(Main.glCompat.GL_SHADER, vsh, vshId.getPath());
-        Main.glCompat.objectLabel(Main.glCompat.GL_SHADER, fsh, fshId.getPath());
+        Main.glCompat.objectLabelDev(Main.glCompat.GL_SHADER, vsh, vshId.getPath());
+        Main.glCompat.objectLabelDev(Main.glCompat.GL_SHADER, fsh, fshId.getPath());
 
         programId = GlStateManager.glCreateProgram();
         glAttachShader(programId, vsh);
@@ -50,6 +50,7 @@ public class Shader implements AutoCloseable {
         try {
             InputStream stream = resMan.getResourceOrThrow(resource).getInputStream();
             shaderSrc = IOUtils.toString(stream, StandardCharsets.UTF_8);
+            shaderSrc = shaderSrc.strip();
         } catch (IOException ex) {
             InvalidHierarchicalFileException fileEx = InvalidHierarchicalFileException.wrap(ex);
             fileEx.addInvalidFile(resource.toString());
@@ -88,10 +89,8 @@ public class Shader implements AutoCloseable {
         return programId;
     }
 
-    public static void unbind() {
-        int previousProgramId = ShaderProgramAccessor.getActiveProgramGlRef();
-        if (previousProgramId > 0)
-            glUseProgram(previousProgramId);
+    public void unbind() {
+        Resources.unbindShader();
     }
 
     protected Uniform getUniform(String name, boolean cached) {
