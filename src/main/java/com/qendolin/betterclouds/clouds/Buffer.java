@@ -1,7 +1,5 @@
 package com.qendolin.betterclouds.clouds;
 
-import com.qendolin.betterclouds.mixin.BufferRendererAccessor;
-import com.qendolin.betterclouds.mixin.VertexBufferAccessor;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.FloatBuffer;

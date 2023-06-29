@@ -3,7 +3,6 @@ package com.qendolin.betterclouds.clouds.shaders;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.clouds.Resources;
-import com.qendolin.betterclouds.mixin.ShaderProgramAccessor;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.InvalidHierarchicalFileException;
