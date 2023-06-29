@@ -57,7 +57,7 @@ Don't settle for lackluster clouds any longer. Upgrade to Better Clouds and tran
 ## Contributions
 
 Thanks to all who contributed to this Project!
-Check them out [here](https://github.com/Qendolin/better-clouds/Contributions.md).
+Check them out [here](https://github.com/Qendolin/better-clouds/blob/main/Contributions.md).
 
 ## Wiki
 
