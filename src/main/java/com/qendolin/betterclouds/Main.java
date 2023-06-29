@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Main implements ClientModInitializer {
     public static final String MODID = "betterclouds";
-    public static final boolean IS_DEV = false; //FabricLoader.getInstance().isDevelopmentEnvironment();
+    public static final boolean IS_DEV = FabricLoader.getInstance().isDevelopmentEnvironment();
     public static final boolean IS_CLIENT = FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT;
     public static final NamedLogger LOGGER = new NamedLogger(LogManager.getLogger(MODID), !IS_DEV);
 
