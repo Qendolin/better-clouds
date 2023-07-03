@@ -166,7 +166,6 @@ public class Renderer implements AutoCloseable {
             res.reloadFramebuffer(scaledFramebufferWidth(), scaledFramebufferHeight());
         }
 
-
         RenderSystem.viewport(0, 0, res.fboWidth(), res.fboHeight());
         GlStateManager._glBindFramebuffer(GL_DRAW_FRAMEBUFFER, res.oitFbo());
         RenderSystem.clearDepth(1);

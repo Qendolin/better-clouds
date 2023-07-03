@@ -179,6 +179,11 @@ public class ChunkedGenerator implements AutoCloseable {
             updateGeometry = true;
         }
 
+        if(Debug.generatorForceUpdate) {
+            Debug.generatorForceUpdate = false;
+            updateGeometry = true;
+        }
+
         if (updateGeometry) {
             queuedTask = new Task(chunkX, chunkZ, new Config(options), cloudiness, buffer, sampler);
         }

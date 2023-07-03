@@ -2,7 +2,6 @@ package com.qendolin.betterclouds;
 
 import org.apache.logging.log4j.Logger;
 
-@SuppressWarnings("unused")
 public class NamedLogger {
     private final Logger delegate;
     private final String prefix;

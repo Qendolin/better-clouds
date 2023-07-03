@@ -42,6 +42,10 @@ public class Debug {
     public static int profileInterval = 0;
     public static boolean frustumCulling = false;
     public static boolean generatorPause = false;
+    // -1 to disable, 0 to initialize, paused tick otherwise
+    public static int animationPause = -1;
+    public static boolean generatorForceUpdate = false;
+
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     @NotNull
     public static Optional<DebugTrace> trace = Optional.empty();
