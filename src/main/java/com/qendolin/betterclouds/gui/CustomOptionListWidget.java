@@ -7,12 +7,13 @@ import dev.isxander.yacl3.gui.OptionListWidget;
 import dev.isxander.yacl3.gui.YACLScreen;
 import dev.isxander.yacl3.gui.controllers.LabelController;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.ScreenRect;
 import net.minecraft.client.gui.Selectable;
 import net.minecraft.client.gui.navigation.GuiNavigation;
 import net.minecraft.client.gui.navigation.GuiNavigationPath;
+import net.minecraft.client.util.math.MatrixStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -30,20 +31,20 @@ public class CustomOptionListWidget extends OptionListWidget {
     public void refreshOptions() {
         super.refreshOptions();
         addEntry(new PaddingEntry());
-        for (Entry child : children()) {
+        for (dev.isxander.yacl3.gui.OptionListWidget.Entry child : children()) {
             if (child instanceof OptionEntry optionEntry && optionEntry.option.controller() instanceof LabelController) {
                 addEntryBelow(optionEntry, new ProxyEntry<OptionEntry>(optionEntry)
-                    .onBeforeRender((delegate, context, index, y, x, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta) -> {
+                    .onBeforeRender((delegate, matrices, index, y, x, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta) -> {
                         if (client.world == null) return;
                         Dimension<Integer> dim = delegate.widget.getDimension();
-                        context.fill(dim.x(), dim.y(), dim.xLimit(), dim.yLimit(), 0x6b000000);
+                        DrawableHelper.fill(matrices, dim.x(), dim.y(), dim.xLimit(), dim.yLimit(), 0x6b000000);
                     }));
                 removeEntry(optionEntry);
             } else if (child instanceof GroupSeparatorEntry groupSeparatorEntry) {
                 addEntryBelow(groupSeparatorEntry, new ProxyEntry<GroupSeparatorEntry>(groupSeparatorEntry)
-                    .onBeforeRender((delegate, context, index, y, x, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta) -> {
+                    .onBeforeRender((delegate, matrices, index, y, x, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta) -> {
                         if (client.world == null) return;
-                        context.fill(x, y, x + entryWidth, y + 19, 0x6b000000);
+                        DrawableHelper.fill(matrices, x, y, x + entryWidth, y + 19, 0x6b000000);
                     }));
                 removeEntry(groupSeparatorEntry);
             }
@@ -55,9 +56,9 @@ public class CustomOptionListWidget extends OptionListWidget {
     }
 
     @Override
-    protected void renderBackground(DrawContext context) {
+    protected void renderBackground(MatrixStack matrices) {
         if (client == null || client.world == null) {
-            super.renderBackground(context);
+            super.renderBackground(matrices);
             setRenderBackground(true);
         } else {
             setRenderBackground(false);
@@ -66,7 +67,7 @@ public class CustomOptionListWidget extends OptionListWidget {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
-        for (Entry child : children()) {
+        for (dev.isxander.yacl3.gui.OptionListWidget.Entry child : children()) {
             if (child.mouseScrolled(mouseX, mouseY, amount)) {
                 return true;
             }
@@ -77,7 +78,7 @@ public class CustomOptionListWidget extends OptionListWidget {
     }
 
     // It is super annoying that Entry is not declared as a static class
-    public class ProxyEntry<T extends Entry> extends Entry {
+    public class ProxyEntry<T extends dev.isxander.yacl3.gui.OptionListWidget.Entry> extends dev.isxander.yacl3.gui.OptionListWidget.Entry {
         private final T delegate;
 
         public BeforeRenderCallback<T> beforeRender;
@@ -99,12 +100,12 @@ public class CustomOptionListWidget extends OptionListWidget {
         }
 
         @Override
-        public void render(DrawContext context, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
+        public void render(MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
             if (beforeRender != null)
-                beforeRender.onBeforeRender(delegate, context, index, y, x, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta);
-            delegate.render(context, index, y, x, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta);
+                beforeRender.onBeforeRender(delegate, matrices, index, y, x, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta);
+            delegate.render(matrices, index, y, x, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta);
             if (afterRender != null)
-                afterRender.onAfterRender(delegate, context, index, y, x, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta);
+                afterRender.onAfterRender(delegate, matrices, index, y, x, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta);
         }
 
         @Override
@@ -232,8 +233,8 @@ public class CustomOptionListWidget extends OptionListWidget {
         }
 
         @Override
-        public void drawBorder(DrawContext context, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
-            delegate.drawBorder(context, index, y, x, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta);
+        public void drawBorder(MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
+            delegate.drawBorder(matrices, index, y, x, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta);
         }
 
         @Override
@@ -253,16 +254,16 @@ public class CustomOptionListWidget extends OptionListWidget {
     }
 
     @FunctionalInterface
-    public interface BeforeRenderCallback<T extends Entry> {
-        void onBeforeRender(T delegate, DrawContext context, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta);
+    public interface BeforeRenderCallback<T extends dev.isxander.yacl3.gui.OptionListWidget.Entry> {
+        void onBeforeRender(T delegate, MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta);
     }
 
     @FunctionalInterface
-    public interface AfterRenderCallback<T extends Entry> {
-        void onAfterRender(T delegate, DrawContext context, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta);
+    public interface AfterRenderCallback<T extends dev.isxander.yacl3.gui.OptionListWidget.Entry> {
+        void onAfterRender(T delegate, MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta);
     }
 
-    private class PaddingEntry extends Entry {
+    private class PaddingEntry extends dev.isxander.yacl3.gui.OptionListWidget.Entry {
         @Override
         public List<? extends Selectable> selectableChildren() {
             return List.of();
@@ -274,7 +275,7 @@ public class CustomOptionListWidget extends OptionListWidget {
         }
 
         @Override
-        public void render(DrawContext context, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
+        public void render(MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
         }
 
         @Override

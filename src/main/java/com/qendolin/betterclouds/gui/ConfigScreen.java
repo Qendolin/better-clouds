@@ -4,10 +4,11 @@ import dev.isxander.yacl3.api.PlaceholderCategory;
 import dev.isxander.yacl3.api.YetAnotherConfigLib;
 import dev.isxander.yacl3.api.utils.OptionUtils;
 import dev.isxander.yacl3.gui.YACLScreen;
-import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.ScreenRect;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -62,19 +63,19 @@ public class ConfigScreen extends YACLScreen {
     }
 
     @Override
-    public void renderBackground(DrawContext context) {
+    public void renderBackground(MatrixStack matrices) {
         if (client == null || client.world == null) {
-            super.renderBackground(context);
+            super.renderBackground(matrices);
         } else {
-            context.fill(0, 0, width / 3, height, 0x6b000000);
+            DrawableHelper.fill(matrices, 0, 0, width / 3, height, 0x6b000000);
         }
     }
 
-    public void renderBackgroundTexture(DrawContext context) {
+    public void renderBackgroundTexture(MatrixStack matrices) {
         if (client == null || client.world == null) {
-            super.renderBackgroundTexture(context);
+            super.renderBackgroundTexture(matrices);
         } else {
-            context.fill(width / 3 * 2 + 1, tabArea.getTop(), width, tabArea.getBottom(), 0x6b000000);
+            DrawableHelper.fill(matrices, width / 3 * 2 + 1, tabArea.getTop(), width, tabArea.getBottom(), 0x6b000000);
         }
     }
 
@@ -101,11 +102,11 @@ public class ConfigScreen extends YACLScreen {
         }
 
         @Override
-        public void renderBackground(DrawContext context) {
+        public void renderBackground(MatrixStack matrices) {
             if (client == null || client.world == null) {
-                super.renderBackground(context);
+                super.renderBackground(matrices);
             } else {
-                context.fill(0, 0, width / 3, height, 0x6B000000);
+                DrawableHelper.fill(matrices, 0, 0, width / 3, height, 0x6B000000);
             }
         }
     }
