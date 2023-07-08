@@ -1,7 +1,9 @@
 package com.qendolin.betterclouds.clouds;
 
+import com.qendolin.betterclouds.Main;
 import org.lwjgl.system.MemoryUtil;
 
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
 import static com.qendolin.betterclouds.Main.glCompat;
@@ -24,8 +26,8 @@ public class Buffer implements AutoCloseable {
     private int swapCount = 0;
     private long prevInstancePointer = -1;
 
-    public Buffer(int size, boolean fancy, boolean usePersistent) {
-        this.usePersistent = usePersistent && (glCompat.arbBufferStorage || glCompat.openGl44);
+    public Buffer(int size, boolean fancy, boolean preferPersistent) {
+        boolean usePersistent = preferPersistent && (glCompat.arbBufferStorage || glCompat.openGl44);
         this.size = size;
         this.fancy = fancy;
 
@@ -53,24 +55,22 @@ public class Buffer implements AutoCloseable {
         writeBufferId = glGenBuffers();
         drawBufferId = glGenBuffers();
         long vboSize = (long) size * size * 3 * Float.BYTES;
-        if (this.usePersistent) {
-            int flags = GL_MAP_WRITE_BIT | glCompat.GL_MAP_PERSISTENT_BIT | glCompat.GL_MAP_COHERENT_BIT;
-            glBindBuffer(GL_ARRAY_BUFFER, writeBufferId);
-            glCompat.bufferStorage(GL_ARRAY_BUFFER, vboSize, flags);
-            writeBuffer = glMapBufferRange(GL_ARRAY_BUFFER, 0, vboSize, flags).asFloatBuffer();
-            glCompat.objectLabelDev(glCompat.GL_BUFFER, writeBufferId, "cloud_positions_a");
-
-            glBindBuffer(GL_ARRAY_BUFFER, drawBufferId);
-            glCompat.bufferStorage(GL_ARRAY_BUFFER, vboSize, flags);
-            drawBuffer = glMapBufferRange(GL_ARRAY_BUFFER, 0, vboSize, flags).asFloatBuffer();
-            glCompat.objectLabelDev(glCompat.GL_BUFFER, drawBufferId, "cloud_positions_b");
-        } else {
-            writeBuffer = MemoryUtil.memAllocFloat((int) (vboSize / Float.BYTES));
-            glCompat.objectLabelDev(glCompat.GL_BUFFER, writeBufferId, "cloud_positions");
-
-            glBindBuffer(GL_ARRAY_BUFFER, drawBufferId);
-            glBufferData(GL_ARRAY_BUFFER, vboSize, GL_DYNAMIC_DRAW);
+        if (usePersistent) {
+            try {
+                allocatePersistent((int) vboSize);
+            } catch (IllegalStateException e) {
+                Main.getConfig().usePersistentBuffers = false;
+                Main.getConfigInstance().save();
+                usePersistent = false;
+                Main.LOGGER.error(e);
+            }
         }
+
+        if(!usePersistent) {
+            allocateMutable(vboSize);
+        }
+
+        this.usePersistent = usePersistent;
 
         glEnableVertexAttribArray(0);
         setVAPointerToInstance(0);
@@ -78,6 +78,31 @@ public class Buffer implements AutoCloseable {
 
         Resources.unbindVao();
         Resources.unbindVbo();
+    }
+
+    private void allocatePersistent(long vboSize) {
+        int flags = GL_MAP_WRITE_BIT | glCompat.GL_MAP_PERSISTENT_BIT | glCompat.GL_MAP_COHERENT_BIT;
+        glBindBuffer(GL_ARRAY_BUFFER, writeBufferId);
+        glCompat.bufferStorage(GL_ARRAY_BUFFER, vboSize, flags);
+        ByteBuffer buffer = glMapBufferRange(GL_ARRAY_BUFFER, 0, vboSize, flags);
+        if(buffer == null) throw new IllegalStateException("glMapBufferRange returned null");
+        writeBuffer = buffer.asFloatBuffer();
+        glCompat.objectLabelDev(glCompat.GL_BUFFER, writeBufferId, "cloud_positions_a");
+
+        glBindBuffer(GL_ARRAY_BUFFER, drawBufferId);
+        glCompat.bufferStorage(GL_ARRAY_BUFFER, vboSize, flags);
+        buffer = glMapBufferRange(GL_ARRAY_BUFFER, 0, vboSize, flags);
+        if(buffer == null) throw new IllegalStateException("glMapBufferRange returned null");
+        drawBuffer = buffer.asFloatBuffer();
+        glCompat.objectLabelDev(glCompat.GL_BUFFER, drawBufferId, "cloud_positions_b");
+    }
+
+    private void allocateMutable(long vboSize) {
+        writeBuffer = MemoryUtil.memAllocFloat((int) (vboSize / Float.BYTES));
+        glCompat.objectLabelDev(glCompat.GL_BUFFER, writeBufferId, "cloud_positions");
+
+        glBindBuffer(GL_ARRAY_BUFFER, drawBufferId);
+        glBufferData(GL_ARRAY_BUFFER, vboSize, GL_DYNAMIC_DRAW);
     }
 
     public void setVAPointerToInstance(int baseInstance) {
@@ -91,10 +116,6 @@ public class Buffer implements AutoCloseable {
 
     public boolean hasChanged(int size, boolean fancy, boolean persistent) {
         return size != this.size || fancy != this.fancy || ((glCompat.arbBufferStorage || glCompat.openGl44) && persistent) != this.usePersistent;
-    }
-
-    public FloatBuffer writeBuffer() {
-        return writeBuffer;
     }
 
     public int instanceVertexCount() {

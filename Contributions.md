@@ -1,3 +1,9 @@
+## Special Thanks
+
+- tassimo99
+   - Gave me valuable feedback during development
+   - Created the cloud light gradient texture
+
 ## Code Contributions
 
  - AeiouEnigma

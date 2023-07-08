@@ -102,6 +102,13 @@ public abstract class WorldRendererMixin {
         if (Main.isProfilingEnabled()) GL32.glFinish();
         long startTime = System.nanoTime();
 
+        int ticks = this.ticks;
+        if(Debug.animationPause >= 0) {
+            if(Debug.animationPause == 0) Debug.animationPause = ticks;
+            else ticks = Debug.animationPause;
+            tickDelta = 0;
+        }
+
         matrices.push();
         try {
             if (cloudRenderer.prepare(matrices, projMat, ticks, tickDelta, cam)) {

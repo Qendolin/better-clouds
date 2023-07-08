@@ -25,11 +25,11 @@ public class IrisCompat {
         if (pipeline instanceof NewWorldRenderingPipeline corePipeline) {
             ShaderProgram program = corePipeline.getShaderMap().getShader(ShaderKey.CLOUDS);
             GlFramebuffer before = null, after = null;
-            if(program instanceof ExtendedShader extended) {
+            if (program instanceof ExtendedShader extended) {
                 ExtendedShaderAccessor access = (ExtendedShaderAccessor) extended;
                 before = access.getWritingToBeforeTranslucent();
                 after = access.getWritingToAfterTranslucent();
-            } else if(program instanceof FallbackShader fallback) {
+            } else if (program instanceof FallbackShader fallback) {
                 FallbackShaderAccessor access = (FallbackShaderAccessor) fallback;
                 before = access.getWritingToBeforeTranslucent();
                 after = access.getWritingToAfterTranslucent();
@@ -44,7 +44,7 @@ public class IrisCompat {
                 required = after;
             }
 
-            if(required == null) {
+            if (required == null) {
                 throw new RuntimeException(INCOMPATIBLE_ERROR + "Required framebuffer is null, Iris Version: " + Iris.getVersion());
             }
 

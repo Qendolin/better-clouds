@@ -62,6 +62,30 @@ public class Commands {
                     Debug.generatorPause = false;
                     Main.debugChatMessage("generatorResumed");
                     return 1;
+                }))
+            .then(literal("update")
+                .executes(context -> {
+                    Debug.generatorForceUpdate = true;
+                    return 1;
+                })));
+        dispatcher.register(literal(Main.MODID + ":animation")
+            .then(literal("pause")
+                .executes(context -> {
+                    Debug.animationPause = 0;
+                    Main.debugChatMessage("animationPaused");
+                    return 1;
+                })
+                .then(argument("ticks", IntegerArgumentType.integer(1))
+                    .executes(context -> {
+                        Debug.animationPause = IntegerArgumentType.getInteger(context, "ticks");
+                        Main.debugChatMessage("animationPaused");
+                        return 1;
+                    })))
+            .then(literal("resume")
+                .executes(context -> {
+                    Debug.animationPause = -1;
+                    Main.debugChatMessage("animationResumed");
+                    return 1;
                 })));
         dispatcher.register(literal(Main.MODID + ":config")
             .then(literal("open").executes(context -> {
