@@ -110,7 +110,7 @@ public class Main implements ClientModInitializer {
         return version;
     }
 
-    static GsonConfigInstance<Config> getConfigInstance() {
+    public static GsonConfigInstance<Config> getConfigInstance() {
         return CONFIG;
     }
 
