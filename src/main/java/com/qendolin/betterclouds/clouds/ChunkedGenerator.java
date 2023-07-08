@@ -48,6 +48,10 @@ public class ChunkedGenerator implements AutoCloseable {
         return swappedTask.chunks();
     }
 
+    public Buffer buffer() {
+        return buffer;
+    }
+
     public synchronized int instanceVertexCount() {
         if (swappedTask == null) return 0;
         return swappedTask.instanceVertexCount();
@@ -172,6 +176,11 @@ public class ChunkedGenerator implements AutoCloseable {
 
             updateGeometry = chunkChanged || optionsChanged || cloudinessChanged || bufferCleared;
         } else {
+            updateGeometry = true;
+        }
+
+        if(Debug.generatorForceUpdate) {
+            Debug.generatorForceUpdate = false;
             updateGeometry = true;
         }
 
@@ -325,6 +334,7 @@ public class ChunkedGenerator implements AutoCloseable {
             return ran.get();
         }
 
+        @SuppressWarnings("BooleanMethodIsAlwaysInverted")
         public boolean cancelled() {
             return cancelled.get();
         }

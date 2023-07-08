@@ -3,6 +3,7 @@ package com.qendolin.betterclouds.mixin;
 import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.clouds.Debug;
 import com.qendolin.betterclouds.clouds.Renderer;
+import com.qendolin.betterclouds.compat.Telemetry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.BufferBuilderStorage;
 import net.minecraft.client.render.Frustum;
@@ -64,7 +65,12 @@ public abstract class WorldRendererMixin {
     @Inject(at = @At("TAIL"), method = "reload(Lnet/minecraft/resource/ResourceManager;)V")
     private void onReload(ResourceManager manager, CallbackInfo ci) {
         if (glCompat.isIncompatible()) return;
-        if (cloudRenderer != null) cloudRenderer.reload(manager);
+        try {
+            if (cloudRenderer != null) cloudRenderer.reload(manager);
+        } catch (Exception e) {
+            Telemetry.INSTANCE.sendUnhandledException(e);
+            throw e;
+        }
     }
 
     @Inject(at = @At("TAIL"), method = "setWorld")
@@ -80,7 +86,9 @@ public abstract class WorldRendererMixin {
         if (!Main.getConfig().enabled) return;
 
         client.getProfiler().push(Main.MODID);
-        glCompat.pushDebugGroup("Better Clouds");
+        glCompat.pushDebugGroupDev("Better Clouds");
+
+        Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("renderClouds called"));
 
         Vector3d cam = tempVector.set(camX, camY, camZ);
         Frustum frustum = this.frustum;
@@ -94,10 +102,25 @@ public abstract class WorldRendererMixin {
         if (Main.isProfilingEnabled()) GL32.glFinish();
         long startTime = System.nanoTime();
 
+        int ticks = this.ticks;
+        if(Debug.animationPause >= 0) {
+            if(Debug.animationPause == 0) Debug.animationPause = ticks;
+            else ticks = Debug.animationPause;
+            tickDelta = 0;
+        }
+
         matrices.push();
-        if (cloudRenderer.prepare(matrices, projMat, ticks, tickDelta, cam)) {
-            ci.cancel();
-            cloudRenderer.render(ticks, tickDelta, cam, frustumPos, frustum);
+        try {
+            if (cloudRenderer.prepare(matrices, projMat, ticks, tickDelta, cam)) {
+                ci.cancel();
+                Debug.trace.ifPresent(Debug.DebugTrace::recordFrame);
+                cloudRenderer.render(ticks, tickDelta, cam, frustumPos, frustum);
+            } else {
+                Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("renderer prepare returned false"));
+            }
+        } catch (Exception e) {
+            Telemetry.INSTANCE.sendUnhandledException(e);
+            throw e;
         }
         matrices.pop();
 
@@ -113,7 +136,7 @@ public abstract class WorldRendererMixin {
         }
 
         client.getProfiler().pop();
-        glCompat.popDebugGroup();
+        glCompat.popDebugGroupDev();
     }
 
 

@@ -1,25 +1,19 @@
 package com.qendolin.betterclouds.gui;
 
 import com.google.common.collect.ImmutableSet;
-import dev.isxander.yacl.api.*;
-import dev.isxander.yacl.gui.YACLScreen;
-import net.minecraft.text.MutableText;
+import dev.isxander.yacl3.api.*;
+import dev.isxander.yacl3.gui.YACLScreen;
 import net.minecraft.text.Text;
 import org.apache.commons.lang3.Validate;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class CustomButtonOption implements ButtonOption {
 
     private final Supplier<Text> name;
-    private final Text tooltip;
+    private final OptionDescription description;
     private final BiConsumer<YACLScreen, ButtonOption> action;
     private boolean available;
     private final Controller<BiConsumer<YACLScreen, ButtonOption>> controller;
@@ -27,21 +21,20 @@ public class CustomButtonOption implements ButtonOption {
 
     public CustomButtonOption(
         @NotNull Supplier<Text> name,
-        @Nullable Text tooltip,
+        @NotNull OptionDescription description,
         @NotNull BiConsumer<YACLScreen, ButtonOption> action,
-        boolean available,
-        @NotNull Function<ButtonOption, Controller<BiConsumer<YACLScreen, ButtonOption>>> controlGetter
+        boolean available
     ) {
         this.name = name;
-        this.tooltip = tooltip;
+        this.description = description;
         this.action = action;
         this.available = available;
-        this.controller = controlGetter.apply(this);
+        this.controller = new CustomActionController(this);
         this.binding = new EmptyBinderImpl();
     }
 
-    public static Builder createBuilder() {
-        return new Builder();
+    public static com.qendolin.betterclouds.gui.CustomButtonOption.Builder createBuilder() {
+        return new com.qendolin.betterclouds.gui.CustomButtonOption.Builder();
     }
 
     @Override
@@ -51,7 +44,12 @@ public class CustomButtonOption implements ButtonOption {
 
     @Override
     public @NotNull Text tooltip() {
-        return tooltip;
+        return description().text();
+    }
+
+    @Override
+    public @NotNull OptionDescription description() {
+        return description;
     }
 
     @Override
@@ -77,11 +75,6 @@ public class CustomButtonOption implements ButtonOption {
     @Override
     public @NotNull Binding<BiConsumer<YACLScreen, ButtonOption>> binding() {
         return binding;
-    }
-
-    @Override
-    public @NotNull Class<BiConsumer<YACLScreen, ButtonOption>> typeClass() {
-        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -146,29 +139,27 @@ public class CustomButtonOption implements ButtonOption {
         }
     }
 
-    @ApiStatus.Internal
     public static final class Builder {
         private Supplier<Text> name;
-        private final List<Text> tooltipLines = new ArrayList<>();
+        private OptionDescription description = OptionDescription.EMPTY;
         private boolean available = true;
-        private Function<ButtonOption, Controller<BiConsumer<YACLScreen, ButtonOption>>> controlGetter;
         private BiConsumer<YACLScreen, ButtonOption> action;
 
-        public Builder name(@NotNull Supplier<Text> name) {
+        public com.qendolin.betterclouds.gui.CustomButtonOption.Builder name(@NotNull Supplier<Text> name) {
             Validate.notNull(name, "`name` cannot be null");
 
             this.name = name;
             return this;
         }
 
-        public Builder tooltip(@NotNull Text... tooltips) {
-            Validate.notNull(tooltips, "`tooltips` cannot be empty");
+        public com.qendolin.betterclouds.gui.CustomButtonOption.Builder description(@NotNull OptionDescription description) {
+            Validate.notNull(description, "`description` cannot be null");
 
-            tooltipLines.addAll(List.of(tooltips));
+            this.description = description;
             return this;
         }
 
-        public Builder action(@NotNull BiConsumer<YACLScreen, ButtonOption> action) {
+        public com.qendolin.betterclouds.gui.CustomButtonOption.Builder action(@NotNull BiConsumer<YACLScreen, ButtonOption> action) {
             Validate.notNull(action, "`action` cannot be null");
 
             this.action = action;
@@ -176,33 +167,16 @@ public class CustomButtonOption implements ButtonOption {
         }
 
 
-        public Builder available(boolean available) {
+        public com.qendolin.betterclouds.gui.CustomButtonOption.Builder available(boolean available) {
             this.available = available;
-            return this;
-        }
-
-        public Builder controller(@NotNull Function<ButtonOption, Controller<BiConsumer<YACLScreen, ButtonOption>>> control) {
-            Validate.notNull(control, "`control` cannot be null");
-
-            this.controlGetter = control;
             return this;
         }
 
         public ButtonOption build() {
             Validate.notNull(name, "`name` must not be null when building `Option`");
-            Validate.notNull(controlGetter, "`control` must not be null when building `Option`");
             Validate.notNull(action, "`action` must not be null when building `Option`");
 
-            MutableText concatenatedTooltip = Text.empty();
-            boolean first = true;
-            for (Text line : tooltipLines) {
-                if (!first) concatenatedTooltip.append("\n");
-                first = false;
-
-                concatenatedTooltip.append(line);
-            }
-
-            return new CustomButtonOption(name, concatenatedTooltip, action, available, controlGetter);
+            return new CustomButtonOption(name, description, action, available);
         }
     }
 }

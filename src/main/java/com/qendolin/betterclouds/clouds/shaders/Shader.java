@@ -28,8 +28,8 @@ public class Shader implements AutoCloseable {
         int vsh = compileShader(GL_VERTEX_SHADER, vshId, resMan);
         int fsh = compileShader(GL_FRAGMENT_SHADER, fshId, resMan);
 
-        Main.glCompat.objectLabel(Main.glCompat.GL_SHADER, vsh, vshId.getPath());
-        Main.glCompat.objectLabel(Main.glCompat.GL_SHADER, fsh, fshId.getPath());
+        Main.glCompat.objectLabelDev(Main.glCompat.GL_SHADER, vsh, vshId.getPath());
+        Main.glCompat.objectLabelDev(Main.glCompat.GL_SHADER, fsh, fshId.getPath());
 
         programId = GlStateManager.glCreateProgram();
         glAttachShader(programId, vsh);
@@ -50,6 +50,7 @@ public class Shader implements AutoCloseable {
         try {
             InputStream stream = resMan.getResourceOrThrow(resource).getInputStream();
             shaderSrc = IOUtils.toString(stream, StandardCharsets.UTF_8);
+            shaderSrc = shaderSrc.strip();
         } catch (IOException ex) {
             InvalidHierarchicalFileException fileEx = InvalidHierarchicalFileException.wrap(ex);
             fileEx.addInvalidFile(resource.toString());

@@ -33,14 +33,14 @@ public class Buffer implements AutoCloseable {
 
         vaoId = glGenVertexArrays();
         glBindVertexArray(vaoId);
-        glCompat.objectLabel(glCompat.GL_VERTEX_ARRAY, vaoId, "clouds_buffer");
+        glCompat.objectLabelDev(glCompat.GL_VERTEX_ARRAY, vaoId, "clouds_buffer");
 
         meshId = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, meshId);
         float[] mesh = fancy ? Mesh.FANCY_MESH : Mesh.FAST_MESH;
         instanceVertexCount = fancy ? Mesh.FANCY_MESH_VERTEX_COUNT : Mesh.FAST_MESH_VERTEX_COUNT;
         glBufferData(GL_ARRAY_BUFFER, mesh, GL_STATIC_DRAW);
-        glCompat.objectLabel(glCompat.GL_BUFFER, meshId, "cloud_mesh");
+        glCompat.objectLabelDev(glCompat.GL_BUFFER, meshId, "cloud_mesh");
 
         if (fancy) {
             glEnableVertexAttribArray(1);
@@ -87,19 +87,19 @@ public class Buffer implements AutoCloseable {
         ByteBuffer buffer = glMapBufferRange(GL_ARRAY_BUFFER, 0, vboSize, flags);
         if(buffer == null) throw new IllegalStateException("glMapBufferRange returned null");
         writeBuffer = buffer.asFloatBuffer();
-        glCompat.objectLabel(glCompat.GL_BUFFER, writeBufferId, "cloud_positions_a");
+        glCompat.objectLabelDev(glCompat.GL_BUFFER, writeBufferId, "cloud_positions_a");
 
         glBindBuffer(GL_ARRAY_BUFFER, drawBufferId);
         glCompat.bufferStorage(GL_ARRAY_BUFFER, vboSize, flags);
         buffer = glMapBufferRange(GL_ARRAY_BUFFER, 0, vboSize, flags);
         if(buffer == null) throw new IllegalStateException("glMapBufferRange returned null");
         drawBuffer = buffer.asFloatBuffer();
-        glCompat.objectLabel(glCompat.GL_BUFFER, drawBufferId, "cloud_positions_b");
+        glCompat.objectLabelDev(glCompat.GL_BUFFER, drawBufferId, "cloud_positions_b");
     }
 
     private void allocateMutable(long vboSize) {
         writeBuffer = MemoryUtil.memAllocFloat((int) (vboSize / Float.BYTES));
-        glCompat.objectLabel(glCompat.GL_BUFFER, writeBufferId, "cloud_positions");
+        glCompat.objectLabelDev(glCompat.GL_BUFFER, writeBufferId, "cloud_positions");
 
         glBindBuffer(GL_ARRAY_BUFFER, drawBufferId);
         glBufferData(GL_ARRAY_BUFFER, vboSize, GL_DYNAMIC_DRAW);

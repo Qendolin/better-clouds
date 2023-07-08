@@ -1,7 +1,7 @@
 package com.qendolin.betterclouds.compat;
 
 import com.google.gson.GsonBuilder;
-import dev.isxander.yacl.config.GsonConfigInstance;
+import dev.isxander.yacl3.config.GsonConfigInstance;
 
 import java.util.function.UnaryOperator;
 

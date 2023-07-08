@@ -4,7 +4,7 @@ import com.qendolin.betterclouds.clouds.Debug;
 import com.qendolin.betterclouds.compat.GLCompat;
 import com.qendolin.betterclouds.compat.GsonConfigInstanceBuilderDuck;
 import com.qendolin.betterclouds.compat.Telemetry;
-import dev.isxander.yacl.config.GsonConfigInstance;
+import dev.isxander.yacl3.config.GsonConfigInstance;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
@@ -31,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 public class Main implements ClientModInitializer {
     public static final String MODID = "betterclouds";
     public static final boolean IS_DEV = FabricLoader.getInstance().isDevelopmentEnvironment();
+    public static final boolean IS_CLIENT = FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT;
     public static final NamedLogger LOGGER = new NamedLogger(LogManager.getLogger(MODID), !IS_DEV);
 
     public static GLCompat glCompat;
@@ -39,7 +40,7 @@ public class Main implements ClientModInitializer {
     private static final GsonConfigInstance<Config> CONFIG;
 
     static {
-        if (FabricLoader.getInstance().getEnvironmentType().equals(EnvType.CLIENT)) {
+        if (IS_CLIENT) {
             GsonConfigInstance.Builder<Config> builder = GsonConfigInstance
                 .createBuilder(Config.class)
                 .setPath(Path.of("config/betterclouds-v1.json"));
@@ -60,17 +61,29 @@ public class Main implements ClientModInitializer {
     }
 
     public static void initGlCompat() {
-        glCompat = new GLCompat(IS_DEV);
+        try {
+            glCompat = new GLCompat(IS_DEV);
+        } catch (Exception e) {
+            Telemetry.INSTANCE.sendUnhandledException(e);
+            throw e;
+        }
+
         if (glCompat.isIncompatible()) {
-            LOGGER.warn("Your GPU is not compatible with Better Clouds. OpenGL 4.3 is required!");
+            LOGGER.warn("Your GPU is not compatible with Better Clouds. Try updating your drivers?");
             LOGGER.info(" - Vendor:       {}", GL32.glGetString(GL32.GL_VENDOR));
             LOGGER.info(" - Renderer:     {}", GL32.glGetString(GL32.GL_RENDERER));
             LOGGER.info(" - GL Version:   {}", GL32.glGetString(GL32.GL_VERSION));
             LOGGER.info(" - GLSL Version: {}", GL32.glGetString(GL32.GL_SHADING_LANGUAGE_VERSION));
             LOGGER.info(" - Extensions:   {}", String.join(", ", glCompat.supportedCheckedExtensions));
             LOGGER.info(" - Functions:    {}", String.join(", ", glCompat.supportedCheckedFunctions));
+        } else if (glCompat.isPartiallyIncompatible()) {
+            LOGGER.warn("Your GPU is not fully compatible with Better Clouds.");
+            for (String fallback : glCompat.usedFallbacks) {
+                LOGGER.info("- Using {} fallback", fallback);
+            }
         }
-        if (getConfig().lastTelemetryVersion < Telemetry.VERSION && Telemetry.INSTANCE != null) {
+
+        if (getConfig().lastTelemetryVersion < Telemetry.VERSION) {
             Telemetry.INSTANCE.sendSystemInfo()
                 .whenComplete((success, throwable) -> {
                     MinecraftClient client = MinecraftClient.getInstance();
@@ -98,7 +111,7 @@ public class Main implements ClientModInitializer {
 
     public static void debugChatMessage(Text message) {
         MinecraftClient client = MinecraftClient.getInstance();
-        if (client == null) return;
+        if (client == null || client.world == null) return;
         client.inGameHud.getChatHud().addMessage(Text.literal("§e[§bBC§b§e]§r ").append(message));
     }
 
@@ -116,20 +129,25 @@ public class Main implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        if (CONFIG == null)
+        if (!IS_CLIENT)
             throw new IllegalStateException("Fabric environment is " + FabricLoader.getInstance().getEnvironmentType().name() + " but onInitializeClient was called");
+        assert CONFIG != null;
         CONFIG.load();
 
         ModContainer mod = FabricLoader.getInstance().getModContainer(MODID).orElse(null);
         if (mod != null) version = mod.getMetadata().getVersion();
         else version = new StringVersion("unknown");
 
-        ClientLifecycleEvents.CLIENT_STARTED.register(client -> glCompat.enableDebugOutputSynchronous());
+        ClientLifecycleEvents.CLIENT_STARTED.register(client -> glCompat.enableDebugOutputSynchronousDev());
 
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
-            if (!glCompat.isIncompatible()) return;
-            CompletableFuture.delayedExecutor(3, TimeUnit.SECONDS)
-                .execute(() -> client.execute(Main::sendGpuIncompatibleChatMessage));
+            if (glCompat.isIncompatible()) {
+                CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
+                    .execute(() -> client.execute(Main::sendGpuIncompatibleChatMessage));
+            } else if (glCompat.isPartiallyIncompatible()) {
+                CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
+                    .execute(() -> client.execute(Main::sendGpuPartiallyIncompatibleChatMessage));
+            }
         });
 
         ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES)
@@ -146,7 +164,18 @@ public class Main implements ClientModInitializer {
         debugChatMessage(
             Text.translatable(debugChatMessageKey("gpuIncompatible"))
                 .append(Text.literal("\n - "))
-                .append(Text.translatable(debugChatMessageKey("gpuIncompatible.disable"))
+                .append(Text.translatable(debugChatMessageKey("disable"))
+                    .styled(style -> style.withItalic(true).withUnderline(true).withColor(Formatting.GRAY)
+                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
+                            "/betterclouds:config gpuIncompatibleMessage false")))));
+    }
+
+    public static void sendGpuPartiallyIncompatibleChatMessage() {
+        if (!getConfig().gpuIncompatibleMessageEnabled) return;
+        debugChatMessage(
+            Text.translatable(debugChatMessageKey("gpuPartiallyIncompatible"))
+                .append(Text.literal("\n - "))
+                .append(Text.translatable(debugChatMessageKey("disable"))
                     .styled(style -> style.withItalic(true).withUnderline(true).withColor(Formatting.GRAY)
                         .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
                             "/betterclouds:config gpuIncompatibleMessage false")))));

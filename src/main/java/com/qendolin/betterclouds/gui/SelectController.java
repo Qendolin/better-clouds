@@ -1,13 +1,13 @@
 package com.qendolin.betterclouds.gui;
 
 import com.google.common.collect.ImmutableList;
-import dev.isxander.yacl.api.Controller;
-import dev.isxander.yacl.api.Option;
-import dev.isxander.yacl.api.utils.Dimension;
-import dev.isxander.yacl.gui.AbstractWidget;
-import dev.isxander.yacl.gui.YACLScreen;
-import dev.isxander.yacl.gui.controllers.ControllerWidget;
-import dev.isxander.yacl.gui.utils.GuiUtils;
+import dev.isxander.yacl3.api.Controller;
+import dev.isxander.yacl3.api.Option;
+import dev.isxander.yacl3.api.utils.Dimension;
+import dev.isxander.yacl3.gui.AbstractWidget;
+import dev.isxander.yacl3.gui.YACLScreen;
+import dev.isxander.yacl3.gui.controllers.ControllerWidget;
+import dev.isxander.yacl3.gui.utils.GuiUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.sound.PositionedSoundInstance;
@@ -141,43 +141,15 @@ public class SelectController<T> implements Controller<Integer> {
                 hoveringStart = 0;
             }
             if (mouseInteracted && !isHovered()) mouseInteracted = false;
+
+            drawList(matrices);
         }
 
-        @Override
-        protected void drawHoveredControl(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-            Dimension<Integer> dim = getDimension();
-            matrices.push();
-            int arrowWidth = textRenderer.getWidth(UP_ARROW);
-            matrices.translate(getDimension().xLimit() - getXPadding() - ARROW_SPACE / 2f, dim.y() + dim.height() / 2f, 0);
-            matrices.scale(1.5f, 1f, 1);
-            int hoveredArrow = getHoveredArrow(mouseX, mouseY);
-            textRenderer.draw(matrices, UP_ARROW, -arrowWidth / 2f, -textRenderer.fontHeight + 1, 0xff404040);
-            textRenderer.draw(matrices, DOWN_ARROW, -arrowWidth / 2f, 1f, 0xff404040);
-            textRenderer.draw(matrices, UP_ARROW, -arrowWidth / 2f, -textRenderer.fontHeight + 2, hoveredArrow == -1 ? -1 : 0xffc0c0c0);
-            textRenderer.draw(matrices, DOWN_ARROW, -arrowWidth / 2f, 0f, hoveredArrow == 1 ? -1 : 0xffc0c0c0);
-            matrices.pop();
-        }
-
-        protected int getHoveredArrow(int mouseX, int mouseY) {
-            if (!arrowBounds.isPointInside(mouseX, mouseY)) return 0;
-            boolean upper = ((mouseY - arrowBounds.y()) / (float) arrowBounds.height()) < 0.5f;
-            return upper ? -1 : 1;
-        }
-
-        @Override
-        protected void drawValueText(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-            matrices.push();
-            if (isHovered())
-                matrices.translate(-ARROW_SPACE - getXPadding(), 0, 0);
-            super.drawValueText(matrices, mouseX, mouseY, delta);
-            matrices.pop();
-        }
-
-        @Override
-        public void postRender(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-            super.postRender(matrices, mouseX, mouseY, delta);
-
+        protected void drawList(MatrixStack matrices) {
             if ((!isMouseInteracted() && !isFocused()) || !isAvailable()) return;
+
+            matrices.push();
+            matrices.translate(0, 0, 100);
 
             List<Text> values = control.formatValues();
             Dimension<Integer> dim = getExpandedBounds();
@@ -200,10 +172,12 @@ public class SelectController<T> implements Controller<Integer> {
                 if (selected == i) {
                     DrawableHelper.fill(matrices, dim.x(), y - padding, dim.xLimit(), y + lineHeight - 1, 0x80ffffff);
                 }
-                textRenderer.drawWithShadow(matrices, text, x, y, getValueColor());
+                DrawableHelper.drawTextWithShadow(matrices, textRenderer, text, x, y, getValueColor());
             }
+            matrices.pop();
         }
 
+        @SuppressWarnings("BooleanMethodIsAlwaysInverted")
         public boolean isMouseInteracted() {
             return mouseInteracted;
         }
@@ -214,6 +188,37 @@ public class SelectController<T> implements Controller<Integer> {
 
         public Dimension<Integer> getExpandedBounds() {
             return expandedBounds;
+        }
+
+        @SuppressWarnings("IntegerDivisionInFloatingPointContext")
+        @Override
+        protected void drawHoveredControl(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+            Dimension<Integer> dim = getDimension();
+            matrices.push();
+            int arrowWidth = textRenderer.getWidth(UP_ARROW);
+            matrices.translate(getDimension().xLimit() - getXPadding() - ARROW_SPACE / 2f, dim.y() + dim.height() / 2f, 0);
+            matrices.scale(1.5f, 1f, 1);
+            int hoveredArrow = getHoveredArrow(mouseX, mouseY);
+            textRenderer.draw(matrices, UP_ARROW, -arrowWidth / 2, -textRenderer.fontHeight + 1, 0xff404040);
+            textRenderer.draw(matrices, DOWN_ARROW, -arrowWidth / 2, 1, 0xff404040);
+            textRenderer.draw(matrices, UP_ARROW, -arrowWidth / 2, -textRenderer.fontHeight + 2, hoveredArrow == -1 ? -1 : 0xffc0c0c0);
+            textRenderer.draw(matrices, DOWN_ARROW, -arrowWidth / 2, 0, hoveredArrow == 1 ? -1 : 0xffc0c0c0);
+            matrices.pop();
+        }
+
+        protected int getHoveredArrow(int mouseX, int mouseY) {
+            if (!arrowBounds.isPointInside(mouseX, mouseY)) return 0;
+            boolean upper = ((mouseY - arrowBounds.y()) / (float) arrowBounds.height()) < 0.5f;
+            return upper ? -1 : 1;
+        }
+
+        @Override
+        protected void drawValueText(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+            matrices.push();
+            if (isHovered())
+                matrices.translate(-ARROW_SPACE - getXPadding(), 0, 0);
+            super.drawValueText(matrices, mouseX, mouseY, delta);
+            matrices.pop();
         }
 
         @Override

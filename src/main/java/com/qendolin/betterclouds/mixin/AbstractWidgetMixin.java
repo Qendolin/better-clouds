@@ -1,7 +1,7 @@
 package com.qendolin.betterclouds.mixin;
 
 import com.qendolin.betterclouds.gui.ConfigScreen;
-import dev.isxander.yacl.gui.AbstractWidget;
+import dev.isxander.yacl3.gui.AbstractWidget;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.util.math.MatrixStack;
@@ -25,7 +25,6 @@ public abstract class AbstractWidgetMixin {
             return;
         }
         ci.cancel();
-
 
         if (x1 > x2) {
             int xx1 = x1;

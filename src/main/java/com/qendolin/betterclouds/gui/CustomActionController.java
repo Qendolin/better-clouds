@@ -1,10 +1,11 @@
 package com.qendolin.betterclouds.gui;
 
-import dev.isxander.yacl.api.ButtonOption;
-import dev.isxander.yacl.api.utils.Dimension;
-import dev.isxander.yacl.gui.AbstractWidget;
-import dev.isxander.yacl.gui.YACLScreen;
-import dev.isxander.yacl.gui.controllers.ActionController;
+import dev.isxander.yacl3.api.ButtonOption;
+import dev.isxander.yacl3.api.utils.Dimension;
+import dev.isxander.yacl3.gui.AbstractWidget;
+import dev.isxander.yacl3.gui.YACLScreen;
+import dev.isxander.yacl3.gui.controllers.ActionController;
+import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 
@@ -33,7 +34,7 @@ public class CustomActionController extends ActionController {
             drawButtonRect(matrices, getDimension().x(), getDimension().y(), getDimension().xLimit(), getDimension().yLimit(), isHovered(), isAvailable());
             matrices.push();
             matrices.translate(getDimension().x() + getDimension().width() / 2f - textRenderer.getWidth(name) / 2f, getTextY(), 0);
-            textRenderer.drawWithShadow(matrices, name, 0, 0, getValueColor());
+            DrawableHelper.drawTextWithShadow(matrices, textRenderer, name, 0, 0, getValueColor());
             matrices.pop();
 
             if (isHovered()) {

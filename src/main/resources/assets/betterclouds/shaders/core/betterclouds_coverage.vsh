@@ -1,4 +1,4 @@
-#version 330
+#version 330 core
 
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -7,6 +7,8 @@
 #define NEAR_VISIBILITY_START 10.0 + _SIZE_XZ_
 #define NEAR_VISIBILITY_END 20.0 + _SIZE_XZ_
 #define FAR_VISIBILITY_EDGE _VISIBILITY_EDGE_
+
+#define POSITIONAL_COLORING _POSITIONAL_COLORING_
 
 layout(location = 0) in vec3 in_pos;
 layout(location = 1) in vec3 in_vert;
@@ -47,7 +49,11 @@ void main() {
     vec3 scale = SIZE * dynScale * scaleFalloff;
 
     pass_color.r = 1.;
+#if POSITIONAL_COLORING
     pass_color.g = (scale.y * 0.625 * (in_vert.y+0.375) + in_pos.y) / (u_bounding_box.w);
+#else
+    pass_color.g = 1.0;
+#endif
     pass_color.b = texture(u_noise_texture, localWorldPosition.xz / 1024.0).g;
 
     gl_Position = u_mvp_matrix * vec4(scale * in_vert + vertexPos, 1.0);
