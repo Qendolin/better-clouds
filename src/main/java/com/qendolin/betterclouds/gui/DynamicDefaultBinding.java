@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds.gui;
 
-import dev.isxander.yacl3.api.Binding;
+import dev.isxander.yacl.api.Binding;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;

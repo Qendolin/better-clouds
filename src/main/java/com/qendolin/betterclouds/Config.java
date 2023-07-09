@@ -2,7 +2,7 @@ package com.qendolin.betterclouds;
 
 import com.google.common.base.Objects;
 import com.google.gson.InstanceCreator;
-import dev.isxander.yacl3.config.ConfigEntry;
+import dev.isxander.yacl.config.ConfigEntry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.NotNull;

@@ -1,37 +1,31 @@
 package com.qendolin.betterclouds.gui;
 
-import dev.isxander.yacl3.api.ConfigCategory;
-import dev.isxander.yacl3.api.utils.Dimension;
-import dev.isxander.yacl3.gui.DescriptionWithName;
-import dev.isxander.yacl3.gui.OptionListWidget;
-import dev.isxander.yacl3.gui.YACLScreen;
-import dev.isxander.yacl3.gui.controllers.LabelController;
+import dev.isxander.yacl.api.utils.Dimension;
+import dev.isxander.yacl.gui.OptionListWidget;
+import dev.isxander.yacl.gui.YACLScreen;
+import dev.isxander.yacl.gui.controllers.LabelController;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.ScreenRect;
 import net.minecraft.client.gui.Selectable;
-import net.minecraft.client.gui.navigation.GuiNavigation;
-import net.minecraft.client.gui.navigation.GuiNavigationPath;
 import net.minecraft.client.util.math.MatrixStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 public class CustomOptionListWidget extends OptionListWidget {
 
-    public CustomOptionListWidget(YACLScreen screen, ConfigCategory category, MinecraftClient client, int x, int y, int width, int height, Consumer<DescriptionWithName> hoverEvent) {
-        super(screen, category, client, x, y, width, height, hoverEvent);
+    public CustomOptionListWidget(YACLScreen screen, MinecraftClient client, int width, int height) {
+        super(screen, client, width, height);
     }
 
     @Override
     public void refreshOptions() {
         super.refreshOptions();
         addEntry(new PaddingEntry());
-        for (dev.isxander.yacl3.gui.OptionListWidget.Entry child : children()) {
+        for (OptionListWidget.Entry child : children()) {
             if (child instanceof OptionEntry optionEntry && optionEntry.option.controller() instanceof LabelController) {
                 addEntryBelow(optionEntry, new ProxyEntry<OptionEntry>(optionEntry)
                     .onBeforeRender((delegate, matrices, index, y, x, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta) -> {
@@ -67,7 +61,7 @@ public class CustomOptionListWidget extends OptionListWidget {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
-        for (dev.isxander.yacl3.gui.OptionListWidget.Entry child : children()) {
+        for (OptionListWidget.Entry child : children()) {
             if (child.mouseScrolled(mouseX, mouseY, amount)) {
                 return true;
             }
@@ -78,7 +72,7 @@ public class CustomOptionListWidget extends OptionListWidget {
     }
 
     // It is super annoying that Entry is not declared as a static class
-    public class ProxyEntry<T extends dev.isxander.yacl3.gui.OptionListWidget.Entry> extends dev.isxander.yacl3.gui.OptionListWidget.Entry {
+    public class ProxyEntry<T extends OptionListWidget.Entry> extends OptionListWidget.Entry {
         private final T delegate;
 
         public BeforeRenderCallback<T> beforeRender;
@@ -109,18 +103,54 @@ public class CustomOptionListWidget extends OptionListWidget {
         }
 
         @Override
+        public boolean isViewable() {
+            return delegate.isViewable();
+        }
+
+        @Override
+        public boolean isHovered() {
+            return Objects.equals(getHoveredEntry(), this);
+        }
+
+        @Override
+        public void postRender(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+            delegate.postRender(matrices, mouseX, mouseY, delta);
+        }
+
+        @Override
+        public int getItemHeight() {
+            return delegate.getItemHeight();
+        }
+
+        @Override
+        public boolean isDragging() {
+            return delegate.isDragging();
+        }
+
+        @Override
+        public void setDragging(boolean dragging) {
+            delegate.setDragging(dragging);
+        }
+
+        @Override
+        public void setFocused(@Nullable Element focused) {
+            delegate.setFocused(focused);
+        }
+
+        @Override
+        @Nullable
+        public Element getFocused() {
+            return delegate.getFocused();
+        }
+
+        @Override
         public List<? extends Selectable> selectableChildren() {
             return delegate.selectableChildren();
         }
 
         @Override
-        public List<? extends Element> children() {
-            return delegate.children();
-        }
-
-        @Override
-        public Optional<Element> hoveredElement(double mouseX, double mouseY) {
-            return delegate.hoveredElement(mouseX, mouseY);
+        public boolean isMouseOver(double mouseX, double mouseY) {
+            return delegate.isMouseOver(mouseX, mouseY);
         }
 
         @Override
@@ -129,8 +159,18 @@ public class CustomOptionListWidget extends OptionListWidget {
         }
 
         @Override
+        public boolean mouseClicked(double mouseX, double mouseY, int button) {
+            return delegate.mouseClicked(mouseX, mouseY, button);
+        }
+
+        @Override
         public boolean mouseReleased(double mouseX, double mouseY, int button) {
             return delegate.mouseReleased(mouseX, mouseY, button);
+        }
+
+        @Override
+        public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+            return delegate.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
         }
 
         @Override
@@ -153,117 +193,43 @@ public class CustomOptionListWidget extends OptionListWidget {
             return delegate.charTyped(chr, modifiers);
         }
 
-        @Nullable
         @Override
-        public GuiNavigationPath getFocusedPath() {
-            return delegate.getFocusedPath();
+        public boolean changeFocus(boolean lookForwards) {
+            return delegate.changeFocus(lookForwards);
         }
 
         @Override
-        public ScreenRect getNavigationFocus() {
-            return delegate.getNavigationFocus();
+        public List<? extends Element> children() {
+            return delegate.children();
+        }
+
+        @Override
+        public Optional<Element> hoveredElement(double mouseX, double mouseY) {
+            return delegate.hoveredElement(mouseX, mouseY);
+        }
+
+        @Override
+        public void setInitialFocus(@Nullable Element element) {
+            delegate.setInitialFocus(element);
         }
 
         @Override
         public void focusOn(@Nullable Element element) {
             delegate.focusOn(element);
         }
-
-        @Override
-        public boolean isViewable() {
-            return delegate.isViewable();
-        }
-
-        @Override
-        public boolean isHovered() {
-            return Objects.equals(getHoveredEntry(), this);
-        }
-
-        @Override
-        public boolean mouseClicked(double mouseX, double mouseY, int button) {
-            return delegate.mouseClicked(mouseX, mouseY, button);
-        }
-
-        @Override
-        public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-            return delegate.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
-        }
-
-        @Override
-        public boolean isDragging() {
-            return delegate.isDragging();
-        }
-
-        @Override
-        public void setDragging(boolean dragging) {
-            delegate.setDragging(dragging);
-        }
-
-        @Override
-        @Nullable
-        public Element getFocused() {
-            return delegate.getFocused();
-        }
-
-        @Override
-        @Nullable
-        public GuiNavigationPath getNavigationPath(GuiNavigation navigation, int index) {
-            return delegate.getNavigationPath(navigation, index);
-        }
-
-        @Override
-        @Nullable
-        public GuiNavigationPath getNavigationPath(GuiNavigation navigation) {
-            return delegate.getNavigationPath(navigation);
-        }
-
-        @Override
-        public boolean isFocused() {
-            return delegate.isFocused();
-        }
-
-        @Override
-        public void setFocused(@Nullable Element focused) {
-            delegate.setFocused(focused);
-        }
-
-        @Override
-        public void setFocused(boolean focused) {
-            delegate.setFocused(focused);
-        }
-
-        @Override
-        public void drawBorder(MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
-            delegate.drawBorder(matrices, index, y, x, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta);
-        }
-
-        @Override
-        public boolean isMouseOver(double mouseX, double mouseY) {
-            return delegate.isMouseOver(mouseX, mouseY);
-        }
-
-        @Override
-        public int getItemHeight() {
-            return delegate.getItemHeight();
-        }
-
-        @Override
-        public int getNavigationOrder() {
-            return delegate.getNavigationOrder();
-        }
     }
 
     @FunctionalInterface
-    public interface BeforeRenderCallback<T extends dev.isxander.yacl3.gui.OptionListWidget.Entry> {
+    public interface BeforeRenderCallback<T extends OptionListWidget.Entry> {
         void onBeforeRender(T delegate, MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta);
     }
 
     @FunctionalInterface
-    public interface AfterRenderCallback<T extends dev.isxander.yacl3.gui.OptionListWidget.Entry> {
+    public interface AfterRenderCallback<T extends OptionListWidget.Entry> {
         void onAfterRender(T delegate, MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta);
     }
 
-    private class PaddingEntry extends dev.isxander.yacl3.gui.OptionListWidget.Entry {
+    private class PaddingEntry extends OptionListWidget.Entry {
         @Override
         public List<? extends Selectable> selectableChildren() {
             return List.of();

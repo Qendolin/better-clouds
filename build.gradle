@@ -49,7 +49,7 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
-	modImplementation "dev.isxander.yacl:yet-another-config-lib-fabric:${project.yacl_version}"
+	modImplementation "dev.isxander:yet-another-config-lib:${project.yacl_version}"
 
 	modCompileOnly "maven.modrinth:sodium-extra:${project.sodium_extra_version}"
 	modCompileOnly "maven.modrinth:iris:${project.iris_version}"
@@ -120,7 +120,7 @@ modrinth  { // Make sure it runs after build!
 		// The scope can be `required`, `optional`, `incompatible`, or `embedded`
 		// The type can either be `project` or `version`
 		required.project "fabric-api"
-		required.version "zJ1Wh6pM" // yacl 3.0.2
+		required.version "bIVYcRpm" // yacl 2.2.0 for 1.19.2
 		optional.project "sodium"
 		optional.project "iris"
 		optional.project "modmenu"

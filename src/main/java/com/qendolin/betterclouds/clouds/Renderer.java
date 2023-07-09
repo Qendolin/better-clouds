@@ -12,13 +12,10 @@ import net.minecraft.client.render.CameraSubmersionType;
 import net.minecraft.client.render.DimensionEffects;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.util.math.Vector3d;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.MathHelper;
-import org.joml.Matrix4f;
-import org.joml.Vector3d;
-import org.joml.Vector3f;
+import net.minecraft.util.math.*;
 
 import java.util.List;
 
@@ -34,8 +31,8 @@ public class Renderer implements AutoCloseable {
     private final Matrix4f mvpMatrix = new Matrix4f();
     private final Matrix4f rotationProjectionMatrix = new Matrix4f();
     private final Matrix4f tempMatrix = new Matrix4f();
-    private final Vector3f tempVector = new Vector3f();
-    private final Frustum tempFrustum = new Frustum(new Matrix4f().identity(), new Matrix4f().identity());
+    private final Vec3f tempVector = new Vec3f();
+    private final Frustum tempFrustum = new Frustum(new Matrix4f(), new Matrix4f());
     private final PrimitiveChangeDetector shaderInvalidator = new PrimitiveChangeDetector(false);
 
     private final Resources res = new Resources();
@@ -126,23 +123,23 @@ public class Renderer implements AutoCloseable {
             client.getProfiler().swap("render_setup");
         }
 
-        tempMatrix.set(matrices.peek().getPositionMatrix());
+        tempMatrix.load(matrices.peek().getPositionMatrix());
 
         matrices.translate(res.generator().renderOriginX(cam.x), cloudsHeight - cam.y, res.generator().renderOriginZ(cam.z));
 
-        rotationProjectionMatrix.set(projMat);
+        rotationProjectionMatrix.load(projMat);
         // This is fixes issue #14, not entirely sure why, but it forces the matrix to be homogenous
-        tempMatrix.m30(0);
-        tempMatrix.m31(0);
-        tempMatrix.m32(0);
-        tempMatrix.m33(0);
-        tempMatrix.m23(0);
-        tempMatrix.m13(0);
-        tempMatrix.m03(0);
-        rotationProjectionMatrix.mul(tempMatrix);
+        tempMatrix.a30 = 0;
+        tempMatrix.a31 = 0;
+        tempMatrix.a32 = 0;
+        tempMatrix.a33 = 0;
+        tempMatrix.a23 = 0;
+        tempMatrix.a13 = 0;
+        tempMatrix.a03 = 0;
+        rotationProjectionMatrix.multiply(tempMatrix);
 
-        mvpMatrix.set(projMat);
-        mvpMatrix.mul(matrices.peek().getPositionMatrix());
+        mvpMatrix.load(projMat);
+        mvpMatrix.multiply(matrices.peek().getPositionMatrix());
 
         // TODO: don't do this dynamically
         defaultFbo = glGetInteger(GL_DRAW_FRAMEBUFFER_BINDING);
@@ -391,12 +388,14 @@ public class Renderer implements AutoCloseable {
         float brightness = (1 - dayNightFactor) * config.preset().nightBrightness + dayNightFactor * config.preset().dayBrightness;
         float sunAxisY = MathHelper.sin(sunPathAngleRad);
         float sunAxisZ = MathHelper.cos(sunPathAngleRad);
-        Vector3f sunDir = tempVector.set(1, 0, 0).rotateAxis(skyAngleRad + MathHelper.HALF_PI, 0, sunAxisY, sunAxisZ);
+        Vec3f sunDir = tempVector;
+        sunDir.set(1, 0, 0);
+        sunDir.rotate(new Quaternion(new Vec3f(0, sunAxisY, sunAxisZ), skyAngleRad + MathHelper.HALF_PI, false));
 
         // TODO: fit light gradient rotation to configured sunset / sunrise values. Solas shader looks weird at sunset
         res.shadingShader().bind();
         res.shadingShader().uVPMatrix.setMat4(rotationProjectionMatrix);
-        res.shadingShader().uSunDirection.setVec4(sunDir.x, sunDir.y, sunDir.z, (world.getTimeOfDay() % 24000) / 24000f);
+        res.shadingShader().uSunDirection.setVec4(sunDir.getX(), sunDir.getY(), sunDir.getZ(), (world.getTimeOfDay() % 24000) / 24000f);
         res.shadingShader().uSunAxis.setVec3(0, sunAxisY, sunAxisZ);
         res.shadingShader().uOpacity.setVec3(config.preset().opacity, config.preset().opacityFactor, config.preset().opacityExponent);
         res.shadingShader().uColorGrading.setVec4(brightness, 1f / config.preset().gamma(), effectLuma, config.preset().saturation);
@@ -415,8 +414,7 @@ public class Renderer implements AutoCloseable {
     }
 
     private void setFrustumTo(Frustum dst, Frustum src) {
-        dst.frustumIntersection.set(src.field_40824);
-        dst.field_40824.set(src.field_40824);
+        System.arraycopy(src.homogeneousCoordinates, 0, dst.homogeneousCoordinates, 0, src.homogeneousCoordinates.length);
         dst.x = src.x;
         dst.y = src.y;
         dst.z = src.z;

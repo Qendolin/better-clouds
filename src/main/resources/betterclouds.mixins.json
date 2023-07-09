@@ -10,11 +10,8 @@
     "CloudSettingMixin",
     "ExtendedShaderAccessor",
     "FallbackShaderAccessor",
-    "GsonConfigInstanceBuilderMixin",
     "RenderSystemMixin",
     "ShaderProgramAccessor",
-    "TabButtonWidgetMixin",
-    "TabNavigationWidgetAccessor",
     "VertexBufferAccessor",
     "WorldRendererMixin"
   ],

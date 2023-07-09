@@ -4,13 +4,12 @@ import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.Main;
 import net.minecraft.client.gl.GlDebug;
-import net.minecraft.client.gl.ShaderProgram;
 import net.minecraft.client.render.*;
+import net.minecraft.client.util.math.Vector3d;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.Box;
 import org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Vector3d;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GLDebugMessageCallback;
 
@@ -69,8 +68,8 @@ public class Debug {
         if (!frustumCulling) return;
         BufferBuilder vertices = Tessellator.getInstance().getBuffer();
         vertices.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
-        ShaderProgram prevShader = RenderSystem.getShader();
-        RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+        Shader prevShader = RenderSystem.getShader();
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
         for (Pair<Box, Boolean> pair : frustumCulledBoxes) {
             Box box = pair.getLeft();
             if (pair.getRight()) {

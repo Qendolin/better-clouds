@@ -11,12 +11,12 @@ import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.util.math.Vector3d;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.resource.ResourceManager;
+import net.minecraft.util.math.Matrix4f;
 import net.minecraft.world.dimension.DimensionTypes;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix4f;
-import org.joml.Vector3d;
 import org.lwjgl.opengl.GL32;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -30,7 +30,7 @@ import static com.qendolin.betterclouds.Main.glCompat;
 @Mixin(WorldRenderer.class)
 public abstract class WorldRendererMixin {
 
-    private final Vector3d tempVector = new Vector3d();
+    private final Vector3d tempVector = new Vector3d(0,0,0);
 
     private Renderer cloudRenderer;
     @Shadow
@@ -78,7 +78,7 @@ public abstract class WorldRendererMixin {
         if (cloudRenderer != null) cloudRenderer.setWorld(world);
     }
 
-    @Inject(at = @At("HEAD"), method = "renderClouds(Lnet/minecraft/client/util/math/MatrixStack;Lorg/joml/Matrix4f;FDDD)V", cancellable = true)
+    @Inject(at = @At("HEAD"), method = "renderClouds(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/util/math/Matrix4f;FDDD)V", cancellable = true)
     private void renderClouds(MatrixStack matrices, Matrix4f projMat, float tickDelta, double camX, double camY, double camZ, CallbackInfo ci) {
         if (cloudRenderer == null) return;
         if (glCompat.isIncompatible()) return;
@@ -90,7 +90,8 @@ public abstract class WorldRendererMixin {
 
         Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("renderClouds called"));
 
-        Vector3d cam = tempVector.set(camX, camY, camZ);
+        Vector3d cam = tempVector;
+        cam.set(camX, camY, camZ);
         Frustum frustum = this.frustum;
         Vector3d frustumPos = cam;
         if (capturedFrustum != null) {

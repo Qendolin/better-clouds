@@ -1,13 +1,27 @@
 accessWidener	v1	named
-mutable		field	net/minecraft/client/render/Frustum	frustumIntersection	Lorg/joml/FrustumIntersection;
-accessible	field	net/minecraft/client/render/Frustum	frustumIntersection	Lorg/joml/FrustumIntersection;
-mutable		field	net/minecraft/client/render/Frustum	field_40824			Lorg/joml/Matrix4f;
-accessible	field	net/minecraft/client/render/Frustum	field_40824			Lorg/joml/Matrix4f;
-mutable		field	net/minecraft/client/render/Frustum	field_34821			Lorg/joml/Vector4f;
-accessible	field	net/minecraft/client/render/Frustum	field_34821			Lorg/joml/Vector4f;
-mutable		field	net/minecraft/client/render/Frustum	x					D
-accessible	field	net/minecraft/client/render/Frustum	x					D
-mutable		field	net/minecraft/client/render/Frustum	y					D
-accessible	field	net/minecraft/client/render/Frustum	y					D
-mutable		field	net/minecraft/client/render/Frustum	z					D
-accessible	field	net/minecraft/client/render/Frustum	z					D
+# Frustum
+mutable		field	net/minecraft/client/render/Frustum	homogeneousCoordinates		[Lnet/minecraft/util/math/Vector4f;
+accessible	field	net/minecraft/client/render/Frustum	homogeneousCoordinates		[Lnet/minecraft/util/math/Vector4f;
+mutable		field	net/minecraft/client/render/Frustum	field_34821					Lnet/minecraft/util/math/Vector4f;
+accessible	field	net/minecraft/client/render/Frustum	field_34821					Lnet/minecraft/util/math/Vector4f;
+mutable		field	net/minecraft/client/render/Frustum	x							D
+accessible	field	net/minecraft/client/render/Frustum	x							D
+mutable		field	net/minecraft/client/render/Frustum	y							D
+accessible	field	net/minecraft/client/render/Frustum	y							D
+mutable		field	net/minecraft/client/render/Frustum	z							D
+accessible	field	net/minecraft/client/render/Frustum	z							D
+# Matrix4f
+mutable		field	net/minecraft/util/math/Matrix4f	a30		F
+accessible	field	net/minecraft/util/math/Matrix4f	a30		F
+mutable		field	net/minecraft/util/math/Matrix4f	a31		F
+accessible	field	net/minecraft/util/math/Matrix4f	a31		F
+mutable		field	net/minecraft/util/math/Matrix4f	a32		F
+accessible	field	net/minecraft/util/math/Matrix4f	a32		F
+mutable		field	net/minecraft/util/math/Matrix4f	a33		F
+accessible	field	net/minecraft/util/math/Matrix4f	a33		F
+mutable		field	net/minecraft/util/math/Matrix4f	a23		F
+accessible	field	net/minecraft/util/math/Matrix4f	a23		F
+mutable		field	net/minecraft/util/math/Matrix4f	a13		F
+accessible	field	net/minecraft/util/math/Matrix4f	a13		F
+mutable		field	net/minecraft/util/math/Matrix4f	a03		F
+accessible	field	net/minecraft/util/math/Matrix4f	a03		F

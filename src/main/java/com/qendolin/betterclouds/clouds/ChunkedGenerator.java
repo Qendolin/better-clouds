@@ -2,11 +2,11 @@ package com.qendolin.betterclouds.clouds;
 
 import com.qendolin.betterclouds.Config;
 import com.qendolin.betterclouds.Main;
+import net.minecraft.client.util.math.Vector3d;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Vector3d;
 
 import java.util.ArrayList;
 import java.util.List;

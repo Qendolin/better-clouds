@@ -10,7 +10,7 @@ import net.coderbot.iris.pipeline.newshader.NewWorldRenderingPipeline;
 import net.coderbot.iris.pipeline.newshader.ShaderKey;
 import net.coderbot.iris.pipeline.newshader.fallback.FallbackShader;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.gl.ShaderProgram;
+import net.minecraft.client.render.Shader;
 
 public class IrisCompat {
     public static final boolean IS_LOADED = FabricLoader.getInstance().isModLoaded("iris");
@@ -23,7 +23,7 @@ public class IrisCompat {
     public static void bindFramebuffer() {
         WorldRenderingPipeline pipeline = Iris.getPipelineManager().getPipelineNullable();
         if (pipeline instanceof NewWorldRenderingPipeline corePipeline) {
-            ShaderProgram program = corePipeline.getShaderMap().getShader(ShaderKey.CLOUDS);
+            Shader program = corePipeline.getShaderMap().getShader(ShaderKey.CLOUDS);
             GlFramebuffer before = null, after = null;
             if (program instanceof ExtendedShader extended) {
                 ExtendedShaderAccessor access = (ExtendedShaderAccessor) extended;

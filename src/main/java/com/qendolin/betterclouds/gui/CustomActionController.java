@@ -1,10 +1,10 @@
 package com.qendolin.betterclouds.gui;
 
-import dev.isxander.yacl3.api.ButtonOption;
-import dev.isxander.yacl3.api.utils.Dimension;
-import dev.isxander.yacl3.gui.AbstractWidget;
-import dev.isxander.yacl3.gui.YACLScreen;
-import dev.isxander.yacl3.gui.controllers.ActionController;
+import dev.isxander.yacl.api.ButtonOption;
+import dev.isxander.yacl.api.utils.Dimension;
+import dev.isxander.yacl.gui.AbstractWidget;
+import dev.isxander.yacl.gui.YACLScreen;
+import dev.isxander.yacl.gui.controllers.ActionController;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;

@@ -1,7 +1,7 @@
 package com.qendolin.betterclouds.gui;
 
-import dev.isxander.yacl3.api.Option;
-import dev.isxander.yacl3.gui.controllers.string.number.IntegerFieldController;
+import dev.isxander.yacl.api.Option;
+import dev.isxander.yacl.gui.controllers.string.number.IntegerFieldController;
 import net.minecraft.text.Text;
 
 import java.util.function.Function;

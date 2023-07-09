@@ -1,8 +1,8 @@
 package com.qendolin.betterclouds.clouds.shaders;
 
+import net.minecraft.util.math.Matrix4f;
+import net.minecraft.util.math.Vec3f;
 import org.apache.commons.lang3.NotImplementedException;
-import org.joml.Matrix4f;
-import org.joml.Vector3f;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.FloatBuffer;
@@ -26,7 +26,7 @@ public abstract class Uniform {
 
     public abstract void setVec3(float x, float y, float z);
 
-    public abstract void setVec3(Vector3f v);
+    public abstract void setVec3(Vec3f v);
 
     public abstract void setVec2(float x, float y);
 
@@ -57,7 +57,7 @@ public abstract class Uniform {
         }
 
         @Override
-        public void setVec3(Vector3f v) {
+        public void setVec3(Vec3f v) {
         }
 
         @Override
@@ -80,7 +80,7 @@ public abstract class Uniform {
 
         @Override
         public void setMat4(Matrix4f mat) {
-            mat.get(UNIFORM_BUFFER);
+            mat.writeColumnMajor(UNIFORM_BUFFER);
             UNIFORM_BUFFER.rewind();
             glUniformMatrix4fv(location, false, UNIFORM_BUFFER);
         }
@@ -96,8 +96,8 @@ public abstract class Uniform {
         }
 
         @Override
-        public void setVec3(Vector3f v) {
-            glUniform3f(location, v.x, v.y, v.z);
+        public void setVec3(Vec3f v) {
+            glUniform3f(location, v.getX(), v.getY(), v.getZ());
         }
 
         @Override
@@ -147,8 +147,8 @@ public abstract class Uniform {
         }
 
         @Override
-        public void setVec3(Vector3f v) {
-            this.setVec3(v.x, v.y, v.z);
+        public void setVec3(Vec3f v) {
+            this.setVec3(v.getX(), v.getY(), v.getZ());
         }
 
         @Override

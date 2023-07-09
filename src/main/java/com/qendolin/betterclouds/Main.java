@@ -2,9 +2,8 @@ package com.qendolin.betterclouds;
 
 import com.qendolin.betterclouds.clouds.Debug;
 import com.qendolin.betterclouds.compat.GLCompat;
-import com.qendolin.betterclouds.compat.GsonConfigInstanceBuilderDuck;
 import com.qendolin.betterclouds.compat.Telemetry;
-import dev.isxander.yacl3.config.GsonConfigInstance;
+import dev.isxander.yacl.config.GsonConfigInstance;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
@@ -37,28 +36,7 @@ public class Main implements ClientModInitializer {
     public static GLCompat glCompat;
     public static Version version;
 
-    private static final GsonConfigInstance<Config> CONFIG;
-
-    static {
-        if (IS_CLIENT) {
-            GsonConfigInstance.Builder<Config> builder = GsonConfigInstance
-                .createBuilder(Config.class)
-                .setPath(Path.of("config/betterclouds-v1.json"));
-
-            if (builder instanceof GsonConfigInstanceBuilderDuck) {
-                //noinspection unchecked
-                GsonConfigInstanceBuilderDuck<Config> duck = (GsonConfigInstanceBuilderDuck<Config>) builder;
-                builder = duck.betterclouds$appendGsonBuilder(b -> b
-                    .setLenient().setPrettyPrinting()
-                    .registerTypeAdapter(Config.class, Config.INSTANCE_CREATOR)
-                    .registerTypeAdapter(Config.ShaderConfigPreset.class, Config.ShaderConfigPreset.INSTANCE_CREATOR));
-            }
-            CONFIG = builder.build();
-        } else {
-            CONFIG = null;
-        }
-
-    }
+    private static final GsonConfigInstance<Config> CONFIG = new GsonConfigInstance<>(Config.class, Path.of("config/betterclouds-v1.json"));
 
     public static void initGlCompat() {
         try {
@@ -131,7 +109,6 @@ public class Main implements ClientModInitializer {
     public void onInitializeClient() {
         if (!IS_CLIENT)
             throw new IllegalStateException("Fabric environment is " + FabricLoader.getInstance().getEnvironmentType().name() + " but onInitializeClient was called");
-        assert CONFIG != null;
         CONFIG.load();
 
         ModContainer mod = FabricLoader.getInstance().getModContainer(MODID).orElse(null);

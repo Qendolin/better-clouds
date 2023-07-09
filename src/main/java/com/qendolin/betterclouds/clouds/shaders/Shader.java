@@ -3,9 +3,9 @@ package com.qendolin.betterclouds.clouds.shaders;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.clouds.Resources;
+import net.minecraft.client.gl.ShaderParseException;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.InvalidHierarchicalFileException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -52,8 +52,8 @@ public class Shader implements AutoCloseable {
             shaderSrc = IOUtils.toString(stream, StandardCharsets.UTF_8);
             shaderSrc = shaderSrc.strip();
         } catch (IOException ex) {
-            InvalidHierarchicalFileException fileEx = InvalidHierarchicalFileException.wrap(ex);
-            fileEx.addInvalidFile(resource.toString());
+            ShaderParseException fileEx = ShaderParseException.wrap(ex);
+            fileEx.addFaultyFile(resource.toString());
             throw fileEx;
         }
         for (Map.Entry<String, String> entry : defs.entrySet()) {
@@ -64,8 +64,8 @@ public class Shader implements AutoCloseable {
         GlStateManager.glCompileShader(id);
         if (GlStateManager.glGetShaderi(id, GL_COMPILE_STATUS) == 0) {
             String log = StringUtils.trim(GlStateManager.glGetShaderInfoLog(id, 32768));
-            InvalidHierarchicalFileException parseEx = new InvalidHierarchicalFileException("Couldn't compile shader program (" + resource + "): \n" + log + "\n\nShader Source: \n" + shaderSrc);
-            parseEx.addInvalidFile(resource.toString());
+            ShaderParseException parseEx = new ShaderParseException("Couldn't compile shader program (" + resource + "): \n" + log + "\n\nShader Source: \n" + shaderSrc);
+            parseEx.addFaultyFile(resource.toString());
             throw parseEx;
         }
         return id;

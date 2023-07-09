@@ -342,7 +342,7 @@ public class Resources implements Closeable {
     }
 
     public static void unbindShader() {
-        int previousProgramId = ShaderProgramAccessor.getActiveProgramGlRef();
+        int previousProgramId = ShaderProgramAccessor.getActiveShaderId();
         if (previousProgramId > 0)
             glUseProgram(previousProgramId);
     }
