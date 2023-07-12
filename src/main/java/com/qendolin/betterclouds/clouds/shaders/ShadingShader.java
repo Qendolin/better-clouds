@@ -42,9 +42,9 @@ public class ShadingShader extends Shader {
         uNoiseFactor = getUniform("u_noise_factor", true);
     }
 
-    public static ShadingShader create(ResourceManager manager, boolean writeDepth, boolean stencilFallback) throws IOException {
+    public static ShadingShader create(ResourceManager manager, boolean depthWriteFallback, boolean stencilFallback) throws IOException {
         Map<String, String> defs = Map.ofEntries(
-            Map.entry(ShadingShader.DEF_BLIT_DEPTH_KEY, writeDepth ? "1" : "0"),
+            Map.entry(ShadingShader.DEF_BLIT_DEPTH_KEY, depthWriteFallback ? "0" : "1"),
             Map.entry(ShadingShader.DEF_UINT_COVERAGE_KEY, stencilFallback ? "0" : "1")
         );
         return new ShadingShader(manager, defs);
