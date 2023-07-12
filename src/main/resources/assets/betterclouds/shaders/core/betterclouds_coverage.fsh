@@ -16,10 +16,15 @@ in vec3 pass_color;
 layout (location=0) out vec3 out_color;
 layout (location=1) out float out_one;
 
+uniform sampler2D u_depth_texture;
+
 void main() {
     // initialize out variables
     out_color = vec3(0.0);
     out_one = 0.0;
+
+    float depth = texelFetch(u_depth_texture, ivec2(gl_FragCoord.xy), 0).r;
+    if(gl_FragCoord.z > depth) discard;
 
     int x = int(gl_FragCoord.x) % 4;
     int y = int(gl_FragCoord.y) % 4;
