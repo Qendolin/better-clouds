@@ -258,8 +258,7 @@ public class Resources implements Closeable {
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, oitCoverageTexture, 0);
 
             if (glCompat.useDepthWriteFallback) {
-                LOGGER.error("Can not create depth texture, configuration not supported");
-                oitCoverageDepthTexture = UNASSIGNED;
+                oitCoverageDepthTexture = oitCoverageTexture;
             } else {
                 oitCoverageDepthTexture = glGenTextures();
                 glCompat.textureView(oitCoverageDepthTexture, GL_TEXTURE_2D, oitCoverageTexture, GL_DEPTH24_STENCIL8, 0, 1, 0, 1);
@@ -314,16 +313,17 @@ public class Resources implements Closeable {
 
         depthShader = DepthShader.create(manager);
         depthShader.bind();
-        depthShader.uDepthTexture.setInt(0);
+        depthShader.uDepthTexture.setInt(6);
         glCompat.objectLabelDev(glCompat.GL_PROGRAM, depthShader.glId(), "depth");
 
         int edgeFade = (int) (config.fadeEdge * config.blockDistance());
         coverageShader = CoverageShader.create(manager, config.sizeXZ, config.sizeY, edgeFade, glCompat.useStencilTextureFallback);
         coverageShader.bind();
+        coverageShader.uDepthTexture.setInt(0);
         coverageShader.uNoiseTexture.setInt(5);
         glCompat.objectLabelDev(glCompat.GL_PROGRAM, coverageShader.glId(), "coverage");
 
-        shadingShader = ShadingShader.create(manager, config.writeDepth, glCompat.useStencilTextureFallback);
+        shadingShader = ShadingShader.create(manager, glCompat.useDepthWriteFallback, glCompat.useStencilTextureFallback);
         shadingShader.bind();
         shadingShader.uDepthTexture.setInt(1);
         shadingShader.uDataTexture.setInt(2);

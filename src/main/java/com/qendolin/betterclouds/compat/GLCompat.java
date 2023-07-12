@@ -182,7 +182,6 @@ public class GLCompat {
 
         //noinspection UnnecessaryLocalVariable
         boolean canReadStencil = supportsStencilTexturing;
-        boolean canWriteDepth = !canReadStencil || supportsTextureView;
 
         compatible = openGl32 &&
             (openGl33 || (glVertexAttribDivisor || arbInstancedArrays)) &&
@@ -190,8 +189,8 @@ public class GLCompat {
 
         useBaseInstanceFallback = !supportsBaseInstance;
         useStencilTextureFallback = !canReadStencil;
-        useTexStorageFallback = !supportsTextureView;
-        useDepthWriteFallback = !canWriteDepth;
+        useTexStorageFallback = !supportsTextureStorage;
+        useDepthWriteFallback = !supportsTextureView && canReadStencil;
 
         List<String> usedFallbacks = new ArrayList<>();
         if (useBaseInstanceFallback) usedFallbacks.add("base_instance");
@@ -200,7 +199,6 @@ public class GLCompat {
         if (useDepthWriteFallback) usedFallbacks.add("depth_view_write");
         this.usedFallbacks = ImmutableList.copyOf(usedFallbacks);
 
-        //noinspection ConstantConditions
         partiallyIncompatible = useBaseInstanceFallback || useStencilTextureFallback || useDepthWriteFallback || useTexStorageFallback;
 
         GL_VERTEX_ARRAY = GL32.GL_VERTEX_ARRAY;

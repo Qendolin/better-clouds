@@ -38,7 +38,6 @@ public class Config {
         this.scaleFalloffMin = other.scaleFalloffMin;
         this.fadeEdge = other.fadeEdge;
         this.usePersistentBuffers = other.usePersistentBuffers;
-        this.writeDepth = other.writeDepth;
         this.irisSupport = other.irisSupport;
         this.enabled = other.enabled;
         this.cloudOverride = other.cloudOverride;
@@ -88,8 +87,6 @@ public class Config {
     public float fadeEdge = 0.15f;
     @ConfigEntry
     public boolean usePersistentBuffers = true;
-    @ConfigEntry
-    public boolean writeDepth = false;
     @ConfigEntry
     public boolean irisSupport = true;
     @ConfigEntry
