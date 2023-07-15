@@ -24,9 +24,18 @@ uniform vec4 u_bounding_box;
 // scale falloff minimum, dynamic scale factor
 uniform vec2 u_miscellaneous;
 uniform float u_time;
+// start, end
+uniform vec2 u_fog_range;
 
 flat out float pass_opacity;
 out vec3 pass_color;
+
+float linear_fog(float distance, float fogStart, float fogEnd) {
+    if(distance <= fogStart) return 0.0;
+    if(distance > fogEnd) return 1.0;
+
+    return smoothstep(fogStart, fogEnd, distance);
+}
 
 void main() {
     vec3 localWorldPosition = in_pos - u_origin_offset;
@@ -39,6 +48,10 @@ void main() {
         * smoothstep(u_bounding_box.z, u_bounding_box.z-FAR_VISIBILITY_EDGE,
             length(vec3(localWorldPosition.x, 0.0, localWorldPosition.z)));
 
+    if(u_fog_range.y * 4.0 < u_bounding_box.z-FAR_VISIBILITY_EDGE) {
+        pass_opacity *= 1.0 - linear_fog(length(localWorldPosition.xyz), u_fog_range.x, u_fog_range.y);
+    }
+
     vec3 worldDirection = normalize(localWorldPosition);
 
     float waveScale = texture(u_noise_texture, (localWorldPosition.xz + u_bounding_box.xy) / 4000.0 + vec2(u_time / 800.0)).r;
@@ -48,7 +61,6 @@ void main() {
     float dynScale = mix(1.0, waveScale, fDynScale * u_miscellaneous.y);
     vec3 scale = SIZE * dynScale * scaleFalloff;
 
-    pass_color.r = 1.;
 #if POSITIONAL_COLORING
     pass_color.g = (scale.y * 0.625 * (in_vert.y+0.375) + in_pos.y) / (u_bounding_box.w);
 #else
