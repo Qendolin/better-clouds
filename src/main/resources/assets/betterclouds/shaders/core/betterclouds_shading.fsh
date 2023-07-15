@@ -41,11 +41,11 @@ void main() {
     out_color = vec4(0.0);
 
     vec3 cloudData = texelFetch(u_data_texture, ivec2(gl_FragCoord), 0).rgb;
-    #if BLIT_DEPTH
+#if BLIT_DEPTH
     if(cloudData == vec3(0.0)) discard;
-    #else
+#else
     if(cloudData == vec3(0.0)) return;
-    #endif
+#endif
 
 #if UINT_COVERAGE
     float coverage = float(texelFetch(u_coverage_texture, ivec2(gl_FragCoord), 0).r);
