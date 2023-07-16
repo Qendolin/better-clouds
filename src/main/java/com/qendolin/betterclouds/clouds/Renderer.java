@@ -248,9 +248,9 @@ public class Renderer implements AutoCloseable {
 
         RenderSystem.colorMask(true, true, true, true);
         RenderSystem.depthMask(true);
-        RenderSystem.depthFunc(GL_ALWAYS);
 
         if (glCompat.useStencilTextureFallback) {
+            RenderSystem.depthFunc(GL_ALWAYS);
             RenderSystem.enableBlend();
             RenderSystem.blendEquation(GL_FUNC_ADD);
             // FIXME: buf0 needs depth sorting
@@ -258,6 +258,7 @@ public class Renderer implements AutoCloseable {
             glCompat.blendFunci(1, GL_ONE, GL_ONE);
             glDisable(GL_STENCIL_TEST);
         } else {
+            RenderSystem.depthFunc(GL_LESS);
             RenderSystem.disableBlend();
             glEnable(GL_STENCIL_TEST);
             glStencilMask(0xff);
