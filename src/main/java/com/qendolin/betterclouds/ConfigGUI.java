@@ -60,7 +60,6 @@ public class ConfigGUI {
     public final Option<Boolean> cloudOverride;
     public final Option<Float> sunPathAngle;
     public final Option<Boolean> useIrisFBO;
-    public final Option<Boolean> writeDepth;
     public final Option<Float> upscaleResolutionFactor;
     public final Option<Boolean> usePersistentBuffers;
     public final Option<Integer> selectedPreset;
@@ -185,10 +184,6 @@ public class ConfigGUI {
             .build();
         this.useIrisFBO = createOption(boolean.class, "useIrisFBO")
             .binding(defaults.useIrisFBO, () -> config.useIrisFBO, val -> config.useIrisFBO = val)
-            .customController(TickBoxController::new)
-            .build();
-        this.writeDepth = createOption(boolean.class, "writeDepth")
-            .binding(defaults.writeDepth, () -> config.writeDepth, val -> config.writeDepth = val)
             .customController(TickBoxController::new)
             .build();
         this.usePersistentBuffers = createOption(boolean.class, "usePersistentBuffers")
@@ -408,8 +403,7 @@ public class ConfigGUI {
             sunsetStartTime,
             sunsetEndTime,
             upscaleResolutionFactor,
-            useIrisFBO,
-            writeDepth));
+            useIrisFBO));
     }
 
     private void updateRemovePresetButton() {

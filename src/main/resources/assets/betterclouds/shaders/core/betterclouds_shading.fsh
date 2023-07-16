@@ -6,7 +6,6 @@
 #define UINT_COVERAGE _UINT_COVERAGE_
 
 in vec3 pass_dir;
-in vec2 pass_uv;
 
 layout (location=0) out vec4 out_color;
 
@@ -42,11 +41,11 @@ void main() {
     out_color = vec4(0.0);
 
     vec3 cloudData = texelFetch(u_data_texture, ivec2(gl_FragCoord), 0).rgb;
-    #if BLIT_DEPTH
+#if BLIT_DEPTH
     if(cloudData == vec3(0.0)) discard;
-    #else
+#else
     if(cloudData == vec3(0.0)) return;
-    #endif
+#endif
 
 #if UINT_COVERAGE
     float coverage = float(texelFetch(u_coverage_texture, ivec2(gl_FragCoord), 0).r);
@@ -105,6 +104,6 @@ void main() {
     out_color.a *= u_opacity.y;
 
 #if BLIT_DEPTH
-    gl_FragDepth = texture(u_depth_texture, pass_uv).r;
+    gl_FragDepth = texelFetch(u_depth_texture, ivec2(gl_FragCoord), 0).r;
 #endif
 }

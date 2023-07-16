@@ -68,6 +68,7 @@ public class GLCompat {
     public final boolean glBufferStorage;
     public final boolean glVertexAttribDivisor;
     public final boolean glBlendFunci;
+    public final boolean glBlendEquationi;
 
     public final ImmutableList<String> supportedCheckedFunctions;
 
@@ -161,6 +162,7 @@ public class GLCompat {
         glBufferStorage = caps.glBufferStorage != MemoryUtil.NULL;
         glVertexAttribDivisor = caps.glVertexAttribDivisor != MemoryUtil.NULL;
         glBlendFunci = caps.glBlendFunci != MemoryUtil.NULL;
+        glBlendEquationi = caps.glBlendEquationi != MemoryUtil.NULL;
 
         List<String> supportedFunctions = new ArrayList<>();
         if (glObjectLabel) supportedFunctions.add("glObjectLabel");
@@ -173,6 +175,7 @@ public class GLCompat {
         if (glBufferStorage) supportedFunctions.add("glBufferStorage");
         if (glVertexAttribDivisor) supportedFunctions.add("glVertexAttribDivisor");
         if (glBlendFunci) supportedFunctions.add("glBlendFunci");
+        if (glBlendEquationi) supportedFunctions.add("glBlendEquationi");
         supportedCheckedFunctions = ImmutableList.copyOf(supportedFunctions);
 
         boolean supportsBaseInstance = glDrawArraysInstancedBaseInstance || arbBaseInstance;
@@ -182,16 +185,15 @@ public class GLCompat {
 
         //noinspection UnnecessaryLocalVariable
         boolean canReadStencil = supportsStencilTexturing;
-        boolean canWriteDepth = !canReadStencil || supportsTextureView;
 
         compatible = openGl32 &&
             (openGl33 || (glVertexAttribDivisor || arbInstancedArrays)) &&
-            (supportsStencilTexturing || (openGl40 || glBlendFunci || arbDrawBuffersBlend));
+            (supportsStencilTexturing || (openGl40 || (glBlendFunci && glBlendEquationi) || arbDrawBuffersBlend));
 
         useBaseInstanceFallback = !supportsBaseInstance;
         useStencilTextureFallback = !canReadStencil;
-        useTexStorageFallback = !supportsTextureView;
-        useDepthWriteFallback = !canWriteDepth;
+        useTexStorageFallback = !supportsTextureStorage;
+        useDepthWriteFallback = !supportsTextureView && canReadStencil;
 
         List<String> usedFallbacks = new ArrayList<>();
         if (useBaseInstanceFallback) usedFallbacks.add("base_instance");
@@ -200,7 +202,6 @@ public class GLCompat {
         if (useDepthWriteFallback) usedFallbacks.add("depth_view_write");
         this.usedFallbacks = ImmutableList.copyOf(usedFallbacks);
 
-        //noinspection ConstantConditions
         partiallyIncompatible = useBaseInstanceFallback || useStencilTextureFallback || useDepthWriteFallback || useTexStorageFallback;
 
         GL_VERTEX_ARRAY = GL32.GL_VERTEX_ARRAY;
@@ -415,6 +416,14 @@ public class GLCompat {
             GL33.glVertexAttribDivisor(index, divisor);
         } else if (arbInstancedArrays) {
             ARBInstancedArrays.glVertexAttribDivisorARB(index, divisor);
+        }
+    }
+
+    public void blendEquationi(int buf, int mode) {
+        if (glBlendFunci) {
+            GL40.glBlendEquationi(buf, mode);
+        } else if (arbDrawBuffersBlend) {
+            ARBDrawBuffersBlend.glBlendEquationiARB(buf, mode);
         }
     }
 

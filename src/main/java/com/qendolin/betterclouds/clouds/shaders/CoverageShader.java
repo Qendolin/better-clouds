@@ -17,23 +17,27 @@ public class CoverageShader extends Shader {
     public static final Identifier VERTEX_SHADER_ID = new Identifier(Main.MODID, "shaders/core/betterclouds_coverage.vsh");
     public static final Identifier FRAGMENT_SHADER_ID = new Identifier(Main.MODID, "shaders/core/betterclouds_coverage.fsh");
 
+    public final Uniform uDepthTexture;
     public final Uniform uNoiseTexture;
     public final Uniform uMVPMatrix;
     public final Uniform uOriginOffset;
     public final Uniform uBoundingBox;
     public final Uniform uTime;
     public final Uniform uMiscellaneous;
+    public final Uniform uFogRange;
 
 
     public CoverageShader(ResourceManager resMan, Map<String, String> defs) throws IOException {
         super(resMan, VERTEX_SHADER_ID, FRAGMENT_SHADER_ID, defs);
 
+        uDepthTexture = getUniform("u_depth_texture", false);
         uNoiseTexture = getUniform("u_noise_texture", false);
         uMVPMatrix = getUniform("u_mvp_matrix", false);
         uOriginOffset = getUniform("u_origin_offset", false);
         uTime = getUniform("u_time", false);
         uBoundingBox = getUniform("u_bounding_box", false);
         uMiscellaneous = getUniform("u_miscellaneous", true);
+        uFogRange = getUniform("u_fog_range", true);
     }
 
     public static CoverageShader create(ResourceManager manager, float sizeXZ, float sizeY, int edgeFade, boolean stencilFallback) throws IOException {
