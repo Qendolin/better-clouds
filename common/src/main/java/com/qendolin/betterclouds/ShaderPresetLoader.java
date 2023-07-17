@@ -5,9 +5,9 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.fabricmc.fabric.api.resource.SimpleResourceReloadListener;
 import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
+import net.minecraft.resource.ResourceReloader;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.profiler.Profiler;
 
@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
-public class ShaderPresetLoader implements SimpleResourceReloadListener<Map<String, Config.ShaderConfigPreset>> {
+public class ShaderPresetLoader implements ResourceReloader {
     private static final Gson GSON = new GsonBuilder()
         .setLenient()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
@@ -37,11 +37,12 @@ public class ShaderPresetLoader implements SimpleResourceReloadListener<Map<Stri
     }
 
     @Override
-    public Identifier getFabricId() {
-        return ID;
+    public CompletableFuture<Void> reload(ResourceReloader.Synchronizer helper, ResourceManager manager, Profiler loadProfiler, Profiler applyProfiler, Executor loadExecutor, Executor applyExecutor) {
+        return load(manager, loadProfiler, loadExecutor).thenCompose(helper::whenPrepared).thenCompose(
+            (o) -> apply(o, manager, applyProfiler, applyExecutor)
+        );
     }
 
-    @Override
     public CompletableFuture<Map<String, Config.ShaderConfigPreset>> load(ResourceManager manager, Profiler profiler, Executor executor) {
         return CompletableFuture.supplyAsync(() -> {
             Map<String, Config.ShaderConfigPreset> mergedPresets = new HashMap<>();
@@ -68,7 +69,6 @@ public class ShaderPresetLoader implements SimpleResourceReloadListener<Map<Stri
         });
     }
 
-    @Override
     public CompletableFuture<Void> apply(Map<String, Config.ShaderConfigPreset> data, ResourceManager manager, Profiler profiler, Executor executor) {
         presets = data;
         if (Main.getConfig() != null) {

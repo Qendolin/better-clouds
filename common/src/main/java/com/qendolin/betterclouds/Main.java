@@ -4,13 +4,11 @@ import com.qendolin.betterclouds.clouds.Debug;
 import com.qendolin.betterclouds.compat.GLCompat;
 import com.qendolin.betterclouds.compat.GsonConfigInstanceBuilderDuck;
 import com.qendolin.betterclouds.compat.Telemetry;
+import dev.architectury.event.events.client.ClientLifecycleEvent;
+import dev.architectury.event.events.client.ClientPlayerEvent;
+import dev.architectury.registry.ReloadListenerRegistry;
 import dev.isxander.yacl3.config.GsonConfigInstance;
-import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.Version;
@@ -28,7 +26,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 
-public class Main implements ClientModInitializer {
+public class Main {
     public static final String MODID = "betterclouds";
     public static final boolean IS_DEV = FabricLoader.getInstance().isDevelopmentEnvironment();
     public static final boolean IS_CLIENT = FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT;
@@ -127,8 +125,7 @@ public class Main implements ClientModInitializer {
         return CONFIG;
     }
 
-    @Override
-    public void onInitializeClient() {
+    public static void initialize() {
         if (!IS_CLIENT)
             throw new IllegalStateException("Fabric environment is " + FabricLoader.getInstance().getEnvironmentType().name() + " but onInitializeClient was called");
         assert CONFIG != null;
@@ -138,9 +135,10 @@ public class Main implements ClientModInitializer {
         if (mod != null) version = mod.getMetadata().getVersion();
         else version = new StringVersion("unknown");
 
-        ClientLifecycleEvents.CLIENT_STARTED.register(client -> glCompat.enableDebugOutputSynchronousDev());
+        ClientLifecycleEvent.CLIENT_STARTED.register(client -> glCompat.enableDebugOutputSynchronousDev());
 
-        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+        ClientPlayerEvent.CLIENT_PLAYER_JOIN.register((player) -> {
+            MinecraftClient client = MinecraftClient.getInstance();
             if (glCompat.isIncompatible()) {
                 CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
                     .execute(() -> client.execute(Main::sendGpuIncompatibleChatMessage));
@@ -150,10 +148,9 @@ public class Main implements ClientModInitializer {
             }
         });
 
-        ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES)
-            .registerReloadListener(ShaderPresetLoader.INSTANCE);
+        ReloadListenerRegistry.register(ResourceType.CLIENT_RESOURCES, ShaderPresetLoader.INSTANCE, ShaderPresetLoader.ID);
 
-        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> Commands.register(dispatcher));
+
 
         if (!IS_DEV) return;
         LOGGER.info("Initialized in dev mode, performance might vary");

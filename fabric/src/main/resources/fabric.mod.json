@@ -21,10 +21,12 @@
     "client": [
       "com.qendolin.betterclouds.Main"
     ],
-    "modmenu": [ "com.qendolin.betterclouds.ModMenuIntegration" ]
+    "modmenu": [
+      "com.qendolin.betterclouds.ModMenuIntegration"
+    ]
   },
   "mixins": [
-    "betterclouds.mixins.json"
+    "betterclouds-common.mixins.json"
   ],
   "accessWidener" : "betterclouds.accesswidener",
 

@@ -1,8 +1,10 @@
-package com.qendolin.betterclouds;
+package com.qendolin.betterclouds.fabric;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.qendolin.betterclouds.ConfigGUI;
+import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.clouds.Debug;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.client.MinecraftClient;
