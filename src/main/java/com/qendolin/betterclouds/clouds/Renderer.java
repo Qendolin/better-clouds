@@ -246,6 +246,7 @@ public class Renderer implements AutoCloseable {
 
     private void drawCoverage(float ticks, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
 
+        RenderSystem.enableDepthTest();
         RenderSystem.colorMask(true, true, true, true);
         RenderSystem.depthMask(true);
 
