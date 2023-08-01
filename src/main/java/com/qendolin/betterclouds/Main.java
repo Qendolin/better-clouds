@@ -20,10 +20,16 @@ import net.minecraft.resource.ResourceType;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.lwjgl.opengl.GL32;
 
+import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -38,12 +44,13 @@ public class Main implements ClientModInitializer {
     public static Version version;
 
     private static final GsonConfigInstance<Config> CONFIG;
+    private static final Path CONFIG_PATH = Path.of("config/betterclouds-v1.json");
 
     static {
         if (IS_CLIENT) {
             GsonConfigInstance.Builder<Config> builder = GsonConfigInstance
                 .createBuilder(Config.class)
-                .setPath(Path.of("config/betterclouds-v1.json"));
+                .setPath(CONFIG_PATH);
 
             if (builder instanceof GsonConfigInstanceBuilderDuck) {
                 //noinspection unchecked
@@ -131,8 +138,7 @@ public class Main implements ClientModInitializer {
     public void onInitializeClient() {
         if (!IS_CLIENT)
             throw new IllegalStateException("Fabric environment is " + FabricLoader.getInstance().getEnvironmentType().name() + " but onInitializeClient was called");
-        assert CONFIG != null;
-        CONFIG.load();
+        loadConfig();
 
         ModContainer mod = FabricLoader.getInstance().getModContainer(MODID).orElse(null);
         if (mod != null) version = mod.getMetadata().getVersion();
@@ -157,6 +163,43 @@ public class Main implements ClientModInitializer {
 
         if (!IS_DEV) return;
         LOGGER.info("Initialized in dev mode, performance might vary");
+    }
+
+    private void loadConfig() {
+        assert CONFIG != null;
+
+        try {
+            CONFIG.load();
+            return;
+        } catch (Exception loadException) {
+            LOGGER.error("Failed to load config: ", loadException);
+        }
+
+        File file = CONFIG.getPath().toFile();
+        if(file.exists() && file.isFile()) {
+            String backupName = FilenameUtils.getBaseName(file.getName()) +
+                "-backup-" + new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date()) +
+                "." + FilenameUtils.getExtension(file.getName());
+            Path backup = Path.of(CONFIG.getPath().toAbsolutePath().getParent().toString(), backupName);
+            try {
+                Files.copy(file.toPath(), backup, StandardCopyOption.REPLACE_EXISTING);
+                LOGGER.info("Created config backup at: {}", backup);
+            } catch (Exception backupException) {
+                LOGGER.error("Failed to create config backup: ", backupException);
+            }
+        } else if(file.exists()) {
+            //noinspection ResultOfMethodCallIgnored
+            file.delete();
+            LOGGER.info("Deleted old config");
+        }
+
+        try {
+            CONFIG.save();
+            LOGGER.info("Created new config");
+            CONFIG.load();
+        } catch (Exception loadException) {
+            LOGGER.error("Failed to load config again, please report this issue: ", loadException);
+        }
     }
 
     public static void sendGpuIncompatibleChatMessage() {
