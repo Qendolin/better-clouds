@@ -413,11 +413,11 @@ public class ConfigGUI {
 
     public static ConfigScreen create(Screen parent) {
         YetAnotherConfigLib yacl = YetAnotherConfigLib.create(Main.getConfigInstance(),
-            (defaults, config, builder) -> new ConfigGUI(defaults, config).formatAsTwoDecimals(builder));
+            (defaults, config, builder) -> new ConfigGUI(defaults, config).assemble(builder));
         return new ConfigScreen(yacl, parent);
     }
 
-    public YetAnotherConfigLib.Builder formatAsTwoDecimals(YetAnotherConfigLib.Builder builder) {
+    public YetAnotherConfigLib.Builder assemble(YetAnotherConfigLib.Builder builder) {
         builder = builder
             .save(() -> {
                 for (Config.ShaderConfigPreset preset : presetsToBeDeleted) {
