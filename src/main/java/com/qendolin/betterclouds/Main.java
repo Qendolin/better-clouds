@@ -152,7 +152,7 @@ public class Main implements ClientModInitializer {
         }
 
         File file = CONFIG.getPath().toFile();
-        if(file.exists() && file.isFile()) {
+        if (file.exists() && file.isFile()) {
             String backupName = FilenameUtils.getBaseName(file.getName()) +
                 "-backup-" + new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date()) +
                 "." + FilenameUtils.getExtension(file.getName());
@@ -163,7 +163,7 @@ public class Main implements ClientModInitializer {
             } catch (Exception backupException) {
                 LOGGER.error("Failed to create config backup: ", backupException);
             }
-        } else if(file.exists()) {
+        } else if (file.exists()) {
             //noinspection ResultOfMethodCallIgnored
             file.delete();
             LOGGER.info("Deleted old config");

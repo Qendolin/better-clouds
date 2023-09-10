@@ -31,7 +31,7 @@ public class ConfigScreen extends YACLScreen {
             undoButton.getY(),
             undoButton.getWidth(),
             undoButton.getHeight(),
-            Text.translatable(ConfigGUI.LANG_KEY_PREFIX +".hide"),
+            Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".hide"),
             Text.empty(),
             btn -> toggleHidden()
         );
@@ -47,12 +47,12 @@ public class ConfigScreen extends YACLScreen {
     public void tick() {
         super.tick();
 
-        if(Screen.hasShiftDown()) {
+        if (Screen.hasShiftDown()) {
             cancelResetButton.active = true;
-            cancelResetButton.setTooltip(Text.translatable(ConfigGUI.LANG_KEY_PREFIX+".reset.tooltip"));
+            cancelResetButton.setTooltip(Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".reset.tooltip"));
         } else {
             cancelResetButton.active = false;
-            cancelResetButton.setTooltip(Text.translatable(ConfigGUI.LANG_KEY_PREFIX+".reset.tooltip.holdShift"));
+            cancelResetButton.setTooltip(Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".reset.tooltip.holdShift"));
         }
     }
 
@@ -63,7 +63,7 @@ public class ConfigScreen extends YACLScreen {
 
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-        if(hidden) {
+        if (hidden) {
             hideShowButton.render(matrices, mouseX, mouseY, delta);
             hideShowButton.renderHoveredTooltip(matrices);
             return;
@@ -74,7 +74,7 @@ public class ConfigScreen extends YACLScreen {
 
     @Override
     public void renderBackground(MatrixStack matrices) {
-        if(client == null || client.world == null) {
+        if (client == null || client.world == null) {
             super.renderBackground(matrices);
         } else {
             fill(matrices, 0, 0, width / 3, height, 0x6B000000);

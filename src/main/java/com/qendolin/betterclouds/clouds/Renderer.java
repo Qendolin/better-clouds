@@ -286,10 +286,10 @@ public class Renderer implements AutoCloseable {
         res.coverageShader().uTime.setFloat(ticks / 20);
         res.coverageShader().uMiscellaneous.setVec2(config.scaleFalloffMin, config.windFactor);
         FogShape shape = RenderSystem.getShaderFogShape();
-        if(shape == FogShape.CYLINDER) {
+        if (shape == FogShape.CYLINDER) {
             res.coverageShader().uFogRange.setVec2(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
         } else {
-            res.coverageShader().uFogRange.setVec2(RenderSystem.getShaderFogStart() , RenderSystem.getShaderFogEnd());
+            res.coverageShader().uFogRange.setVec2(RenderSystem.getShaderFogStart(), RenderSystem.getShaderFogEnd());
         }
 
         RenderSystem.activeTexture(GL_TEXTURE0);
@@ -307,7 +307,7 @@ public class Renderer implements AutoCloseable {
         frustumAtOrigin.setPosition(frustumPos.x - res.generator().originX(), frustumPos.y, frustumPos.z - res.generator().originZ());
         Debug.clearFrustumCulledBoxed();
 
-        if(!res.generator().canRender()) {
+        if (!res.generator().canRender()) {
             RenderSystem.enableCull();
             return;
         }
@@ -363,7 +363,7 @@ public class Renderer implements AutoCloseable {
         }
 
         RenderSystem.activeTexture(GL_TEXTURE1);
-        if(glCompat.useDepthWriteFallback) {
+        if (glCompat.useDepthWriteFallback) {
             RenderSystem.bindTexture(0);
         } else {
             RenderSystem.bindTexture(res.oitCoverageDepthTexture());
@@ -398,7 +398,7 @@ public class Renderer implements AutoCloseable {
         glBindVertexArray(res.cubeVao());
         glDrawArrays(GL_TRIANGLES, 0, Mesh.CUBE_MESH_VERTEX_COUNT);
 
-        if(glCompat.useDepthWriteFallback) {
+        if (glCompat.useDepthWriteFallback) {
             RenderSystem.activeTexture(GL_TEXTURE6);
             RenderSystem.bindTexture(res.oitCoverageDepthTexture());
             glTexParameteri(GL_TEXTURE_2D, glCompat.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_DEPTH_COMPONENT);

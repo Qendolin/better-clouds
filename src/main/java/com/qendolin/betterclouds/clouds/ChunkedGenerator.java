@@ -179,7 +179,7 @@ public class ChunkedGenerator implements AutoCloseable {
             updateGeometry = true;
         }
 
-        if(Debug.generatorForceUpdate) {
+        if (Debug.generatorForceUpdate) {
             Debug.generatorForceUpdate = false;
             updateGeometry = true;
         }

@@ -103,8 +103,8 @@ public abstract class WorldRendererMixin {
         long startTime = System.nanoTime();
 
         int ticks = this.ticks;
-        if(Debug.animationPause >= 0) {
-            if(Debug.animationPause == 0) Debug.animationPause = ticks;
+        if (Debug.animationPause >= 0) {
+            if (Debug.animationPause == 0) Debug.animationPause = ticks;
             else ticks = Debug.animationPause;
             tickDelta = 0;
         }

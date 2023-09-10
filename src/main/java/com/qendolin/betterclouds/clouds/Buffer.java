@@ -66,7 +66,7 @@ public class Buffer implements AutoCloseable {
             }
         }
 
-        if(!usePersistent) {
+        if (!usePersistent) {
             allocateMutable(vboSize);
         }
 
@@ -85,14 +85,14 @@ public class Buffer implements AutoCloseable {
         glBindBuffer(GL_ARRAY_BUFFER, writeBufferId);
         glCompat.bufferStorage(GL_ARRAY_BUFFER, vboSize, flags);
         ByteBuffer buffer = glMapBufferRange(GL_ARRAY_BUFFER, 0, vboSize, flags);
-        if(buffer == null) throw new IllegalStateException("glMapBufferRange returned null");
+        if (buffer == null) throw new IllegalStateException("glMapBufferRange returned null");
         writeBuffer = buffer.asFloatBuffer();
         glCompat.objectLabelDev(glCompat.GL_BUFFER, writeBufferId, "cloud_positions_a");
 
         glBindBuffer(GL_ARRAY_BUFFER, drawBufferId);
         glCompat.bufferStorage(GL_ARRAY_BUFFER, vboSize, flags);
         buffer = glMapBufferRange(GL_ARRAY_BUFFER, 0, vboSize, flags);
-        if(buffer == null) throw new IllegalStateException("glMapBufferRange returned null");
+        if (buffer == null) throw new IllegalStateException("glMapBufferRange returned null");
         drawBuffer = buffer.asFloatBuffer();
         glCompat.objectLabelDev(glCompat.GL_BUFFER, drawBufferId, "cloud_positions_b");
     }

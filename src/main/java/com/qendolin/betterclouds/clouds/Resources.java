@@ -19,7 +19,6 @@ import net.minecraft.util.Identifier;
 import java.io.Closeable;
 import java.io.IOException;
 
-import static com.qendolin.betterclouds.Main.LOGGER;
 import static com.qendolin.betterclouds.Main.glCompat;
 import static org.lwjgl.opengl.GL32.*;
 
