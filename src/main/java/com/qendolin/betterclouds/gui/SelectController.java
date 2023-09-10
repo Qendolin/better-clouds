@@ -1,13 +1,13 @@
 package com.qendolin.betterclouds.gui;
 
 import com.google.common.collect.ImmutableList;
-import dev.isxander.yacl3.api.Controller;
-import dev.isxander.yacl3.api.Option;
-import dev.isxander.yacl3.api.utils.Dimension;
-import dev.isxander.yacl3.gui.AbstractWidget;
-import dev.isxander.yacl3.gui.YACLScreen;
-import dev.isxander.yacl3.gui.controllers.ControllerWidget;
-import dev.isxander.yacl3.gui.utils.GuiUtils;
+import dev.isxander.yacl.api.Controller;
+import dev.isxander.yacl.api.Option;
+import dev.isxander.yacl.api.utils.Dimension;
+import dev.isxander.yacl.gui.AbstractWidget;
+import dev.isxander.yacl.gui.YACLScreen;
+import dev.isxander.yacl.gui.controllers.ControllerWidget;
+import dev.isxander.yacl.gui.utils.GuiUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.sound.PositionedSoundInstance;
@@ -146,7 +146,7 @@ public class SelectController<T> implements Controller<Integer> {
         }
 
         protected void drawList(MatrixStack matrices) {
-            if ((!isMouseInteracted() && !isFocused()) || !isAvailable()) return;
+            if ((!isMouseInteracted() && !focused) || !isAvailable()) return;
 
             matrices.push();
             matrices.translate(0, 0, 100);
@@ -265,7 +265,7 @@ public class SelectController<T> implements Controller<Integer> {
             if (dim.isPointInside((int) mouseX, (int) mouseY)) return true;
             Dimension<Integer> expanded = getExpandedBounds();
             //noinspection RedundantIfStatement
-            if (isFocused() && expanded.isPointInside((int) mouseX, (int) mouseY)) return true;
+            if (focused && expanded.isPointInside((int) mouseX, (int) mouseY)) return true;
             return false;
         }
 
@@ -300,7 +300,7 @@ public class SelectController<T> implements Controller<Integer> {
                     return false;
             }
 
-            setFocused(true);
+            focused = true;
             return true;
         }
     }

@@ -1,19 +1,20 @@
 package com.qendolin.betterclouds.gui;
 
-import dev.isxander.yacl3.api.PlaceholderCategory;
-import dev.isxander.yacl3.api.YetAnotherConfigLib;
-import dev.isxander.yacl3.api.utils.OptionUtils;
-import dev.isxander.yacl3.gui.YACLScreen;
+import com.qendolin.betterclouds.ConfigGUI;
+import dev.isxander.yacl.api.YetAnotherConfigLib;
+import dev.isxander.yacl.gui.TooltipButtonWidget;
+import dev.isxander.yacl.gui.YACLScreen;
 import net.minecraft.client.gui.DrawableHelper;
-import net.minecraft.client.gui.ScreenRect;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ConfigScreen extends YACLScreen {
+
+    public TooltipButtonWidget hideShowButton;
+    private boolean hidden = false;
 
     public ConfigScreen(YetAnotherConfigLib config, Screen parent) {
         super(config, parent);
@@ -21,61 +22,62 @@ public class ConfigScreen extends YACLScreen {
 
     @Override
     protected void init() {
-        assert client != null;
-        tabNavigationBar = new CustomScrollableNavigationBar(this.width, tabManager, config.categories()
-            .stream()
-            .map(category -> {
-                if (category instanceof PlaceholderCategory placeholder)
-                    return new PlaceholderTab(placeholder);
-                return new CustomCategoryTab(client, this, () -> tabArea, category);
-            }).toList());
-        tabNavigationBar.selectTab(0, false);
-        tabNavigationBar.init();
-        ScreenRect navBarArea = tabNavigationBar.getNavigationFocus();
-        tabArea = new ScreenRect(0, navBarArea.height() - 1, this.width, this.height - navBarArea.height() + 1);
-        tabManager.setTabArea(tabArea);
-        addDrawableChild(tabNavigationBar);
+        super.init();
+        remove(undoButton);
 
-        config.initConsumer().accept(this);
-    }
+        hideShowButton = new TooltipButtonWidget(
+            this,
+            undoButton.getX(),
+            undoButton.getY(),
+            undoButton.getWidth(),
+            undoButton.getHeight(),
+            Text.translatable(ConfigGUI.LANG_KEY_PREFIX +".hide"),
+            Text.empty(),
+            btn -> toggleHidden()
+        );
+        addDrawableChild(hideShowButton);
+        hideShowButton.active = client != null && client.world != null;
 
-    public boolean pendingChanges() {
-        AtomicBoolean pendingChanges = new AtomicBoolean(false);
-        OptionUtils.consumeOptions(config, (option) -> {
-            if (option.changed()) {
-                pendingChanges.set(true);
-                return true;
-            }
-            return false;
-        });
-
-        return pendingChanges.get();
+        remove(optionList);
+        optionList = new CustomOptionListWidget(this, client, width, height);
+        addSelectableChild(optionList);
     }
 
     @Override
-    public void cancelOrReset() {
-        super.cancelOrReset();
+    public void tick() {
+        super.tick();
+
+        if(Screen.hasShiftDown()) {
+            cancelResetButton.active = true;
+            cancelResetButton.setTooltip(Text.translatable(ConfigGUI.LANG_KEY_PREFIX+".reset.tooltip"));
+        } else {
+            cancelResetButton.active = false;
+            cancelResetButton.setTooltip(Text.translatable(ConfigGUI.LANG_KEY_PREFIX+".reset.tooltip.holdShift"));
+        }
+    }
+
+    private void toggleHidden() {
+        hidden = !hidden;
+        hideShowButton.setMessage(Text.translatable(ConfigGUI.LANG_KEY_PREFIX + (hidden ? ".show" : ".hide")));
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        return super.keyPressed(keyCode, scanCode, modifiers);
+    public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+        if(hidden) {
+            hideShowButton.render(matrices, mouseX, mouseY, delta);
+            hideShowButton.renderHoveredTooltip(matrices);
+            return;
+        }
+
+        super.render(matrices, mouseX, mouseY, delta);
     }
 
     @Override
     public void renderBackground(MatrixStack matrices) {
-        if (client == null || client.world == null) {
+        if(client == null || client.world == null) {
             super.renderBackground(matrices);
         } else {
-            DrawableHelper.fill(matrices, 0, 0, width / 3, height, 0x6b000000);
-        }
-    }
-
-    public void renderBackgroundTexture(MatrixStack matrices) {
-        if (client == null || client.world == null) {
-            super.renderBackgroundTexture(matrices);
-        } else {
-            DrawableHelper.fill(matrices, width / 3 * 2 + 1, tabArea.getTop(), width, tabArea.getBottom(), 0x6b000000);
+            fill(matrices, 0, 0, width / 3, height, 0x6B000000);
         }
     }
 

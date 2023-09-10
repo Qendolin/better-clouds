@@ -30,10 +30,10 @@
 
   "depends": {
     "fabricloader": ">=0.14.0",
-    "minecraft": "1.19.4",
+    "minecraft": "1.19.3",
     "java": ">=17",
     "fabric": "*",
-    "yet_another_config_lib_v3": "^3.0.2"
+    "yet-another-config-lib": ">=2.2.0"
   },
   "recommends": {
     "modmenu": "*",

@@ -2,9 +2,8 @@ package com.qendolin.betterclouds;
 
 import com.qendolin.betterclouds.clouds.Debug;
 import com.qendolin.betterclouds.compat.GLCompat;
-import com.qendolin.betterclouds.compat.GsonConfigInstanceBuilderDuck;
 import com.qendolin.betterclouds.compat.Telemetry;
-import dev.isxander.yacl3.config.GsonConfigInstance;
+import dev.isxander.yacl.config.GsonConfigInstance;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
@@ -43,29 +42,8 @@ public class Main implements ClientModInitializer {
     public static GLCompat glCompat;
     public static Version version;
 
-    private static final GsonConfigInstance<Config> CONFIG;
     private static final Path CONFIG_PATH = Path.of("config/betterclouds-v1.json");
-
-    static {
-        if (IS_CLIENT) {
-            GsonConfigInstance.Builder<Config> builder = GsonConfigInstance
-                .createBuilder(Config.class)
-                .setPath(CONFIG_PATH);
-
-            if (builder instanceof GsonConfigInstanceBuilderDuck) {
-                //noinspection unchecked
-                GsonConfigInstanceBuilderDuck<Config> duck = (GsonConfigInstanceBuilderDuck<Config>) builder;
-                builder = duck.betterclouds$appendGsonBuilder(b -> b
-                    .setLenient().setPrettyPrinting()
-                    .registerTypeAdapter(Config.class, Config.INSTANCE_CREATOR)
-                    .registerTypeAdapter(Config.ShaderConfigPreset.class, Config.ShaderConfigPreset.INSTANCE_CREATOR));
-            }
-            CONFIG = builder.build();
-        } else {
-            CONFIG = null;
-        }
-
-    }
+    private static final GsonConfigInstance<Config> CONFIG = new GsonConfigInstance<>(Config.class, CONFIG_PATH);
 
     public static void initGlCompat() {
         try {
@@ -166,8 +144,6 @@ public class Main implements ClientModInitializer {
     }
 
     private void loadConfig() {
-        assert CONFIG != null;
-
         try {
             CONFIG.load();
             return;

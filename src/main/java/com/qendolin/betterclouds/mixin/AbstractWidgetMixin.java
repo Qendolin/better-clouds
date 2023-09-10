@@ -1,7 +1,7 @@
 package com.qendolin.betterclouds.mixin;
 
 import com.qendolin.betterclouds.gui.ConfigScreen;
-import dev.isxander.yacl3.gui.AbstractWidget;
+import dev.isxander.yacl.gui.AbstractWidget;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.util.math.MatrixStack;
