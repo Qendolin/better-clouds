@@ -128,5 +128,22 @@
   "betterclouds.config.entry.sunPathAngle.description": "Tilt of the sun/moon rotation axis, for compatibility with shaders that support this option",
   "betterclouds.config.entry.upscaleResolutionFactor": "Upscale Resolution",
   "betterclouds.config.entry.upscaleResolutionFactor.description": "The resolution that is used for upscaling, for compatibility with shaders that support TAAU",
-  "betterclouds.config.text.shaders": "§4Shader support is experimental!§r\nSome shaders work, others don't.\nIt's best to turn off the clouds in the shader pack settings or set them to 'vanilla' if that is an option.\nYou can play with the color settings below if the clouds don't look right."
+  "betterclouds.config.text.shaders": "§4Shader support is experimental!§r\nSome shaders work, others don't.\nIt's best to turn off the clouds in the shader pack settings or set them to 'vanilla' if that is an option.\nYou can play with the color settings below if the clouds don't look right.",
+  "betterclouds.gui.gradient.title": "Edit Gradient",
+  "betterclouds.gui.gradient.color.rgb.red": "R",
+  "betterclouds.gui.gradient.color.rgb.green": "G",
+  "betterclouds.gui.gradient.color.rgb.blue": "B",
+  "betterclouds.gui.gradient.color.hsl.hue": "H",
+  "betterclouds.gui.gradient.color.hsl.saturation": "S",
+  "betterclouds.gui.gradient.color.hsl.lightness": "L",
+  "betterclouds.gui.gradient.color.lch.lightness": "L",
+  "betterclouds.gui.gradient.color.lch.chroma": "C",
+  "betterclouds.gui.gradient.color.lch.hue": "H",
+  "betterclouds.gui.gradient.narrator.lock": "Stop Lock",
+  "betterclouds.gui.gradient.narrator.lock.locked": "Locked",
+  "betterclouds.gui.gradient.narrator.lock.unlocked": "Unlocked",
+  "betterclouds.gui.gradient.button.lock.tooltip": "Lock / Unlock stop",
+  "betterclouds.gui.gradient.button.duplicate.tooltip": "Duplicate stop",
+  "betterclouds.gui.gradient.button.remove.tooltip": "Remove stop",
+  "betterclouds.gui.gradient.button.colorSpace.tooltip": "Cycle color space"
 }

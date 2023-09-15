@@ -38,6 +38,7 @@ run/
 *.cap
 *.rdc
 *.xcf
+*.ase
 
 # secrets
 

@@ -268,7 +268,6 @@ public class ChunkedGenerator implements AutoCloseable {
         private final AtomicBoolean completed = new AtomicBoolean();
         private final List<ChunkIndex> chunks = new ArrayList<>();
         private int cloudCount;
-
         private long startTime;
 
         public Task(int chunkX, int chunkZ, Config options, float cloudiness, Buffer buffer, Sampler sampler) {

@@ -11,3 +11,6 @@ mutable		field	net/minecraft/client/render/Frustum	y					D
 accessible	field	net/minecraft/client/render/Frustum	y					D
 mutable		field	net/minecraft/client/render/Frustum	z					D
 accessible	field	net/minecraft/client/render/Frustum	z					D
+accessible class net/minecraft/client/render/model/json/ModelOverrideList$BakedOverride
+accessible field net/minecraft/client/gui/widget/TextFieldWidget selectionEnd   I
+accessible field net/minecraft/client/gui/widget/TextFieldWidget selectionStart I

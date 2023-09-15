@@ -1,9 +1,6 @@
 package com.qendolin.betterclouds;
 
-import com.qendolin.betterclouds.gui.ConfigScreen;
-import com.qendolin.betterclouds.gui.CustomButtonOption;
-import com.qendolin.betterclouds.gui.CustomIntegerFieldController;
-import com.qendolin.betterclouds.gui.SelectController;
+import com.qendolin.betterclouds.gui.*;
 import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.gui.controllers.BooleanController;
 import dev.isxander.yacl3.gui.controllers.ColorController;
@@ -11,6 +8,7 @@ import dev.isxander.yacl3.gui.controllers.TickBoxController;
 import dev.isxander.yacl3.gui.controllers.slider.FloatSliderController;
 import dev.isxander.yacl3.gui.controllers.slider.IntegerSliderController;
 import dev.isxander.yacl3.gui.controllers.string.StringController;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -66,6 +64,7 @@ public class ConfigGUI {
     public final Option<String> presetTitle;
     public final ButtonOption copyPresetButton;
     public final ButtonOption removePresetButton;
+    public final ButtonOption openDimensionsButton;
 
     protected final List<Pair<ConfigCategory.Builder, List<Pair<OptionGroup.Builder, List<Option<?>>>>>> categories = new ArrayList<>();
 
@@ -74,6 +73,7 @@ public class ConfigGUI {
     protected final List<Pair<OptionGroup.Builder, List<Option<?>>>> appearanceCategory = new ArrayList<>();
     protected final List<Pair<OptionGroup.Builder, List<Option<?>>>> performanceCategory = new ArrayList<>();
     protected final List<Pair<OptionGroup.Builder, List<Option<?>>>> shadersCategory = new ArrayList<>();
+    protected final List<Pair<OptionGroup.Builder, List<Option<?>>>> dimensionsCategory = new ArrayList<>();
 
     protected final List<Option<?>> commonPresetsGroup = new ArrayList<>();
     protected final List<Option<?>> commonGenerationGroup = new ArrayList<>();
@@ -90,6 +90,7 @@ public class ConfigGUI {
     protected final List<Option<?>> shadersPresetGroup = new ArrayList<>();
     protected final List<Option<?>> shadersColorGroup = new ArrayList<>();
     protected final List<Option<?>> shadersTechnicalGroup = new ArrayList<>();
+    protected final List<Option<?>> dimensionsDefaultGroup = new ArrayList<>();
 
     protected final List<Option<?>> shaderConfigPresetOptions = new ArrayList<>();
 
@@ -336,6 +337,14 @@ public class ConfigGUI {
             })
             .build();
 
+        openDimensionsButton =CustomButtonOption.createBuilder()
+            .name(() -> Text.translatable(LANG_KEY_PREFIX + ".entry.dimensions.open"))
+            .action((screen, buttonOption) -> {
+                MinecraftClient.getInstance().setScreen(new GradientScreen());
+            })
+            .build();
+        dimensionsDefaultGroup.addAll(List.of(openDimensionsButton));
+
         categories.add(new Pair<>(ConfigCategory.createBuilder()
             .name(categoryLabel("common")), commonCategory));
         commonCategory.add(new Pair<>(OptionGroup.createBuilder()
@@ -404,6 +413,11 @@ public class ConfigGUI {
             sunsetEndTime,
             upscaleResolutionFactor,
             useIrisFBO));
+
+        categories.add(new Pair<>(ConfigCategory.createBuilder()
+            .name(categoryLabel("dimensions")), dimensionsCategory));
+        dimensionsCategory.add(new Pair<>(OptionGroup.createBuilder()
+            .name(groupLabel("dimensions.default")), dimensionsDefaultGroup));
     }
 
     private void updateRemovePresetButton() {
