@@ -17,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -263,6 +264,12 @@ public class GradientWidget<StopSpace extends IColor<StopSpace, ?>> implements E
             generate();
         }
 
+        public GradientGenerator<StopSpace, InterpSpace> copyWithResolution(int resolution) {
+            GradientGenerator<StopSpace, InterpSpace> copy = new GradientGenerator<StopSpace, InterpSpace>(resolution, stopSpace, interpSpace, fallback);
+            copy.stops.addAll(stops);
+            return copy;
+        }
+
         public GammaRgbColor get(int x) {
             if(x < 0) return fallback;
             if(x >= this.resolution) return fallback;
@@ -315,6 +322,10 @@ public class GradientWidget<StopSpace extends IColor<StopSpace, ?>> implements E
 
         public void removeStop(GradientStop<StopSpace> stop) {
             stops.remove(stop);
+        }
+
+        public GammaRgbColor[] getAll() {
+            return Arrays.copyOf(cache, cache.length);
         }
     }
 
@@ -572,5 +583,11 @@ public class GradientWidget<StopSpace extends IColor<StopSpace, ?>> implements E
     public boolean selectedLocked() {
         if(selectedStop == null) return false;
         return selectedStop.locked();
+    }
+
+    public GammaRgbColor[] getGradient(int resolution) {
+        GradientGenerator<StopSpace, ?> copy = generator.copyWithResolution(resolution);
+        copy.generate();
+        return copy.getAll();
     }
 }

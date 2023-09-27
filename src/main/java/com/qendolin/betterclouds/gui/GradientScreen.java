@@ -15,6 +15,7 @@ import net.minecraft.client.gui.widget.TextWidget;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.json.ModelOverrideList;
+import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -29,7 +30,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class GradientScreen extends Screen {
 
     private static final Identifier ICONS_TEXTURE = new Identifier(Main.MODID, "textures/gui/betterclouds/gui_icons.png");
-    private static final Identifier WIDGETS_TEXTURE = new Identifier( "textures/gui/widgets.png");
 
     private static final Text TITLE_TEXT = Text.translatable("betterclouds.gui.gradient.title");
 
@@ -39,6 +39,10 @@ public class GradientScreen extends Screen {
 
     protected GradientWidget<GammaRgbColor> gradient;
     protected ColorPickerWidget picker;
+    protected boolean dirty = true;
+    protected NativeImageBackedTexture cache;
+    protected Identifier cacheId;
+
 
     @Override
     protected void init() {
@@ -69,6 +73,7 @@ public class GradientScreen extends Screen {
 
         ColorInputWidget colorInputField = new ColorInputWidget(new Bounds(125 + 28 + 5, 150 + 6, textRenderer.getWidth("#000000"), 10));
         colorInputField.onChange = color -> {
+            dirty = true;
             picker.setColor(color);
             colorWidget.setColor(color);
             gradient.setSelectedStopColor(color);
@@ -124,6 +129,7 @@ public class GradientScreen extends Screen {
         addDrawableChild(removeStopButton);
 
         colorInputField.onChange = color -> {
+            dirty = true;
             if(colorChangeLock.getAndSet(true)) return;
             picker.setColor(color);
             colorWidget.setColor(color);
@@ -132,6 +138,7 @@ public class GradientScreen extends Screen {
         };
 
         gradient.onStopSelected = (index, pos, color) -> {
+            dirty = true;
             if(colorChangeLock.getAndSet(true)) return;
             removeStopButton.active = index != -1 && gradient.stopCount() > 2;
             duplicateStopButton.active = index != -1;
@@ -147,12 +154,14 @@ public class GradientScreen extends Screen {
         };
 
         gradient.onStopMoved = (pos) -> {
+            dirty = true;
             if(colorChangeLock.getAndSet(true)) return;
             timeInputField.setTime(posToTime(pos) * 10);
             colorChangeLock.set(false);
         };
 
         picker.onChanged = (color) -> {
+            dirty = true;
             if(colorChangeLock.getAndSet(true)) return;
             gradient.setSelectedStopColor(color);
             if(gradient.selectedIndex() == 0) {
@@ -166,6 +175,7 @@ public class GradientScreen extends Screen {
         };
 
         timeInputField.onChange = (time) -> {
+            dirty = true;
             if(colorChangeLock.getAndSet(true)) return;
             gradient.setSelectedStopPosition(timeToPos(time/10));
             colorChangeLock.set(false);
@@ -183,6 +193,15 @@ public class GradientScreen extends Screen {
         gradient.addStop(timeToPos(2400+75), new GammaRgbColor(1, 1, 1, 1), false);
         gradient.addStop(1, new GammaRgbColor(1, 1, 1, 1), false);
         gradient.selectStop(0);
+
+        cache = new NativeImageBackedTexture(32, 32, false);
+        cacheId = client.getTextureManager().registerDynamicTexture("cloud_gradient", cache);
+    }
+
+    @Override
+    public void close() {
+        super.close();
+        cache.close();
     }
 
     private static float timeToPos(int time) {
@@ -205,6 +224,19 @@ public class GradientScreen extends Screen {
         renderBackground(context);
 
         super.render(context, mouseX, mouseY, delta);
+
+        if(dirty) {
+            dirty = false;
+            GammaRgbColor[] g = gradient.getGradient(32);
+            for (int x = 0; x < 32; x++) {
+                for (int y = 0; y < 32; y++) {
+                    cache.getImage().setColor(x, (y+32+8)%32, g[y].packABGR());
+                }
+            }
+            cache.upload();
+        }
+
+        context.drawTexture(cacheId, 100, 10, 0, 0, 64, 64, 64, 64);
 
         for (int i = 0; i < 5; i++) {
             int x = 100+5 + Math.round((300 - 11) * i / 4f);
@@ -253,4 +285,5 @@ public class GradientScreen extends Screen {
 
         matrices.pop();
     }
+
 }

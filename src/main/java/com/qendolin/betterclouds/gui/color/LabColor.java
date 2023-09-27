@@ -5,6 +5,7 @@ import org.joml.*;
 import java.lang.Math;
 import java.util.Objects;
 
+// Based on OKLAB https://bottosson.github.io/posts/oklab/
 public class LabColor implements IColor<LabColor, XYZColor> {
 
     public static final Matrix3d cieXyzToLms = new Matrix3d(

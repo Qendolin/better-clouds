@@ -45,6 +45,15 @@ public final class GammaRgbColor implements IColor<GammaRgbColor, LinearRgbColor
         return a << 24 | r << 16 | g << 8 | b;
     }
 
+    public int packABGR() {
+        int r = Math.round(red * 0xff);
+        int g = Math.round(green * 0xff);
+        int b = Math.round(blue * 0xff);
+        int a = Math.round(alpha * 0xff);
+        return a << 24 | b << 16 | g << 8 | r;
+    }
+
+
     public LinearRgbColor toLinear() {
         float lr = toLinear(red);
         float lg = toLinear(green);
