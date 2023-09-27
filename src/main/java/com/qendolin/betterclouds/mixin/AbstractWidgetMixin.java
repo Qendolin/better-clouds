@@ -7,6 +7,7 @@ import net.minecraft.client.gui.DrawContext;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -49,6 +50,7 @@ public abstract class AbstractWidgetMixin {
         }
     }
 
+    @Unique
     private static void drawOutline(DrawContext context, int x1, int y1, int x2, int y2, int width, int color) {
         context.fill(x1, y1, x2, y1 + width, color);
         context.fill(x2, y1, x2 - width, y2, color);

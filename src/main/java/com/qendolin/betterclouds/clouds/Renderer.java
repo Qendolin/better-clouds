@@ -246,6 +246,7 @@ public class Renderer implements AutoCloseable {
 
     private void drawCoverage(float ticks, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
 
+        RenderSystem.enableDepthTest();
         RenderSystem.colorMask(true, true, true, true);
         RenderSystem.depthMask(true);
 
@@ -414,12 +415,12 @@ public class Renderer implements AutoCloseable {
     }
 
     private void setFrustumTo(Frustum dst, Frustum src) {
-        dst.frustumIntersection.set(src.field_40824);
-        dst.field_40824.set(src.field_40824);
+        dst.frustumIntersection = src.frustumIntersection;
+        dst.positionProjectionMatrix.set(src.positionProjectionMatrix);
         dst.x = src.x;
         dst.y = src.y;
         dst.z = src.z;
-        dst.field_34821 = src.field_34821;
+        dst.recession = src.recession;
     }
 
     private float getEffectLuminance(float tickDelta) {

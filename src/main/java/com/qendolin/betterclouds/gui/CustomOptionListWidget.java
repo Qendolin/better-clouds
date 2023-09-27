@@ -30,7 +30,7 @@ public class CustomOptionListWidget extends OptionListWidget {
     public void refreshOptions() {
         super.refreshOptions();
         addEntry(new PaddingEntry());
-        for (Entry child : children()) {
+        for (dev.isxander.yacl3.gui.OptionListWidget.Entry child : children()) {
             if (child instanceof OptionEntry optionEntry && optionEntry.option.controller() instanceof LabelController) {
                 addEntryBelow(optionEntry, new ProxyEntry<OptionEntry>(optionEntry)
                     .onBeforeRender((delegate, context, index, y, x, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta) -> {
@@ -55,29 +55,25 @@ public class CustomOptionListWidget extends OptionListWidget {
     }
 
     @Override
-    protected void renderBackground(DrawContext context) {
-        if (client == null || client.world == null) {
-            super.renderBackground(context);
-            setRenderBackground(true);
-        } else {
-            setRenderBackground(false);
-        }
+    public void render(DrawContext graphics, int mouseX, int mouseY, float delta) {
+        setRenderBackground(client == null || client.world == null);
+        super.render(graphics, mouseX, mouseY, delta);
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
-        for (Entry child : children()) {
-            if (child.mouseScrolled(mouseX, mouseY, amount)) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontal, double vertical) {
+        for (dev.isxander.yacl3.gui.OptionListWidget.Entry child : children()) {
+            if (child.mouseScrolled(mouseX, mouseY, horizontal, vertical)) {
                 return true;
             }
         }
 
-        this.setScrollAmount(this.getScrollAmount() - amount * 20);
+        this.setScrollAmount(this.getScrollAmount() - (vertical + horizontal) * 20);
         return true;
     }
 
     // It is super annoying that Entry is not declared as a static class
-    public class ProxyEntry<T extends Entry> extends Entry {
+    public class ProxyEntry<T extends dev.isxander.yacl3.gui.OptionListWidget.Entry> extends dev.isxander.yacl3.gui.OptionListWidget.Entry {
         private final T delegate;
 
         public BeforeRenderCallback<T> beforeRender;
@@ -133,8 +129,8 @@ public class CustomOptionListWidget extends OptionListWidget {
         }
 
         @Override
-        public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
-            return delegate.mouseScrolled(mouseX, mouseY, amount);
+        public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+            return delegate.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
         }
 
         @Override
@@ -253,16 +249,16 @@ public class CustomOptionListWidget extends OptionListWidget {
     }
 
     @FunctionalInterface
-    public interface BeforeRenderCallback<T extends Entry> {
+    public interface BeforeRenderCallback<T extends dev.isxander.yacl3.gui.OptionListWidget.Entry> {
         void onBeforeRender(T delegate, DrawContext context, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta);
     }
 
     @FunctionalInterface
-    public interface AfterRenderCallback<T extends Entry> {
+    public interface AfterRenderCallback<T extends dev.isxander.yacl3.gui.OptionListWidget.Entry> {
         void onAfterRender(T delegate, DrawContext context, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta);
     }
 
-    private class PaddingEntry extends Entry {
+    private class PaddingEntry extends dev.isxander.yacl3.gui.OptionListWidget.Entry {
         @Override
         public List<? extends Selectable> selectableChildren() {
             return List.of();

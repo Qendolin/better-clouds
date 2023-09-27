@@ -153,7 +153,6 @@ public class CustomCategoryTab implements TabExt {
     @Override
     public void tick() {
         updateButtons();
-        searchField.tick();
         descriptionWidget.tick();
     }
 

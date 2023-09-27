@@ -33,8 +33,8 @@ public class CustomButtonOption implements ButtonOption {
         this.binding = new EmptyBinderImpl();
     }
 
-    public static Builder createBuilder() {
-        return new Builder();
+    public static com.qendolin.betterclouds.gui.CustomButtonOption.Builder createBuilder() {
+        return new com.qendolin.betterclouds.gui.CustomButtonOption.Builder();
     }
 
     @Override
@@ -145,21 +145,21 @@ public class CustomButtonOption implements ButtonOption {
         private boolean available = true;
         private BiConsumer<YACLScreen, ButtonOption> action;
 
-        public Builder name(@NotNull Supplier<Text> name) {
+        public com.qendolin.betterclouds.gui.CustomButtonOption.Builder name(@NotNull Supplier<Text> name) {
             Validate.notNull(name, "`name` cannot be null");
 
             this.name = name;
             return this;
         }
 
-        public Builder description(@NotNull OptionDescription description) {
+        public com.qendolin.betterclouds.gui.CustomButtonOption.Builder description(@NotNull OptionDescription description) {
             Validate.notNull(description, "`description` cannot be null");
 
             this.description = description;
             return this;
         }
 
-        public Builder action(@NotNull BiConsumer<YACLScreen, ButtonOption> action) {
+        public com.qendolin.betterclouds.gui.CustomButtonOption.Builder action(@NotNull BiConsumer<YACLScreen, ButtonOption> action) {
             Validate.notNull(action, "`action` cannot be null");
 
             this.action = action;
@@ -167,7 +167,7 @@ public class CustomButtonOption implements ButtonOption {
         }
 
 
-        public Builder available(boolean available) {
+        public com.qendolin.betterclouds.gui.CustomButtonOption.Builder available(boolean available) {
             this.available = available;
             return this;
         }
