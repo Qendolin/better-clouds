@@ -21,6 +21,7 @@ import org.lwjgl.opengl.GL32;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -30,13 +31,17 @@ import static com.qendolin.betterclouds.Main.glCompat;
 @Mixin(WorldRenderer.class)
 public abstract class WorldRendererMixin {
 
+    @Unique
     private final Vector3d tempVector = new Vector3d();
 
+    @Unique
     private Renderer cloudRenderer;
     @Shadow
     private Frustum frustum;
 
+    @Unique
     private double profTimeAcc;
+    @Unique
     private int profFrames;
 
     @Inject(method = "<init>", at = @At("TAIL"))
