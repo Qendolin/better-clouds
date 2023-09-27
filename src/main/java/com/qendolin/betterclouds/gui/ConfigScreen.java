@@ -62,9 +62,9 @@ public class ConfigScreen extends YACLScreen {
     }
 
     @Override
-    public void renderBackground(DrawContext context) {
+    public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
         if (client == null || client.world == null) {
-            super.renderBackground(context);
+            super.renderBackground(context, mouseX, mouseY, delta);
         } else {
             context.fill(0, 0, width / 3, height, 0x6b000000);
         }
@@ -101,9 +101,9 @@ public class ConfigScreen extends YACLScreen {
         }
 
         @Override
-        public void renderBackground(DrawContext context) {
+        public void renderBackgroundTexture(DrawContext context) {
             if (client == null || client.world == null) {
-                super.renderBackground(context);
+                super.renderBackgroundTexture(context);
             } else {
                 context.fill(0, 0, width / 3, height, 0x6B000000);
             }

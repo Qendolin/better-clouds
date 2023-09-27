@@ -97,7 +97,7 @@ public class Commands {
             }))
             .then(literal("reload").executes(context -> {
                 Main.debugChatMessage("reloadingConfig");
-                Main.getConfigInstance().load();
+                Main.getConfigHandler().serializer().load();
                 Main.debugChatMessage("configReloaded");
                 return 1;
             }))
@@ -107,7 +107,7 @@ public class Commands {
                         boolean enable = BoolArgumentType.getBool(context, "enable");
                         if (Main.getConfig().gpuIncompatibleMessageEnabled == enable) return 1;
                         Main.getConfig().gpuIncompatibleMessageEnabled = enable;
-                        Main.getConfigInstance().save();
+                        Main.getConfigHandler().serializer().save();
                         Main.debugChatMessage("updatedPreferences");
                         return 1;
                     }))));

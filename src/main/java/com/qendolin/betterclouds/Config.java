@@ -2,7 +2,7 @@ package com.qendolin.betterclouds;
 
 import com.google.common.base.Objects;
 import com.google.gson.InstanceCreator;
-import dev.isxander.yacl3.config.ConfigEntry;
+import dev.isxander.yacl3.config.v2.api.SerialEntry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.NotNull;
@@ -49,57 +49,57 @@ public class Config {
         this.gpuIncompatibleMessageEnabled = other.gpuIncompatibleMessageEnabled;
     }
 
-    @ConfigEntry
+    @SerialEntry
     public boolean enabled = true;
-    @ConfigEntry
+    @SerialEntry
     public float distance = 4;
-    @ConfigEntry
+    @SerialEntry
     public float randomPlacement = 1.0f;
-    @ConfigEntry
+    @SerialEntry
     public float fuzziness = 1.0f;
-    @ConfigEntry
+    @SerialEntry
     public boolean shuffle = false;
-    @ConfigEntry
+    @SerialEntry
     public float yRange = 64f;
-    @ConfigEntry
+    @SerialEntry
     public float yOffset = 0f;
-    @ConfigEntry
+    @SerialEntry
     public float sparsity = 0f;
-    @ConfigEntry
+    @SerialEntry
     public float spacing = 5.25f;
-    @ConfigEntry
+    @SerialEntry
     public float sizeXZ = 16f;
-    @ConfigEntry
+    @SerialEntry
     public float sizeY = 8f;
-    @ConfigEntry
+    @SerialEntry
     public float travelSpeed = 0.03f;
-    @ConfigEntry
+    @SerialEntry
     public float windFactor = 1.0f;
-    @ConfigEntry
+    @SerialEntry
     public float colorVariationFactor = 1.0f;
-    @ConfigEntry
+    @SerialEntry
     public int chunkSize = 32;
-    @ConfigEntry
+    @SerialEntry
     public float samplingScale = 1;
-    @ConfigEntry
+    @SerialEntry
     public float scaleFalloffMin = 0.25f;
-    @ConfigEntry
+    @SerialEntry
     public float fadeEdge = 0.15f;
-    @ConfigEntry
+    @SerialEntry
     public boolean usePersistentBuffers = true;
-    @ConfigEntry
+    @SerialEntry
     public boolean irisSupport = true;
-    @ConfigEntry
+    @SerialEntry
     public boolean cloudOverride = true;
-    @ConfigEntry
+    @SerialEntry
     public boolean useIrisFBO = true;
-    @ConfigEntry
+    @SerialEntry
     public int selectedPreset = 0;
-    @ConfigEntry
+    @SerialEntry
     public List<ShaderConfigPreset> presets = new ArrayList<>();
-    @ConfigEntry
+    @SerialEntry
     public int lastTelemetryVersion = 0;
-    @ConfigEntry
+    @SerialEntry
     public boolean gpuIncompatibleMessageEnabled = true;
 
     public void loadDefaultPresets() {
@@ -207,44 +207,44 @@ public class Config {
             //!! NOTE: Don't forget to update `isEqualTo` when adding fields
         }
 
-        @ConfigEntry
+        @SerialEntry
         public String title;
-        @ConfigEntry
+        @SerialEntry
         @Nullable
         public String key;
-        @ConfigEntry
+        @SerialEntry
         public boolean editable = true;
-        @ConfigEntry
+        @SerialEntry
         public float upscaleResolutionFactor = 1f;
-        @ConfigEntry
+        @SerialEntry
         public float gamma = 1f;
-        @ConfigEntry
+        @SerialEntry
         public float sunPathAngle = 0f;
-        @ConfigEntry
+        @SerialEntry
         public int sunriseStartTime = -785;
-        @ConfigEntry
+        @SerialEntry
         public int sunriseEndTime = 1163;
-        @ConfigEntry
+        @SerialEntry
         public int sunsetStartTime = 10837;
-        @ConfigEntry
+        @SerialEntry
         public int sunsetEndTime = 12785;
-        @ConfigEntry
+        @SerialEntry
         public float dayBrightness = 1f;
-        @ConfigEntry
+        @SerialEntry
         public float nightBrightness = 1f;
-        @ConfigEntry
+        @SerialEntry
         public float saturation = 1f;
-        @ConfigEntry
+        @SerialEntry
         public float opacity = 0.2f;
-        @ConfigEntry
+        @SerialEntry
         public float opacityFactor = 1f;
-        @ConfigEntry
+        @SerialEntry
         public float opacityExponent = 1.5f;
-        @ConfigEntry
+        @SerialEntry
         public float tintRed = 1f;
-        @ConfigEntry
+        @SerialEntry
         public float tintGreen = 1f;
-        @ConfigEntry
+        @SerialEntry
         public float tintBlue = 1f;
 
         public float gamma() {
