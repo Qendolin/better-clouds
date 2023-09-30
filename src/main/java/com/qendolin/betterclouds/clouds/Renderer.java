@@ -78,23 +78,23 @@ public class Renderer implements AutoCloseable {
         return (int) (Main.getConfig().preset().upscaleResolutionFactor * client.getFramebuffer().textureHeight);
     }
 
-    public boolean prepare(MatrixStack matrices, Matrix4f projMat, int ticks, float tickDelta, Vector3d cam) {
+    public PrepareResult prepare(MatrixStack matrices, Matrix4f projMat, int ticks, float tickDelta, Vector3d cam) {
         assert RenderSystem.isOnRenderThread();
         client.getProfiler().swap("render_setup");
         Config config = Main.getConfig();
 
         if (res.failedToLoadCritical()) {
             Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("prepare failed: critical resource not loaded"));
-            return false;
+            return PrepareResult.FALLBACK;
         }
         if (!config.irisSupport && IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled()) {
             Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("prepare failed: iris support disabled"));
-            return false;
+            return PrepareResult.FALLBACK;
         }
 
         // Rendering clouds when underwater was making them very visible in unloaded chunks
         if (client.gameRenderer.getCamera().getSubmersionType() != CameraSubmersionType.NONE) {
-            return false;
+            return PrepareResult.NO_RENDER;
         }
 
         DimensionEffects effects = world.getDimensionEffects();
@@ -148,7 +148,7 @@ public class Renderer implements AutoCloseable {
         // TODO: don't do this dynamically
         defaultFbo = glGetInteger(GL_DRAW_FRAMEBUFFER_BINDING);
 
-        return true;
+        return PrepareResult.RENDER;
     }
 
     // Don't forget to push / pop matrix stack outside
@@ -456,5 +456,9 @@ public class Renderer implements AutoCloseable {
 
     public void close() {
         res.close();
+    }
+
+    public enum PrepareResult {
+        RENDER, NO_RENDER, FALLBACK
     }
 }
