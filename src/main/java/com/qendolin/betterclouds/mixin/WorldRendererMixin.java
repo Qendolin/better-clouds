@@ -116,12 +116,15 @@ public abstract class WorldRendererMixin {
 
         matrices.push();
         try {
-            if (cloudRenderer.prepare(matrices, projMat, ticks, tickDelta, cam)) {
+            Renderer.PrepareResult prepareResult = cloudRenderer.prepare(matrices, projMat, ticks, tickDelta, cam);
+            if (prepareResult == Renderer.PrepareResult.RENDER) {
                 ci.cancel();
                 Debug.trace.ifPresent(Debug.DebugTrace::recordFrame);
                 cloudRenderer.render(ticks, tickDelta, cam, frustumPos, frustum);
+            } else if(prepareResult == Renderer.PrepareResult.NO_RENDER) {
+                ci.cancel();
             } else {
-                Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("renderer prepare returned false"));
+                Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("renderer prepare returned " + prepareResult.name()));
             }
         } catch (Exception e) {
             Telemetry.INSTANCE.sendUnhandledException(e);
