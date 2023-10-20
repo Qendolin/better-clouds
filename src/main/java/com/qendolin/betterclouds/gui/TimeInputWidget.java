@@ -19,8 +19,6 @@ public class TimeInputWidget extends TextFieldWidget {
     public Consumer<Integer> onChange = null;
     protected String prevChangeValue;
 
-
-
     public TimeInputWidget(Bounds bounds) {
         super(MinecraftClient.getInstance().textRenderer, bounds.x(), bounds.y(), bounds.width(), bounds.height(), Text.empty());
         setTextPredicate(TimeInputWidget::isValidTime);

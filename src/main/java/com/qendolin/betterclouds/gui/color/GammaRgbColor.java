@@ -33,6 +33,17 @@ public final class GammaRgbColor implements IColor<GammaRgbColor, LinearRgbColor
         this.alpha = alpha;
     }
 
+    public static GammaRgbColor hex(int red, int green, int blue) {
+        return new GammaRgbColor(red / 255f, green / 255f, blue / 255f, 1.0f);
+    }
+
+    public static GammaRgbColor hex(int rgb) {
+        int r = (rgb >> 16) & 0xff;
+        int g = (rgb >> 8) & 0xff;
+        int b = (rgb) & 0xff;
+        return hex(r, g, b);
+    }
+
     public static GammaRgbColor hex(int red, int green, int blue, int alpha) {
         return new GammaRgbColor(red / 255f, green / 255f, blue / 255f, alpha / 255f);
     }

@@ -30,6 +30,7 @@ public class ColorPickerWidget implements Element, Drawable, Selectable {
 
     public Consumer<XYZColor> onChanged;
 
+    public boolean active = true;
     protected boolean focused = false;
     protected boolean hovered = false;
 
@@ -85,7 +86,7 @@ public class ColorPickerWidget implements Element, Drawable, Selectable {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        hovered = isMouseOver(mouseX, mouseY);
+        hovered = isMouseOver(mouseX, mouseY) && active;
 
         XYZColor prev = reference;
         reference = color.toXYZ();
@@ -104,7 +105,7 @@ public class ColorPickerWidget implements Element, Drawable, Selectable {
             IColor.Meta meta = color.coordsMeta()[i];
             Bounds bounds = sliderBounds[i];
 
-            boolean sliderActive = overlapsSlider(i, mouseX, mouseY) || selectedSlider == bounds;
+            boolean sliderActive = (active && overlapsSlider(i, mouseX, mouseY)) || selectedSlider == bounds;
 
             context.drawText(textRenderer, Text.translatable(LANG_KEY_COLOR_PREFIX + meta.nameKey()), bounds.x() - 20, bounds.y() + 1, Colors.WHITE, true);
 
@@ -182,6 +183,9 @@ public class ColorPickerWidget implements Element, Drawable, Selectable {
     @Nullable
     @Override
     public GuiNavigationPath getNavigationPath(GuiNavigation navigation) {
+        if (!this.active) {
+            return null;
+        }
         if (!this.isFocused()) {
             return GuiNavigationPath.of(this);
         }
@@ -204,6 +208,7 @@ public class ColorPickerWidget implements Element, Drawable, Selectable {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if(!active) return false;
         if(button != GLFW.GLFW_MOUSE_BUTTON_LEFT) return false;
 
         if(setSliderToMousePos(mouseX, mouseY)) return true;
@@ -214,7 +219,9 @@ public class ColorPickerWidget implements Element, Drawable, Selectable {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if(!active) return false;
         if(selectedSlider == null) return false;
+
         float step = 1f/selectedSlider.width();
         if((modifiers & GLFW.GLFW_MOD_SHIFT) != 0) step *= 10;
         if((modifiers & GLFW.GLFW_MOD_CONTROL) != 0) step /= 10;
@@ -244,6 +251,7 @@ public class ColorPickerWidget implements Element, Drawable, Selectable {
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+        if(!active) return false;
         if(button != GLFW.GLFW_MOUSE_BUTTON_LEFT) return false;
 
         if(setSliderToMousePos(mouseX, mouseY)) return true;
