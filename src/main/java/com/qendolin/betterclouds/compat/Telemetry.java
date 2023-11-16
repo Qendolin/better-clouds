@@ -120,17 +120,21 @@ public class Telemetry implements ITelemetry {
     }
 
     public void sendShaderCompileError(String error) {
-        if (error == null || error.strip().equals("")) return;
+        if (error == null || error.isBlank()) return;
 
+        cachedSend(error, SHADER_COMPILE_ERROR);
+    }
+
+    private void cachedSend(String error, String messageType) {
         if (lazyOpenCache()) {
             String hash = cache.hash(error);
-            if (cache.contains(SHADER_COMPILE_ERROR, hash)) return;
+            if (cache.contains(messageType, hash)) return;
         }
-        sendPayload(error, SHADER_COMPILE_ERROR)
+        sendPayload(error, messageType)
             .whenComplete((success, throwable) -> {
                 if (success) {
                     String hash = cache.hash(error);
-                    cache.add(SHADER_COMPILE_ERROR, hash);
+                    cache.add(messageType, hash);
                 }
             });
     }
@@ -149,17 +153,7 @@ public class Telemetry implements ITelemetry {
     public void sendUnhandledException(Exception e) {
         if (e == null) return;
         String message = ExceptionUtils.getStackTrace(e);
-        if (lazyOpenCache()) {
-            String hash = cache.hash(message);
-            if (cache.contains(UNHANDLED_EXCEPTION, hash)) return;
-        }
-        sendPayload(message, UNHANDLED_EXCEPTION)
-            .whenComplete((success, throwable) -> {
-                if (success) {
-                    String hash = cache.hash(message);
-                    cache.add(UNHANDLED_EXCEPTION, hash);
-                }
-            });
+        cachedSend(message, UNHANDLED_EXCEPTION);
     }
 
     public static final class SemVer {
@@ -250,14 +244,14 @@ public class Telemetry implements ITelemetry {
 
         public SystemDetails() {
             this.os = SystemUtils.OS_NAME;
-            this.vendor = GL32.glGetString(GL32.GL_VENDOR);
-            this.renderer = GL32.glGetString(GL32.GL_RENDERER);
-            this.glVersion = GL32.glGetString(GL32.GL_VERSION);
-            this.glVersionMajor = GL32.glGetInteger(GL32.GL_MAJOR_VERSION);
-            this.glVersionMinor = GL32.glGetInteger(GL32.GL_MINOR_VERSION);
+            this.vendor = Main.glCompat.getString(GL32.GL_VENDOR);
+            this.renderer = Main.glCompat.getString(GL32.GL_RENDERER);
+            this.glVersion = Main.glCompat.getString(GL32.GL_VERSION);
+            this.glVersionMajor = Main.glCompat.getInteger(GL32.GL_MAJOR_VERSION);
+            this.glVersionMinor = Main.glCompat.getInteger(GL32.GL_MINOR_VERSION);
             this.glVersionCombined = String.format("%d%d", glVersionMajor, glVersionMinor);
             this.glVersionLwjgl = Main.glCompat.openGlMax;
-            this.glslVersion = GL32.glGetString(GL32.GL_SHADING_LANGUAGE_VERSION);
+            this.glslVersion = Main.glCompat.getString(GL32.GL_SHADING_LANGUAGE_VERSION);
             this.extensions = Main.glCompat.supportedCheckedExtensions;
             this.functions = Main.glCompat.supportedCheckedFunctions;
             this.fallbacks = Main.glCompat.usedFallbacks;

@@ -76,11 +76,11 @@ public class Main implements ClientModInitializer {
         }
 
         if (glCompat.isIncompatible()) {
-            LOGGER.warn("Your GPU is not compatible with Better Clouds. Try updating your drivers?");
-            LOGGER.info(" - Vendor:       {}", GL32.glGetString(GL32.GL_VENDOR));
-            LOGGER.info(" - Renderer:     {}", GL32.glGetString(GL32.GL_RENDERER));
-            LOGGER.info(" - GL Version:   {}", GL32.glGetString(GL32.GL_VERSION));
-            LOGGER.info(" - GLSL Version: {}", GL32.glGetString(GL32.GL_SHADING_LANGUAGE_VERSION));
+            LOGGER.warn("Your GPU (or configuration) is not compatible with Better Clouds. Try updating your drivers?");
+            LOGGER.info(" - Vendor:       {}", glCompat.getString(GL32.GL_VENDOR));
+            LOGGER.info(" - Renderer:     {}", glCompat.getString(GL32.GL_RENDERER));
+            LOGGER.info(" - GL Version:   {}", glCompat.getString(GL32.GL_VERSION));
+            LOGGER.info(" - GLSL Version: {}", glCompat.getString(GL32.GL_SHADING_LANGUAGE_VERSION));
             LOGGER.info(" - Extensions:   {}", String.join(", ", glCompat.supportedCheckedExtensions));
             LOGGER.info(" - Functions:    {}", String.join(", ", glCompat.supportedCheckedFunctions));
         } else if (glCompat.isPartiallyIncompatible()) {
