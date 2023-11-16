@@ -126,5 +126,6 @@ modrinth  { // Make sure it runs after build!
 		optional.project "sodium"
 		optional.project "iris"
 		optional.project "modmenu"
+		incompatible.project "vulkanmod"
 	}
 }
