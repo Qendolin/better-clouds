@@ -172,7 +172,6 @@ public class Renderer implements AutoCloseable {
         RenderSystem.clearColor(0, 0, 0, 0);
         RenderSystem.clearDepth(1);
 
-
         client.getProfiler().swap("draw_coverage");
         Debug.trace.ifPresent(snapshot -> {
             snapshot.recordEvent("draw coverage");
