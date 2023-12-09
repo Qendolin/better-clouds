@@ -115,7 +115,7 @@ modrinth  { // Make sure it runs after build!
 	versionType = Enum.valueOf(com.modrinth.minotaur.request.VersionType.class, "${project.version_type}").name()
 	// On fabric, use 'remapJar' instead of 'jar'
 	uploadFile = remapJar  // This is the java jar task. If it can't find the jar, try 'jar.outputs.getFiles().asPath' in place of 'jar'
-	gameVersions = ['1.20.2']
+	gameVersions = ['1.20.4']
 	loaders = ['fabric']
 	dependencies { // A special DSL for creating dependencies
 		// scope.type
