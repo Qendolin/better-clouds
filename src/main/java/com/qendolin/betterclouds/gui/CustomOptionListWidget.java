@@ -55,7 +55,7 @@ public class CustomOptionListWidget extends OptionListWidget {
     }
 
     @Override
-    public void render(DrawContext graphics, int mouseX, int mouseY, float delta) {
+    public void renderWidget(DrawContext graphics, int mouseX, int mouseY, float delta) {
         setRenderBackground(client == null || client.world == null);
         super.render(graphics, mouseX, mouseY, delta);
     }
