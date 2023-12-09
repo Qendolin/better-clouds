@@ -20,7 +20,7 @@ public abstract class TabButtonWidgetMixin extends ClickableWidget {
         super(x, y, width, height, message);
     }
 
-    @Inject(method = "renderButton", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "renderWidget", at = @At("HEAD"), cancellable = true)
     private void onRenderButton(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
         MinecraftClient client = MinecraftClient.getInstance();
         // I'm gonna go to hell for this
