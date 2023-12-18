@@ -6,7 +6,4 @@ import net.fabricmc.loader.api.FabricLoader;
 public class SodiumExtraCompat {
     public static final boolean IS_LOADED = FabricLoader.getInstance().isModLoaded("sodium-extra");
 
-    public static float getCloudsHeight() {
-        return SodiumExtraClientMod.options().extraSettings.cloudHeight;
-    }
 }

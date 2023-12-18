@@ -1,12 +1,12 @@
-package com.qendolin.betterclouds.mixin;
+package com.qendolin.betterclouds.mixin.optional;
 
 import net.coderbot.iris.gl.framebuffer.GlFramebuffer;
-import net.coderbot.iris.pipeline.newshader.ExtendedShader;
+import net.coderbot.iris.pipeline.newshader.fallback.FallbackShader;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(ExtendedShader.class)
-public interface ExtendedShaderAccessor {
+@Mixin(FallbackShader.class)
+public interface FallbackShaderAccessor {
     @Accessor(value = "writingToBeforeTranslucent", remap = false)
     GlFramebuffer getWritingToBeforeTranslucent();
 
