@@ -24,7 +24,8 @@
     "modmenu": [ "com.qendolin.betterclouds.ModMenuIntegration" ]
   },
   "mixins": [
-    "betterclouds.mixins.json"
+    "betterclouds.mixins.json",
+    "betterclouds.optional.mixins.json"
   ],
   "accessWidener" : "betterclouds.accesswidener",
 

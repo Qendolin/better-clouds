@@ -4,8 +4,9 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.Config;
 import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.compat.HeadInTheCloudsCompat;
 import com.qendolin.betterclouds.compat.IrisCompat;
-import com.qendolin.betterclouds.compat.SodiumExtraCompat;
+import com.qendolin.betterclouds.compat.WorldDuck;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.CloudRenderMode;
 import net.minecraft.client.render.CameraSubmersionType;
@@ -98,11 +99,7 @@ public class Renderer implements AutoCloseable {
         }
 
         DimensionEffects effects = world.getDimensionEffects();
-        if (SodiumExtraCompat.IS_LOADED && effects.getSkyType() == DimensionEffects.SkyType.NORMAL) {
-            cloudsHeight = SodiumExtraCompat.getCloudsHeight() + config.yOffset;
-        } else {
-            cloudsHeight = effects.getCloudsHeight() + config.yOffset;
-        }
+        cloudsHeight = effects.getCloudsHeight();
 
         res.generator().bind();
         if (shaderInvalidator.hasChanged(client.options.getCloudRenderModeValue(), config.blockDistance(),
@@ -111,7 +108,7 @@ public class Renderer implements AutoCloseable {
         }
         res.generator().reallocateIfStale(config, isFancyMode());
 
-        float raininess = Math.max(0.6f * world.getRainGradient(tickDelta), world.getThunderGradient(tickDelta));
+        float raininess = Math.max(0.6f * getTrueRainGradient(tickDelta), getTrueThunderGradient(tickDelta));
         float cloudiness = raininess * 0.3f + 0.5f;
 
         res.generator().update(cam, ticks + tickDelta, Main.getConfig(), cloudiness);
@@ -424,17 +421,33 @@ public class Renderer implements AutoCloseable {
 
     private float getEffectLuminance(float tickDelta) {
         float luma = 1.0f;
+        // do not get the original
         float rain = world.getRainGradient(tickDelta);
         if (rain > 0.0f) {
             float f = rain * 0.95f;
             luma *= (1.0 - f) + f * 0.6f;
         }
+        // do not get the original
         float thunder = world.getThunderGradient(tickDelta);
         if (thunder > 0.0f) {
             float f = thunder * 0.95f;
             luma *= (1.0 - f) + f * 0.2f;
         }
         return luma;
+    }
+
+    private float getTrueRainGradient(float tickDelta) {
+        if(HeadInTheCloudsCompat.IS_LOADED) {
+            return ((WorldDuck) world).betterclouds$getOriginalRainGradient(tickDelta);
+        }
+        return world.getRainGradient(tickDelta);
+    }
+
+    private float getTrueThunderGradient(float tickDelta) {
+        if(HeadInTheCloudsCompat.IS_LOADED) {
+            return ((WorldDuck) world).betterclouds$getOriginalThunderGradient(tickDelta);
+        }
+        return world.getThunderGradient(tickDelta);
     }
 
     private float interpolateDayNightFactor(float time, float riseStart, float riseEnd, float setStart, float setEnd) {
