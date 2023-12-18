@@ -32,7 +32,7 @@ public class CustomOptionListWidget extends OptionListWidget {
         addEntry(new PaddingEntry());
         for (dev.isxander.yacl3.gui.OptionListWidget.Entry child : children()) {
             if (child instanceof OptionEntry optionEntry && optionEntry.option.controller() instanceof LabelController) {
-                addEntryBelow(optionEntry, new ProxyEntry<OptionEntry>(optionEntry)
+                addEntryBelow(optionEntry, new ProxyEntry<>(optionEntry)
                     .onBeforeRender((delegate, context, index, y, x, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta) -> {
                         if (client.world == null) return;
                         Dimension<Integer> dim = delegate.widget.getDimension();
@@ -40,7 +40,7 @@ public class CustomOptionListWidget extends OptionListWidget {
                     }));
                 removeEntry(optionEntry);
             } else if (child instanceof GroupSeparatorEntry groupSeparatorEntry) {
-                addEntryBelow(groupSeparatorEntry, new ProxyEntry<GroupSeparatorEntry>(groupSeparatorEntry)
+                addEntryBelow(groupSeparatorEntry, new ProxyEntry<>(groupSeparatorEntry)
                     .onBeforeRender((delegate, context, index, y, x, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta) -> {
                         if (client.world == null) return;
                         context.fill(x, y, x + entryWidth, y + 19, 0x6b000000);
