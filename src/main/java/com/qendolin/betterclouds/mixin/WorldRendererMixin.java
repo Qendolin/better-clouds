@@ -4,6 +4,7 @@ import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.clouds.Debug;
 import com.qendolin.betterclouds.clouds.Renderer;
 import com.qendolin.betterclouds.compat.Telemetry;
+import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.BufferBuilderStorage;
 import net.minecraft.client.render.Frustum;
@@ -93,8 +94,6 @@ public abstract class WorldRendererMixin {
         client.getProfiler().push(Main.MODID);
         glCompat.pushDebugGroupDev("Better Clouds");
 
-        Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("renderClouds called"));
-
         Vector3d cam = tempVector.set(camX, camY, camZ);
         Frustum frustum = this.frustum;
         Vector3d frustumPos = cam;
@@ -117,14 +116,12 @@ public abstract class WorldRendererMixin {
         matrices.push();
         try {
             Renderer.PrepareResult prepareResult = cloudRenderer.prepare(matrices, projMat, ticks, tickDelta, cam);
+            if(RenderDoc.isFrameCapturing()) glCompat.debugMessage("renderer prepare returned " + prepareResult.name());
             if (prepareResult == Renderer.PrepareResult.RENDER) {
                 ci.cancel();
-                Debug.trace.ifPresent(Debug.DebugTrace::recordFrame);
                 cloudRenderer.render(ticks, tickDelta, cam, frustumPos, frustum);
             } else if(prepareResult == Renderer.PrepareResult.NO_RENDER) {
                 ci.cancel();
-            } else {
-                Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("renderer prepare returned " + prepareResult.name()));
             }
         } catch (Exception e) {
             Telemetry.INSTANCE.sendUnhandledException(e);
