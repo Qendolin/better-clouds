@@ -7,6 +7,7 @@ import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.compat.HeadInTheCloudsCompat;
 import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.compat.WorldDuck;
+import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.CloudRenderMode;
 import net.minecraft.client.render.CameraSubmersionType;
@@ -85,11 +86,11 @@ public class Renderer implements AutoCloseable {
         Config config = Main.getConfig();
 
         if (res.failedToLoadCritical()) {
-            Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("prepare failed: critical resource not loaded"));
+            if(RenderDoc.isFrameCapturing()) glCompat.debugMessage("prepare failed: critical resource not loaded");
             return PrepareResult.FALLBACK;
         }
         if (!config.irisSupport && IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled()) {
-            Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("prepare failed: iris support disabled"));
+            if(RenderDoc.isFrameCapturing()) glCompat.debugMessage("prepare failed: iris support disabled");
             return PrepareResult.FALLBACK;
         }
 
@@ -152,7 +153,6 @@ public class Renderer implements AutoCloseable {
     // Note: render must not return early, this will cause corruption because prepare binds stuff
     public void render(int ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
         client.getProfiler().swap("render_setup");
-        Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("render setup"));
         if (Main.isProfilingEnabled()) {
             if (res.timer() == null) res.reloadTimer();
             res.timer().start();
@@ -170,19 +170,10 @@ public class Renderer implements AutoCloseable {
         RenderSystem.clearDepth(1);
 
         client.getProfiler().swap("draw_coverage");
-        Debug.trace.ifPresent(snapshot -> {
-            snapshot.recordEvent("draw coverage");
-            snapshot.recordFramebuffer("oit-after_depth", res.oitFbo());
-        });
-
         drawCoverage(ticks + tickDelta, cam, frustumPos, frustum);
 
 
         client.getProfiler().swap("draw_shading");
-        Debug.trace.ifPresent(snapshot -> {
-            snapshot.recordEvent("draw shading");
-            snapshot.recordFramebuffer("oit-after_coverage", res.oitFbo());
-        });
         if (IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled() && config.useIrisFBO) {
             IrisCompat.bindFramebuffer();
         } else {
@@ -193,11 +184,6 @@ public class Renderer implements AutoCloseable {
 
 
         client.getProfiler().swap("render_cleanup");
-        Debug.trace.ifPresent(snapshot -> {
-            snapshot.recordEvent("render cleanup");
-            snapshot.recordFramebuffer("oit-after_end", res.oitFbo());
-        });
-
         res.generator().unbind();
         Resources.unbindShader();
         RenderSystem.disableBlend();
@@ -267,10 +253,6 @@ public class Renderer implements AutoCloseable {
         if (isFancyMode()) RenderSystem.enableCull();
         else RenderSystem.disableCull();
         glClear(GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        Debug.trace.ifPresent(snapshot -> {
-            snapshot.recordFramebuffer("oit-after_in_coverage-after_clear", res.oitFbo());
-        });
 
         Config generatorConfig = getGeneratorConfig();
         Config config = Main.getConfig();

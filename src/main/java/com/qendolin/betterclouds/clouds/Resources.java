@@ -121,7 +121,6 @@ public class Resources implements Closeable {
         deleteTimer();
         if (!Main.isProfilingEnabled()) return;
 
-        Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("reloading timers"));
         timer = new GlTimer();
     }
 
@@ -132,7 +131,6 @@ public class Resources implements Closeable {
 
     public void reloadMeshPrimitives() {
         deleteMeshPrimitives();
-        Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("reloading mesh primitives"));
 
         cubeVao = glGenVertexArrays();
         glBindVertexArray(cubeVao);
@@ -174,7 +172,6 @@ public class Resources implements Closeable {
     }
 
     public void reloadTextures(MinecraftClient client) {
-        Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("reloading textures"));
         int noiseTexture = client.getTextureManager().getTexture(NOISE_TEXTURE).getGlId();
         RenderSystem.activeTexture(GL_TEXTURE0);
         RenderSystem.bindTexture(noiseTexture);
@@ -196,7 +193,6 @@ public class Resources implements Closeable {
 
     public void reloadGenerator(boolean fancy) {
         deleteGenerator();
-        Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("reloading generator"));
 
         generator = new ChunkedGenerator();
         generator.allocate(Main.getConfig(), fancy);
@@ -211,7 +207,6 @@ public class Resources implements Closeable {
 
     public void reloadFramebuffer(int width, int height) {
         deleteFramebuffer();
-        Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("reloading framebuffer"));
 
         oitFbo = glGenFramebuffers();
         GlStateManager._glBindFramebuffer(GL_DRAW_FRAMEBUFFER, oitFbo);
@@ -290,7 +285,6 @@ public class Resources implements Closeable {
     }
 
     public void reloadShaders(ResourceManager manager) {
-        Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("reloading shaders"));
         try {
             reloadShadersInternal(manager, false);
         } catch (Exception ignored) {
