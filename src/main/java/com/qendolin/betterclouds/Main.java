@@ -4,6 +4,8 @@ import com.google.gson.FieldNamingPolicy;
 import com.qendolin.betterclouds.clouds.Debug;
 import com.qendolin.betterclouds.compat.GLCompat;
 import com.qendolin.betterclouds.compat.Telemetry;
+import com.qendolin.betterclouds.renderdoc.RenderDoc;
+import com.qendolin.betterclouds.renderdoc.RenderDocLoader;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
 import net.fabricmc.api.ClientModInitializer;
@@ -15,6 +17,7 @@ import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.Version;
+import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import net.fabricmc.loader.impl.util.version.StringVersion;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.resource.ResourceType;
@@ -27,13 +30,18 @@ import org.apache.logging.log4j.LogManager;
 import org.lwjgl.opengl.GL32;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 
 public class Main implements ClientModInitializer {
@@ -157,6 +165,9 @@ public class Main implements ClientModInitializer {
                 CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
                     .execute(() -> client.execute(Main::sendGpuPartiallyIncompatibleChatMessage));
             }
+            if(RenderDoc.isAvailable()) {
+                Main.debugChatMessage("renderdoc.load.ready", RenderDoc.getAPIVersion());
+            }
         });
 
         ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES)
@@ -210,7 +221,7 @@ public class Main implements ClientModInitializer {
         debugChatMessage(
             Text.translatable(debugChatMessageKey("gpuIncompatible"))
                 .append(Text.literal("\n - "))
-                .append(Text.translatable(debugChatMessageKey("disable"))
+                .append(Text.translatable(debugChatMessageKey("generic.disable"))
                     .styled(style -> style.withItalic(true).withUnderline(true).withColor(Formatting.GRAY)
                         .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
                             "/betterclouds:config gpuIncompatibleMessage false")))));
@@ -221,10 +232,9 @@ public class Main implements ClientModInitializer {
         debugChatMessage(
             Text.translatable(debugChatMessageKey("gpuPartiallyIncompatible"))
                 .append(Text.literal("\n - "))
-                .append(Text.translatable(debugChatMessageKey("disable"))
+                .append(Text.translatable(debugChatMessageKey("generic.disable"))
                     .styled(style -> style.withItalic(true).withUnderline(true).withColor(Formatting.GRAY)
                         .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
                             "/betterclouds:config gpuIncompatibleMessage false")))));
     }
-
 }

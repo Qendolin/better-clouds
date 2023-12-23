@@ -31,3 +31,8 @@
  - 👑 wilebaldo – 5€
 
 ... donated to my Ko-fi
+
+## Third Party Licensed Code
+
+ - RenderDoc Api Java Bindings
+   - From owo-lib, developed by "glisco"
