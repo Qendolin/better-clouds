@@ -56,25 +56,16 @@ public class ConfigScreen extends YACLScreen {
         super.cancelOrReset();
     }
 
-    @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        return super.keyPressed(keyCode, scanCode, modifiers);
+
+    public void renderInGameBackground(DrawContext context) {
+        context.fill(width / 3 * 2 + 1, tabArea.getTop(), width, tabArea.getBottom(), 0x6b000000);
     }
 
+    // YACL incorrectly calls renderBackgroundTexture directly
     @Override
-    public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
-        if (client == null || client.world == null) {
-            super.renderBackground(context, mouseX, mouseY, delta);
-        } else {
-            context.fill(0, 0, width / 3, height, 0x6b000000);
-        }
-    }
-
     public void renderBackgroundTexture(DrawContext context) {
         if (client == null || client.world == null) {
             super.renderBackgroundTexture(context);
-        } else {
-            context.fill(width / 3 * 2 + 1, tabArea.getTop(), width, tabArea.getBottom(), 0x6b000000);
         }
     }
 
@@ -101,11 +92,15 @@ public class ConfigScreen extends YACLScreen {
         }
 
         @Override
+        public void renderInGameBackground(DrawContext context) {
+            // nothing
+        }
+
+        // YACL incorrectly calls renderBackgroundTexture directly
+        @Override
         public void renderBackgroundTexture(DrawContext context) {
             if (client == null || client.world == null) {
                 super.renderBackgroundTexture(context);
-            } else {
-                context.fill(0, 0, width / 3, height, 0x6B000000);
             }
         }
     }

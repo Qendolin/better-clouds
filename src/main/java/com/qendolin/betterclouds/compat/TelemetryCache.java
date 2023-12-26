@@ -42,7 +42,7 @@ public class TelemetryCache {
         opened = true;
         cache.clear();
 
-        File dir = Paths.get(".cache").toFile();
+        File dir = Paths.get( ".cache").toFile();
         //noinspection ResultOfMethodCallIgnored
         dir.mkdir();
         File file = Paths.get(".cache", Main.MODID + "-telemetry_cache-v" + Telemetry.VERSION + ".bin").toFile();

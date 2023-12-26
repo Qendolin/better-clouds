@@ -3,9 +3,8 @@ package com.qendolin.betterclouds.compat;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.qendolin.betterclouds.Main;
-import net.fabricmc.loader.api.SemanticVersion;
-import net.fabricmc.loader.api.Version;
-import net.fabricmc.loader.api.VersionParsingException;
+import net.fabricmc.loader.api.*;
+import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.minecraft.MinecraftVersion;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -23,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -31,7 +31,7 @@ public class Telemetry implements ITelemetry {
     public static final int CONNECT_TIMEOUT_MS = 5000;
     public static final int READ_TIMEOUT_MS = 5000;
     public static final LocalDateTime EXPIRATION_DATE = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
-    public static final int VERSION = 2;
+    public static final int VERSION = 3;
     public static final String SHADER_COMPILE_ERROR = "SHADER_COMPILE_ERROR";
     public static final String SYSTEM_INFORMATION = "SYSTEM_INFORMATION";
     public static final String UNHANDLED_EXCEPTION = "UNHANDLED_EXCEPTION";
@@ -56,13 +56,13 @@ public class Telemetry implements ITelemetry {
     }
 
     public CompletableFuture<Boolean> sendSystemInfo() {
-        return sendPayload("", SYSTEM_INFORMATION);
+        return sendPayload("", false, SYSTEM_INFORMATION);
     }
 
-    protected CompletableFuture<Boolean> sendPayload(String payload, String... labels) {
+    protected CompletableFuture<Boolean> sendPayload(String payload, boolean includeMods, String... labels) {
         if (!enabled) return CompletableFuture.completedFuture(false);
         try {
-            RequestBody body = new RequestBody(new SystemDetails(), List.of(labels), payload, Main.getVersion(), VERSION);
+            RequestBody body = new RequestBody(new SystemDetails(), List.of(labels), payload, Main.getVersion(), VERSION, includeMods);
             String json = gson.toJson(body);
             final byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
             return postAsync(bytes);
@@ -120,17 +120,21 @@ public class Telemetry implements ITelemetry {
     }
 
     public void sendShaderCompileError(String error) {
-        if (error == null || error.strip().equals("")) return;
+        if (error == null || error.isBlank()) return;
 
+        cachedSend(error, SHADER_COMPILE_ERROR, true);
+    }
+
+    private void cachedSend(String error, String messageType, boolean isError) {
         if (lazyOpenCache()) {
             String hash = cache.hash(error);
-            if (cache.contains(SHADER_COMPILE_ERROR, hash)) return;
+            if (cache.contains(messageType, hash)) return;
         }
-        sendPayload(error, SHADER_COMPILE_ERROR)
+        sendPayload(error, isError, messageType)
             .whenComplete((success, throwable) -> {
                 if (success) {
                     String hash = cache.hash(error);
-                    cache.add(SHADER_COMPILE_ERROR, hash);
+                    cache.add(messageType, hash);
                 }
             });
     }
@@ -149,17 +153,7 @@ public class Telemetry implements ITelemetry {
     public void sendUnhandledException(Exception e) {
         if (e == null) return;
         String message = ExceptionUtils.getStackTrace(e);
-        if (lazyOpenCache()) {
-            String hash = cache.hash(message);
-            if (cache.contains(UNHANDLED_EXCEPTION, hash)) return;
-        }
-        sendPayload(message, UNHANDLED_EXCEPTION)
-            .whenComplete((success, throwable) -> {
-                if (success) {
-                    String hash = cache.hash(message);
-                    cache.add(UNHANDLED_EXCEPTION, hash);
-                }
-            });
+        cachedSend(message, UNHANDLED_EXCEPTION, true);
     }
 
     public static final class SemVer {
@@ -206,14 +200,42 @@ public class Telemetry implements ITelemetry {
         public final String payload;
         public final int telemetryVersion;
         public final MetaInfo metaInfo;
+        public final List<String> mods;
 
         public RequestBody(SystemDetails systemDetails, List<String> labels, String payload, Version modVersion,
-                           int telemetryVersion) {
+                           int telemetryVersion, boolean includeMods) {
             this.systemDetails = systemDetails;
             this.labels = labels;
             this.payload = payload;
             this.telemetryVersion = telemetryVersion;
             this.metaInfo = new MetaInfo(modVersion);
+            if(includeMods) {
+                this.mods = FabricLoader.getInstance().getAllMods().stream()
+                    .filter(mod -> mod != null && mod.getMetadata() != null)
+                    .filter(RequestBody::isNotCommon)
+                    .map(mod -> mod.getMetadata().getId())
+                    .distinct().toList();
+            } else {
+                this.mods = List.of();
+            }
+        }
+
+        private static boolean isNotCommon(ModContainer mod) {
+            String id = mod.getMetadata().getId();
+            ModMetadata metadata = mod.getMetadata();
+            if (id.startsWith("fabric") && metadata.containsCustomValue("fabric-api:module-lifecycle")) {
+                return false;
+            }
+            if (id.startsWith("fabric") && (id.equals("fabricloader") || metadata.getProvides().contains("fabricloader") || id.equals("fabric") || id.equals("fabric-api") || metadata.getProvides().contains("fabric") || metadata.getProvides().contains("fabric-api") || id.equals("fabric-language-kotlin"))) {
+                return false;
+            }
+            if (id.equals(Main.MODID)) {
+                return false;
+            }
+            if (id.equals("java") || id.equals("minecraft") || id.equals("mixinextras")) {
+                return false;
+            }
+            return true;
         }
 
         public static final class MetaInfo {
@@ -250,14 +272,14 @@ public class Telemetry implements ITelemetry {
 
         public SystemDetails() {
             this.os = SystemUtils.OS_NAME;
-            this.vendor = GL32.glGetString(GL32.GL_VENDOR);
-            this.renderer = GL32.glGetString(GL32.GL_RENDERER);
-            this.glVersion = GL32.glGetString(GL32.GL_VERSION);
-            this.glVersionMajor = GL32.glGetInteger(GL32.GL_MAJOR_VERSION);
-            this.glVersionMinor = GL32.glGetInteger(GL32.GL_MINOR_VERSION);
+            this.vendor = Main.glCompat.getString(GL32.GL_VENDOR);
+            this.renderer = Main.glCompat.getString(GL32.GL_RENDERER);
+            this.glVersion = Main.glCompat.getString(GL32.GL_VERSION);
+            this.glVersionMajor = Main.glCompat.getInteger(GL32.GL_MAJOR_VERSION);
+            this.glVersionMinor = Main.glCompat.getInteger(GL32.GL_MINOR_VERSION);
             this.glVersionCombined = String.format("%d%d", glVersionMajor, glVersionMinor);
             this.glVersionLwjgl = Main.glCompat.openGlMax;
-            this.glslVersion = GL32.glGetString(GL32.GL_SHADING_LANGUAGE_VERSION);
+            this.glslVersion = Main.glCompat.getString(GL32.GL_SHADING_LANGUAGE_VERSION);
             this.extensions = Main.glCompat.supportedCheckedExtensions;
             this.functions = Main.glCompat.supportedCheckedFunctions;
             this.fallbacks = Main.glCompat.usedFallbacks;

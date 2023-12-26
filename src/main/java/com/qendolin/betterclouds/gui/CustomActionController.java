@@ -6,11 +6,12 @@ import dev.isxander.yacl3.gui.AbstractWidget;
 import dev.isxander.yacl3.gui.YACLScreen;
 import dev.isxander.yacl3.gui.controllers.ActionController;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.screen.ScreenTexts;
 import net.minecraft.text.Text;
 
 public class CustomActionController extends ActionController {
     public CustomActionController(ButtonOption option) {
-        super(option, Text.of(null));
+        super(option, ScreenTexts.EMPTY);
     }
 
     @Override

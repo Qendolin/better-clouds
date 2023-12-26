@@ -21,22 +21,27 @@
     "client": [
       "com.qendolin.betterclouds.Main"
     ],
-    "modmenu": [ "com.qendolin.betterclouds.ModMenuIntegration" ]
+    "modmenu": [ "com.qendolin.betterclouds.ModMenuIntegration" ],
+    "preLaunch": ["com.qendolin.betterclouds.PreLaunchHandler"]
   },
   "mixins": [
-    "betterclouds.mixins.json"
+    "betterclouds.mixins.json",
+    "betterclouds.optional.mixins.json"
   ],
   "accessWidener" : "betterclouds.accesswidener",
 
   "depends": {
     "fabricloader": ">=0.14.0",
-    "minecraft": "~1.20.2",
+    "minecraft": "~1.20.4",
     "java": ">=17",
     "fabric": "*",
-    "yet_another_config_lib_v3": "^3.2.0"
+    "yet_another_config_lib_v3": "^3.3.0"
   },
   "recommends": {
     "modmenu": "*",
     "sodium": "*"
+  },
+  "breaks": {
+    "vulkanmod": "*"
   }
 }

@@ -48,11 +48,13 @@ This allows me to identify and address any issues related to shader compilation 
 `SHADER_COMPILE_ERROR` telemetry includes
 
 - `payload` The shader compiler log and the shader source code
+- `mods` A list of all loaded mod ids 
 - `SYSTEM_INFORMATION`
 
 `UNHANDLED_EXCEPTION` telemetry includes
 
 - `payload` The exception message and it's stack trace
+- `mods` A list of all loaded mod ids
 - `SYSTEM_INFORMATION`
 
 

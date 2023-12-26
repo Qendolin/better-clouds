@@ -4,6 +4,8 @@ import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.platform.GLX;
 import com.qendolin.betterclouds.Main;
 import net.minecraft.client.util.Untracker;
+import org.lwjgl.glfw.GLFW;
+import org.lwjgl.glfw.GLFWVulkan;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.MemoryUtil;
 
@@ -23,6 +25,8 @@ public class GLCompat {
     public final int GL_MAP_COHERENT_BIT;
 
     private final boolean isDev;
+    private final boolean hasContext;
+    private final boolean vulkanLikely;
 
     public final boolean openGl44;
     public final boolean openGl43;
@@ -84,49 +88,61 @@ public class GLCompat {
 
     public GLCompat(boolean isDev) {
         this.isDev = isDev;
-        GLCapabilities caps = GL.getCapabilities();
-        openGl44 = caps.OpenGL44;
-        openGl43 = caps.OpenGL43;
-        openGl42 = caps.OpenGL42;
-        openGl40 = caps.OpenGL40;
-        openGl33 = caps.OpenGL33;
-        // OpenGL 3.2 is required to play the game
-        openGl32 = caps.OpenGL32;
 
-        if (caps.OpenGL46) openGlMax = 46;
-        else if (caps.OpenGL45) openGlMax = 45;
-        else if (caps.OpenGL44) openGlMax = 44;
-        else if (caps.OpenGL43) openGlMax = 43;
-        else if (caps.OpenGL42) openGlMax = 42;
-        else if (caps.OpenGL41) openGlMax = 41;
-        else if (caps.OpenGL40) openGlMax = 40;
-        else if (caps.OpenGL33) openGlMax = 33;
-        else if (caps.OpenGL32) openGlMax = 32;
+        hasContext = GLFW.glfwGetCurrentContext() != MemoryUtil.NULL;
+
+        boolean vulkanLikely = false;
+        if(!hasContext && GLFWVulkan.glfwVulkanSupported()) {
+            try {
+                Class.forName("org.lwjgl.vulkan.VkInstance");
+                vulkanLikely = true;
+            } catch (ClassNotFoundException ignored) {}
+        }
+        this.vulkanLikely = vulkanLikely;
+
+        GLCapabilities caps = hasContext ? GL.getCapabilities() : null;
+        openGl44 = hasContext && caps.OpenGL44;
+        openGl43 = hasContext && caps.OpenGL43;
+        openGl42 = hasContext && caps.OpenGL42;
+        openGl40 = hasContext && caps.OpenGL40;
+        openGl33 = hasContext && caps.OpenGL33;
+        // OpenGL 3.2 is required to play the game
+        openGl32 = !hasContext || caps.OpenGL32;
+
+        if (hasContext && caps.OpenGL46) openGlMax = 46;
+        else if (hasContext && caps.OpenGL45) openGlMax = 45;
+        else if (hasContext && caps.OpenGL44) openGlMax = 44;
+        else if (hasContext && caps.OpenGL43) openGlMax = 43;
+        else if (hasContext && caps.OpenGL42) openGlMax = 42;
+        else if (hasContext && caps.OpenGL41) openGlMax = 41;
+        else if (hasContext && caps.OpenGL40) openGlMax = 40;
+        else if (hasContext && caps.OpenGL33) openGlMax = 33;
+        else if (hasContext && caps.OpenGL32) openGlMax = 32;
         else openGlMax = 0;
 
-        khrDebug = caps.GL_KHR_debug;
-        amdDebugOutput = caps.GL_AMD_debug_output;
-        arbDebugOutput = caps.GL_ARB_debug_output;
-        extDebugLabel = caps.GL_EXT_debug_label;
-        extDebugMarker = caps.GL_EXT_debug_marker;
-        arbTextureView = caps.GL_ARB_texture_view;
-        arbBaseInstance = caps.GL_ARB_base_instance;
-        arbTextureStorage = caps.GL_ARB_texture_storage;
-        extTextureStorage = caps.GL_EXT_texture_storage;
-        arbDirectStateAccess = caps.GL_ARB_direct_state_access;
-        extDirectStateAccess = caps.GL_EXT_direct_state_access;
-        arbStencilTexturing = caps.GL_ARB_stencil_texturing;
-        arbBufferStorage = caps.GL_ARB_buffer_storage;
-        arbInstancedArrays = caps.GL_ARB_instanced_arrays;
-        nvCopyDepthToColor = caps.GL_NV_copy_depth_to_color;
-        arbDrawBuffersBlend = caps.GL_ARB_draw_buffers_blend;
+        khrDebug = hasContext && caps.GL_KHR_debug;
+        amdDebugOutput = hasContext && caps.GL_AMD_debug_output;
+        arbDebugOutput = hasContext && caps.GL_ARB_debug_output;
+        extDebugLabel = hasContext && caps.GL_EXT_debug_label;
+        extDebugMarker = hasContext && caps.GL_EXT_debug_marker;
+        arbTextureView = hasContext && caps.GL_ARB_texture_view;
+        arbBaseInstance = hasContext && caps.GL_ARB_base_instance;
+        arbTextureStorage = hasContext && caps.GL_ARB_texture_storage;
+        extTextureStorage = hasContext && caps.GL_EXT_texture_storage;
+        arbDirectStateAccess = hasContext && caps.GL_ARB_direct_state_access;
+        extDirectStateAccess = hasContext && caps.GL_EXT_direct_state_access;
+        arbStencilTexturing = hasContext && caps.GL_ARB_stencil_texturing;
+        arbBufferStorage = hasContext && caps.GL_ARB_buffer_storage;
+        arbInstancedArrays = hasContext && caps.GL_ARB_instanced_arrays;
+        nvCopyDepthToColor = hasContext && caps.GL_NV_copy_depth_to_color;
+        arbDrawBuffersBlend = hasContext && caps.GL_ARB_draw_buffers_blend;
 
         // glsl related
-        arbSeparateShaderObjects = caps.GL_ARB_separate_shader_objects;
-        arbConservativeDepth = caps.GL_ARB_conservative_depth;
-        arbShaderImageLoadStore = caps.GL_ARB_shader_image_load_store;
-        extShaderImageLoadStore = caps.GL_EXT_shader_image_load_store;
-        arbExplicitAttribLocation = caps.GL_ARB_explicit_attrib_location;
+        arbSeparateShaderObjects = hasContext && caps.GL_ARB_separate_shader_objects;
+        arbConservativeDepth = hasContext && caps.GL_ARB_conservative_depth;
+        arbShaderImageLoadStore = hasContext && caps.GL_ARB_shader_image_load_store;
+        extShaderImageLoadStore = hasContext && caps.GL_EXT_shader_image_load_store;
+        arbExplicitAttribLocation = hasContext && caps.GL_ARB_explicit_attrib_location;
 
         List<String> supportedExtensions = new ArrayList<>();
         if (khrDebug) supportedExtensions.add("GL_KHR_debug");
@@ -152,17 +168,17 @@ public class GLCompat {
         if (arbDrawBuffersBlend) supportedExtensions.add("GL_ARB_draw_buffers_blend");
         supportedCheckedExtensions = ImmutableList.copyOf(supportedExtensions);
 
-        glObjectLabel = caps.glObjectLabel != MemoryUtil.NULL;
-        glPushDebugGroup = caps.glPushDebugGroup != MemoryUtil.NULL;
-        glPopDebugGroup = caps.glPopDebugGroup != MemoryUtil.NULL;
-        glDebugMessageInsert = caps.glDebugMessageInsert != MemoryUtil.NULL;
-        glTextureView = caps.glTextureView != MemoryUtil.NULL;
-        glDrawArraysInstancedBaseInstance = caps.glDrawArraysInstancedBaseInstance != MemoryUtil.NULL;
-        glTexStorage2D = caps.glTexStorage2D != MemoryUtil.NULL;
-        glBufferStorage = caps.glBufferStorage != MemoryUtil.NULL;
-        glVertexAttribDivisor = caps.glVertexAttribDivisor != MemoryUtil.NULL;
-        glBlendFunci = caps.glBlendFunci != MemoryUtil.NULL;
-        glBlendEquationi = caps.glBlendEquationi != MemoryUtil.NULL;
+        glObjectLabel = hasContext && caps.glObjectLabel != MemoryUtil.NULL;
+        glPushDebugGroup = hasContext && caps.glPushDebugGroup != MemoryUtil.NULL;
+        glPopDebugGroup = hasContext && caps.glPopDebugGroup != MemoryUtil.NULL;
+        glDebugMessageInsert = hasContext && caps.glDebugMessageInsert != MemoryUtil.NULL;
+        glTextureView = hasContext && caps.glTextureView != MemoryUtil.NULL;
+        glDrawArraysInstancedBaseInstance = hasContext && caps.glDrawArraysInstancedBaseInstance != MemoryUtil.NULL;
+        glTexStorage2D = hasContext && caps.glTexStorage2D != MemoryUtil.NULL;
+        glBufferStorage = hasContext && caps.glBufferStorage != MemoryUtil.NULL;
+        glVertexAttribDivisor = hasContext && caps.glVertexAttribDivisor != MemoryUtil.NULL;
+        glBlendFunci = hasContext && caps.glBlendFunci != MemoryUtil.NULL;
+        glBlendEquationi = hasContext && caps.glBlendEquationi != MemoryUtil.NULL;
 
         List<String> supportedFunctions = new ArrayList<>();
         if (glObjectLabel) supportedFunctions.add("glObjectLabel");
@@ -186,9 +202,13 @@ public class GLCompat {
         //noinspection UnnecessaryLocalVariable
         boolean canReadStencil = supportsStencilTexturing;
 
-        compatible = openGl32 &&
-            (openGl33 || (glVertexAttribDivisor || arbInstancedArrays)) &&
-            (supportsStencilTexturing || (openGl40 || (glBlendFunci && glBlendEquationi) || arbDrawBuffersBlend));
+        if (hasContext) {
+            compatible = openGl32 &&
+                (openGl33 || (glVertexAttribDivisor || arbInstancedArrays)) &&
+                (supportsStencilTexturing || (openGl40 || (glBlendFunci && glBlendEquationi) || arbDrawBuffersBlend));
+        } else {
+            compatible = false;
+        }
 
         useBaseInstanceFallback = !supportsBaseInstance;
         useStencilTextureFallback = !canReadStencil;
@@ -432,6 +452,25 @@ public class GLCompat {
             GL40.glBlendFunci(buf, sfactor, dfactor);
         } else if (arbDrawBuffersBlend) {
             ARBDrawBuffersBlend.glBlendFunciARB(buf, sfactor, dfactor);
+        }
+    }
+
+    public String getString(int name) {
+        if (hasContext) {
+            return GL32.glGetString(name);
+        } else {
+            if(name == GL32.GL_VERSION && vulkanLikely) {
+                return "Vulkan";
+            }
+            return "unknown";
+        }
+    }
+
+    public int getInteger(int pname) {
+        if (hasContext) {
+            return GL32.glGetInteger(pname);
+        } else {
+            return 0;
         }
     }
 }
