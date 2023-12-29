@@ -206,6 +206,10 @@ public class Resources implements Closeable {
     }
 
     public void reloadFramebuffer(int width, int height) {
+        if(width == 0 || height == 0) {
+            LOGGER.warn("Cannot create framebuffer with size 0 ({}x{})! Skipping framebuffer creation to avoid an error.", width, height);
+            return;
+        }
         deleteFramebuffer();
 
         oitFbo = glGenFramebuffers();
