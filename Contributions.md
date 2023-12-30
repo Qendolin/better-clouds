@@ -14,6 +14,7 @@
    - Provide simplified chinese translation – [#20](https://github.com/Qendolin/better-clouds/pull/20)
  - Myuui
    - Provide french translation - [#60](https://github.com/Qendolin/better-clouds/pull/60)
+
 ... got a PR accepted
  
 ## Fixing Issues
