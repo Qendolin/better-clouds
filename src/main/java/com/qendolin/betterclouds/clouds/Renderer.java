@@ -5,6 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.Config;
 import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.compat.IrisCompat;
+import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import com.qendolin.betterclouds.compat.SodiumExtraCompat;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.CloudRenderMode;
@@ -78,23 +79,23 @@ public class Renderer implements AutoCloseable {
         return (int) (Main.getConfig().preset().upscaleResolutionFactor * client.getFramebuffer().textureHeight);
     }
 
-    public boolean prepare(MatrixStack matrices, Matrix4f projMat, int ticks, float tickDelta, Vector3d cam) {
+    public PrepareResult prepare(MatrixStack matrices, Matrix4f projMat, int ticks, float tickDelta, Vector3d cam) {
         assert RenderSystem.isOnRenderThread();
         client.getProfiler().swap("render_setup");
         Config config = Main.getConfig();
 
         if (res.failedToLoadCritical()) {
-            Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("prepare failed: critical resource not loaded"));
-            return false;
+            if(RenderDoc.isFrameCapturing()) glCompat.debugMessage("prepare failed: critical resource not loaded");
+            return PrepareResult.FALLBACK;
         }
         if (!config.irisSupport && IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled()) {
-            Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("prepare failed: iris support disabled"));
-            return false;
+            if(RenderDoc.isFrameCapturing()) glCompat.debugMessage("prepare failed: iris support disabled");
+            return PrepareResult.FALLBACK;
         }
 
         // Rendering clouds when underwater was making them very visible in unloaded chunks
         if (client.gameRenderer.getCamera().getSubmersionType() != CameraSubmersionType.NONE) {
-            return false;
+            return PrepareResult.NO_RENDER;
         }
 
         DimensionEffects effects = world.getDimensionEffects();
@@ -148,14 +149,13 @@ public class Renderer implements AutoCloseable {
         // TODO: don't do this dynamically
         defaultFbo = glGetInteger(GL_DRAW_FRAMEBUFFER_BINDING);
 
-        return true;
+        return PrepareResult.RENDER;
     }
 
     // Don't forget to push / pop matrix stack outside
     // Note: render must not return early, this will cause corruption because prepare binds stuff
     public void render(int ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
         client.getProfiler().swap("render_setup");
-        Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("render setup"));
         if (Main.isProfilingEnabled()) {
             if (res.timer() == null) res.reloadTimer();
             res.timer().start();
@@ -174,19 +174,10 @@ public class Renderer implements AutoCloseable {
 
 
         client.getProfiler().swap("draw_coverage");
-        Debug.trace.ifPresent(snapshot -> {
-            snapshot.recordEvent("draw coverage");
-            snapshot.recordFramebuffer("oit-after_depth", res.oitFbo());
-        });
-
         drawCoverage(ticks + tickDelta, cam, frustumPos, frustum);
 
 
         client.getProfiler().swap("draw_shading");
-        Debug.trace.ifPresent(snapshot -> {
-            snapshot.recordEvent("draw shading");
-            snapshot.recordFramebuffer("oit-after_coverage", res.oitFbo());
-        });
         if (IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled() && config.useIrisFBO) {
             IrisCompat.bindFramebuffer();
         } else {
@@ -197,11 +188,6 @@ public class Renderer implements AutoCloseable {
 
 
         client.getProfiler().swap("render_cleanup");
-        Debug.trace.ifPresent(snapshot -> {
-            snapshot.recordEvent("render cleanup");
-            snapshot.recordFramebuffer("oit-after_end", res.oitFbo());
-        });
-
         res.generator().unbind();
         Resources.unbindShader();
         RenderSystem.disableBlend();
@@ -246,6 +232,7 @@ public class Renderer implements AutoCloseable {
 
     private void drawCoverage(float ticks, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
 
+        RenderSystem.enableDepthTest();
         RenderSystem.colorMask(true, true, true, true);
         RenderSystem.depthMask(true);
 
@@ -270,10 +257,6 @@ public class Renderer implements AutoCloseable {
         if (isFancyMode()) RenderSystem.enableCull();
         else RenderSystem.disableCull();
         glClear(GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        Debug.trace.ifPresent(snapshot -> {
-            snapshot.recordFramebuffer("oit-after_in_coverage-after_clear", res.oitFbo());
-        });
 
         Config generatorConfig = getGeneratorConfig();
         Config config = Main.getConfig();
@@ -455,5 +438,9 @@ public class Renderer implements AutoCloseable {
 
     public void close() {
         res.close();
+    }
+
+    public enum PrepareResult {
+        RENDER, NO_RENDER, FALLBACK
     }
 }

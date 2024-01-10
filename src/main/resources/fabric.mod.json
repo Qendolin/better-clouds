@@ -21,7 +21,8 @@
     "client": [
       "com.qendolin.betterclouds.Main"
     ],
-    "modmenu": [ "com.qendolin.betterclouds.ModMenuIntegration" ]
+    "modmenu": [ "com.qendolin.betterclouds.ModMenuIntegration" ],
+    "preLaunch": ["com.qendolin.betterclouds.PreLaunchHandler"]
   },
   "mixins": [
     "betterclouds.mixins.json"
@@ -30,7 +31,7 @@
 
   "depends": {
     "fabricloader": ">=0.14.0",
-    "minecraft": "1.20.x",
+    "minecraft": "~1.20.0",
     "java": ">=17",
     "fabric": "*",
     "yet_another_config_lib_v3": "^3.0.2"
@@ -38,5 +39,8 @@
   "recommends": {
     "modmenu": "*",
     "sodium": "*"
+  },
+  "breaks": {
+    "vulkanmod": "*"
   }
 }

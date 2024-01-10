@@ -4,6 +4,7 @@ import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.clouds.Debug;
 import com.qendolin.betterclouds.clouds.Renderer;
 import com.qendolin.betterclouds.compat.Telemetry;
+import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.BufferBuilderStorage;
 import net.minecraft.client.render.Frustum;
@@ -21,6 +22,7 @@ import org.lwjgl.opengl.GL32;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -30,13 +32,17 @@ import static com.qendolin.betterclouds.Main.glCompat;
 @Mixin(WorldRenderer.class)
 public abstract class WorldRendererMixin {
 
+    @Unique
     private final Vector3d tempVector = new Vector3d();
 
+    @Unique
     private Renderer cloudRenderer;
     @Shadow
     private Frustum frustum;
 
+    @Unique
     private double profTimeAcc;
+    @Unique
     private int profFrames;
 
     @Inject(method = "<init>", at = @At("TAIL"))
@@ -88,8 +94,6 @@ public abstract class WorldRendererMixin {
         client.getProfiler().push(Main.MODID);
         glCompat.pushDebugGroupDev("Better Clouds");
 
-        Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("renderClouds called"));
-
         Vector3d cam = tempVector.set(camX, camY, camZ);
         Frustum frustum = this.frustum;
         Vector3d frustumPos = cam;
@@ -111,12 +115,13 @@ public abstract class WorldRendererMixin {
 
         matrices.push();
         try {
-            if (cloudRenderer.prepare(matrices, projMat, ticks, tickDelta, cam)) {
+            Renderer.PrepareResult prepareResult = cloudRenderer.prepare(matrices, projMat, ticks, tickDelta, cam);
+            if(RenderDoc.isFrameCapturing()) glCompat.debugMessage("renderer prepare returned " + prepareResult.name());
+            if (prepareResult == Renderer.PrepareResult.RENDER) {
                 ci.cancel();
-                Debug.trace.ifPresent(Debug.DebugTrace::recordFrame);
                 cloudRenderer.render(ticks, tickDelta, cam, frustumPos, frustum);
-            } else {
-                Debug.trace.ifPresent(snapshot -> snapshot.recordEvent("renderer prepare returned false"));
+            } else if(prepareResult == Renderer.PrepareResult.NO_RENDER) {
+                ci.cancel();
             }
         } catch (Exception e) {
             Telemetry.INSTANCE.sendUnhandledException(e);
