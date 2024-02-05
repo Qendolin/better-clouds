@@ -60,7 +60,7 @@ public class Buffer implements AutoCloseable {
                 allocatePersistent((int) vboSize);
             } catch (IllegalStateException e) {
                 Main.getConfig().usePersistentBuffers = false;
-                Main.getConfigHandler().serializer().save();
+                Main.getConfigHandler().save();
                 usePersistent = false;
                 Main.LOGGER.error(e);
             }

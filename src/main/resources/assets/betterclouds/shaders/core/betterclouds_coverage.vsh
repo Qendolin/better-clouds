@@ -21,8 +21,8 @@ uniform vec3 u_origin_offset;
 // x, z offset to the world origin
 // width, height of the bounding box
 uniform vec4 u_bounding_box;
-// scale falloff minimum, dynamic scale factor
-uniform vec2 u_miscellaneous;
+// scale falloff minimum, dynamic scale factor, dynamic scale speed
+uniform vec3 u_miscellaneous;
 uniform float u_time;
 // start, end
 uniform vec2 u_fog_range;
@@ -54,8 +54,8 @@ void main() {
 
     vec3 worldDirection = normalize(localWorldPosition);
 
-    float waveScale = texture(u_noise_texture, (localWorldPosition.xz + u_bounding_box.xy) / 4000.0 + vec2(u_time / 800.0)).r;
-    float smallWaves = texture(u_noise_texture, (localWorldPosition.zx + u_bounding_box.yx) / 1000.0 + vec2(u_time / 200.0)).r * 1.8 - 0.9;
+    float waveScale = texture(u_noise_texture, (localWorldPosition.xz + u_bounding_box.xy) / 4000.0 + vec2(u_miscellaneous.z * u_time / 800.0)).r;
+    float smallWaves = texture(u_noise_texture, (localWorldPosition.zx + u_bounding_box.yx) / 1000.0 + vec2(u_miscellaneous.z * u_time / 200.0)).r * 1.8 - 0.9;
     waveScale = mix(mix(waveScale, 1.0, max(smallWaves, 0.0)), 0.0, max(-smallWaves, 0.0));
     float fDynScale = 1.0 - smoothstep(0.0, u_bounding_box.w / 4.0, in_pos.y+0.5);
     float dynScale = mix(1.0, waveScale, fDynScale * u_miscellaneous.y);

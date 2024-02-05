@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds;
 
-import com.google.gson.FieldNamingPolicy;
+import com.google.gson.*;
 import com.qendolin.betterclouds.clouds.Debug;
 import com.qendolin.betterclouds.compat.GLCompat;
 import com.qendolin.betterclouds.compat.Telemetry;
@@ -20,17 +20,23 @@ import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import net.fabricmc.loader.impl.util.version.StringVersion;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.InvalidIdentifierException;
+import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.dimension.DimensionTypes;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.lwjgl.opengl.GL32;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -67,7 +73,8 @@ public class Main implements ClientModInitializer {
                         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                         .setPrettyPrinting()
                         .registerTypeAdapter(Config.class, Config.INSTANCE_CREATOR)
-                        .registerTypeAdapter(Config.ShaderConfigPreset.class, Config.ShaderConfigPreset.INSTANCE_CREATOR))
+                        .registerTypeAdapter(Config.ShaderConfigPreset.class, Config.ShaderConfigPreset.INSTANCE_CREATOR)
+                        .registerTypeAdapter(RegistryKey.class, Config.REGISTRY_KEY_SERIALIZER))
                     .setPath(CONFIG_PATH)
                     .setJson5(false)
                     .build())
@@ -75,7 +82,6 @@ public class Main implements ClientModInitializer {
         } else {
             CONFIG = null;
         }
-
     }
 
     public static void initGlCompat() {
@@ -108,7 +114,7 @@ public class Main implements ClientModInitializer {
                     if (success && client != null) {
                         client.execute(() -> {
                             getConfig().lastTelemetryVersion = Telemetry.VERSION;
-                            CONFIG.serializer().save();
+                            CONFIG.save();
                         });
                     }
                 });
@@ -183,7 +189,7 @@ public class Main implements ClientModInitializer {
         assert CONFIG != null;
 
         try {
-            CONFIG.serializer().load();
+            CONFIG.load();
             return;
         } catch (Exception loadException) {
             LOGGER.error("Failed to load config: ", loadException);
@@ -208,9 +214,9 @@ public class Main implements ClientModInitializer {
         }
 
         try {
-            CONFIG.serializer().save();
+            CONFIG.save();
             LOGGER.info("Created new config");
-            CONFIG.serializer().load();
+            CONFIG.load();
         } catch (Exception loadException) {
             LOGGER.error("Failed to load config again, please report this issue: ", loadException);
         }
