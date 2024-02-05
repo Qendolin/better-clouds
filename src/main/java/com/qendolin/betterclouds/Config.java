@@ -1,19 +1,28 @@
 package com.qendolin.betterclouds;
 
 import com.google.common.base.Objects;
-import com.google.gson.InstanceCreator;
+import com.google.gson.*;
 import dev.isxander.yacl3.config.ConfigEntry;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.InvalidIdentifierException;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.dimension.DimensionTypes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Type;
 import java.util.*;
 
 public class Config {
 
     public static final String DEFAULT_PRESET_KEY = "default";
     public static final InstanceCreator<Config> INSTANCE_CREATOR = type -> new Config();
+    public static final RegistryKeySerializer REGISTRY_KEY_SERIALIZER = new RegistryKeySerializer();
+
 
     @SuppressWarnings("unused")
     public Config() {
@@ -31,7 +40,8 @@ public class Config {
         this.sizeXZ = other.sizeXZ;
         this.sizeY = other.sizeY;
         this.travelSpeed = other.travelSpeed;
-        this.windFactor = other.windFactor;
+        this.windEffectFactor = other.windEffectFactor;
+        this.windSpeedFactor = other.windSpeedFactor;
         this.colorVariationFactor = other.colorVariationFactor;
         this.chunkSize = other.chunkSize;
         this.samplingScale = other.samplingScale;
@@ -47,6 +57,7 @@ public class Config {
         this.presets.replaceAll(ShaderConfigPreset::new);
         this.lastTelemetryVersion = other.lastTelemetryVersion;
         this.gpuIncompatibleMessageEnabled = other.gpuIncompatibleMessageEnabled;
+        this.enabledDimensions = other.enabledDimensions;
     }
 
     @ConfigEntry
@@ -74,7 +85,9 @@ public class Config {
     @ConfigEntry
     public float travelSpeed = 0.03f;
     @ConfigEntry
-    public float windFactor = 1.0f;
+    public float windEffectFactor = 1.0f;
+    @ConfigEntry
+    public float windSpeedFactor = 1.0f;
     @ConfigEntry
     public float colorVariationFactor = 1.0f;
     @ConfigEntry
@@ -101,6 +114,8 @@ public class Config {
     public int lastTelemetryVersion = 0;
     @ConfigEntry
     public boolean gpuIncompatibleMessageEnabled = true;
+    @ConfigEntry
+    public List<RegistryKey<DimensionType>> enabledDimensions = new ArrayList<>(List.of(DimensionTypes.OVERWORLD));
 
     public void loadDefaultPresets() {
         // Remember which default preset was selected, if any
@@ -134,7 +149,7 @@ public class Config {
 
     @NotNull
     public ShaderConfigPreset preset() {
-        if (presets.size() == 0) {
+        if (presets.isEmpty()) {
             addFirstPreset();
         }
         selectedPreset = MathHelper.clamp(selectedPreset, 0, presets.size() - 1);
@@ -162,7 +177,7 @@ public class Config {
     }
 
     public void addFirstPreset() {
-        if (presets.size() != 0) return;
+        if (!presets.isEmpty()) return;
         presets.add(new ShaderConfigPreset());
     }
 
@@ -282,6 +297,25 @@ public class Config {
                 Float.compare(other.tintBlue, tintBlue) == 0 &&
                 Objects.equal(title, other.title) &&
                 Objects.equal(key, other.key);
+        }
+    }
+
+    public static class RegistryKeySerializer implements JsonSerializer<RegistryKey<DimensionType>>, JsonDeserializer<RegistryKey<DimensionType>> {
+        private RegistryKeySerializer() {}
+        @Override
+        public RegistryKey<DimensionType> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            if(!json.isJsonPrimitive() || !json.getAsJsonPrimitive().isString()) throw new JsonParseException("RegistryKey must be a string");
+            try {
+                Identifier id = new Identifier(json.getAsString());
+                return RegistryKey.of(RegistryKeys.DIMENSION_TYPE, id);
+            } catch (InvalidIdentifierException e) {
+                throw new JsonParseException("Invalid RegistryKey: " + e.getMessage());
+            }
+        }
+
+        @Override
+        public JsonElement serialize(RegistryKey<DimensionType> src, Type typeOfSrc, JsonSerializationContext context) {
+            return new JsonPrimitive(src.getValue().toString());
         }
     }
 }

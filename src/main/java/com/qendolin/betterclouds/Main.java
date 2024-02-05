@@ -5,7 +5,6 @@ import com.qendolin.betterclouds.compat.GLCompat;
 import com.qendolin.betterclouds.compat.GsonConfigInstanceBuilderDuck;
 import com.qendolin.betterclouds.compat.Telemetry;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
-import com.qendolin.betterclouds.renderdoc.RenderDocLoader;
 import dev.isxander.yacl3.config.GsonConfigInstance;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
@@ -18,6 +17,7 @@ import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.impl.util.version.StringVersion;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Text;
@@ -60,13 +60,13 @@ public class Main implements ClientModInitializer {
                 builder = duck.betterclouds$appendGsonBuilder(b -> b
                     .setLenient().setPrettyPrinting()
                     .registerTypeAdapter(Config.class, Config.INSTANCE_CREATOR)
-                    .registerTypeAdapter(Config.ShaderConfigPreset.class, Config.ShaderConfigPreset.INSTANCE_CREATOR));
+                    .registerTypeAdapter(Config.ShaderConfigPreset.class, Config.ShaderConfigPreset.INSTANCE_CREATOR)
+                    .registerTypeAdapter(RegistryKey.class, Config.REGISTRY_KEY_SERIALIZER));
             }
             CONFIG = builder.build();
         } else {
             CONFIG = null;
         }
-
     }
 
     public static void initGlCompat() {

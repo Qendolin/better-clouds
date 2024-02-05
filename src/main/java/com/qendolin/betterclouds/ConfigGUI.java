@@ -48,7 +48,8 @@ public class ConfigGUI {
     public final Option<Float> sizeY;
     public final Option<Float> scaleFalloffMin;
     public final Option<Float> travelSpeed;
-    public final Option<Float> windFactor;
+    public final Option<Float> windEffectFactor;
+    public final Option<Float> windSpeedFactor;
     public final Option<Float> colorVariationFactor;
     public final Option<Boolean> enabled;
     public final Option<Float> opacity;
@@ -157,8 +158,12 @@ public class ConfigGUI {
             .binding(defaults.travelSpeed, () -> config.travelSpeed, val -> config.travelSpeed = val)
             .customController(opt -> new FloatSliderController(opt, 0, 0.1f, 0.005f, ConfigGUI::formatAsBlocksPerSecond))
             .build();
-        this.windFactor = createOption(float.class, "windFactor")
-            .binding(defaults.windFactor, () -> config.windFactor, val -> config.windFactor = val)
+        this.windEffectFactor = createOption(float.class, "windEffectFactor")
+            .binding(defaults.windEffectFactor, () -> config.windEffectFactor, val -> config.windEffectFactor = val)
+            .customController(opt -> new FloatSliderController(opt, 0, 1, 0.05f, ConfigGUI::formatAsPercent))
+            .build();
+        this.windSpeedFactor = createOption(float.class, "windSpeedFactor")
+            .binding(defaults.windSpeedFactor, () -> config.windSpeedFactor, val -> config.windSpeedFactor = val)
             .customController(opt -> new FloatSliderController(opt, 0, 1, 0.05f, ConfigGUI::formatAsPercent))
             .build();
         this.colorVariationFactor = createOption(float.class, "colorVariationFactor")
@@ -366,7 +371,7 @@ public class ConfigGUI {
             .name(categoryLabel("appearance")), appearanceCategory));
         appearanceCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("appearance.geometry")), appearanceGeometryGroup));
-        appearanceGeometryGroup.addAll(List.of(sizeXZ, sizeY, scaleFalloffMin, travelSpeed, windFactor));
+        appearanceGeometryGroup.addAll(List.of(sizeXZ, sizeY, scaleFalloffMin, travelSpeed, windEffectFactor, windSpeedFactor));
         appearanceCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("appearance.visibility")), appearanceVisibilityGroup));
         appearanceVisibilityGroup.addAll(List.of(enabled, opacity, opacityFactor, opacityExponent, fadeEdge));
