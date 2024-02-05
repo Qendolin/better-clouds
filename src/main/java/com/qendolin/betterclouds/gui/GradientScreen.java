@@ -1,8 +1,7 @@
 package com.qendolin.betterclouds.gui;
 
 import com.qendolin.betterclouds.Main;
-import com.qendolin.betterclouds.gui.color.GammaRgbColor;
-import com.qendolin.betterclouds.gui.color.LabColor;
+import com.qendolin.betterclouds.gui.color.*;
 import com.qendolin.betterclouds.mixin.BakedOverrideAccessor;
 import com.qendolin.betterclouds.mixin.ItemRendererAccessor;
 import com.qendolin.betterclouds.mixin.ModelOverrideListAccessor;
@@ -17,6 +16,7 @@ import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.json.ModelOverrideList;
 import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -59,6 +59,8 @@ public class GradientScreen extends Screen {
 
     @Override
     protected void init() {
+        AtomicBoolean initStage = new AtomicBoolean(true);
+
         gradient = new GradientWidget<>(new Bounds(100, 100, 300, 40), GammaRgbColor.class, LabColor.class);
         addDrawableChild(gradient);
 
@@ -87,6 +89,9 @@ public class GradientScreen extends Screen {
         addDrawableChild(timeInputField);
 
         addDrawableChild(createCloseButton());
+
+        ButtonWidget setTimeButton = createSetTimeButton();
+        addDrawableChild(setTimeButton);
 
         StopLockButtonWidget lockButton = createStopLockButton();
         addDrawableChild(lockButton);
@@ -121,13 +126,14 @@ public class GradientScreen extends Screen {
             removeStopButton.active = index != -1;
             duplicateStopButton.active = index != -1;
             lockButton.active = index != -1;
+            setTimeButton.active = index != -1 && client.isInSingleplayer();
             timeInputField.active = index != -1;
             colorInputField.active = index != -1;
             picker.active = index != -1;
             if(lockButton.active) {
                 lockButton.setLocked(gradient.isStopLocked(index));
             }
-            timeInputField.setTime(posToTime(pos) * 10);
+            timeInputField.setTime(posToTime(pos));
             picker.setColor(color);
             colorWidget.setColor(color);
             colorInputField.setColor(color);
@@ -136,7 +142,7 @@ public class GradientScreen extends Screen {
         gradient.onStopChanged = (index, data) -> {
             dirty = true;
             if(change.getAndSet(true)) return;
-            timeInputField.setTime(posToTime(data.position) * 10);
+            timeInputField.setTime(posToTime(data.position));
             change.set(false);
         };
 
@@ -159,14 +165,10 @@ public class GradientScreen extends Screen {
         timeline.onStopSelected = (index, data) -> {
             dirty = true;
             if(change.getAndSet(true)) return;
-            while (gradient.count() > 0) {
-                var removed = gradient.removeStop(0);
-                if(removed == null) break;
-            }
-            if(data != null) {
-                for (GradientWidget.GradientStop<GammaRgbColor> stop : config.get(data).stops) {
-                    gradient.addStop(stop);
-                }
+            if(data == null) {
+                gradient.setStops(null);
+            } else {
+                gradient.setStops(config.get(data).stops);
                 gradient.focusStop(config.get(data).focusedIndex);
             }
             change.set(false);
@@ -176,25 +178,54 @@ public class GradientScreen extends Screen {
             dirty = true;
             if(change.getAndSet(true)) return;
             config.put(data, new KeyframeData());
-            while (gradient.count() > 0) {
-                GradientWidget.GradientStopElement<GammaRgbColor> removed = gradient.removeStop(0);
-                if(removed == null) break;
+            gradient.setStops(null);
+            timeline.focusStop(index);
+            if(timeline.count() > 2 && !initStage.get()) {
+                TimelineWidget.TimelineKeyframe prev = timeline.getStop((index-1+timeline.count())%timeline.count());
+                TimelineWidget.TimelineKeyframe next = timeline.getStop((index+1)%timeline.count());
+                // TODO: frac might be inverted when wrap around occurs
+                float frac = (data.position() - Math.min(next.position(), prev.position())) / Math.abs(next.position() - prev.position());
+                List<GradientWidget.GradientStop<GammaRgbColor>> prevStops = config.get(prev).stops;
+                List<GradientWidget.GradientStop<GammaRgbColor>> nextStops = config.get(next).stops;
+                for (GradientWidget.GradientStop<GammaRgbColor> stop : prevStops) {
+                    LabColor prevColor = stop.color().to(LabColor.class);
+                    LabColor nextColor = getInterpColor(nextStops, LabColor.class, stop.position);
+                    GammaRgbColor color = prevColor.lerp(nextColor, frac).to(GammaRgbColor.class);
+                    color.toGamut();
+                    gradient.addStop(stop.position, color);
+                }
+                for (GradientWidget.GradientStop<GammaRgbColor> stop : nextStops) {
+                    LabColor prevColor = getInterpColor(prevStops, LabColor.class, stop.position);
+                    LabColor nextColor = stop.color().to(LabColor.class);
+                    GammaRgbColor color = prevColor.lerp(nextColor, frac).to(GammaRgbColor.class);
+                    color.toGamut();
+                    gradient.addStop(stop.position, color);
+                }
             }
-//            if(timeline.count() > 1) {
-//                TimelineWidget.TimelineKeyframe prev = timeline.getStop((index-1+timeline.count())%timeline.count());
-//                TimelineWidget.TimelineKeyframe next = timeline.getStop((index+1)%timeline.count());
-//                for (GradientWidget.GradientStop<GammaRgbColor> stop : config.get(prev).stops) {
-//                    gradient.addStop(stop.position, stop.color());
-//                }
-//                for (GradientWidget.GradientStop<GammaRgbColor> stop : config.get(next).stops) {
-//                    gradient.addStop(stop.position, stop.color());
-//                }
-//            }
-
             change.set(false);
         };
 
         timeline.onStopChanged = (index, data) -> {
+            List<GradientWidget.GradientStop<GammaRgbColor>> stops = config.get(data).stops;
+//            GammaRgbColor sumColor = new GammaRgbColor(0, 0, 0);
+//            float sum = 0;
+//            for (int i = 0; i < stops.size(); i++) {
+//                GradientWidget.GradientStop<GammaRgbColor> prevStop = stops.get(i);
+//                GradientWidget.GradientStop<GammaRgbColor> nextStop = stops.get((i+1)%stops.size());
+//                LabColor prevColor = prevStop.color().to(LabColor.class);
+//                LabColor nextColor = nextStop.color().to(LabColor.class);
+//                GammaRgbColor midColor = prevColor.lerp(nextColor, 0.5f).to(GammaRgbColor.class);
+//                float w = distance(prevStop, nextStop);
+//                if(prevStop == nextStop) w = 1;
+//                sumColor.red += midColor.red * w;
+//                sumColor.green += midColor.green * w;
+//                sumColor.blue += midColor.blue * w;
+//                sum += w;
+//            }
+//            sumColor.red /= sum;
+//            sumColor.green /= sum;
+//            sumColor.blue /= sum;
+            timeline.focusedStop().setColors(getInterpColor(stops, LabColor.class, 0).to(GammaRgbColor.class), getInterpColor(stops, LabColor.class, 1).to(GammaRgbColor.class));
             dirty = true;
         };
 
@@ -202,10 +233,7 @@ public class GradientScreen extends Screen {
             dirty = true;
             if(change.getAndSet(true)) return;
             config.remove(data);
-            while (gradient.count() > 0) {
-                var removed = gradient.removeStop(0);
-                if(removed == null) break;
-            }
+            gradient.setStops(null);
             change.set(false);
         };
 
@@ -221,7 +249,7 @@ public class GradientScreen extends Screen {
 
         timeline.focusStop(timeline.addStop(0));
         gradient.addStop(0, new GammaRgbColor(1, 1, 1));
-        timeline.addStop(0.2f);
+//        timeline.addStop(0.2f);
         timeline.focusStop(timeline.addStop(0.25f));
         gradient.addStop(0, GammaRgbColor.hex(0xfff77c));
         gradient.addStop(0.1f, GammaRgbColor.hex(0xd37232));
@@ -246,9 +274,44 @@ public class GradientScreen extends Screen {
         timeline.focusStop(timeline.addStop(0.9f));
         gradient.addStop(0, GammaRgbColor.hex(0xffffff));
         gradient.addStop(1, GammaRgbColor.hex(0xffffff));
+        initStage.set(false);
 
         cache = new NativeImageBackedTexture(32, 32, false);
         cacheId = client.getTextureManager().registerDynamicTexture("cloud_gradient", cache);
+    }
+
+    private static float distance(GradientWidget.GradientStop<?> from, GradientWidget.GradientStop<?> to) {
+        if(from.position <= to.position) return to.position - from.position;
+        return from.position + (1 - to.position);
+    }
+
+    private static <S extends IColor<S, ?>> S getInterpColor(List<GradientWidget.GradientStop<GammaRgbColor>> stops, Class<S> space, float p) {
+        if(stops.isEmpty()) return new GammaRgbColor(0, 0, 0, 1).to(space);
+        GradientWidget.GradientStop<GammaRgbColor> prev = stops.get(stops.size() - 1), next = stops.get(stops.size() - 1);
+        for (int i = 0; i < stops.size(); i++) {
+            if (p <= stops.get(i).position) {
+                prev = stops.get(Math.max(0, i - 1));
+                next = stops.get(i);
+                break;
+            }
+        }
+        float frac = 0.0f;
+        if (next.position != prev.position) {
+            frac = (p - prev.position) / (next.position - prev.position);
+        }
+        return prev.color().to(space).lerp(next.color(), frac);
+    }
+
+    @NotNull
+    private ButtonWidget createSetTimeButton() {
+        ButtonWidget setTimeButton = ButtonWidget.builder(Text.literal("⌚"), button -> {
+            client.world.setTimeOfDay(posToTime(gradient.focusedStop().position));
+        }).dimensions(400-80, 150, 20, 20).build();
+
+        setTimeButton.active = gradient.focusedStop() != null && client.isInSingleplayer();
+        setTimeButton.setTooltipDelay(TOOLTIP_DELAY);
+        setTimeButton.setTooltip(Tooltip.of(Text.translatable("betterclouds.gui.gradient.button.setTime.tooltip")));
+        return setTimeButton;
     }
 
     @NotNull
@@ -350,8 +413,8 @@ public class GradientScreen extends Screen {
     }
 
     private static int posToTime(float pos) {
-        if(pos < 0.75f) return (600 + Math.round(pos * 2400)) % 2400;
-        return Math.min(Math.round((pos - 0.75f) * 2400), 5999);
+        if(pos < 0.75f) return ((600 + Math.round(pos * 2400)) % 2400) * 10;
+        return Math.min(Math.round((pos - 0.75f) * 2400), 5999) * 10;
     }
 
     @Override

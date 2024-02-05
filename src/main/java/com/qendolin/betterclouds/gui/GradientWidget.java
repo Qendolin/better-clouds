@@ -154,6 +154,13 @@ public class GradientWidget<StopSpace extends IColor<StopSpace, ?>> extends Mult
             stops.add(stop);
         }
 
+        public void setStops(List<GradientStop<StopSpace>> stops) {
+            this.stops.clear();
+            if(stops != null) {
+                this.stops.addAll(stops);
+            }
+        }
+
         public List<GradientStop<StopSpace>> getStops() {
             return ImmutableList.copyOf(stops);
         }
@@ -258,5 +265,11 @@ public class GradientWidget<StopSpace extends IColor<StopSpace, ?>> extends Mult
         int index = super.addStop(stop);
         generator.addStop(stop.data);
         return index;
+    }
+
+    @Override
+    public void setStops(List<GradientStop<StopSpace>> stops) {
+        super.setStops(stops);
+        this.generator.setStops(stops);
     }
 }

@@ -157,5 +157,6 @@
   "betterclouds.gui.gradient.button.lock.tooltip": "Lock / Unlock stop",
   "betterclouds.gui.gradient.button.duplicate.tooltip": "Duplicate stop",
   "betterclouds.gui.gradient.button.remove.tooltip": "Remove stop",
-  "betterclouds.gui.gradient.button.colorSpace.tooltip": "Cycle color space"
+  "betterclouds.gui.gradient.button.colorSpace.tooltip": "Cycle color space",
+  "betterclouds.gui.gradient.button.setTime.tooltip": "Set time"
 }

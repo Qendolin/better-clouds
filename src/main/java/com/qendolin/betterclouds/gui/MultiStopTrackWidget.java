@@ -53,8 +53,8 @@ public abstract class MultiStopTrackWidget<T extends MultiStopTrackWidget.StopEl
     public final Bounds trackBounds;
 
 
-    protected List<T> stops = new ArrayList<>();
-    protected StopGroup<T, D> stopGroup = new StopGroup<>();
+    protected final List<T> stops = new ArrayList<>();
+    protected final StopGroup<T, D> stopGroup = new StopGroup<>();
     protected Bounds addStopBounds = null;
 
     protected boolean dirty;
@@ -342,6 +342,17 @@ public abstract class MultiStopTrackWidget<T extends MultiStopTrackWidget.StopEl
     protected int addStop(D data) {
         T element = createStopElement(data);
         return addStop(element);
+    }
+
+    protected void setStops(List<D> stops) {
+        unselectStop();
+        dirty = true;
+        this.stops.clear();
+        if(stops != null) {
+            for (D stop : stops) {
+                this.stops.add(createStopElement(stop));
+            }
+        }
     }
 
     protected abstract T createStopElement(D data);
