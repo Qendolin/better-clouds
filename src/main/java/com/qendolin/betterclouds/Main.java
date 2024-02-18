@@ -2,9 +2,13 @@ package com.qendolin.betterclouds;
 
 import com.google.gson.*;
 import com.qendolin.betterclouds.clouds.Debug;
+import com.qendolin.betterclouds.compat.DistantHorizonsCompat;
 import com.qendolin.betterclouds.compat.GLCompat;
 import com.qendolin.betterclouds.compat.Telemetry;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
+import com.seibel.distanthorizons.api.methods.events.DhApiEventRegister;
+import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiAfterDhInitEvent;
+import dev.isxander.yacl3.config.GsonConfigInstance;
 import com.qendolin.betterclouds.renderdoc.RenderDocLoader;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
@@ -180,6 +184,8 @@ public class Main implements ClientModInitializer {
             .registerReloadListener(ShaderPresetLoader.INSTANCE);
 
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> Commands.register(dispatcher));
+
+        DistantHorizonsCompat.initialize();
 
         if (!IS_DEV) return;
         LOGGER.info("Initialized in dev mode, performance might vary");

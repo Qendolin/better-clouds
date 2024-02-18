@@ -7,6 +7,7 @@ import org.lwjgl.system.MemoryUtil;
 
 import java.nio.FloatBuffer;
 
+import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
 import static org.lwjgl.opengl.GL32.*;
 
 public abstract class Uniform {
@@ -21,6 +22,7 @@ public abstract class Uniform {
     }
 
     public abstract void setMat4(Matrix4f mat);
+    public abstract void setMat4(float[] mat, boolean transpose);
 
     public abstract void setVec4(float x, float y, float z, float w);
 
@@ -46,6 +48,10 @@ public abstract class Uniform {
 
         @Override
         public void setMat4(Matrix4f mat) {
+        }
+
+        @Override
+        public void setMat4(float[] mat, boolean transpose) {
         }
 
         @Override
@@ -83,6 +89,11 @@ public abstract class Uniform {
             mat.get(UNIFORM_BUFFER);
             UNIFORM_BUFFER.rewind();
             glUniformMatrix4fv(location, false, UNIFORM_BUFFER);
+        }
+
+        @Override
+        public void setMat4(float[] mat, boolean transpose) {
+            glUniformMatrix4fv(location, transpose, mat);
         }
 
         @Override
@@ -125,6 +136,11 @@ public abstract class Uniform {
 
         @Override
         public void setMat4(Matrix4f mat) {
+            throw new NotImplementedException();
+        }
+
+        @Override
+        public void setMat4(float[] mat, boolean transpose) {
             throw new NotImplementedException();
         }
 
