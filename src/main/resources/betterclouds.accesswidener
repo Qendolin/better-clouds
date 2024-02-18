@@ -1,10 +1,10 @@
 accessWidener	v1	named
-mutable		field	net/minecraft/client/render/Frustum	frustumIntersection	Lorg/joml/FrustumIntersection;
-accessible	field	net/minecraft/client/render/Frustum	frustumIntersection	Lorg/joml/FrustumIntersection;
-mutable		field	net/minecraft/client/render/Frustum	field_40824			Lorg/joml/Matrix4f;
-accessible	field	net/minecraft/client/render/Frustum	field_40824			Lorg/joml/Matrix4f;
-mutable		field	net/minecraft/client/render/Frustum	field_34821			Lorg/joml/Vector4f;
-accessible	field	net/minecraft/client/render/Frustum	field_34821			Lorg/joml/Vector4f;
+mutable		field	net/minecraft/client/render/Frustum	frustumIntersection			Lorg/joml/FrustumIntersection;
+accessible	field	net/minecraft/client/render/Frustum	frustumIntersection			Lorg/joml/FrustumIntersection;
+mutable		field	net/minecraft/client/render/Frustum	positionProjectionMatrix	Lorg/joml/Matrix4f;
+accessible	field	net/minecraft/client/render/Frustum	positionProjectionMatrix	Lorg/joml/Matrix4f;
+mutable		field	net/minecraft/client/render/Frustum	recession					Lorg/joml/Vector4f;
+accessible	field	net/minecraft/client/render/Frustum	recession					Lorg/joml/Vector4f;
 mutable		field	net/minecraft/client/render/Frustum	x					D
 accessible	field	net/minecraft/client/render/Frustum	x					D
 mutable		field	net/minecraft/client/render/Frustum	y					D
