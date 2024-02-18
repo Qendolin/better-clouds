@@ -4,16 +4,14 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.Config;
 import com.qendolin.betterclouds.Main;
-import com.qendolin.betterclouds.compat.HeadInTheCloudsCompat;
 import com.qendolin.betterclouds.compat.DistantHorizonsCompat;
+import com.qendolin.betterclouds.compat.HeadInTheCloudsCompat;
 import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.compat.WorldDuck;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
-import com.qendolin.betterclouds.compat.SodiumExtraCompat;
 import com.seibel.distanthorizons.api.DhApi;
 import com.seibel.distanthorizons.api.methods.events.sharedParameterObjects.DhApiRenderParam;
 import com.seibel.distanthorizons.api.objects.DhApiResult;
-import net.coderbot.iris.compat.dh.DHCompat;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.CloudRenderMode;
 import net.minecraft.client.render.CameraSubmersionType;
@@ -113,7 +111,7 @@ public class Renderer implements AutoCloseable {
         res.generator().bind();
         if (shaderInvalidator.hasChanged(client.options.getCloudRenderModeValue(), config.blockDistance(),
             config.fadeEdge, config.sizeXZ, config.sizeY, glCompat.useDepthWriteFallback, glCompat.useStencilTextureFallback,
-            DistantHorizonsCompat.isReady() && DistantHorizonsCompat.isEnabled())) {
+            DistantHorizonsCompat.isReady() && DistantHorizonsCompat.isEnabled(), config.celestialBodyHalo)) {
             res.reloadShaders(client.getResourceManager());
         }
         res.generator().reallocateIfStale(config, isFancyMode());
