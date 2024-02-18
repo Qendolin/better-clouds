@@ -11,7 +11,6 @@ import com.qendolin.betterclouds.compat.SodiumExtraCompat;
 import com.seibel.distanthorizons.api.DhApi;
 import com.seibel.distanthorizons.api.methods.events.sharedParameterObjects.DhApiRenderParam;
 import com.seibel.distanthorizons.api.objects.DhApiResult;
-import net.coderbot.iris.compat.dh.DHCompat;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.CloudRenderMode;
 import net.minecraft.client.render.CameraSubmersionType;
@@ -115,7 +114,7 @@ public class Renderer implements AutoCloseable {
         res.generator().bind();
         if (shaderInvalidator.hasChanged(client.options.getCloudRenderModeValue(), config.blockDistance(),
             config.fadeEdge, config.sizeXZ, config.sizeY, glCompat.useDepthWriteFallback, glCompat.useStencilTextureFallback,
-            DistantHorizonsCompat.isReady() && DistantHorizonsCompat.isEnabled())) {
+            DistantHorizonsCompat.isReady() && DistantHorizonsCompat.isEnabled(), config.celestialBodyHalo)) {
             res.reloadShaders(client.getResourceManager());
         }
         res.generator().reallocateIfStale(config, isFancyMode());

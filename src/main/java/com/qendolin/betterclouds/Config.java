@@ -58,6 +58,7 @@ public class Config {
         this.lastTelemetryVersion = other.lastTelemetryVersion;
         this.gpuIncompatibleMessageEnabled = other.gpuIncompatibleMessageEnabled;
         this.enabledDimensions = other.enabledDimensions;
+        this.celestialBodyHalo = other.celestialBodyHalo;
     }
 
     @ConfigEntry
@@ -90,6 +91,8 @@ public class Config {
     public float windSpeedFactor = 1.0f;
     @ConfigEntry
     public float colorVariationFactor = 1.0f;
+    @ConfigEntry
+    public boolean celestialBodyHalo = true;
     @ConfigEntry
     public int chunkSize = 32;
     @ConfigEntry

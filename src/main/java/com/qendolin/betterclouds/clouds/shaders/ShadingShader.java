@@ -13,6 +13,7 @@ public class ShadingShader extends Shader {
 
     public static final String DEF_BLIT_DEPTH_KEY = "_BLIT_DEPTH_";
     public static final String DEF_UINT_COVERAGE_KEY = "_UINT_COVERAGE_";
+    public static final String DEF_CELESTIAL_BODY_HALO_KEY = "_CELESTIAL_BODY_HALO_";
 
     public final Uniform uDataTexture;
     public final Uniform uDepthTexture;
@@ -42,10 +43,11 @@ public class ShadingShader extends Shader {
         uNoiseFactor = getUniform("u_noise_factor", true);
     }
 
-    public static ShadingShader create(ResourceManager manager, boolean depthWriteFallback, boolean stencilFallback) throws IOException {
+    public static ShadingShader create(ResourceManager manager, boolean depthWriteFallback, boolean stencilFallback, boolean enableCelestialBodyHalo) throws IOException {
         Map<String, String> defs = Map.ofEntries(
             Map.entry(ShadingShader.DEF_BLIT_DEPTH_KEY, depthWriteFallback ? "0" : "1"),
-            Map.entry(ShadingShader.DEF_UINT_COVERAGE_KEY, stencilFallback ? "0" : "1")
+            Map.entry(ShadingShader.DEF_UINT_COVERAGE_KEY, stencilFallback ? "0" : "1"),
+            Map.entry(ShadingShader.DEF_CELESTIAL_BODY_HALO_KEY, enableCelestialBodyHalo ? "1" : "0")
         );
         return new ShadingShader(manager, defs);
     }

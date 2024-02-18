@@ -324,7 +324,8 @@ public class Resources implements Closeable {
         coverageShader.uDhDepthTexture.setInt(6);
         glCompat.objectLabelDev(glCompat.GL_PROGRAM, coverageShader.glId(), "coverage");
 
-        shadingShader = ShadingShader.create(manager, glCompat.useDepthWriteFallback, glCompat.useStencilTextureFallback);
+        shadingShader = ShadingShader.create(manager, glCompat.useDepthWriteFallback, glCompat.useStencilTextureFallback,
+            config.celestialBodyHalo);
         shadingShader.bind();
         shadingShader.uDepthTexture.setInt(1);
         shadingShader.uDataTexture.setInt(2);

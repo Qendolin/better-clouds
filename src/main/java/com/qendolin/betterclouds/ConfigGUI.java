@@ -51,6 +51,8 @@ public class ConfigGUI {
     public final Option<Float> windEffectFactor;
     public final Option<Float> windSpeedFactor;
     public final Option<Float> colorVariationFactor;
+    public final Option<Boolean> celestialBodyHalo;
+
     public final Option<Boolean> enabled;
     public final Option<Float> opacity;
     public final Option<Float> opacityFactor;
@@ -85,6 +87,7 @@ public class ConfigGUI {
     protected final List<Option<?>> appearanceGeometryGroup = new ArrayList<>();
     protected final List<Option<?>> appearanceVisibilityGroup = new ArrayList<>();
     protected final List<Option<?>> appearanceColorGroup = new ArrayList<>();
+    protected final List<Option<?>> appearanceSkyGroup = new ArrayList<>();
     protected final List<Option<?>> performanceGenerationGroup = new ArrayList<>();
     protected final List<Option<?>> performanceTechnicalGroup = new ArrayList<>();
     protected final List<Option<?>> shadersGeneralGroup = new ArrayList<>();
@@ -169,6 +172,10 @@ public class ConfigGUI {
         this.colorVariationFactor = createOption(float.class, "colorVariationFactor")
             .binding(defaults.colorVariationFactor, () -> config.colorVariationFactor, val -> config.colorVariationFactor = val)
             .customController(opt -> new FloatSliderController(opt, 0, 1, 0.05f, ConfigGUI::formatAsPercent))
+            .build();
+        this.celestialBodyHalo = createOption(boolean.class, "celestialBodyHalo")
+            .binding(defaults.celestialBodyHalo, () -> config.celestialBodyHalo, val -> config.celestialBodyHalo = val)
+            .customController(TickBoxController::new)
             .build();
         this.enabled = createOption(boolean.class, "enabled")
             .binding(defaults.enabled, () -> config.enabled, val -> config.enabled = val)
@@ -378,6 +385,9 @@ public class ConfigGUI {
         appearanceCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("appearance.color")), appearanceColorGroup));
         appearanceColorGroup.addAll(List.of(colorVariationFactor, gamma, dayBrightness, nightBrightness, saturation, tint));
+        appearanceCategory.add(new Pair<>(OptionGroup.createBuilder()
+            .name(groupLabel("appearance.sky")), appearanceSkyGroup));
+        appearanceSkyGroup.addAll(List.of(celestialBodyHalo));
 
         categories.add(new Pair<>(ConfigCategory.createBuilder()
             .name(categoryLabel("performance")), performanceCategory));
