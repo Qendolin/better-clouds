@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.4-SNAPSHOT'
+	id 'fabric-loom' version '1.5-SNAPSHOT'
 	id 'maven-publish'
 	id "com.modrinth.minotaur" version "2.+"
 }
@@ -52,6 +52,7 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
 	modImplementation("dev.isxander.yacl:yet-another-config-lib-fabric:${project.yacl_version}")
+	modImplementation "maven.modrinth:DistantHorizonsApi:1.0.0"
 
 	modCompileOnly "maven.modrinth:sodium-extra:${project.sodium_extra_version}"
 	modCompileOnly "maven.modrinth:iris:${project.iris_version}"

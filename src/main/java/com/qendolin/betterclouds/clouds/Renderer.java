@@ -5,9 +5,15 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.Config;
 import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.compat.HeadInTheCloudsCompat;
+import com.qendolin.betterclouds.compat.DistantHorizonsCompat;
 import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.compat.WorldDuck;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
+import com.qendolin.betterclouds.compat.SodiumExtraCompat;
+import com.seibel.distanthorizons.api.DhApi;
+import com.seibel.distanthorizons.api.methods.events.sharedParameterObjects.DhApiRenderParam;
+import com.seibel.distanthorizons.api.objects.DhApiResult;
+import net.coderbot.iris.compat.dh.DHCompat;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.CloudRenderMode;
 import net.minecraft.client.render.CameraSubmersionType;
@@ -35,6 +41,8 @@ public class Renderer implements AutoCloseable {
     private float cloudsHeight;
     private int defaultFbo;
     private final Matrix4f mvpMatrix = new Matrix4f();
+    private final Matrix4f mvMatrix = new Matrix4f();
+    private final Matrix4f pMatrix = new Matrix4f();
     private final Matrix4f rotationProjectionMatrix = new Matrix4f();
     private final Matrix4f tempMatrix = new Matrix4f();
     private final Vector3f tempVector = new Vector3f();
@@ -104,7 +112,8 @@ public class Renderer implements AutoCloseable {
 
         res.generator().bind();
         if (shaderInvalidator.hasChanged(client.options.getCloudRenderModeValue(), config.blockDistance(),
-            config.fadeEdge, config.sizeXZ, config.sizeY, glCompat.useDepthWriteFallback, glCompat.useStencilTextureFallback)) {
+            config.fadeEdge, config.sizeXZ, config.sizeY, glCompat.useDepthWriteFallback, glCompat.useStencilTextureFallback,
+            DistantHorizonsCompat.isReady() && DistantHorizonsCompat.isEnabled())) {
             res.reloadShaders(client.getResourceManager());
         }
         res.generator().reallocateIfStale(config, isFancyMode());
@@ -140,8 +149,10 @@ public class Renderer implements AutoCloseable {
         tempMatrix.m03(0);
         rotationProjectionMatrix.mul(tempMatrix);
 
+        pMatrix.set(projMat);
+        mvMatrix.set(matrices.peek().getPositionMatrix());
         mvpMatrix.set(projMat);
-        mvpMatrix.mul(matrices.peek().getPositionMatrix());
+        mvpMatrix.mul(mvMatrix);
 
         // TODO: don't do this dynamically
         defaultFbo = glGetInteger(GL_DRAW_FRAMEBUFFER_BINDING);
@@ -272,6 +283,24 @@ public class Renderer implements AutoCloseable {
 
         RenderSystem.activeTexture(GL_TEXTURE0);
         RenderSystem.bindTexture(client.getFramebuffer().getDepthAttachment());
+
+        // Distant Horizons compat
+        if(DistantHorizonsCompat.isReady() && DistantHorizonsCompat.isEnabled()) {
+            res.coverageShader().uMVMatrix.setMat4(mvMatrix);
+            res.coverageShader().uMcPMatrix.setMat4(pMatrix);
+
+            DhApiResult<Integer> result = DhApi.Delayed.renderProxy.getDhDepthTextureId();
+            RenderSystem.activeTexture(GL_TEXTURE6);
+            if(result.success) {
+                DhApiRenderParam params = DistantHorizonsCompat.getRenderParams();
+                RenderSystem.bindTexture(result.payload);
+                res.coverageShader().uDhPMatrix.setMat4(params.dhProjectionMatrix.getValuesAsArray(), true);
+            } else {
+                RenderSystem.bindTexture(0);
+                res.coverageShader().uDhPMatrix.setMat4(DistantHorizonsCompat.NOOP_MATRIX);
+            }
+        }
+
         RenderSystem.activeTexture(GL_TEXTURE5);
         client.getTextureManager().getTexture(Resources.NOISE_TEXTURE).bindTexture();
 
@@ -407,13 +436,13 @@ public class Renderer implements AutoCloseable {
         float rain = world.getRainGradient(tickDelta);
         if (rain > 0.0f) {
             float f = rain * 0.95f;
-            luma *= (1.0 - f) + f * 0.6f;
+            luma *= (1.0f - f) + f * 0.6f;
         }
         // do not get the original
         float thunder = world.getThunderGradient(tickDelta);
         if (thunder > 0.0f) {
             float f = thunder * 0.95f;
-            luma *= (1.0 - f) + f * 0.2f;
+            luma *= (1.0f - f) + f * 0.2f;
         }
         return luma;
     }

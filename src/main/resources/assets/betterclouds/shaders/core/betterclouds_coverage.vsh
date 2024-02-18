@@ -10,12 +10,21 @@
 
 #define POSITIONAL_COLORING _POSITIONAL_COLORING_
 
+#define DISTANT_HORIZONS _DISTANT_HORIZONS_
+
 layout(location = 0) in vec3 in_pos;
 layout(location = 1) in vec3 in_vert;
 layout(location = 2) in vec3 in_normal;
 
 uniform sampler2D u_noise_texture;
+#if DISTANT_HORIZONS
+uniform mat4 u_mv_matrix;
+uniform mat4 u_mc_p_matrix;
+uniform mat4 u_dh_p_matrix;
+out float pass_dh_depth;
+#else
 uniform mat4 u_mvp_matrix;
+#endif
 // x, y, z offset to the local origin
 uniform vec3 u_origin_offset;
 // x, z offset to the world origin
@@ -29,6 +38,7 @@ uniform vec2 u_fog_range;
 
 flat out float pass_opacity;
 out vec3 pass_color;
+
 
 float linear_fog(float distance, float fogStart, float fogEnd) {
     if(distance <= fogStart) return 0.0;
@@ -68,5 +78,12 @@ void main() {
 #endif
     pass_color.b = texture(u_noise_texture, localWorldPosition.xz / 1024.0).g;
 
+#if DISTANT_HORIZONS
+    vec4 localPos = u_mv_matrix * vec4(scale * in_vert + vertexPos, 1.0);
+    gl_Position = u_mc_p_matrix * localPos;
+    vec4 dhPos = u_dh_p_matrix * localPos;
+    pass_dh_depth = (dhPos.z/dhPos.w) * 0.5 + 0.5;
+#else
     gl_Position = u_mvp_matrix * vec4(scale * in_vert + vertexPos, 1.0);
+#endif
 }
