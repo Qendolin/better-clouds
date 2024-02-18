@@ -58,6 +58,7 @@ public class Config {
         this.lastTelemetryVersion = other.lastTelemetryVersion;
         this.gpuIncompatibleMessageEnabled = other.gpuIncompatibleMessageEnabled;
         this.enabledDimensions = other.enabledDimensions;
+        this.celestialBodyHalo = other.celestialBodyHalo;
     }
 
     @SerialEntry
@@ -91,6 +92,8 @@ public class Config {
     @SerialEntry
     public float colorVariationFactor = 1.0f;
     @SerialEntry
+    public boolean celestialBodyHalo = true;
+    @SerialEntry
     public int chunkSize = 32;
     @SerialEntry
     public float samplingScale = 1;
@@ -116,7 +119,7 @@ public class Config {
     public boolean gpuIncompatibleMessageEnabled = true;
     @SerialEntry
     public List<RegistryKey<DimensionType>> enabledDimensions = new ArrayList<>(List.of(DimensionTypes.OVERWORLD));
-    
+
     public void loadDefaultPresets() {
         // Remember which default preset was selected, if any
         String selectedDefaultPreset = preset().key;
