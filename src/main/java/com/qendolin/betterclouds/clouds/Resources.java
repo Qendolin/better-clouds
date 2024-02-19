@@ -317,7 +317,7 @@ public class Resources implements Closeable {
 
         int edgeFade = (int) (config.fadeEdge * config.blockDistance());
         coverageShader = CoverageShader.create(manager, config.sizeXZ, config.sizeY, edgeFade, glCompat.useStencilTextureFallback,
-            DistantHorizonsCompat.isReady() && DistantHorizonsCompat.isEnabled());
+            DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled());
         coverageShader.bind();
         coverageShader.uDepthTexture.setInt(0);
         coverageShader.uNoiseTexture.setInt(5);
