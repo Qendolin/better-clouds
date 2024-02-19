@@ -8,9 +8,6 @@ import com.qendolin.betterclouds.compat.DistantHorizonsCompat;
 import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import com.qendolin.betterclouds.compat.SodiumExtraCompat;
-import com.seibel.distanthorizons.api.DhApi;
-import com.seibel.distanthorizons.api.methods.events.sharedParameterObjects.DhApiRenderParam;
-import com.seibel.distanthorizons.api.objects.DhApiResult;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.CloudRenderMode;
 import net.minecraft.client.render.CameraSubmersionType;
@@ -27,6 +24,7 @@ import org.joml.Vector3d;
 import org.joml.Vector3f;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.qendolin.betterclouds.Main.glCompat;
 import static org.lwjgl.opengl.GL32.*;
@@ -114,7 +112,7 @@ public class Renderer implements AutoCloseable {
         res.generator().bind();
         if (shaderInvalidator.hasChanged(client.options.getCloudRenderModeValue(), config.blockDistance(),
             config.fadeEdge, config.sizeXZ, config.sizeY, glCompat.useDepthWriteFallback, glCompat.useStencilTextureFallback,
-            DistantHorizonsCompat.isReady() && DistantHorizonsCompat.isEnabled(), config.celestialBodyHalo)) {
+            DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled(), config.celestialBodyHalo)) {
             res.reloadShaders(client.getResourceManager());
         }
         res.generator().reallocateIfStale(config, isFancyMode());
@@ -287,16 +285,16 @@ public class Renderer implements AutoCloseable {
         RenderSystem.bindTexture(client.getFramebuffer().getDepthAttachment());
 
         // Distant Horizons compat
-        if(DistantHorizonsCompat.isReady() && DistantHorizonsCompat.isEnabled()) {
+        if(DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled()) {
             res.coverageShader().uMVMatrix.setMat4(mvMatrix);
             res.coverageShader().uMcPMatrix.setMat4(pMatrix);
 
-            DhApiResult<Integer> result = DhApi.Delayed.renderProxy.getDhDepthTextureId();
+            Optional<Integer> depthId = DistantHorizonsCompat.instance().getDepthTextureId();
             RenderSystem.activeTexture(GL_TEXTURE6);
-            if(result.success) {
-                DhApiRenderParam params = DistantHorizonsCompat.getRenderParams();
-                RenderSystem.bindTexture(result.payload);
-                res.coverageShader().uDhPMatrix.setMat4(params.dhProjectionMatrix.getValuesAsArray(), true);
+            if(depthId.isPresent()) {
+                Matrix4f dhProjectionMatrix = DistantHorizonsCompat.instance().getProjectionMatrix();
+                RenderSystem.bindTexture(depthId.get());
+                res.coverageShader().uDhPMatrix.setMat4(dhProjectionMatrix);
             } else {
                 RenderSystem.bindTexture(0);
                 res.coverageShader().uDhPMatrix.setMat4(DistantHorizonsCompat.NOOP_MATRIX);

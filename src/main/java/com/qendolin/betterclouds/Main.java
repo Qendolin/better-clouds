@@ -1,13 +1,8 @@
 package com.qendolin.betterclouds;
 
 import com.qendolin.betterclouds.clouds.Debug;
-import com.qendolin.betterclouds.compat.DistantHorizonsCompat;
-import com.qendolin.betterclouds.compat.GLCompat;
-import com.qendolin.betterclouds.compat.GsonConfigInstanceBuilderDuck;
-import com.qendolin.betterclouds.compat.Telemetry;
+import com.qendolin.betterclouds.compat.*;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
-import com.seibel.distanthorizons.api.methods.events.DhApiEventRegister;
-import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiAfterDhInitEvent;
 import dev.isxander.yacl3.config.GsonConfigInstance;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;

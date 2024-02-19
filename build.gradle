@@ -52,7 +52,7 @@ dependencies {
 	modImplementation("dev.isxander.yacl:yet-another-config-lib-fabric:${project.yacl_version}") {
 		transitive = false
 	}
-	modImplementation "maven.modrinth:DistantHorizonsApi:1.0.0"
+	compileOnly "maven.modrinth:DistantHorizonsApi:1.0.0"
 
 	modCompileOnly "maven.modrinth:sodium-extra:${project.sodium_extra_version}"
 	modCompileOnly "maven.modrinth:iris:${project.iris_version}"
