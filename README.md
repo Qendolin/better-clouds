@@ -66,4 +66,13 @@ Check it out [here](https://github.com/Qendolin/better-clouds/wiki).
 
 ## License
 
-This project is licensed under [MPL 2.0](https://www.mozilla.org/en-US/MPL/2.0/FAQ/).
+This software is licensed under [MPL 2.0](https://www.mozilla.org/en-US/MPL/2.0/FAQ/).  
+The assets, except for the logo, are under [CC BY-SA](https://creativecommons.org/licenses/by-sa/4.0/).  
+
+### Restrictions on Name and Logo use
+I **do not grant permission** for the use of the name "Better Clouds" or its logo for publication of derivative works.  
+Derivative works **must have a clearly distinct name and logo** to avoid confusion with the official "Better Clouds".  
+#### Examples
+ - "Better Clouds Forge", is too similar and can be confused as an official publication for Forge.
+ - "Better Clouds Reforged", this is fine, as "Reforged" is a common term for unofficial ports to Forge.
+ - "Better Clouds (Unofficial)", if this is where your imagination ends, this is also fine.
