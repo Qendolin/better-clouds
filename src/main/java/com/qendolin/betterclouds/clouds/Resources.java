@@ -8,6 +8,7 @@ import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.clouds.shaders.CoverageShader;
 import com.qendolin.betterclouds.clouds.shaders.DepthShader;
 import com.qendolin.betterclouds.clouds.shaders.ShadingShader;
+import com.qendolin.betterclouds.compat.DistantHorizonsCompat;
 import com.qendolin.betterclouds.compat.Telemetry;
 import com.qendolin.betterclouds.mixin.BufferRendererAccessor;
 import com.qendolin.betterclouds.mixin.ShaderProgramAccessor;
@@ -315,13 +316,16 @@ public class Resources implements Closeable {
         glCompat.objectLabelDev(glCompat.GL_PROGRAM, depthShader.glId(), "depth");
 
         int edgeFade = (int) (config.fadeEdge * config.blockDistance());
-        coverageShader = CoverageShader.create(manager, config.sizeXZ, config.sizeY, edgeFade, glCompat.useStencilTextureFallback);
+        coverageShader = CoverageShader.create(manager, config.sizeXZ, config.sizeY, edgeFade, glCompat.useStencilTextureFallback,
+            DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled());
         coverageShader.bind();
         coverageShader.uDepthTexture.setInt(0);
         coverageShader.uNoiseTexture.setInt(5);
+        coverageShader.uDhDepthTexture.setInt(6);
         glCompat.objectLabelDev(glCompat.GL_PROGRAM, coverageShader.glId(), "coverage");
 
-        shadingShader = ShadingShader.create(manager, glCompat.useDepthWriteFallback, glCompat.useStencilTextureFallback);
+        shadingShader = ShadingShader.create(manager, glCompat.useDepthWriteFallback, glCompat.useStencilTextureFallback,
+            config.celestialBodyHalo);
         shadingShader.bind();
         shadingShader.uDepthTexture.setInt(1);
         shadingShader.uDataTexture.setInt(2);

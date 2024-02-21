@@ -88,7 +88,8 @@ public abstract class WorldRendererMixin {
     private void renderClouds(MatrixStack matrices, Matrix4f projMat, float tickDelta, double camX, double camY, double camZ, CallbackInfo ci) {
         if (cloudRenderer == null) return;
         if (glCompat.isIncompatible()) return;
-        if (world == null || !world.getDimensionEntry().matchesKey(DimensionTypes.OVERWORLD)) return;
+        if (world == null) return;
+        if (!Main.getConfig().enabledDimensions.contains(world.getDimensionKey())) return;
         if (!Main.getConfig().enabled) return;
 
         client.getProfiler().push(Main.MODID);

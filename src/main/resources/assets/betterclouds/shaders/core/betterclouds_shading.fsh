@@ -4,6 +4,7 @@
 
 #define BLIT_DEPTH _BLIT_DEPTH_
 #define UINT_COVERAGE _UINT_COVERAGE_
+#define CELESTIAL_BODY_HALO _CELESTIAL_BODY_HALO_
 
 in vec3 pass_dir;
 
@@ -64,6 +65,8 @@ void main() {
 
     // if sunDir.z is always 0, this can be optimized, but who cares
     float sphere = dot(sunDir, fragDir);
+
+#if CELESTIAL_BODY_HALO
     // TODO: document how I arrived at this formula
     float superellipseFalloff = dot(sunDir, fragDir);
     // Higher values -> smaller size
@@ -73,6 +76,10 @@ void main() {
         * (superellipseSize-abs(superellipseFalloff)*superellipseSize) - 1.0
     ) * sign(-superellipseFalloff);
     float lightUVx = mix(sphere, superellipse, smoothstep(0.75, 1.0, abs(sphere)));
+#else
+    // FIXME: This is a dirty hack
+    float lightUVx = sphere * 0.9;
+#endif
 
     // (1, 0) to (0.5, 1)
     if(lightUVx > 0.5) lightUVx = (-2.0 * lightUVx + 2.0) * 0.375;
