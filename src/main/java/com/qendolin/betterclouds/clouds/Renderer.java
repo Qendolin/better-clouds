@@ -294,6 +294,13 @@ public class Renderer implements AutoCloseable {
             if(depthId.isPresent()) {
                 Matrix4f dhProjectionMatrix = DistantHorizonsCompat.instance().getProjectionMatrix();
                 RenderSystem.bindTexture(depthId.get());
+                // TODO: Use DH API "texture created" event when it is released
+                // This is a fix for #74. The issue is that when the OpenGL may reuse deleted texture ids.
+                // So when DH initializes a new depth texture, and it happens to get the same id as the previous one,
+                // I (and RenderSystem) are unable to detect that the texture has changed, and the new one will not
+                // be bound. The fix here is just to call glBindTexture to keep it in sync with RenderSystem.
+                // https://discord.com/channels/881614130614767666/1211290858134052894/1211290858134052894
+                glBindTexture(GL_TEXTURE_2D, depthId.get());
                 res.coverageShader().uDhPMatrix.setMat4(dhProjectionMatrix);
             } else {
                 RenderSystem.bindTexture(0);
