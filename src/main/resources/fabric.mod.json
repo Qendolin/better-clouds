@@ -41,6 +41,7 @@
     "sodium": "*"
   },
   "breaks": {
-    "vulkanmod": "*"
+    "vulkanmod": "*",
+    "iris": "<1.7.0"
   }
 }

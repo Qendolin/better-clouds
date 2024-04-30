@@ -2,13 +2,13 @@ package com.qendolin.betterclouds.compat;
 
 import com.qendolin.betterclouds.mixin.ExtendedShaderAccessor;
 import com.qendolin.betterclouds.mixin.FallbackShaderAccessor;
-import net.coderbot.iris.Iris;
-import net.coderbot.iris.gl.framebuffer.GlFramebuffer;
-import net.coderbot.iris.pipeline.WorldRenderingPipeline;
-import net.coderbot.iris.pipeline.newshader.ExtendedShader;
-import net.coderbot.iris.pipeline.newshader.NewWorldRenderingPipeline;
-import net.coderbot.iris.pipeline.newshader.ShaderKey;
-import net.coderbot.iris.pipeline.newshader.fallback.FallbackShader;
+import net.irisshaders.iris.Iris;
+import net.irisshaders.iris.gl.framebuffer.GlFramebuffer;
+import net.irisshaders.iris.pipeline.WorldRenderingPipeline;
+import net.irisshaders.iris.pipeline.programs.ExtendedShader;
+import net.irisshaders.iris.pipeline.IrisRenderingPipeline;
+import net.irisshaders.iris.pipeline.programs.ShaderKey;
+import net.irisshaders.iris.pipeline.programs.FallbackShader;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.gl.ShaderProgram;
 
@@ -22,7 +22,7 @@ public class IrisCompat {
 
     public static void bindFramebuffer() {
         WorldRenderingPipeline pipeline = Iris.getPipelineManager().getPipelineNullable();
-        if (pipeline instanceof NewWorldRenderingPipeline corePipeline) {
+        if (pipeline instanceof IrisRenderingPipeline corePipeline) {
             ShaderProgram program = corePipeline.getShaderMap().getShader(ShaderKey.CLOUDS);
             GlFramebuffer before = null, after = null;
             if (program instanceof ExtendedShader extended) {
