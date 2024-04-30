@@ -387,7 +387,7 @@ public class ConfigGUI {
         appearanceColorGroup.addAll(List.of(colorVariationFactor, gamma, dayBrightness, nightBrightness, saturation, tint));
         appearanceCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("appearance.sky")), appearanceSkyGroup));
-        appearanceSkyGroup.addAll(List.of(celestialBodyHalo));
+        appearanceSkyGroup.add(celestialBodyHalo);
 
         categories.add(new Pair<>(ConfigCategory.createBuilder()
             .name(categoryLabel("performance")), performanceCategory));
@@ -396,7 +396,7 @@ public class ConfigGUI {
         performanceGenerationGroup.addAll(List.of(spacing, chunkSize, distance, sparsity, fuzziness, shuffle));
         performanceCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("performance.technical")), performanceTechnicalGroup));
-        performanceTechnicalGroup.addAll(List.of(usePersistentBuffers));
+        performanceTechnicalGroup.add(usePersistentBuffers);
 
         categories.add(new Pair<>(ConfigCategory.createBuilder()
             .name(categoryLabel("shaders")), shadersCategory));

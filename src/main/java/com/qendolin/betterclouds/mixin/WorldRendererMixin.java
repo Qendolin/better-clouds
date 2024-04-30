@@ -14,7 +14,6 @@ import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.resource.ResourceManager;
-import net.minecraft.world.dimension.DimensionTypes;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector3d;
@@ -108,8 +107,8 @@ public abstract class WorldRendererMixin {
         long startTime = System.nanoTime();
 
         int ticks = this.ticks;
-        if(Debug.animationPause >= 0) {
-            if(Debug.animationPause == 0) Debug.animationPause = ticks;
+        if (Debug.animationPause >= 0) {
+            if (Debug.animationPause == 0) Debug.animationPause = ticks;
             else ticks = Debug.animationPause;
             tickDelta = 0;
         }
@@ -117,11 +116,12 @@ public abstract class WorldRendererMixin {
         matrices.push();
         try {
             Renderer.PrepareResult prepareResult = cloudRenderer.prepare(matrices, projMat, ticks, tickDelta, cam);
-            if(RenderDoc.isFrameCapturing()) glCompat.debugMessage("renderer prepare returned " + prepareResult.name());
+            if (RenderDoc.isFrameCapturing())
+                glCompat.debugMessage("renderer prepare returned " + prepareResult.name());
             if (prepareResult == Renderer.PrepareResult.RENDER) {
                 ci.cancel();
                 cloudRenderer.render(ticks, tickDelta, cam, frustumPos, frustum);
-            } else if(prepareResult == Renderer.PrepareResult.NO_RENDER) {
+            } else if (prepareResult == Renderer.PrepareResult.NO_RENDER) {
                 ci.cancel();
             }
         } catch (Exception e) {

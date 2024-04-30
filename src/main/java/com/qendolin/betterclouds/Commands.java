@@ -126,10 +126,10 @@ public class Commands {
             .then(literal("renderdoc")
                 .then(literal("capture")
                     .executes(context -> {
-                        if(RenderDoc.isAvailable()) {
+                        if (RenderDoc.isAvailable()) {
                             Main.debugChatMessage("renderdoc.capture.trigger");
                             CaptureManager.capture(result -> {
-                                if(result == null) {
+                                if (result == null) {
                                     Main.debugChatMessage("renderdoc.capture.failure");
                                 } else {
                                     Path path = Path.of(result.path());
@@ -142,7 +142,7 @@ public class Commands {
                                 }
                             });
                             return 1;
-                        } else if(RenderDocLoader.isAvailable()) {
+                        } else if (RenderDocLoader.isAvailable()) {
                             Main.debugChatMessage(Text.translatable(
                                 Main.debugChatMessageKey("renderdoc.prompt.load"),
                                 Text.translatable(Main.debugChatMessageKey("renderdoc.prompt.load.action"))
@@ -158,13 +158,13 @@ public class Commands {
                                     .styled(style -> style
                                         .withUnderline(true)
                                         .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/betterclouds:debug renderdoc install")))
-                                ));
+                            ));
                             return 0;
                         }
                     }))
                 .then(literal("install").executes(context -> {
                     CompletableFuture.runAsync(() -> {
-                        if(!RenderDoc.isAvailable() && !RenderDocLoader.isAvailable()) {
+                        if (!RenderDoc.isAvailable() && !RenderDocLoader.isAvailable()) {
                             Main.debugChatMessage("renderdoc.downloading");
                             try {
                                 RenderDocLoader.install();
@@ -191,7 +191,7 @@ public class Commands {
                     return 1;
                 }))
                 .then(literal("load").executes(context -> {
-                    if(!RenderDocLoader.isAvailable()) {
+                    if (!RenderDocLoader.isAvailable()) {
                         Main.debugChatMessage(Text.translatable(
                             Main.debugChatMessageKey("renderdoc.prompt.install"),
                             Text.translatable(Main.debugChatMessageKey("renderdoc.prompt.install.action"))
@@ -201,7 +201,7 @@ public class Commands {
                         ));
                         return 0;
                     }
-                    if(RenderDoc.isAvailable()) {
+                    if (RenderDoc.isAvailable()) {
                         Main.debugChatMessage("renderdoc.load.ready", RenderDoc.getAPIVersion());
                         return 1;
                     }

@@ -304,10 +304,13 @@ public class Config {
     }
 
     public static class RegistryKeySerializer implements JsonSerializer<RegistryKey<DimensionType>>, JsonDeserializer<RegistryKey<DimensionType>> {
-        private RegistryKeySerializer() {}
+        private RegistryKeySerializer() {
+        }
+
         @Override
         public RegistryKey<DimensionType> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-            if(!json.isJsonPrimitive() || !json.getAsJsonPrimitive().isString()) throw new JsonParseException("RegistryKey must be a string");
+            if (!json.isJsonPrimitive() || !json.getAsJsonPrimitive().isString())
+                throw new JsonParseException("RegistryKey must be a string");
             try {
                 Identifier id = new Identifier(json.getAsString());
                 return RegistryKey.of(RegistryKeys.DIMENSION_TYPE, id);

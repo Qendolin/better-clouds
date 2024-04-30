@@ -46,16 +46,16 @@ class DistantHorizonsCompatImpl extends DistantHorizonsCompat {
     @Override
     public Matrix4f getProjectionMatrix() {
         float[] mat = lastRenderParam.dhProjectionMatrix.getValuesAsArray();
-        return new Matrix4f(mat[0], mat[4],  mat[8], mat[12],
-                            mat[1], mat[5],  mat[9], mat[13],
-                            mat[2], mat[6], mat[10], mat[14],
-                            mat[3], mat[7], mat[11], mat[15]);
+        return new Matrix4f(mat[0], mat[4], mat[8], mat[12],
+            mat[1], mat[5], mat[9], mat[13],
+            mat[2], mat[6], mat[10], mat[14],
+            mat[3], mat[7], mat[11], mat[15]);
     }
 
     @Override
     public Optional<Integer> getDepthTextureId() {
         DhApiResult<Integer> result = DhApi.Delayed.renderProxy.getDhDepthTextureId();
-        if(result.success) {
+        if (result.success) {
             return Optional.of(result.payload);
         }
         return Optional.empty();

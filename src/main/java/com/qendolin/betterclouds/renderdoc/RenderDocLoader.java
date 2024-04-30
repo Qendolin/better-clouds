@@ -39,10 +39,10 @@ public class RenderDocLoader {
     }
 
     public static void uninstall() {
-        if(!Files.exists(libPath())) {
+        if (!Files.exists(libPath())) {
             return;
         }
-        if(RenderDoc.isAvailable()) {
+        if (RenderDoc.isAvailable()) {
             throw new RuntimeException("Cannot uninstall RenderDoc as it is currently in use");
         }
         try {
@@ -67,16 +67,17 @@ public class RenderDocLoader {
 
     private static boolean isAvailable(String name, String md5sum) {
         File dllFile = Path.of("./better-clouds/", name).toFile();
-        if(!dllFile.exists() || dllFile.isDirectory()) return false;
+        if (!dllFile.exists() || dllFile.isDirectory()) return false;
 
         try (FileInputStream is = new FileInputStream(dllFile)) {
             String sum = DigestUtils.md5Hex(is);
-            if(sum.equalsIgnoreCase(md5sum)) {
+            if (sum.equalsIgnoreCase(md5sum)) {
                 return true;
             } else {
                 Main.LOGGER.warn("renderdoc library present but md5 checksum wrong: {}, expected {}", sum, md5sum);
             }
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) {
+        }
         return false;
     }
 
@@ -109,20 +110,20 @@ public class RenderDocLoader {
             boolean found = false;
             while ((entry = tar.getNextTarEntry()) != null) {
                 String name = entry.getName();
-                if(name.equalsIgnoreCase("renderdoc_1.30/lib/librenderdoc.so")) {
+                if (name.equalsIgnoreCase("renderdoc_1.30/lib/librenderdoc.so")) {
                     FileUtils.copyInputStreamToFile(tar, dllFile);
                     found = true;
                     break;
                 }
             }
-            if(!found) throw new FileNotFoundException("renderdoc_1.30/lib/librenderdoc.so");
+            if (!found) throw new FileNotFoundException("renderdoc_1.30/lib/librenderdoc.so");
         } finally {
             archive.delete();
         }
     }
 
     public static void load() {
-        if(RenderDoc.isAvailable()) return;
+        if (RenderDoc.isAvailable()) return;
 
         Util.OperatingSystem os = Util.getOperatingSystem();
 

@@ -35,12 +35,13 @@ import java.util.EnumSet;
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public final class RenderDoc {
 
-    private RenderDoc() {}
+    private RenderDoc() {
+    }
 
     private static RenderDocLibrary.RenderdocApi renderdoc;
 
     public static void init(RenderDocLibrary renderdocLibrary) {
-        if(renderdoc != null) return;
+        if (renderdoc != null) return;
 
         var apiPointer = new PointerByReference();
         RenderDocLibrary.RenderdocApi apiInstance = null;
@@ -457,5 +458,6 @@ public final class RenderDoc {
         }
     }
 
-    public record Capture(String path, Instant timestamp) {}
+    public record Capture(String path, Instant timestamp) {
+    }
 }

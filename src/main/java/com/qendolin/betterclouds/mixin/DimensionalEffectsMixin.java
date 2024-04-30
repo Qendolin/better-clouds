@@ -13,9 +13,9 @@ public abstract class DimensionalEffectsMixin {
     @Inject(method = "getCloudsHeight", at = @At("RETURN"), cancellable = true)
     public void addCloudsYOffset(CallbackInfoReturnable<Float> cir) {
         //noinspection ConstantValue,EqualsBetweenInconvertibleTypes
-        if(!this.getClass().equals(DimensionEffects.Overworld.class)) return;
+        if (!this.getClass().equals(DimensionEffects.Overworld.class)) return;
         // This case is handled in DimensionEffectsOverworldMixin
-        if(SodiumExtraCompat.IS_LOADED) return;
+        if (SodiumExtraCompat.IS_LOADED) return;
 
         cir.setReturnValue(cir.getReturnValue() + Main.getConfig().yOffset);
     }

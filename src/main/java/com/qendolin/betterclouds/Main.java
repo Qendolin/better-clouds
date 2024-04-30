@@ -1,8 +1,10 @@
 package com.qendolin.betterclouds;
 
-import com.google.gson.*;
+import com.google.gson.FieldNamingPolicy;
 import com.qendolin.betterclouds.clouds.Debug;
-import com.qendolin.betterclouds.compat.*;
+import com.qendolin.betterclouds.compat.DistantHorizonsCompat;
+import com.qendolin.betterclouds.compat.GLCompat;
+import com.qendolin.betterclouds.compat.Telemetry;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
@@ -158,7 +160,7 @@ public class Main implements ClientModInitializer {
                 CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
                     .execute(() -> client.execute(Main::sendGpuPartiallyIncompatibleChatMessage));
             }
-            if(RenderDoc.isAvailable()) {
+            if (RenderDoc.isAvailable()) {
                 Main.debugChatMessage("renderdoc.load.ready", RenderDoc.getAPIVersion());
             }
         });
@@ -185,7 +187,7 @@ public class Main implements ClientModInitializer {
         }
 
         File file = CONFIG_PATH.toFile();
-        if(file.exists() && file.isFile()) {
+        if (file.exists() && file.isFile()) {
             String backupName = FilenameUtils.getBaseName(file.getName()) +
                 "-backup-" + new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date()) +
                 "." + FilenameUtils.getExtension(file.getName());
@@ -196,7 +198,7 @@ public class Main implements ClientModInitializer {
             } catch (Exception backupException) {
                 LOGGER.error("Failed to create config backup: ", backupException);
             }
-        } else if(file.exists()) {
+        } else if (file.exists()) {
             //noinspection ResultOfMethodCallIgnored
             file.delete();
             LOGGER.info("Deleted old config");

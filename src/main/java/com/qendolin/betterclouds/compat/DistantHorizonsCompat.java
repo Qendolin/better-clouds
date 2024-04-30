@@ -19,7 +19,7 @@ public abstract class DistantHorizonsCompat {
     private static DistantHorizonsCompat instance;
 
     public static void initialize() {
-        if(instance != null) return;
+        if (instance != null) return;
 
         boolean isLoaded = FabricLoader.getInstance().isModLoaded("distanthorizons");
         try {
@@ -28,7 +28,7 @@ public abstract class DistantHorizonsCompat {
             isLoaded = false;
         }
 
-        if(isLoaded) {
+        if (isLoaded) {
             instance = new DistantHorizonsCompatImpl();
         } else {
             instance = new DistantHorizonsCompatStub();

@@ -213,7 +213,7 @@ public class Telemetry implements ITelemetry {
             this.payload = payload;
             this.telemetryVersion = telemetryVersion;
             this.metaInfo = new MetaInfo(modVersion);
-            if(includeMods) {
+            if (includeMods) {
                 this.mods = FabricLoader.getInstance().getAllMods().stream()
                     .filter(mod -> mod != null && mod.getMetadata() != null)
                     .filter(RequestBody::isNotCommon)

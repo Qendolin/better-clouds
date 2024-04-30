@@ -90,11 +90,12 @@ public class GLCompat {
         hasContext = GLFW.glfwGetCurrentContext() != MemoryUtil.NULL;
 
         boolean vulkanLikely = false;
-        if(!hasContext && GLFWVulkan.glfwVulkanSupported()) {
+        if (!hasContext && GLFWVulkan.glfwVulkanSupported()) {
             try {
                 Class.forName("org.lwjgl.vulkan.VkInstance");
                 vulkanLikely = true;
-            } catch (ClassNotFoundException ignored) {}
+            } catch (ClassNotFoundException ignored) {
+            }
         }
         this.vulkanLikely = vulkanLikely;
 
@@ -450,7 +451,7 @@ public class GLCompat {
         if (hasContext) {
             return GL32.glGetString(name);
         } else {
-            if(name == GL32.GL_VERSION && vulkanLikely) {
+            if (name == GL32.GL_VERSION && vulkanLikely) {
                 return "Vulkan";
             }
             return "unknown";
