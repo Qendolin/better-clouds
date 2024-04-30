@@ -4,8 +4,6 @@ import com.google.gson.*;
 import com.qendolin.betterclouds.clouds.Debug;
 import com.qendolin.betterclouds.compat.*;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
-import dev.isxander.yacl3.config.GsonConfigInstance;
-import com.qendolin.betterclouds.renderdoc.RenderDocLoader;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
 import net.fabricmc.api.ClientModInitializer;
@@ -17,37 +15,26 @@ import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.Version;
-import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import net.fabricmc.loader.impl.util.version.StringVersion;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.InvalidIdentifierException;
-import net.minecraft.world.dimension.DimensionType;
-import net.minecraft.world.dimension.DimensionTypes;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.lwjgl.opengl.GL32;
 
 import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 
 public class Main implements ClientModInitializer {
@@ -102,7 +89,7 @@ public class Main implements ClientModInitializer {
             LOGGER.info(" - Functions:    {}", String.join(", ", glCompat.supportedCheckedFunctions));
         } else if (glCompat.isPartiallyIncompatible()) {
             LOGGER.warn("Your GPU is not fully compatible with Better Clouds.");
-            for (String fallback : glCompat.usedFallbacks) {
+            for (String fallback : glCompat.usedFallbacks()) {
                 LOGGER.info("- Using {} fallback", fallback);
             }
         }

@@ -9,7 +9,6 @@ import com.qendolin.betterclouds.compat.HeadInTheCloudsCompat;
 import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.compat.WorldDuck;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
-import com.qendolin.betterclouds.compat.SodiumExtraCompat;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.CloudRenderMode;
 import net.minecraft.client.render.CameraSubmersionType;
@@ -109,7 +108,7 @@ public class Renderer implements AutoCloseable {
 
         res.generator().bind();
         if (shaderInvalidator.hasChanged(client.options.getCloudRenderModeValue(), config.blockDistance(),
-            config.fadeEdge, config.sizeXZ, config.sizeY, glCompat.useDepthWriteFallback, glCompat.useStencilTextureFallback,
+            config.fadeEdge, config.sizeXZ, config.sizeY, glCompat.useDepthWriteFallback(), glCompat.useStencilTextureFallback(),
             DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled(), config.celestialBodyHalo)) {
             res.reloadShaders(client.getResourceManager());
         }
@@ -200,7 +199,8 @@ public class Renderer implements AutoCloseable {
         RenderSystem.depthFunc(GL_LEQUAL);
         RenderSystem.activeTexture(GL_TEXTURE0);
         RenderSystem.colorMask(true, true, true, true);
-        if (!glCompat.useStencilTextureFallback) {
+
+        if (!glCompat.useStencilTextureFallback()) {
             glDisable(GL_STENCIL_TEST);
             glStencilFunc(GL_ALWAYS, 0x0, 0xff);
             glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
@@ -240,7 +240,7 @@ public class Renderer implements AutoCloseable {
         RenderSystem.colorMask(true, true, true, true);
         RenderSystem.depthMask(true);
 
-        if (glCompat.useStencilTextureFallback) {
+        if (glCompat.useStencilTextureFallback()) {
             RenderSystem.depthFunc(GL_ALWAYS);
             RenderSystem.enableBlend();
             RenderSystem.blendEquation(GL_FUNC_ADD);
@@ -302,7 +302,7 @@ public class Renderer implements AutoCloseable {
         client.getTextureManager().getTexture(Resources.NOISE_TEXTURE).bindTexture();
 
         res.generator().bind();
-        if (glCompat.useBaseInstanceFallback) {
+        if (glCompat.useBaseInstanceFallback()) {
             res.generator().buffer().bindDrawBuffer();
         }
 
@@ -323,7 +323,7 @@ public class Renderer implements AutoCloseable {
             if (!frustumAtOrigin.isVisible(bounds)) {
                 Debug.addFrustumCulledBox(bounds, false);
                 if (runCount != 0) {
-                    if (glCompat.useBaseInstanceFallback) {
+                    if (glCompat.useBaseInstanceFallback()) {
                         res.generator().buffer().setVAPointerToInstance(runStart);
                     }
                     glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
@@ -337,7 +337,7 @@ public class Renderer implements AutoCloseable {
             }
         }
         if (runCount != 0) {
-            if (glCompat.useBaseInstanceFallback) {
+            if (glCompat.useBaseInstanceFallback()) {
                 res.generator().buffer().setVAPointerToInstance(runStart);
             }
             glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
@@ -350,7 +350,7 @@ public class Renderer implements AutoCloseable {
         Config config = Main.getConfig();
         RenderSystem.depthFunc(GL_LESS);
 
-        if (!glCompat.useDepthWriteFallback) {
+        if (!glCompat.useDepthWriteFallback()) {
             RenderSystem.depthMask(true);
             RenderSystem.enableDepthTest();
         } else {
@@ -362,12 +362,12 @@ public class Renderer implements AutoCloseable {
         RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA);
         RenderSystem.colorMask(false, false, false, false);
         glColorMaski(0, true, true, true, true);
-        if (!glCompat.useStencilTextureFallback) {
+        if (!glCompat.useStencilTextureFallback()) {
             glDisable(GL_STENCIL_TEST);
         }
 
         RenderSystem.activeTexture(GL_TEXTURE1);
-        if(glCompat.useDepthWriteFallback) {
+        if(glCompat.useDepthWriteFallback()) {
             RenderSystem.bindTexture(0);
         } else {
             RenderSystem.bindTexture(res.oitCoverageDepthTexture());
@@ -402,7 +402,7 @@ public class Renderer implements AutoCloseable {
         glBindVertexArray(res.cubeVao());
         glDrawArrays(GL_TRIANGLES, 0, Mesh.CUBE_MESH_VERTEX_COUNT);
 
-        if(glCompat.useDepthWriteFallback) {
+        if(glCompat.useDepthWriteFallback()) {
             RenderSystem.activeTexture(GL_TEXTURE6);
             RenderSystem.bindTexture(res.oitCoverageDepthTexture());
             glTexParameteri(GL_TEXTURE_2D, glCompat.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_DEPTH_COMPONENT);
