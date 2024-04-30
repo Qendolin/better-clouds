@@ -25,7 +25,7 @@ public class ConfigScreen extends YACLScreen {
             .stream()
             .map(category -> {
                 if (category instanceof PlaceholderCategory placeholder)
-                    return new PlaceholderTab(placeholder);
+                    return new PlaceholderTab(placeholder, this);
                 return new CustomCategoryTab(client, this, () -> tabArea, category);
             }).toList());
         tabNavigationBar.selectTab(0, false);
@@ -79,7 +79,7 @@ public class ConfigScreen extends YACLScreen {
     }
 
     @Override
-    protected void finishOrSave() {
+    public void finishOrSave() {
         close();
     }
 

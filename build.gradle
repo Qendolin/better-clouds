@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.5-SNAPSHOT'
+	id 'fabric-loom' version '1.6-SNAPSHOT'
 	id 'maven-publish'
 	id "com.modrinth.minotaur" version "2.+"
 }
@@ -39,6 +39,8 @@ repositories {
 		name 'Xander Maven'
 		url 'https://maven.isxander.dev/releases'
 	}
+	maven { url "https://oss.sonatype.org/content/repositories/snapshots" } // for com.twelvemonkeys.imageio
+	maven { url "https://maven.quiltmc.org/repository/release" } // for org.quiltmc.parsers
 }
 
 dependencies {
@@ -49,14 +51,11 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
-	modImplementation("dev.isxander.yacl:yet-another-config-lib-fabric:${project.yacl_version}") {
-		transitive = false
-	}
-	compileOnly "maven.modrinth:DistantHorizonsApi:1.0.0"
+	modImplementation("dev.isxander:yet-another-config-lib:${project.yacl_version}-fabric")
+    compileOnly "maven.modrinth:DistantHorizonsApi:1.0.0"
 
 	modCompileOnly "maven.modrinth:sodium-extra:${project.sodium_extra_version}"
 	modCompileOnly "maven.modrinth:iris:${project.iris_version}"
-
 }
 
 processResources {
