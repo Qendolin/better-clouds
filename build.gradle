@@ -59,11 +59,14 @@ dependencies {
 }
 
 processResources {
-	inputs.property "version", project.version
+	inputs.property "version", project.version;
 
 	filesMatching("fabric.mod.json") {
 		expand "version": project.version
 	}
+
+	exclude("assets/**/*.ase")
+	exclude("assets/**/*.xcf")
 }
 
 tasks.withType(JavaCompile).configureEach {
