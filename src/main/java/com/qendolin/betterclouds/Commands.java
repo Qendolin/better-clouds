@@ -3,18 +3,25 @@ package com.qendolin.betterclouds;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.serialization.Codec;
 import com.qendolin.betterclouds.clouds.Debug;
+import com.qendolin.betterclouds.compat.GLCompat;
 import com.qendolin.betterclouds.renderdoc.CaptureManager;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import com.qendolin.betterclouds.renderdoc.RenderDocLoader;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.command.argument.EnumArgumentType;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Text;
+import net.minecraft.util.StringIdentifiable;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.argument;
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
@@ -101,7 +108,7 @@ public class Commands {
             }))
             .then(literal("reload").executes(context -> {
                 Main.debugChatMessage("reloadingConfig");
-                Main.getConfigInstance().load();
+                Main.getConfigHandler().load();
                 Main.debugChatMessage("configReloaded");
                 return 1;
             }))
@@ -111,7 +118,7 @@ public class Commands {
                         boolean enable = BoolArgumentType.getBool(context, "enable");
                         if (Main.getConfig().gpuIncompatibleMessageEnabled == enable) return 1;
                         Main.getConfig().gpuIncompatibleMessageEnabled = enable;
-                        Main.getConfigInstance().save();
+                        Main.getConfigHandler().save();
                         Main.debugChatMessage("updatedPreferences");
                         return 1;
                     }))));
@@ -208,7 +215,69 @@ public class Commands {
                     }
                     Main.debugChatMessage("renderdoc.load.queued");
                     return 1;
-                }))));
+                }))
+            ).then(literal("fallback")
+                .then(argument("name", FallbackArgumentType.fallback())
+                    .executes(context -> {
+                        FallbackArgument fallback = FallbackArgumentType.getFallback(context, "name");
+                        boolean enabled = fallback.get(Main.glCompat);
+                        Main.debugChatMessage(Text.literal(String.format("Fallback %s is currently %s", fallback.asString(), enabled ? "enabled" : "disabled")));
+                        return 1;
+                    })
+                    .then(argument("enable", BoolArgumentType.bool())
+                        .executes(context -> {
+                            FallbackArgument fallback = FallbackArgumentType.getFallback(context, "name");
+                            boolean enable = BoolArgumentType.getBool(context, "enable");
+                            fallback.set(Main.glCompat, enable);
+                            context.getSource().getClient().reloadResources().whenComplete((unused, throwable) -> {
+                                Main.debugChatMessage(Text.literal(String.format("Fallback %s is now %s", fallback.asString(), enable ? "enabled" : "disabled")));
+                            });
+                            return 1;
+                        })))));
 
+    }
+
+    private enum FallbackArgument implements StringIdentifiable {
+        BASE_INSTANCE(GLCompat::useBaseInstanceFallback, GLCompat::setUseBaseInstanceFallback),
+        STENCIL_TEXTURE(GLCompat::useStencilTextureFallback, GLCompat::setUseStencilTextureFallback),
+        TEX_STORAGE(GLCompat::useTexStorageFallback, GLCompat::setUseTexStorageFallback),
+        DEPTH_WRITE(GLCompat::useDepthWriteFallback, GLCompat::setUseDepthWriteFallback);
+
+        private static final Codec<FallbackArgument> CODEC = StringIdentifiable.createCodec(FallbackArgument::values);
+
+        private final Function<GLCompat, Boolean> getter;
+        private final BiConsumer<GLCompat, Boolean> setter;
+
+        FallbackArgument(Function<GLCompat, Boolean> getter, BiConsumer<GLCompat, Boolean> setter) {
+            this.getter = getter;
+            this.setter = setter;
+        }
+
+        public void set(GLCompat compat, boolean enable) {
+            setter.accept(compat, enable);
+        }
+
+        public boolean get(GLCompat compat) {
+            return getter.apply(compat);
+        }
+
+        @Override
+        public String asString() {
+            return name().toLowerCase();
+        }
+    }
+
+    private static class FallbackArgumentType extends EnumArgumentType<FallbackArgument> {
+        private FallbackArgumentType() {
+            super(FallbackArgument.CODEC, FallbackArgument::values);
+        }
+
+        public static EnumArgumentType<FallbackArgument> fallback() {
+            return new FallbackArgumentType();
+        }
+
+        public static FallbackArgument getFallback(CommandContext<?> context, String id) {
+            return context.getArgument(id, FallbackArgument.class);
+        }
     }
 }

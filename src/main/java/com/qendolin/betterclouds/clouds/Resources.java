@@ -229,7 +229,7 @@ public class Resources implements Closeable {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, oitDataTexture, 0);
         glDrawBuffers(new int[]{GL_COLOR_ATTACHMENT0});
 
-        if (glCompat.useStencilTextureFallback) {
+        if (glCompat.useStencilTextureFallback()) {
             oitCoverageTexture = glGenTextures();
             RenderSystem.bindTexture(oitCoverageTexture);
             glCompat.objectLabelDev(GL_TEXTURE, oitCoverageTexture, "coverage_color_fallback");
@@ -256,7 +256,7 @@ public class Resources implements Closeable {
             glTexParameteri(GL_TEXTURE_2D, glCompat.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_STENCIL_INDEX);
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, oitCoverageTexture, 0);
 
-            if (glCompat.useDepthWriteFallback) {
+            if (glCompat.useDepthWriteFallback()) {
                 oitCoverageDepthTexture = oitCoverageTexture;
             } else {
                 oitCoverageDepthTexture = glGenTextures();

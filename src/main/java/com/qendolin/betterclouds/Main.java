@@ -1,12 +1,14 @@
 package com.qendolin.betterclouds;
 
+import com.google.gson.*;
 import com.qendolin.betterclouds.clouds.Debug;
 import com.qendolin.betterclouds.compat.DistantHorizonsCompat;
 import com.qendolin.betterclouds.compat.GLCompat;
 import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.compat.Telemetry;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
-import dev.isxander.yacl3.config.GsonConfigInstance;
+import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
+import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
@@ -23,6 +25,7 @@ import net.minecraft.resource.ResourceType;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.lwjgl.opengl.GL32;
@@ -46,25 +49,26 @@ public class Main implements ClientModInitializer {
     public static GLCompat glCompat;
     public static Version version;
 
-    private static final GsonConfigInstance<Config> CONFIG;
-    private static final Path CONFIG_PATH = Path.of("config/betterclouds-v1.json");
+    private static final ConfigClassHandler<Config> CONFIG;
+    private static final Path CONFIG_PATH = FabricLoader.getInstance().getConfigDir().resolve("betterclouds-v1.json");
 
     static {
         if (IS_CLIENT) {
-            GsonConfigInstance.Builder<Config> builder = GsonConfigInstance
-                .createBuilder(Config.class)
-                .setPath(CONFIG_PATH);
-
-            if (builder instanceof GsonConfigInstanceBuilderDuck) {
-                //noinspection unchecked
-                GsonConfigInstanceBuilderDuck<Config> duck = (GsonConfigInstanceBuilderDuck<Config>) builder;
-                builder = duck.betterclouds$appendGsonBuilder(b -> b
-                    .setLenient().setPrettyPrinting()
-                    .registerTypeAdapter(Config.class, Config.INSTANCE_CREATOR)
-                    .registerTypeAdapter(Config.ShaderConfigPreset.class, Config.ShaderConfigPreset.INSTANCE_CREATOR)
-                    .registerTypeAdapter(RegistryKey.class, Config.REGISTRY_KEY_SERIALIZER));
-            }
-            CONFIG = builder.build();
+            CONFIG = ConfigClassHandler.createBuilder(Config.class)
+                .id(new Identifier(MODID, "betterclouds-v1"))
+                .serializer(config -> GsonConfigSerializerBuilder.create(config)
+                    .appendGsonBuilder(b -> b
+                        .setLenient()
+                        .serializeNulls()
+                        .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+                        .setPrettyPrinting()
+                        .registerTypeAdapter(Config.class, Config.INSTANCE_CREATOR)
+                        .registerTypeAdapter(Config.ShaderConfigPreset.class, Config.ShaderConfigPreset.INSTANCE_CREATOR)
+                        .registerTypeAdapter(RegistryKey.class, Config.REGISTRY_KEY_SERIALIZER))
+                    .setPath(CONFIG_PATH)
+                    .setJson5(false)
+                    .build())
+                .build();
         } else {
             CONFIG = null;
         }
@@ -88,7 +92,7 @@ public class Main implements ClientModInitializer {
             LOGGER.info(" - Functions:    {}", String.join(", ", glCompat.supportedCheckedFunctions));
         } else if (glCompat.isPartiallyIncompatible()) {
             LOGGER.warn("Your GPU is not fully compatible with Better Clouds.");
-            for (String fallback : glCompat.usedFallbacks) {
+            for (String fallback : glCompat.usedFallbacks()) {
                 LOGGER.info("- Using {} fallback", fallback);
             }
         }
@@ -108,7 +112,7 @@ public class Main implements ClientModInitializer {
     }
 
     public static Config getConfig() {
-        return CONFIG.getConfig();
+        return CONFIG.instance();
     }
 
     public static boolean isProfilingEnabled() {
@@ -133,7 +137,7 @@ public class Main implements ClientModInitializer {
         return version;
     }
 
-    public static GsonConfigInstance<Config> getConfigInstance() {
+    public static ConfigClassHandler<Config> getConfigHandler() {
         return CONFIG;
     }
 
@@ -184,12 +188,12 @@ public class Main implements ClientModInitializer {
             LOGGER.error("Failed to load config: ", loadException);
         }
 
-        File file = CONFIG.getPath().toFile();
+        File file = CONFIG_PATH.toFile();
         if(file.exists() && file.isFile()) {
             String backupName = FilenameUtils.getBaseName(file.getName()) +
                 "-backup-" + new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date()) +
                 "." + FilenameUtils.getExtension(file.getName());
-            Path backup = Path.of(CONFIG.getPath().toAbsolutePath().getParent().toString(), backupName);
+            Path backup = Path.of(CONFIG_PATH.toAbsolutePath().getParent().toString(), backupName);
             try {
                 Files.copy(file.toPath(), backup, StandardCopyOption.REPLACE_EXISTING);
                 LOGGER.info("Created config backup at: {}", backup);

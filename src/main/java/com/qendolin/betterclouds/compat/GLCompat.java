@@ -76,12 +76,10 @@ public class GLCompat {
 
     public final ImmutableList<String> supportedCheckedFunctions;
 
-    public final boolean useBaseInstanceFallback;
-    public final boolean useStencilTextureFallback;
-    public final boolean useDepthWriteFallback;
-    public final boolean useTexStorageFallback;
-
-    public final ImmutableList<String> usedFallbacks;
+    private boolean useBaseInstanceFallback;
+    private boolean useStencilTextureFallback;
+    private boolean useDepthWriteFallback;
+    private boolean useTexStorageFallback;
 
     private final boolean compatible;
     private final boolean partiallyIncompatible;
@@ -214,13 +212,6 @@ public class GLCompat {
         useStencilTextureFallback = !canReadStencil;
         useTexStorageFallback = !supportsTextureStorage;
         useDepthWriteFallback = !supportsTextureView && canReadStencil;
-
-        List<String> usedFallbacks = new ArrayList<>();
-        if (useBaseInstanceFallback) usedFallbacks.add("base_instance");
-        if (useStencilTextureFallback) usedFallbacks.add("stencil_texture");
-        if (useTexStorageFallback) usedFallbacks.add("texture_storage");
-        if (useDepthWriteFallback) usedFallbacks.add("depth_view_write");
-        this.usedFallbacks = ImmutableList.copyOf(usedFallbacks);
 
         partiallyIncompatible = useBaseInstanceFallback || useStencilTextureFallback || useDepthWriteFallback || useTexStorageFallback;
 
@@ -472,5 +463,46 @@ public class GLCompat {
         } else {
             return 0;
         }
+    }
+
+    public boolean useBaseInstanceFallback() {
+        return useBaseInstanceFallback;
+    }
+
+    public void setUseBaseInstanceFallback(boolean useBaseInstanceFallback) {
+        this.useBaseInstanceFallback = useBaseInstanceFallback;
+    }
+
+    public boolean useStencilTextureFallback() {
+        return useStencilTextureFallback;
+    }
+
+    public void setUseStencilTextureFallback(boolean useStencilTextureFallback) {
+        this.useStencilTextureFallback = useStencilTextureFallback;
+    }
+
+    public boolean useDepthWriteFallback() {
+        return useDepthWriteFallback;
+    }
+
+    public void setUseDepthWriteFallback(boolean useDepthWriteFallback) {
+        this.useDepthWriteFallback = useDepthWriteFallback;
+    }
+
+    public boolean useTexStorageFallback() {
+        return useTexStorageFallback;
+    }
+
+    public void setUseTexStorageFallback(boolean useTexStorageFallback) {
+        this.useTexStorageFallback = useTexStorageFallback;
+    }
+
+    public ImmutableList<String> usedFallbacks() {
+        List<String> usedFallbacks = new ArrayList<>();
+        if (useBaseInstanceFallback) usedFallbacks.add("base_instance");
+        if (useStencilTextureFallback) usedFallbacks.add("stencil_texture");
+        if (useTexStorageFallback) usedFallbacks.add("texture_storage");
+        if (useDepthWriteFallback) usedFallbacks.add("depth_view_write");
+        return ImmutableList.copyOf(usedFallbacks);
     }
 }

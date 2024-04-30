@@ -1,8 +1,7 @@
 package com.qendolin.betterclouds.compat;
 
-import com.qendolin.betterclouds.mixin.optional.ExtendedShaderAccessor;
-import com.qendolin.betterclouds.mixin.optional.FallbackShaderAccessor;
-import net.fabricmc.loader.api.FabricLoader;
+import com.qendolin.betterclouds.mixin.ExtendedShaderAccessor;
+import com.qendolin.betterclouds.mixin.FallbackShaderAccessor;
 import net.irisshaders.iris.Iris;
 import net.irisshaders.iris.gl.framebuffer.GlFramebuffer;
 import net.irisshaders.iris.pipeline.IrisRenderingPipeline;

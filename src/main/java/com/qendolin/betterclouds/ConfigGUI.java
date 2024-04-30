@@ -411,7 +411,7 @@ public class ConfigGUI {
         performanceGenerationGroup.addAll(List.of(spacing, chunkSize, distance, sparsity, fuzziness, shuffle));
         performanceCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("performance.technical")), performanceTechnicalGroup));
-        performanceTechnicalGroup.addAll(List.of(usePersistentBuffers, useFrustumCulling)));
+        performanceTechnicalGroup.addAll(List.of(usePersistentBuffers, useFrustumCulling));
 
         categories.add(new Pair<>(ConfigCategory.createBuilder()
             .name(categoryLabel("shaders")), shadersCategory));
@@ -445,7 +445,7 @@ public class ConfigGUI {
     }
 
     public static ConfigScreen create(Screen parent) {
-        YetAnotherConfigLib yacl = YetAnotherConfigLib.create(Main.getConfigInstance(),
+        YetAnotherConfigLib yacl = YetAnotherConfigLib.create(Main.getConfigHandler(),
             (defaults, config, builder) -> new ConfigGUI(defaults, config).assemble(builder));
         return new ConfigScreen(yacl, parent);
     }
@@ -458,7 +458,7 @@ public class ConfigGUI {
                 }
                 config.selectedPreset = MathHelper.clamp(config.selectedPreset, 0, config.presets.size());
                 config.sortPresets();
-                Main.getConfigInstance().save();
+                Main.getConfigHandler().save();
             })
             .title(Text.translatable(LANG_KEY_PREFIX + ".title"));
 

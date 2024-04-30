@@ -21,7 +21,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -155,6 +154,11 @@ public class Telemetry implements ITelemetry {
         cachedSend(message, UNHANDLED_EXCEPTION);
     }
 
+    @Override
+    public void sendEvent(String key, String message) {
+        // TODO:
+    }
+
     public static final class SemVer {
         public final int major;
         public final int minor;
@@ -254,7 +258,7 @@ public class Telemetry implements ITelemetry {
             this.glslVersion = Main.glCompat.getString(GL32.GL_SHADING_LANGUAGE_VERSION);
             this.extensions = Main.glCompat.supportedCheckedExtensions;
             this.functions = Main.glCompat.supportedCheckedFunctions;
-            this.fallbacks = Main.glCompat.usedFallbacks;
+            this.fallbacks = Main.glCompat.usedFallbacks();
             this.compatible = !Main.glCompat.isIncompatible();
             this.partiallyIncompatible = Main.glCompat.isPartiallyIncompatible();
 

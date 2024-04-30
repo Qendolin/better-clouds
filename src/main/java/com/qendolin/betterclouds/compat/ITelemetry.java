@@ -24,6 +24,8 @@ public interface ITelemetry {
 
     void sendUnhandledException(Exception e);
 
+    void sendEvent(String key, String message);
+
     class NoopTelemetry implements ITelemetry {
         @Override
         public CompletableFuture<Boolean> sendSystemInfo() {
@@ -36,6 +38,10 @@ public interface ITelemetry {
 
         @Override
         public void sendUnhandledException(Exception e) {
+        }
+
+        @Override
+        public void sendEvent(String key, String message) {
         }
     }
 }
