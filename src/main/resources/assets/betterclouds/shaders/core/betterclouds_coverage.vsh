@@ -35,6 +35,7 @@ uniform vec3 u_miscellaneous;
 uniform float u_time;
 // start, end
 uniform vec2 u_fog_range;
+uniform vec2 u_depth_range;
 
 flat out float pass_opacity;
 out vec3 pass_color;
@@ -47,6 +48,13 @@ float linear_fog(float distance, float fogStart, float fogEnd) {
     return smoothstep(fogStart, fogEnd, distance);
 }
 
+float linearize_depth(float depth)
+{
+    float near = u_depth_range.x;
+    float far  = u_depth_range.y;
+    return (2.0 * near * far) / (far + near - depth * (far - near));
+}
+
 void main() {
     vec3 localWorldPosition = in_pos - u_origin_offset;
     float scaleFalloff = mix(1.0, u_miscellaneous.x, pow(length(localWorldPosition.xz), 2.0) / pow(u_bounding_box.z, 2.0));
@@ -56,7 +64,7 @@ void main() {
     pass_opacity =
         smoothstep(NEAR_VISIBILITY_START, NEAR_VISIBILITY_END, length(localWorldPosition))
         * smoothstep(u_bounding_box.z, u_bounding_box.z-FAR_VISIBILITY_EDGE,
-            length(vec3(localWorldPosition.x, 0.0, localWorldPosition.z)));
+            length(vec3(localWorldPosition.x, 0, localWorldPosition.z)));
 
     if(u_fog_range.y * 4.0 < u_bounding_box.z-FAR_VISIBILITY_EDGE) {
         pass_opacity *= 1.0 - linear_fog(length(localWorldPosition.xyz), u_fog_range.x, u_fog_range.y);
@@ -86,4 +94,8 @@ void main() {
 #else
     gl_Position = u_mvp_matrix * vec4(scale * in_vert + vertexPos, 1.0);
 #endif
+
+    // "Fix" for #75
+    float depth = linearize_depth(gl_Position.z / gl_Position.w);
+    pass_opacity *= 1.0 - smoothstep(u_depth_range.y - FAR_VISIBILITY_EDGE, u_depth_range.y - FAR_VISIBILITY_EDGE / 2.0, depth);
 }

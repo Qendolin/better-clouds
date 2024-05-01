@@ -277,6 +277,10 @@ public class Renderer implements AutoCloseable {
         } else {
             res.coverageShader().uFogRange.setVec2(RenderSystem.getShaderFogStart(), RenderSystem.getShaderFogEnd());
         }
+        // https://stackoverflow.com/questions/10830293/decompose-projection-matrix44-to-left-right-bottom-top-near-and-far-boundary
+        float zNear = pMatrix.m32() / (pMatrix.m22() - 1);
+        float zFar = pMatrix.m32() / (pMatrix.m22() + 1);
+        res.coverageShader().uDepthRange.setVec2(zNear, zFar);
 
         RenderSystem.activeTexture(GL_TEXTURE0);
         RenderSystem.bindTexture(client.getFramebuffer().getDepthAttachment());

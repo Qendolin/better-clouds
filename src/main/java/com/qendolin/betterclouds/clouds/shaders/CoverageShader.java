@@ -30,6 +30,7 @@ public class CoverageShader extends Shader {
     public final Uniform uTime;
     public final Uniform uMiscellaneous;
     public final Uniform uFogRange;
+    public final Uniform uDepthRange;
 
 
     public CoverageShader(ResourceManager resMan, Map<String, String> defs) throws IOException {
@@ -47,6 +48,7 @@ public class CoverageShader extends Shader {
         uBoundingBox = getUniform("u_bounding_box", false);
         uMiscellaneous = getUniform("u_miscellaneous", true);
         uFogRange = getUniform("u_fog_range", true);
+        uDepthRange = getUniform("u_depth_range", true);
     }
 
     public static CoverageShader create(ResourceManager manager, float sizeXZ, float sizeY, int edgeFade, boolean stencilFallback, boolean dhCompat) throws IOException {
