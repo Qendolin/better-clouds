@@ -61,14 +61,6 @@ public class ConfigScreen extends YACLScreen {
         context.fill(width / 3 * 2 + 1, tabArea.getTop(), width, tabArea.getBottom(), 0x6b000000);
     }
 
-    // YACL incorrectly calls renderBackgroundTexture directly
-    @Override
-    public void renderBackgroundTexture(DrawContext context) {
-        if (client == null || client.world == null) {
-            super.renderBackgroundTexture(context);
-        }
-    }
-
     @Override
     public void finishOrSave() {
         close();
@@ -94,14 +86,6 @@ public class ConfigScreen extends YACLScreen {
         @Override
         public void renderInGameBackground(DrawContext context) {
             // nothing
-        }
-
-        // YACL incorrectly calls renderBackgroundTexture directly
-        @Override
-        public void renderBackgroundTexture(DrawContext context) {
-            if (client == null || client.world == null) {
-                super.renderBackgroundTexture(context);
-            }
         }
     }
 }

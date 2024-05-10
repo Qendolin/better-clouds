@@ -53,7 +53,7 @@ public class ShaderPresetLoader implements SimpleResourceReloadListener<Map<Stri
                     if (presets == null) continue;
                     mergedPresets.putAll(presets);
                 } catch (Exception exception) {
-                    Main.LOGGER.warn("Failed to parse shader presets {} in pack {}", RESOURCE_ID, resource.getResourcePackName(), exception);
+                    Main.LOGGER.warn("Failed to parse shader presets {} in pack '{}' ({})", RESOURCE_ID, resource.getPack().getInfo().title(), resource.getPack().getId(), exception);
                 }
             }
 

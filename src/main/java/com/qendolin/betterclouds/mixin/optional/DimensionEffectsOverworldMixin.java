@@ -13,9 +13,15 @@ public abstract class DimensionEffectsOverworldMixin extends DimensionEffects {
         super(cloudsHeight, alternateSkyColor, skyType, brightenLighting, darkened);
     }
 
-    @SuppressWarnings({"UnresolvedMixinReference", "MixinAnnotationTarget"})
-    @Inject(method = "getCloudsHeight", at = @At("RETURN"), cancellable = true, expect = 0, require = 0)
-    public void addCloudsYOffset(CallbackInfoReturnable<Float> cir) {
-        cir.setReturnValue(cir.getReturnValue() + Main.getConfig().yOffset);
+    // TODO: See if this works
+//    @SuppressWarnings({"UnresolvedMixinReference", "MixinAnnotationTarget"})
+//    @Inject(method = "getCloudsHeight", at = @At("RETURN"), cancellable = true, expect = 0, require = 0)
+//    public void addCloudsYOffset(CallbackInfoReturnable<Float> cir) {
+//        cir.setReturnValue(cir.getReturnValue() + Main.getConfig().yOffset);
+//    }
+
+    @Override
+    public float getCloudsHeight() {
+        return super.getCloudsHeight() + Main.getConfig().yOffset;
     }
 }
