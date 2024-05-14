@@ -115,9 +115,8 @@ public abstract class WorldRendererMixin {
             tickDelta = 0;
         }
 
-        matrices.push();
         try {
-            Renderer.PrepareResult prepareResult = cloudRenderer.prepare(matrices, projMat, ticks, tickDelta, cam);
+            Renderer.PrepareResult prepareResult = cloudRenderer.prepare(viewMat, projMat, ticks, tickDelta, cam);
             if (RenderDoc.isFrameCapturing())
                 glCompat.debugMessage("renderer prepare returned " + prepareResult.name());
             if (prepareResult == Renderer.PrepareResult.RENDER) {
@@ -130,7 +129,6 @@ public abstract class WorldRendererMixin {
             Telemetry.INSTANCE.sendUnhandledException(e);
             throw e;
         }
-        matrices.pop();
 
         if (Main.isProfilingEnabled()) {
             GL32.glFinish();

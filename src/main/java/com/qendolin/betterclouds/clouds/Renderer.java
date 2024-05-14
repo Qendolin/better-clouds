@@ -84,7 +84,7 @@ public class Renderer implements AutoCloseable {
         return (int) (Main.getConfig().preset().upscaleResolutionFactor * client.getFramebuffer().textureHeight);
     }
 
-    public PrepareResult prepare(MatrixStack matrices, Matrix4f projMat, int ticks, float tickDelta, Vector3d cam) {
+    public PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, int ticks, float tickDelta, Vector3d cam) {
         assert RenderSystem.isOnRenderThread();
         client.getProfiler().swap("render_setup");
         Config config = Main.getConfig();
@@ -130,9 +130,7 @@ public class Renderer implements AutoCloseable {
             client.getProfiler().swap("render_setup");
         }
 
-        tempMatrix.set(matrices.peek().getPositionMatrix());
-
-        matrices.translate(res.generator().renderOriginX(cam.x), cloudsHeight - cam.y, res.generator().renderOriginZ(cam.z));
+        tempMatrix.set(viewMat);
 
         rotationProjectionMatrix.set(projMat);
         // This is fixes issue #14, not entirely sure why, but it forces the matrix to be homogenous
@@ -145,8 +143,11 @@ public class Renderer implements AutoCloseable {
         tempMatrix.m03(0);
         rotationProjectionMatrix.mul(tempMatrix);
 
+        tempMatrix.translate((float) res.generator().renderOriginX(cam.x), (float) (cloudsHeight - cam.y), (float) res.generator().renderOriginZ(cam.z));
+        tempMatrix.m33(1);
+
         pMatrix.set(projMat);
-        mvMatrix.set(matrices.peek().getPositionMatrix());
+        mvMatrix.set(tempMatrix);
         mvpMatrix.set(projMat);
         mvpMatrix.mul(mvMatrix);
 

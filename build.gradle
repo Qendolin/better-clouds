@@ -18,7 +18,7 @@ if(project.version_type != "RELEASE") {
 }
 version += "+" + project.minecraft_version
 if(project.version_type != "RELEASE") {
-	version += "." + 'git rev-parse --short HEAD'.execute().text.trim()
+	version += ".rev." + 'git rev-parse --short HEAD'.execute().text.trim()
 }
 group = project.maven_group
 
