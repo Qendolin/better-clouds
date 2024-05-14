@@ -13,11 +13,11 @@ base {
 }
 
 version = project.mod_version
-if(project.version_type != "RELEASE") {
+if(project.version_type != "release") {
 	version += "-" + project.version_type
 }
 version += "+" + project.minecraft_version
-if(project.version_type != "RELEASE") {
+if(project.version_type != "release") {
 	version += ".rev." + 'git rev-parse --short HEAD'.execute().text.trim()
 }
 group = project.maven_group
