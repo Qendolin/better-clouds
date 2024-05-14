@@ -13,7 +13,6 @@
     "DimensionalEffectsMixin",
     "RenderSystemMixin",
     "ShaderProgramAccessor",
-    "TabButtonWidgetMixin",
     "TabNavigationWidgetAccessor",
     "VertexBufferAccessor",
     "WorldRendererMixin"

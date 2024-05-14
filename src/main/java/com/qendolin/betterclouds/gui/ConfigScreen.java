@@ -56,8 +56,23 @@ public class ConfigScreen extends YACLScreen {
         super.cancelOrReset();
     }
 
+    @Override
+    public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
+        assert this.client != null;
+        if (this.client.world == null) {
+            this.renderPanoramaBackground(context, delta);
+            this.applyBlur(delta);
+        }
+        this.renderDarkening(context);
+    }
 
+    @Override
     public void renderInGameBackground(DrawContext context) {
+        this.renderDarkening(context);
+    }
+
+    @Override
+    protected void renderDarkening(DrawContext context) {
         context.fill(width / 3 * 2 + 1, tabArea.getTop(), width, tabArea.getBottom(), 0x6b000000);
     }
 
