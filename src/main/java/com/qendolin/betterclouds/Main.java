@@ -54,7 +54,7 @@ public class Main implements ClientModInitializer {
     static {
         if (IS_CLIENT) {
             CONFIG = ConfigClassHandler.createBuilder(Config.class)
-                .id(new Identifier(MODID, "betterclouds-v1"))
+                .id(Identifier.of(MODID, "betterclouds-v1"))
                 .serializer(config -> GsonConfigSerializerBuilder.create(config)
                     .appendGsonBuilder(b -> b
                         .setLenient()

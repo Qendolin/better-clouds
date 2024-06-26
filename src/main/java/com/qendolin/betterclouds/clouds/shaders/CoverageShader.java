@@ -15,8 +15,8 @@ public class CoverageShader extends Shader {
     public static final String DEF_POSITIONAL_COLORING = "_POSITIONAL_COLORING_";
     public static final String DEF_DISTANT_HORIZONS = "_DISTANT_HORIZONS_";
 
-    public static final Identifier VERTEX_SHADER_ID = new Identifier(Main.MODID, "shaders/core/betterclouds_coverage.vsh");
-    public static final Identifier FRAGMENT_SHADER_ID = new Identifier(Main.MODID, "shaders/core/betterclouds_coverage.fsh");
+    public static final Identifier VERTEX_SHADER_ID = Identifier.of(Main.MODID, "shaders/core/betterclouds_coverage.vsh");
+    public static final Identifier FRAGMENT_SHADER_ID = Identifier.of(Main.MODID, "shaders/core/betterclouds_coverage.fsh");
 
     public final Uniform uDepthTexture;
     public final Uniform uDhDepthTexture;

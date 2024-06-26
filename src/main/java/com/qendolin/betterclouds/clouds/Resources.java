@@ -26,9 +26,9 @@ import static org.lwjgl.opengl.GL32.*;
 
 public class Resources implements Closeable {
     // Texture Unit 5
-    public static final Identifier NOISE_TEXTURE = new Identifier(Main.MODID, "textures/environment/cloud_noise_rgb.png");
+    public static final Identifier NOISE_TEXTURE = Identifier.of(Main.MODID, "textures/environment/cloud_noise_rgb.png");
     // Texture Unit 4
-    public static final Identifier LIGHTING_TEXTURE = new Identifier(Main.MODID, "textures/environment/cloud_light_gradient.png");
+    public static final Identifier LIGHTING_TEXTURE = Identifier.of(Main.MODID, "textures/environment/cloud_light_gradient.png");
 
     private static final int UNASSIGNED = 0;
 
