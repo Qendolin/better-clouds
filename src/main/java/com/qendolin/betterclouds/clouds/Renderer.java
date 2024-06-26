@@ -20,10 +20,9 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
-import org.joml.Matrix4f;
-import org.joml.Vector3d;
-import org.joml.Vector3f;
+import org.joml.*;
 
+import java.lang.Math;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,6 +38,7 @@ public class Renderer implements AutoCloseable {
     private final Matrix4f mvpMatrix = new Matrix4f();
     private final Matrix4f mvMatrix = new Matrix4f();
     private final Matrix4f pMatrix = new Matrix4f();
+    private final Matrix4d pInverseMatrix = new Matrix4d();
     private final Matrix4f rotationProjectionMatrix = new Matrix4f();
     private final Matrix4f tempMatrix = new Matrix4f();
     private final Vector3f tempVector = new Vector3f();
@@ -147,6 +147,9 @@ public class Renderer implements AutoCloseable {
         tempMatrix.m33(1);
 
         pMatrix.set(projMat);
+        pInverseMatrix.set(projMat);
+        pInverseMatrix.invert();
+
         mvMatrix.set(tempMatrix);
         mvpMatrix.set(projMat);
         mvpMatrix.mul(mvMatrix);
@@ -278,10 +281,14 @@ public class Renderer implements AutoCloseable {
         } else {
             res.coverageShader().uFogRange.setVec2(RenderSystem.getShaderFogStart(), RenderSystem.getShaderFogEnd());
         }
-        // https://stackoverflow.com/questions/10830293/decompose-projection-matrix44-to-left-right-bottom-top-near-and-far-boundary
-        float zNear = pMatrix.m32() / (pMatrix.m22() - 1);
-        float zFar = pMatrix.m32() / (pMatrix.m22() + 1);
-        res.coverageShader().uDepthRange.setVec2(zNear, zFar);
+
+        // "Fast" computation of the near and far plane doesn't work because of nausea and view bobbing.
+        // This is slightly slower but should always give the correct results.
+        Vector4d farPlane = new Vector4d(0, 0, 1, 1);
+        Vector4d nearPlane = new Vector4d(0, 0, -1, 1);
+        pInverseMatrix.transform(farPlane);
+        pInverseMatrix.transform(nearPlane);
+        res.coverageShader().uDepthRange.setVec2((float) (-nearPlane.z / nearPlane.w), (float) (-farPlane.z / farPlane.w));
 
         RenderSystem.activeTexture(GL_TEXTURE0);
         RenderSystem.bindTexture(client.getFramebuffer().getDepthAttachment());
