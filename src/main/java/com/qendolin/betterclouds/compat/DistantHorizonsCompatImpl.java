@@ -27,7 +27,7 @@ class DistantHorizonsCompatImpl extends DistantHorizonsCompat {
         });
         DhApiEventRegister.on(DhApiAfterRenderEvent.class, new DhApiAfterRenderEvent() {
             @Override
-            public void afterRender(DhApiEventParam<EventParam> dhApiEventParam) {
+            public void afterRender(DhApiEventParam<DhApiRenderParam> dhApiEventParam) {
                 lastRenderParam = dhApiEventParam.value;
             }
         });

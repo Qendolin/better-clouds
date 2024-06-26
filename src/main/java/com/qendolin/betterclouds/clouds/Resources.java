@@ -3,12 +3,11 @@ package com.qendolin.betterclouds.clouds;
 import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.qendolin.betterclouds.Config;
 import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.clouds.shaders.CoverageShader;
 import com.qendolin.betterclouds.clouds.shaders.DepthShader;
+import com.qendolin.betterclouds.clouds.shaders.ShaderParameters;
 import com.qendolin.betterclouds.clouds.shaders.ShadingShader;
-import com.qendolin.betterclouds.compat.DistantHorizonsCompat;
 import com.qendolin.betterclouds.compat.Telemetry;
 import com.qendolin.betterclouds.mixin.BufferRendererAccessor;
 import com.qendolin.betterclouds.mixin.ShaderProgramAccessor;
@@ -289,43 +288,43 @@ public class Resources implements Closeable {
         oitCoverageDepthTexture = UNASSIGNED;
     }
 
-    public void reloadShaders(ResourceManager manager) {
+    public void reloadShaders(ResourceManager manager, ShaderParameters shaderParameters) {
         try {
-            reloadShadersInternal(manager, false);
-        } catch (Exception ignored) {
-            try {
-                reloadShadersInternal(manager, true);
-            } catch (Exception e) {
-                Main.sendGpuIncompatibleChatMessage();
-                Main.LOGGER.error(e);
-                Telemetry.INSTANCE.sendShaderCompileError(e.toString());
-                deleteShaders();
-            }
+            reloadShadersInternal(manager, shaderParameters);
+        } catch (Exception e) {
+            Main.sendGpuIncompatibleChatMessage();
+            Main.LOGGER.error(e);
+            Telemetry.INSTANCE.sendShaderCompileError(e.toString());
+            deleteShaders();
         }
         unbindShader();
     }
 
-    protected void reloadShadersInternal(ResourceManager manager, boolean safeMode) throws IOException {
+    protected void reloadShadersInternal(ResourceManager manager, ShaderParameters shaderParameters) throws IOException {
         deleteShaders();
-
-        Config config = Main.getConfig();
 
         depthShader = DepthShader.create(manager);
         depthShader.bind();
         depthShader.uDepthTexture.setInt(6);
         glCompat.objectLabelDev(glCompat.GL_PROGRAM, depthShader.glId(), "depth");
 
-        int edgeFade = (int) (config.fadeEdge * config.blockDistance());
-        coverageShader = CoverageShader.create(manager, config.sizeXZ, config.sizeY, edgeFade, glCompat.useStencilTextureFallback,
-            DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled());
+        int edgeFade = (int) (shaderParameters.configFadeEdge() * shaderParameters.blockViewDistance());
+        coverageShader = CoverageShader.create(manager,
+            shaderParameters.configSizeXZ(),
+            shaderParameters.configSizeY(),
+            edgeFade,
+            shaderParameters.useStencilTextureFallback(),
+            shaderParameters.useDistantHorizonsCompat());
         coverageShader.bind();
         coverageShader.uDepthTexture.setInt(0);
         coverageShader.uNoiseTexture.setInt(5);
         coverageShader.uDhDepthTexture.setInt(6);
         glCompat.objectLabelDev(glCompat.GL_PROGRAM, coverageShader.glId(), "coverage");
 
-        shadingShader = ShadingShader.create(manager, glCompat.useDepthWriteFallback, glCompat.useStencilTextureFallback,
-            config.celestialBodyHalo);
+        shadingShader = ShadingShader.create(manager,
+            shaderParameters.useDepthWriteFallback(),
+            shaderParameters.useStencilTextureFallback(),
+            shaderParameters.configCelestialBodyHalo());
         shadingShader.bind();
         shadingShader.uDepthTexture.setInt(1);
         shadingShader.uDataTexture.setInt(2);
