@@ -411,7 +411,7 @@ public class ConfigGUI {
         performanceGenerationGroup.addAll(List.of(spacing, chunkSize, distance, sparsity, fuzziness, shuffle));
         performanceCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("performance.technical")), performanceTechnicalGroup));
-        performanceTechnicalGroup.addAll(List.of(usePersistentBuffers, useFrustumCulling)));
+        performanceTechnicalGroup.addAll(List.of(usePersistentBuffers, useFrustumCulling));
 
         categories.add(new Pair<>(ConfigCategory.createBuilder()
             .name(categoryLabel("shaders")), shadersCategory));

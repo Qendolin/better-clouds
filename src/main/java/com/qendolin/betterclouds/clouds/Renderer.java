@@ -4,9 +4,9 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.Config;
 import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.clouds.shaders.ShaderParameters;
 import com.qendolin.betterclouds.compat.*;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
-import com.qendolin.betterclouds.compat.SodiumExtraCompat;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.CloudRenderMode;
 import net.minecraft.client.render.CameraSubmersionType;
@@ -23,6 +23,7 @@ import org.joml.Vector3d;
 import org.joml.Vector3f;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.qendolin.betterclouds.Main.glCompat;
@@ -41,7 +42,7 @@ public class Renderer implements AutoCloseable {
     private final Matrix4f tempMatrix = new Matrix4f();
     private final Vector3f tempVector = new Vector3f();
     private final Frustum tempFrustum = new Frustum(new Matrix4f().identity(), new Matrix4f().identity());
-    private final PrimitiveChangeDetector shaderInvalidator = new PrimitiveChangeDetector(false);
+    private ShaderParameters shaderParameters = null;
 
     private final Resources res = new Resources();
 
@@ -56,7 +57,8 @@ public class Renderer implements AutoCloseable {
     public void reload(ResourceManager manager) {
         Main.LOGGER.info("Reloading cloud renderer...");
         Main.LOGGER.debug("[1/6] Reloading shaders");
-        res.reloadShaders(manager);
+        shaderParameters = createShaderParameters(Main.getConfig());
+        res.reloadShaders(manager, shaderParameters);
         Main.LOGGER.debug("[2/6] Reloading generator");
         res.reloadGenerator(isFancyMode());
         Main.LOGGER.debug("[3/6] Reloading textures");
@@ -87,7 +89,7 @@ public class Renderer implements AutoCloseable {
             client.options.getCloudRenderModeValue(),
             config.blockDistance(),
             config.fadeEdge, config.sizeXZ, config.sizeY, config.celestialBodyHalo,
-            glCompat.useDepthWriteFallback(), glCompat.useStencilTextureFallback(),
+            glCompat.useDepthWriteFallback, glCompat.useStencilTextureFallback,
             DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled(),
             config.preset().worldCurvatureSize
         );
@@ -116,10 +118,10 @@ public class Renderer implements AutoCloseable {
         cloudsHeight = effects.getCloudsHeight();
 
         res.generator().bind();
-        if (shaderInvalidator.hasChanged(client.options.getCloudRenderModeValue(), config.blockDistance(),
-            config.fadeEdge, config.sizeXZ, config.sizeY, glCompat.useDepthWriteFallback, glCompat.useStencilTextureFallback,
-            DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled(), config.celestialBodyHalo)) {
-            res.reloadShaders(client.getResourceManager());
+        ShaderParameters currentShaderParameters = createShaderParameters(config);
+        if (!Objects.equals(currentShaderParameters, shaderParameters)) {
+            shaderParameters = currentShaderParameters;
+            res.reloadShaders(client.getResourceManager(), shaderParameters);
         }
         res.generator().reallocateIfStale(config, isFancyMode());
 

@@ -2,14 +2,13 @@ package com.qendolin.betterclouds.compat;
 
 import com.qendolin.betterclouds.mixin.optional.ExtendedShaderAccessor;
 import com.qendolin.betterclouds.mixin.optional.FallbackShaderAccessor;
-import net.fabricmc.loader.api.FabricLoader;
-import net.irisshaders.iris.Iris;
-import net.irisshaders.iris.gl.framebuffer.GlFramebuffer;
-import net.irisshaders.iris.pipeline.IrisRenderingPipeline;
-import net.irisshaders.iris.pipeline.WorldRenderingPipeline;
-import net.irisshaders.iris.pipeline.programs.ExtendedShader;
-import net.irisshaders.iris.pipeline.programs.FallbackShader;
-import net.irisshaders.iris.pipeline.programs.ShaderKey;
+import net.coderbot.iris.pipeline.newshader.NewWorldRenderingPipeline;
+import net.coderbot.iris.pipeline.newshader.fallback.FallbackShader;
+import net.coderbot.iris.Iris;
+import net.coderbot.iris.gl.framebuffer.GlFramebuffer;
+import net.coderbot.iris.pipeline.WorldRenderingPipeline;
+import net.coderbot.iris.pipeline.newshader.ExtendedShader;
+import net.coderbot.iris.pipeline.newshader.ShaderKey;
 import net.minecraft.client.gl.ShaderProgram;
 
 public class IrisCompatImpl extends IrisCompat {
@@ -21,7 +20,7 @@ public class IrisCompatImpl extends IrisCompat {
 
     public void bindFramebuffer() {
         WorldRenderingPipeline pipeline = Iris.getPipelineManager().getPipelineNullable();
-        if (!(pipeline instanceof IrisRenderingPipeline corePipeline)) {
+        if (!(pipeline instanceof NewWorldRenderingPipeline corePipeline)) {
             return;
         }
 
