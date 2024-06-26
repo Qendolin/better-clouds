@@ -12,6 +12,7 @@ import com.qendolin.betterclouds.compat.SodiumExtraCompat;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.CloudRenderMode;
 import net.minecraft.client.render.CameraSubmersionType;
+import net.minecraft.client.render.BackgroundRenderer;
 import net.minecraft.client.render.DimensionEffects;
 import net.minecraft.client.render.FogShape;
 import net.minecraft.client.render.Frustum;
@@ -20,6 +21,7 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
@@ -206,7 +208,7 @@ public class Renderer implements AutoCloseable {
             GlStateManager._glBindFramebuffer(GL_DRAW_FRAMEBUFFER, defaultFbo);
         }
 
-        drawShading(tickDelta);
+        drawShading(cam, tickDelta);
 
 
         client.getProfiler().swap("render_cleanup");
@@ -371,7 +373,7 @@ public class Renderer implements AutoCloseable {
         RenderSystem.enableCull();
     }
 
-    private void drawShading(float tickDelta) {
+    private void drawShading(Vector3d cam, float tickDelta) {
         Config config = Main.getConfig();
         RenderSystem.depthFunc(GL_LESS);
 
@@ -404,7 +406,7 @@ public class Renderer implements AutoCloseable {
         RenderSystem.activeTexture(GL_TEXTURE4);
         client.getTextureManager().getTexture(Resources.LIGHTING_TEXTURE).bindTexture();
 
-        float effectLuma = getEffectLuminance(tickDelta);
+        float effectLuma = getEffectLuminance(cam, tickDelta);
         long skyTime = world.getLunarTime() % 24000;
         float skyAngleRad = world.getSkyAngleRadians(tickDelta);
         float sunPathAngleRad = (float) Math.toRadians(config.preset().sunPathAngle);
@@ -452,19 +454,20 @@ public class Renderer implements AutoCloseable {
         dst.recession = src.recession;
     }
 
-    private float getEffectLuminance(float tickDelta) {
-        float luma = 1.0f;
-        float rain = world.getRainGradient(tickDelta);
-        if (rain > 0.0f) {
-            float f = rain * 0.95f;
-            luma *= (1.0f - f) + f * 0.6f;
-        }
-        float thunder = world.getThunderGradient(tickDelta);
-        if (thunder > 0.0f) {
-            float f = thunder * 0.95f;
-            luma *= (1.0f - f) + f * 0.2f;
-        }
-        return luma;
+    private float getEffectLuminance(Vector3d cam, float tickDelta) {
+        BackgroundRenderer.setFogBlack(); // Called "applyFogColor" in future versions
+        float[] fogRgb = RenderSystem.getShaderFogColor();
+        Vec3d fogColor = new Vec3d(fogRgb[0], fogRgb[1], fogRgb[2]);
+        Vec3d skyColor = world.getSkyColor(new Vec3d(cam.x, cam.y, cam.z), tickDelta);
+        Vec3d cloudsColor = world.getCloudsColor(tickDelta);
+
+        Vec3d color = new Vec3d(
+            (cloudsColor.x * 2 + skyColor.x * 1.5786 + fogColor.x * 1.2458) / (2 + 1 + 1),
+            (cloudsColor.y * 2 + skyColor.y * 1.5786 + fogColor.y * 1.2458) / (2 + 1 + 1),
+            (cloudsColor.z * 2 + skyColor.z * 1.5786 + fogColor.z * 1.2458) / (2 + 1 + 1)
+        );
+        double luma = color.x * 0.299 + color.y * 0.587 + color.z * 0.114;
+        return (float) Math.min(Math.max(luma * 0.95 + 0.05, 0.0), 1.0);
     }
 
     private float interpolateDayNightFactor(float time, float riseStart, float riseEnd, float setStart, float setEnd) {
