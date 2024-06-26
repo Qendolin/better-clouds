@@ -1,9 +1,8 @@
 package com.qendolin.betterclouds.clouds.shaders;
 
-import com.qendolin.betterclouds.compat.DistantHorizonsCompat;
 import net.minecraft.client.option.CloudRenderMode;
 
-public record ShaderParameters (
+public record ShaderParameters(
     CloudRenderMode cloudRenderMode,
     int blockViewDistance,
     float configFadeEdge,
@@ -13,4 +12,5 @@ public record ShaderParameters (
     boolean useDepthWriteFallback,
     boolean useStencilTextureFallback,
     boolean useDistantHorizonsCompat
-) {}
+) {
+}

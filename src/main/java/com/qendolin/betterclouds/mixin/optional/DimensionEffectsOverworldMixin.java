@@ -3,9 +3,6 @@ package com.qendolin.betterclouds.mixin.optional;
 import com.qendolin.betterclouds.Main;
 import net.minecraft.client.render.DimensionEffects;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(value = DimensionEffects.Overworld.class, priority = 1100)
 public abstract class DimensionEffectsOverworldMixin extends DimensionEffects {

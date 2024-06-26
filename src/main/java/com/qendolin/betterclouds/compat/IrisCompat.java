@@ -2,14 +2,14 @@ package com.qendolin.betterclouds.compat;
 
 import com.qendolin.betterclouds.mixin.optional.ExtendedShaderAccessor;
 import com.qendolin.betterclouds.mixin.optional.FallbackShaderAccessor;
+import net.fabricmc.loader.api.FabricLoader;
 import net.irisshaders.iris.Iris;
 import net.irisshaders.iris.gl.framebuffer.GlFramebuffer;
+import net.irisshaders.iris.pipeline.IrisRenderingPipeline;
 import net.irisshaders.iris.pipeline.WorldRenderingPipeline;
 import net.irisshaders.iris.pipeline.programs.ExtendedShader;
-import net.irisshaders.iris.pipeline.IrisRenderingPipeline;
-import net.irisshaders.iris.pipeline.programs.ShaderKey;
 import net.irisshaders.iris.pipeline.programs.FallbackShader;
-import net.fabricmc.loader.api.FabricLoader;
+import net.irisshaders.iris.pipeline.programs.ShaderKey;
 import net.minecraft.client.gl.ShaderProgram;
 
 public class IrisCompat {

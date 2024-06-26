@@ -91,6 +91,7 @@ public class ConfigScreen extends YACLScreen {
 
     public static class HiddenScreen extends Screen {
         private final ButtonWidget showButton;
+
         public HiddenScreen(Text title, ButtonWidget showButton) {
             super(title);
             this.showButton = showButton;
