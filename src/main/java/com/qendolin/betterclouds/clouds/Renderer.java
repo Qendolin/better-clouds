@@ -4,18 +4,18 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.Config;
 import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.clouds.shaders.ShaderParameters;
 import com.qendolin.betterclouds.compat.DistantHorizonsCompat;
 import com.qendolin.betterclouds.compat.HeadInTheCloudsCompat;
 import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.compat.WorldDuck;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
+import net.minecraft.block.enums.CameraSubmersionType;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.CloudRenderMode;
-import net.minecraft.client.render.CameraSubmersionType;
 import net.minecraft.client.render.DimensionEffects;
 import net.minecraft.client.render.FogShape;
 import net.minecraft.client.render.Frustum;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.math.Box;
@@ -24,6 +24,7 @@ import org.joml.*;
 
 import java.lang.Math;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.qendolin.betterclouds.Main.glCompat;
@@ -43,7 +44,7 @@ public class Renderer implements AutoCloseable {
     private final Matrix4f tempMatrix = new Matrix4f();
     private final Vector3f tempVector = new Vector3f();
     private final Frustum tempFrustum = new Frustum(new Matrix4f().identity(), new Matrix4f().identity());
-    private final PrimitiveChangeDetector shaderInvalidator = new PrimitiveChangeDetector(false);
+    private ShaderParameters shaderParameters = null;
 
     private final Resources res = new Resources();
 
@@ -58,7 +59,8 @@ public class Renderer implements AutoCloseable {
     public void reload(ResourceManager manager) {
         Main.LOGGER.info("Reloading cloud renderer...");
         Main.LOGGER.debug("[1/6] Reloading shaders");
-        res.reloadShaders(manager);
+        shaderParameters = createShaderParameters(Main.getConfig());
+        res.reloadShaders(manager, shaderParameters);
         Main.LOGGER.debug("[2/6] Reloading generator");
         res.reloadGenerator(isFancyMode());
         Main.LOGGER.debug("[3/6] Reloading textures");
@@ -84,6 +86,16 @@ public class Renderer implements AutoCloseable {
         return (int) (Main.getConfig().preset().upscaleResolutionFactor * client.getFramebuffer().textureHeight);
     }
 
+    private ShaderParameters createShaderParameters(Config config) {
+        return new ShaderParameters(
+            client.options.getCloudRenderModeValue(),
+            config.blockDistance(),
+            config.fadeEdge, config.sizeXZ, config.sizeY, config.celestialBodyHalo,
+            glCompat.useDepthWriteFallback(), glCompat.useStencilTextureFallback(),
+            DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled()
+        );
+    }
+
     public PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, int ticks, float tickDelta, Vector3d cam) {
         assert RenderSystem.isOnRenderThread();
         client.getProfiler().swap("render_setup");
@@ -107,10 +119,10 @@ public class Renderer implements AutoCloseable {
         cloudsHeight = effects.getCloudsHeight();
 
         res.generator().bind();
-        if (shaderInvalidator.hasChanged(client.options.getCloudRenderModeValue(), config.blockDistance(),
-            config.fadeEdge, config.sizeXZ, config.sizeY, glCompat.useDepthWriteFallback(), glCompat.useStencilTextureFallback(),
-            DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled(), config.celestialBodyHalo)) {
-            res.reloadShaders(client.getResourceManager());
+        ShaderParameters currentShaderParameters = createShaderParameters(config);
+        if (!Objects.equals(currentShaderParameters, shaderParameters)) {
+            shaderParameters = currentShaderParameters;
+            res.reloadShaders(client.getResourceManager(), shaderParameters);
         }
         res.generator().reallocateIfStale(config, isFancyMode());
 
