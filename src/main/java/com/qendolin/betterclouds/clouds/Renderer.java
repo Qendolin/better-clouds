@@ -468,7 +468,7 @@ public class Renderer implements AutoCloseable {
             (cloudsColor.z * 2 + skyColor.z * 1.5786 + fogColor.z * 1.2458) / (2 + 1 + 1)
         );
         double luma = color.x * 0.299 + color.y * 0.587 + color.z * 0.114;
-        return (float) Math.clamp(luma * 0.95 + 0.05, 0.0, 1.0);
+        return (float) Math.min(Math.max(luma * 0.95 + 0.05, 0.0), 1.0);
     }
 
     private float getTrueRainGradient(float tickDelta) {
