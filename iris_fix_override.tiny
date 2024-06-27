@@ -1,0 +1,3 @@
+tiny	2	0	official	intermediary	named
+c	fbd	net/minecraft/class_287	net/minecraft/client/render/BufferBuilder
+	f	I	f	field_1554	iris_fix$vertexCount
