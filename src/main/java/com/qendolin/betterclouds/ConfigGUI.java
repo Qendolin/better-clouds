@@ -65,6 +65,7 @@ public class ConfigGUI {
     public final Option<Boolean> useIrisFBO;
     public final Option<Float> upscaleResolutionFactor;
     public final Option<Boolean> usePersistentBuffers;
+    public final Option<Boolean> useFrustumCulling;
     public final Option<Integer> selectedPreset;
     public final Option<String> presetTitle;
     public final ButtonOption copyPresetButton;
@@ -200,6 +201,10 @@ public class ConfigGUI {
             .build();
         this.usePersistentBuffers = createOption(boolean.class, "usePersistentBuffers")
             .binding(defaults.usePersistentBuffers, () -> config.usePersistentBuffers, val -> config.usePersistentBuffers = val)
+            .customController(TickBoxController::new)
+            .build();
+        this.useFrustumCulling = createOption(boolean.class, "useFrustumCulling")
+            .binding(defaults.useFrustumCulling, () -> config.useFrustumCulling, val -> config.useFrustumCulling = val)
             .customController(TickBoxController::new)
             .build();
 
@@ -396,7 +401,7 @@ public class ConfigGUI {
         performanceGenerationGroup.addAll(List.of(spacing, chunkSize, distance, sparsity, fuzziness, shuffle));
         performanceCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("performance.technical")), performanceTechnicalGroup));
-        performanceTechnicalGroup.add(usePersistentBuffers);
+        performanceTechnicalGroup.addAll(List.of(usePersistentBuffers, useFrustumCulling));
 
         categories.add(new Pair<>(ConfigCategory.createBuilder()
             .name(categoryLabel("shaders")), shadersCategory));

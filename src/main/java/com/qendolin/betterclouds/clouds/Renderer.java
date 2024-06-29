@@ -347,7 +347,7 @@ public class Renderer implements AutoCloseable {
         int runCount = 0;
         for (ChunkedGenerator.ChunkIndex chunk : res.generator().chunks()) {
             Box bounds = chunk.bounds(cloudsHeight, config.sizeXZ, config.sizeY);
-            if (!frustumAtOrigin.isVisible(bounds)) {
+            if (config.useFrustumCulling && !frustumAtOrigin.isVisible(bounds)) {
                 Debug.addFrustumCulledBox(bounds, false);
                 if (runCount != 0) {
                     if (glCompat.useBaseInstanceFallback()) {

@@ -108,6 +108,8 @@
   "betterclouds.config.entry.distance.description": "A factor of the regular view distance",
   "betterclouds.config.entry.usePersistentBuffers": "Persistent Buffers",
   "betterclouds.config.entry.usePersistentBuffers.description": "Reduces memory allocation",
+  "betterclouds.config.entry.useFrustumCulling": "Frustum Culling",
+  "betterclouds.config.entry.useFrustumCulling.description": "Improves performance",
   "betterclouds.config.entry.shuffle": "Random Ordering",
   "betterclouds.config.entry.shuffle.description": "Can improve some visual issues and z-fighting",
   "betterclouds.config.entry.sizeXZ": "Width",

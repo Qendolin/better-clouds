@@ -108,6 +108,8 @@
   "betterclouds.config.entry.distance.description": "일반적인 시야 거리의 배수",
   "betterclouds.config.entry.usePersistentBuffers": "지속 버퍼 사용",
   "betterclouds.config.entry.usePersistentBuffers.description": "메모리 할당을 줄입니다",
+  "betterclouds.config.entry.useFrustumCulling": "프러스텀 컬링",
+  "betterclouds.config.entry.useFrustumCulling.description": "성능을 향상시킵니다",
   "betterclouds.config.entry.shuffle": "랜덤 순서",
   "betterclouds.config.entry.shuffle.description": "일부 시각적 문제와 z-피팅을 개선할 수 있습니다",
   "betterclouds.config.entry.sizeXZ": "너비",

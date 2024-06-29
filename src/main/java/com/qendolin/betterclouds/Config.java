@@ -59,6 +59,7 @@ public class Config {
         this.gpuIncompatibleMessageEnabled = other.gpuIncompatibleMessageEnabled;
         this.enabledDimensions = other.enabledDimensions;
         this.celestialBodyHalo = other.celestialBodyHalo;
+        this.useFrustumCulling = other.useFrustumCulling;
     }
 
     @SerialEntry
@@ -103,6 +104,8 @@ public class Config {
     public float fadeEdge = 0.15f;
     @SerialEntry
     public boolean usePersistentBuffers = true;
+    @SerialEntry
+    public boolean useFrustumCulling = true;
     @SerialEntry
     public boolean irisSupport = true;
     @SerialEntry
