@@ -13,10 +13,7 @@ import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import net.minecraft.block.enums.CameraSubmersionType;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.CloudRenderMode;
-import net.minecraft.client.render.BackgroundRenderer;
-import net.minecraft.client.render.DimensionEffects;
-import net.minecraft.client.render.FogShape;
-import net.minecraft.client.render.Frustum;
+import net.minecraft.client.render.*;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.math.Box;
@@ -37,7 +34,6 @@ public class Renderer implements AutoCloseable {
     private ClientWorld world = null;
 
     private float cloudsHeight;
-    private int defaultFbo;
     private final Matrix4f mvpMatrix = new Matrix4f();
     private final Matrix4f mvMatrix = new Matrix4f();
     private final Matrix4f pMatrix = new Matrix4f();
@@ -168,9 +164,6 @@ public class Renderer implements AutoCloseable {
         mvpMatrix.set(projMat);
         mvpMatrix.mul(mvMatrix);
 
-        // TODO: don't do this dynamically
-        defaultFbo = glGetInteger(GL_DRAW_FRAMEBUFFER_BINDING);
-
         return PrepareResult.RENDER;
     }
 
@@ -199,10 +192,14 @@ public class Renderer implements AutoCloseable {
 
 
         client.getProfiler().swap("draw_shading");
+
+        RenderPhase renderPhase = null;
         if (IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled() && config.useIrisFBO) {
             IrisCompat.bindFramebuffer();
         } else {
-            GlStateManager._glBindFramebuffer(GL_DRAW_FRAMEBUFFER, defaultFbo);
+            client.getFramebuffer().beginWrite(false);
+            renderPhase = RenderPhase.CLOUDS_TARGET;
+            renderPhase.startDrawing();
         }
 
         drawShading(cam, tickDelta);
@@ -217,6 +214,10 @@ public class Renderer implements AutoCloseable {
         RenderSystem.depthFunc(GL_LEQUAL);
         RenderSystem.activeTexture(GL_TEXTURE0);
         RenderSystem.colorMask(true, true, true, true);
+
+        if(renderPhase != null) {
+            renderPhase.endDrawing();
+        }
 
         if (!glCompat.useStencilTextureFallback()) {
             glDisable(GL_STENCIL_TEST);
