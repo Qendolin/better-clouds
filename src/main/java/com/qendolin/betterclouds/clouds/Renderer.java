@@ -5,10 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.Config;
 import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.clouds.shaders.ShaderParameters;
-import com.qendolin.betterclouds.compat.DistantHorizonsCompat;
-import com.qendolin.betterclouds.compat.HeadInTheCloudsCompat;
-import com.qendolin.betterclouds.compat.IrisCompat;
-import com.qendolin.betterclouds.compat.WorldDuck;
+import com.qendolin.betterclouds.compat.*;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import net.minecraft.block.enums.CameraSubmersionType;
 import net.minecraft.client.MinecraftClient;
@@ -103,7 +100,7 @@ public class Renderer implements AutoCloseable {
             if (RenderDoc.isFrameCapturing()) glCompat.debugMessage("prepare failed: critical resource not loaded");
             return PrepareResult.FALLBACK;
         }
-        if (!config.irisSupport && IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled()) {
+        if (!config.irisSupport && IrisCompat.instance().isShadersEnabled()) {
             if (RenderDoc.isFrameCapturing()) glCompat.debugMessage("prepare failed: iris support disabled");
             return PrepareResult.FALLBACK;
         }
@@ -194,8 +191,8 @@ public class Renderer implements AutoCloseable {
         client.getProfiler().swap("draw_shading");
 
         RenderPhase renderPhase = null;
-        if (IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled() && config.useIrisFBO) {
-            IrisCompat.bindFramebuffer();
+        if (IrisCompat.instance().isShadersEnabled() && config.useIrisFBO) {
+            IrisCompat.instance().bindFramebuffer();
         } else {
             client.getFramebuffer().beginWrite(false);
             renderPhase = RenderPhase.CLOUDS_TARGET;
