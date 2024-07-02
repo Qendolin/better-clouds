@@ -2,7 +2,10 @@ package com.qendolin.betterclouds;
 
 import com.google.gson.*;
 import com.qendolin.betterclouds.clouds.Debug;
-import com.qendolin.betterclouds.compat.*;
+import com.qendolin.betterclouds.compat.DistantHorizonsCompat;
+import com.qendolin.betterclouds.compat.GLCompat;
+import com.qendolin.betterclouds.compat.IrisCompat;
+import com.qendolin.betterclouds.compat.Telemetry;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import dev.isxander.yacl3.config.GsonConfigInstance;
 import com.qendolin.betterclouds.renderdoc.RenderDocLoader;
@@ -182,6 +185,7 @@ public class Main implements ClientModInitializer {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> Commands.register(dispatcher));
 
         DistantHorizonsCompat.initialize();
+        IrisCompat.initialize();
 
         if (!IS_DEV) return;
         LOGGER.info("Initialized in dev mode, performance might vary");
