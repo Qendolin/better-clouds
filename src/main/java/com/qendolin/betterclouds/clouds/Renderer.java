@@ -95,7 +95,8 @@ public class Renderer implements AutoCloseable {
             config.blockDistance(),
             config.fadeEdge, config.sizeXZ, config.sizeY, config.celestialBodyHalo,
             glCompat.useDepthWriteFallback(), glCompat.useStencilTextureFallback(),
-            DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled()
+            DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled(),
+            config.preset().worldCurvatureSize
         );
     }
 
@@ -347,8 +348,9 @@ public class Renderer implements AutoCloseable {
         int runStart = -1;
         int runCount = 0;
         for (ChunkedGenerator.ChunkIndex chunk : res.generator().chunks()) {
+            boolean frustumCulling = config.useFrustumCulling && config.preset().worldCurvatureSize == 0;
             Box bounds = chunk.bounds(cloudsHeight, config.sizeXZ, config.sizeY);
-            if (!frustumAtOrigin.isVisible(bounds)) {
+            if (frustumCulling && !frustumAtOrigin.isVisible(bounds)) {
                 Debug.addFrustumCulledBox(bounds, false);
                 if (runCount != 0) {
                     if (glCompat.useBaseInstanceFallback()) {
