@@ -1,6 +1,5 @@
 package com.qendolin.betterclouds.clouds.shaders;
 
-import com.qendolin.betterclouds.compat.DistantHorizonsCompat;
 import net.minecraft.client.option.CloudRenderMode;
 
 public record ShaderParameters (
@@ -12,5 +11,6 @@ public record ShaderParameters (
     boolean configCelestialBodyHalo,
     boolean useDepthWriteFallback,
     boolean useStencilTextureFallback,
-    boolean useDistantHorizonsCompat
+    boolean useDistantHorizonsCompat,
+    int worldCurvatureSize
 ) {}
