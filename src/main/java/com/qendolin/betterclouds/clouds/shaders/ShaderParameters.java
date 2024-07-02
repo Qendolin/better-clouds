@@ -11,6 +11,7 @@ public record ShaderParameters(
     boolean configCelestialBodyHalo,
     boolean useDepthWriteFallback,
     boolean useStencilTextureFallback,
-    boolean useDistantHorizonsCompat
+    boolean useDistantHorizonsCompat,
+    int worldCurvatureSize
 ) {
 }

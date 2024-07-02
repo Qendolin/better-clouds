@@ -9,10 +9,11 @@
 #define FAR_VISIBILITY_EDGE _VISIBILITY_EDGE_
 
 #define POSITIONAL_COLORING _POSITIONAL_COLORING_
+#define WORLD_CURVATURE _WORLD_CURVATURE_
 
 #define DISTANT_HORIZONS _DISTANT_HORIZONS_
 
-layout(location = 0) in vec3 in_pos;
+layout(location = 0) in vec3 in_pos; // instanced per cloud cube
 layout(location = 1) in vec3 in_vert;
 layout(location = 2) in vec3 in_normal;
 
@@ -56,10 +57,10 @@ float linearize_depth(float depth)
 }
 
 void main() {
-    vec3 localWorldPosition = in_pos - u_origin_offset;
+    vec3 localWorldPosition = in_pos - u_origin_offset; // in world space but anchored to the camera
     float scaleFalloff = mix(1.0, u_miscellaneous.x, pow(length(localWorldPosition.xz), 2.0) / pow(u_bounding_box.z, 2.0));
-    vec3 vertexPos = in_pos;
-    vertexPos.y *= scaleFalloff;
+    vec3 cloudPos = in_pos; // in world space but anchored to the chunk grid
+    cloudPos.y *= scaleFalloff;
 
     pass_opacity =
         smoothstep(NEAR_VISIBILITY_START, NEAR_VISIBILITY_END, length(localWorldPosition))
@@ -86,13 +87,20 @@ void main() {
 #endif
     pass_color.b = texture(u_noise_texture, localWorldPosition.xz / 1024.0).g;
 
+    vec3 vertexPos = scale * in_vert + cloudPos;
+    vec3 localWorldVertexPos = vertexPos - u_origin_offset;
+
+#if WORLD_CURVATURE != 0
+    vertexPos.y -= dot(localWorldVertexPos, localWorldVertexPos) / WORLD_CURVATURE;
+#endif
+
 #if DISTANT_HORIZONS
-    vec4 localPos = u_mv_matrix * vec4(scale * in_vert + vertexPos, 1.0);
+    vec4 localPos = u_mv_matrix * vec4(vertexPos, 1.0);
     gl_Position = u_mc_p_matrix * localPos;
     vec4 dhPos = u_dh_p_matrix * localPos;
     pass_dh_depth = (dhPos.z/dhPos.w) * 0.5 + 0.5;
 #else
-    gl_Position = u_mvp_matrix * vec4(scale * in_vert + vertexPos, 1.0);
+    gl_Position = u_mvp_matrix * vec4(vertexPos, 1.0);
 #endif
 
     // "Fix" for #75
