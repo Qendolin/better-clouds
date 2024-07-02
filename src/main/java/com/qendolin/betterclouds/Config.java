@@ -2,7 +2,7 @@ package com.qendolin.betterclouds;
 
 import com.google.common.base.Objects;
 import com.google.gson.*;
-import dev.isxander.yacl3.config.ConfigEntry;
+import dev.isxander.yacl3.config.v2.api.SerialEntry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
@@ -59,65 +59,68 @@ public class Config {
         this.gpuIncompatibleMessageEnabled = other.gpuIncompatibleMessageEnabled;
         this.enabledDimensions = other.enabledDimensions;
         this.celestialBodyHalo = other.celestialBodyHalo;
+        this.useFrustumCulling = other.useFrustumCulling;
     }
 
-    @ConfigEntry
+    @SerialEntry
     public boolean enabled = true;
-    @ConfigEntry
+    @SerialEntry
     public float distance = 4;
-    @ConfigEntry
+    @SerialEntry
     public float randomPlacement = 1.0f;
-    @ConfigEntry
+    @SerialEntry
     public float fuzziness = 1.0f;
-    @ConfigEntry
+    @SerialEntry
     public boolean shuffle = false;
-    @ConfigEntry
+    @SerialEntry
     public float yRange = 64f;
-    @ConfigEntry
+    @SerialEntry
     public float yOffset = 0f;
-    @ConfigEntry
+    @SerialEntry
     public float sparsity = 0f;
-    @ConfigEntry
+    @SerialEntry
     public float spacing = 5.25f;
-    @ConfigEntry
+    @SerialEntry
     public float sizeXZ = 16f;
-    @ConfigEntry
+    @SerialEntry
     public float sizeY = 8f;
-    @ConfigEntry
+    @SerialEntry
     public float travelSpeed = 0.03f;
-    @ConfigEntry
+    @SerialEntry
     public float windEffectFactor = 1.0f;
-    @ConfigEntry
+    @SerialEntry
     public float windSpeedFactor = 1.0f;
-    @ConfigEntry
+    @SerialEntry
     public float colorVariationFactor = 1.0f;
-    @ConfigEntry
+    @SerialEntry
     public boolean celestialBodyHalo = true;
-    @ConfigEntry
+    @SerialEntry
     public int chunkSize = 32;
-    @ConfigEntry
+    @SerialEntry
     public float samplingScale = 1;
-    @ConfigEntry
+    @SerialEntry
     public float scaleFalloffMin = 0.25f;
-    @ConfigEntry
+    @SerialEntry
     public float fadeEdge = 0.15f;
-    @ConfigEntry
+    @SerialEntry
     public boolean usePersistentBuffers = true;
-    @ConfigEntry
+    @SerialEntry
+    public boolean useFrustumCulling = true;
+    @SerialEntry
     public boolean irisSupport = true;
-    @ConfigEntry
+    @SerialEntry
     public boolean cloudOverride = true;
-    @ConfigEntry
+    @SerialEntry
     public boolean useIrisFBO = true;
-    @ConfigEntry
+    @SerialEntry
     public int selectedPreset = 0;
-    @ConfigEntry
+    @SerialEntry
     public List<ShaderConfigPreset> presets = new ArrayList<>();
-    @ConfigEntry
+    @SerialEntry
     public int lastTelemetryVersion = 0;
-    @ConfigEntry
+    @SerialEntry
     public boolean gpuIncompatibleMessageEnabled = true;
-    @ConfigEntry
+    @SerialEntry
     public List<RegistryKey<DimensionType>> enabledDimensions = new ArrayList<>(List.of(DimensionTypes.OVERWORLD));
 
     public void loadDefaultPresets() {
@@ -221,49 +224,53 @@ public class Config {
             this.tintRed = other.tintRed;
             this.tintGreen = other.tintGreen;
             this.tintBlue = other.tintBlue;
+            this.worldCurvatureSize = other.worldCurvatureSize;
 
             //!! NOTE: Don't forget to update `isEqualTo` when adding fields
         }
 
-        @ConfigEntry
+        @SerialEntry
         public String title;
-        @ConfigEntry
+        @SerialEntry
         @Nullable
         public String key;
-        @ConfigEntry
+        @SerialEntry
         public boolean editable = true;
-        @ConfigEntry
+        @SerialEntry
         public float upscaleResolutionFactor = 1f;
-        @ConfigEntry
+        @SerialEntry
         public float gamma = 1f;
-        @ConfigEntry
+        @SerialEntry
         public float sunPathAngle = 0f;
-        @ConfigEntry
+        @SerialEntry
         public int sunriseStartTime = -785;
-        @ConfigEntry
+        @SerialEntry
         public int sunriseEndTime = 1163;
-        @ConfigEntry
+        @SerialEntry
         public int sunsetStartTime = 10837;
-        @ConfigEntry
+        @SerialEntry
         public int sunsetEndTime = 12785;
-        @ConfigEntry
+        @SerialEntry
         public float dayBrightness = 1f;
-        @ConfigEntry
+        @SerialEntry
         public float nightBrightness = 1f;
-        @ConfigEntry
+        @SerialEntry
         public float saturation = 1f;
-        @ConfigEntry
+        @SerialEntry
         public float opacity = 0.2f;
-        @ConfigEntry
+        @SerialEntry
         public float opacityFactor = 1f;
-        @ConfigEntry
+        @SerialEntry
         public float opacityExponent = 1.5f;
-        @ConfigEntry
+        @SerialEntry
         public float tintRed = 1f;
-        @ConfigEntry
+        @SerialEntry
         public float tintGreen = 1f;
-        @ConfigEntry
+        @SerialEntry
         public float tintBlue = 1f;
+        @SerialEntry
+        public int worldCurvatureSize = 0;
+
 
         public float gamma() {
             if (gamma > 0) {
@@ -299,7 +306,8 @@ public class Config {
                 Float.compare(other.tintGreen, tintGreen) == 0 &&
                 Float.compare(other.tintBlue, tintBlue) == 0 &&
                 Objects.equal(title, other.title) &&
-                Objects.equal(key, other.key);
+                Objects.equal(key, other.key) &&
+                worldCurvatureSize == other.worldCurvatureSize;
         }
     }
 
