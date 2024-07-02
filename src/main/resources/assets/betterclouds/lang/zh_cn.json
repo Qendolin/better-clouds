@@ -97,6 +97,8 @@
   "betterclouds.config.entry.distance.description": "正常视距的一个系数",
   "betterclouds.config.entry.usePersistentBuffers": "持久性缓冲区",
   "betterclouds.config.entry.usePersistentBuffers.description": "减少内存分配",
+  "betterclouds.config.entry.useFrustumCulling": "视锥体裁剪",
+  "betterclouds.config.entry.useFrustumCulling.description": "提高性能",
   "betterclouds.config.entry.shuffle": "随机排序",
   "betterclouds.config.entry.shuffle.description": "可以改善一些视觉和深度冲突问题",
   "betterclouds.config.entry.sizeXZ": "宽度",
