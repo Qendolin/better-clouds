@@ -292,7 +292,7 @@ public class Renderer implements AutoCloseable {
         res.coverageShader().uTime.setFloat(ticks / 20);
         res.coverageShader().uMiscellaneous.setVec3(config.scaleFalloffMin, config.windEffectFactor, config.windSpeedFactor);
         FogShape shape = RenderSystem.getShaderFogShape();
-        if(shape == FogShape.CYLINDER) {
+        if(shape != FogShape.SPHERE) {
             res.coverageShader().uFogRange.setVec2(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
         } else {
             res.coverageShader().uFogRange.setVec2(RenderSystem.getShaderFogStart() , RenderSystem.getShaderFogEnd());
