@@ -12,6 +12,7 @@
   "betterclouds.message.animationResumed": "Animation resumed.",
   "betterclouds.message.gpuIncompatible": "§c§l[!]§r Your GPU is not compatible with Better Clouds.",
   "betterclouds.message.gpuPartiallyIncompatible": "§c§l[!]§r Your GPU is not fully compatible with Better Clouds. This might affect the game's performance and some features might not be available.",
+  "betterclouds.message.hwMaybeIncompatible": "§c§l[!]§r Some users of Better Clouds have reported issues with your CPU / GPU Model (§o%s§r with §o%s§r).",
   "betterclouds.message.generic.disable": "Click here to disable this message",
   "betterclouds.message.generic.error": "An error occurred: %s",
   "betterclouds.message.updatedPreferences": "Updated preferences.",

@@ -1,11 +1,9 @@
 package com.qendolin.betterclouds;
 
 import com.google.gson.FieldNamingPolicy;
+import com.mojang.blaze3d.platform.GlDebugInfo;
 import com.qendolin.betterclouds.clouds.Debug;
-import com.qendolin.betterclouds.compat.DistantHorizonsCompat;
-import com.qendolin.betterclouds.compat.GLCompat;
-import com.qendolin.betterclouds.compat.IrisCompat;
-import com.qendolin.betterclouds.compat.Telemetry;
+import com.qendolin.betterclouds.compat.*;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
@@ -161,6 +159,10 @@ public class Main implements ClientModInitializer {
                 CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
                     .execute(() -> client.execute(Main::sendGpuPartiallyIncompatibleChatMessage));
             }
+            if (HardwareCompat.isMaybeIncompatible()) {
+                CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
+                    .execute(() -> client.execute(Main::sendHardwareMaybeIncompatibleChatMessage));
+            }
             if (RenderDoc.isAvailable()) {
                 Main.debugChatMessage("renderdoc.load.ready", RenderDoc.getAPIVersion());
             }
@@ -230,6 +232,17 @@ public class Main implements ClientModInitializer {
         if (!getConfig().gpuIncompatibleMessageEnabled) return;
         debugChatMessage(
             Text.translatable(debugChatMessageKey("gpuPartiallyIncompatible"))
+                .append(Text.literal("\n - "))
+                .append(Text.translatable(debugChatMessageKey("generic.disable"))
+                    .styled(style -> style.withItalic(true).withUnderline(true).withColor(Formatting.GRAY)
+                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
+                            "/betterclouds:config gpuIncompatibleMessage false")))));
+    }
+
+    public static void sendHardwareMaybeIncompatibleChatMessage() {
+        if (!getConfig().gpuIncompatibleMessageEnabled) return;
+        debugChatMessage(
+            Text.translatable(debugChatMessageKey("hwMaybeIncompatible"), GlDebugInfo.getCpuInfo(), GlDebugInfo.getRenderer())
                 .append(Text.literal("\n - "))
                 .append(Text.translatable(debugChatMessageKey("generic.disable"))
                     .styled(style -> style.withItalic(true).withUnderline(true).withColor(Formatting.GRAY)
