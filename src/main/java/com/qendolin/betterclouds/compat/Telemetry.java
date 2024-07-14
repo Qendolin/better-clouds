@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.qendolin.betterclouds.Main;
 import net.fabricmc.loader.api.*;
-import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.minecraft.MinecraftVersion;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -55,13 +54,13 @@ public class Telemetry implements ITelemetry {
     }
 
     public CompletableFuture<Boolean> sendSystemInfo() {
-        return sendPayload("", false, SYSTEM_INFORMATION);
+        return sendPayload("", SYSTEM_INFORMATION);
     }
 
-    protected CompletableFuture<Boolean> sendPayload(String payload, boolean includeMods, String... labels) {
+    protected CompletableFuture<Boolean> sendPayload(String payload, String... labels) {
         if (!enabled) return CompletableFuture.completedFuture(false);
         try {
-            RequestBody body = new RequestBody(new SystemDetails(), List.of(labels), payload, Main.getVersion(), VERSION, includeMods);
+            RequestBody body = new RequestBody(new SystemDetails(), List.of(labels), payload, Main.getVersion(), VERSION);
             String json = gson.toJson(body);
             final byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
             return postAsync(bytes);
@@ -121,15 +120,15 @@ public class Telemetry implements ITelemetry {
     public void sendShaderCompileError(String error) {
         if (error == null || error.isBlank()) return;
 
-        cachedSend(error, SHADER_COMPILE_ERROR, true);
+        cachedSend(error, SHADER_COMPILE_ERROR);
     }
 
-    private void cachedSend(String error, String messageType, boolean isError) {
+    private void cachedSend(String error, String messageType) {
         if (lazyOpenCache()) {
             String hash = cache.hash(error);
             if (cache.contains(messageType, hash)) return;
         }
-        sendPayload(error, isError, messageType)
+        sendPayload(error, messageType)
             .whenComplete((success, throwable) -> {
                 if (success) {
                     String hash = cache.hash(error);
@@ -152,7 +151,7 @@ public class Telemetry implements ITelemetry {
     public void sendUnhandledException(Exception e) {
         if (e == null) return;
         String message = ExceptionUtils.getStackTrace(e);
-        cachedSend(message, UNHANDLED_EXCEPTION, true);
+        cachedSend(message, UNHANDLED_EXCEPTION);
     }
 
     @Override
@@ -206,40 +205,13 @@ public class Telemetry implements ITelemetry {
         public final MetaInfo metaInfo;
         public final List<String> mods;
 
-        public RequestBody(SystemDetails systemDetails, List<String> labels, String payload, Version modVersion,
-                           int telemetryVersion, boolean includeMods) {
+        public RequestBody(SystemDetails systemDetails, List<String> labels, String payload, Version modVersion, int telemetryVersion) {
             this.systemDetails = systemDetails;
             this.labels = labels;
             this.payload = payload;
             this.telemetryVersion = telemetryVersion;
             this.metaInfo = new MetaInfo(modVersion);
-            if (includeMods) {
-                this.mods = FabricLoader.getInstance().getAllMods().stream()
-                    .filter(mod -> mod != null && mod.getMetadata() != null)
-                    .filter(RequestBody::isNotCommon)
-                    .map(mod -> mod.getMetadata().getId())
-                    .distinct().toList();
-            } else {
-                this.mods = List.of();
-            }
-        }
-
-        private static boolean isNotCommon(ModContainer mod) {
-            String id = mod.getMetadata().getId();
-            ModMetadata metadata = mod.getMetadata();
-            if (id.startsWith("fabric") && metadata.containsCustomValue("fabric-api:module-lifecycle")) {
-                return false;
-            }
-            if (id.startsWith("fabric") && (id.equals("fabricloader") || metadata.getProvides().contains("fabricloader") || id.equals("fabric") || id.equals("fabric-api") || metadata.getProvides().contains("fabric") || metadata.getProvides().contains("fabric-api") || id.equals("fabric-language-kotlin"))) {
-                return false;
-            }
-            if (id.equals(Main.MODID)) {
-                return false;
-            }
-            if (id.equals("java") || id.equals("minecraft") || id.equals("mixinextras")) {
-                return false;
-            }
-            return true;
+            this.mods = List.of();
         }
 
         public static final class MetaInfo {
