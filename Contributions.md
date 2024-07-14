@@ -30,12 +30,6 @@
 
 ... were especially helpful when troubleshooting errors
 
-## Financial Contributions
-    
- - 👑 wilebaldo – 5€
-
-... donated to my Ko-fi
-
 ## Third Party Licensed Code
 
  - RenderDoc Api Java Bindings
