@@ -46,12 +46,7 @@ repositories {
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings loom.layered {
-		mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-		// This is a temporary fix to avoid a naming conflict with iris.
-		// They use mojang mappings which causes an issue with BufferBuilder#vertexCount
-		mappings file("iris_fix_override.tiny")
-	}
+	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"

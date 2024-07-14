@@ -59,6 +59,7 @@ public class Config {
         this.gpuIncompatibleMessageEnabled = other.gpuIncompatibleMessageEnabled;
         this.enabledDimensions = other.enabledDimensions;
         this.celestialBodyHalo = other.celestialBodyHalo;
+        this.useFrustumCulling = other.useFrustumCulling;
     }
 
     @SerialEntry
@@ -103,6 +104,8 @@ public class Config {
     public float fadeEdge = 0.15f;
     @SerialEntry
     public boolean usePersistentBuffers = true;
+    @SerialEntry
+    public boolean useFrustumCulling = true;
     @SerialEntry
     public boolean irisSupport = true;
     @SerialEntry
@@ -221,6 +224,7 @@ public class Config {
             this.tintRed = other.tintRed;
             this.tintGreen = other.tintGreen;
             this.tintBlue = other.tintBlue;
+            this.worldCurvatureSize = other.worldCurvatureSize;
 
             //!! NOTE: Don't forget to update `isEqualTo` when adding fields
         }
@@ -264,6 +268,9 @@ public class Config {
         public float tintGreen = 1f;
         @SerialEntry
         public float tintBlue = 1f;
+        @SerialEntry
+        public int worldCurvatureSize = 0;
+
 
         public float gamma() {
             if (gamma > 0) {
@@ -299,7 +306,8 @@ public class Config {
                 Float.compare(other.tintGreen, tintGreen) == 0 &&
                 Float.compare(other.tintBlue, tintBlue) == 0 &&
                 Objects.equal(title, other.title) &&
-                Objects.equal(key, other.key);
+                Objects.equal(key, other.key) &&
+                worldCurvatureSize == other.worldCurvatureSize;
         }
     }
 

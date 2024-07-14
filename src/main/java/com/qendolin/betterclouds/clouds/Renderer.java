@@ -5,18 +5,12 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.Config;
 import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.clouds.shaders.ShaderParameters;
-import com.qendolin.betterclouds.compat.DistantHorizonsCompat;
-import com.qendolin.betterclouds.compat.HeadInTheCloudsCompat;
-import com.qendolin.betterclouds.compat.IrisCompat;
-import com.qendolin.betterclouds.compat.WorldDuck;
+import com.qendolin.betterclouds.compat.*;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import net.minecraft.block.enums.CameraSubmersionType;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.CloudRenderMode;
-import net.minecraft.client.render.BackgroundRenderer;
-import net.minecraft.client.render.DimensionEffects;
-import net.minecraft.client.render.FogShape;
-import net.minecraft.client.render.Frustum;
+import net.minecraft.client.render.*;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.math.Box;
@@ -37,7 +31,6 @@ public class Renderer implements AutoCloseable {
     private ClientWorld world = null;
 
     private float cloudsHeight;
-    private int defaultFbo;
     private final Matrix4f mvpMatrix = new Matrix4f();
     private final Matrix4f mvMatrix = new Matrix4f();
     private final Matrix4f pMatrix = new Matrix4f();
@@ -94,7 +87,8 @@ public class Renderer implements AutoCloseable {
             config.blockDistance(),
             config.fadeEdge, config.sizeXZ, config.sizeY, config.celestialBodyHalo,
             glCompat.useDepthWriteFallback(), glCompat.useStencilTextureFallback(),
-            DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled()
+            DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled(),
+            config.preset().worldCurvatureSize
         );
     }
 
@@ -107,7 +101,7 @@ public class Renderer implements AutoCloseable {
             if (RenderDoc.isFrameCapturing()) glCompat.debugMessage("prepare failed: critical resource not loaded");
             return PrepareResult.FALLBACK;
         }
-        if (!config.irisSupport && IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled()) {
+        if (!config.irisSupport && IrisCompat.instance().isShadersEnabled()) {
             if (RenderDoc.isFrameCapturing()) glCompat.debugMessage("prepare failed: iris support disabled");
             return PrepareResult.FALLBACK;
         }
@@ -168,9 +162,6 @@ public class Renderer implements AutoCloseable {
         mvpMatrix.set(projMat);
         mvpMatrix.mul(mvMatrix);
 
-        // TODO: don't do this dynamically
-        defaultFbo = glGetInteger(GL_DRAW_FRAMEBUFFER_BINDING);
-
         return PrepareResult.RENDER;
     }
 
@@ -199,10 +190,14 @@ public class Renderer implements AutoCloseable {
 
 
         client.getProfiler().swap("draw_shading");
-        if (IrisCompat.IS_LOADED && IrisCompat.isShadersEnabled() && config.useIrisFBO) {
-            IrisCompat.bindFramebuffer();
+
+        RenderPhase renderPhase = null;
+        if (IrisCompat.instance().isShadersEnabled() && config.useIrisFBO) {
+            IrisCompat.instance().bindFramebuffer();
         } else {
-            GlStateManager._glBindFramebuffer(GL_DRAW_FRAMEBUFFER, defaultFbo);
+            client.getFramebuffer().beginWrite(false);
+            renderPhase = RenderPhase.CLOUDS_TARGET;
+            renderPhase.startDrawing();
         }
 
         drawShading(cam, tickDelta);
@@ -217,6 +212,10 @@ public class Renderer implements AutoCloseable {
         RenderSystem.depthFunc(GL_LEQUAL);
         RenderSystem.activeTexture(GL_TEXTURE0);
         RenderSystem.colorMask(true, true, true, true);
+
+        if(renderPhase != null) {
+            renderPhase.endDrawing();
+        }
 
         if (!glCompat.useStencilTextureFallback()) {
             glDisable(GL_STENCIL_TEST);
@@ -345,8 +344,9 @@ public class Renderer implements AutoCloseable {
         int runStart = -1;
         int runCount = 0;
         for (ChunkedGenerator.ChunkIndex chunk : res.generator().chunks()) {
+            boolean frustumCulling = config.useFrustumCulling && config.preset().worldCurvatureSize == 0;
             Box bounds = chunk.bounds(cloudsHeight, config.sizeXZ, config.sizeY);
-            if (!frustumAtOrigin.isVisible(bounds)) {
+            if (frustumCulling && !frustumAtOrigin.isVisible(bounds)) {
                 Debug.addFrustumCulledBox(bounds, false);
                 if (runCount != 0) {
                     if (glCompat.useBaseInstanceFallback()) {

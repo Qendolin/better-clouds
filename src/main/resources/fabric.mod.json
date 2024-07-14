@@ -44,6 +44,7 @@
   "breaks": {
     "vulkanmod": "*",
     "iris": "<1.7.0",
-    "yet_another_config_lib_v3": "<3.4.0"
+    "yet_another_config_lib_v3": "<3.4.0",
+    "distanthorizons": ">=2.1.3-a"
   }
 }
