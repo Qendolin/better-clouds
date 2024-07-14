@@ -1,7 +1,7 @@
 {
   "betterclouds.message.reloadingConfig": "重載配置中……",
   "betterclouds.message.configReloaded": "配置已重載！",
-  "betterclouds.message.profiling.enabled": "啟用了超過%d幀效能的分析，效能將受到影響。",
+  "betterclouds.message.profiling.enabled": "啟用了超過 %d 幀效能的分析，效能將受到影響。",
   "betterclouds.message.profiling.disabled": "關閉了效能分析",
   "betterclouds.message.profiling.genTimes": "§5生成時間§r： %d §7 毫秒 §r || %.3f §7 每秒 §r",
   "betterclouds.message.profiling.gpuTimes": "§cGPU 時間§r： %.3f | %.3f | %.3f §7 最小值、平均值、最大值 §r || %.3f | %.3f | %.3f §7 p25、中位數、p75 §r",
