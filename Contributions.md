@@ -13,9 +13,11 @@
  - Cccc-owo
    - Provide simplified chinese translation – [#20](https://github.com/Qendolin/better-clouds/pull/20)
  - Myuui
-   - Provide french translation - [#60](https://github.com/Qendolin/better-clouds/pull/60)
+   - Provide french translation – [#60](https://github.com/Qendolin/better-clouds/pull/60)
  - Merhaf
-   - Provide korean translation - [#91](https://github.com/Qendolin/better-clouds/pull/91)
+   - Provide korean translation – [#91](https://github.com/Qendolin/better-clouds/pull/91)
+ - yichifauzi
+   - Provide traditional chinese translation – [#115](https://github.com/Qendolin/better-clouds/pull/115)
 
 ... got a PR accepted
  
