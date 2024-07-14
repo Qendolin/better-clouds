@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.5-SNAPSHOT'
+	id 'fabric-loom' version '1.6-SNAPSHOT'
 	id 'maven-publish'
 	id "com.modrinth.minotaur" version "2.+"
 }
@@ -52,7 +52,7 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
 	modImplementation("dev.isxander.yacl:yet-another-config-lib-fabric:${project.yacl_version}")
-    compileOnly "maven.modrinth:DistantHorizonsApi:1.0.0"
+    compileOnly files("libraries/DistantHorizonsApi-3.0.0-nightly-377f7d23.jar")
 
 	modCompileOnly "maven.modrinth:sodium-extra:${project.sodium_extra_version}"
 	modCompileOnly "maven.modrinth:iris:${project.iris_version}"
@@ -64,6 +64,9 @@ processResources {
 	filesMatching("fabric.mod.json") {
 		expand "version": project.version
 	}
+
+	exclude("assets/**/*.ase")
+	exclude("assets/**/*.xcf")
 }
 
 tasks.withType(JavaCompile).configureEach {
