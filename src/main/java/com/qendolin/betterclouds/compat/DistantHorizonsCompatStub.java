@@ -24,4 +24,9 @@ class DistantHorizonsCompatStub extends DistantHorizonsCompat {
     public Optional<Integer> getDepthTextureId() {
         return Optional.empty();
     }
+
+    @Override
+    public void disableLodClouds() {
+
+    }
 }

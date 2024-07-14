@@ -52,7 +52,7 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
 	modImplementation("dev.isxander:yet-another-config-lib:${project.yacl_version}-fabric")
-    compileOnly "maven.modrinth:DistantHorizonsApi:${project.dh_api_version}"
+	compileOnly files("libraries/DistantHorizonsApi-3.0.0-nightly-377f7d23.jar")
 
 	modCompileOnly "maven.modrinth:sodium-extra:${project.sodium_extra_version}"
 	modCompileOnly "maven.modrinth:iris:${project.iris_version}"
