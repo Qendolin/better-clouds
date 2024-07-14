@@ -54,6 +54,10 @@ public class Config {
         this.useIrisFBO = other.useIrisFBO;
         this.selectedPreset = other.selectedPreset;
         this.presets = other.presets;
+        if(this.presets == null) {
+            //noinspection IncompleteCopyConstructor
+            this.presets = new ArrayList<>();
+        }
         this.presets.replaceAll(ShaderConfigPreset::new);
         this.lastTelemetryVersion = other.lastTelemetryVersion;
         this.gpuIncompatibleMessageEnabled = other.gpuIncompatibleMessageEnabled;
@@ -155,7 +159,7 @@ public class Config {
 
     @NotNull
     public ShaderConfigPreset preset() {
-        if (presets.isEmpty()) {
+        if (presets == null || presets.isEmpty()) {
             addFirstPreset();
         }
         selectedPreset = MathHelper.clamp(selectedPreset, 0, presets.size() - 1);
@@ -183,6 +187,7 @@ public class Config {
     }
 
     public void addFirstPreset() {
+        if (presets == null) presets = new ArrayList<>();
         if (!presets.isEmpty()) return;
         presets.add(new ShaderConfigPreset());
     }
@@ -285,6 +290,7 @@ public class Config {
             key = null;
         }
 
+        // Can't override the Object#equals method since it causes an issue with indexOf in the GUI
         public boolean isEqualTo(ShaderConfigPreset other) {
             if (this == other) return true;
             if (other == null) return false;

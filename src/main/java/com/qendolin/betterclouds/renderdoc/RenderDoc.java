@@ -23,7 +23,6 @@ import com.sun.jna.ptr.LongByReference;
 import com.sun.jna.ptr.PointerByReference;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
@@ -31,7 +30,6 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.EnumSet;
 
-@ApiStatus.Experimental
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public final class RenderDoc {
 
