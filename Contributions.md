@@ -13,9 +13,11 @@
  - Cccc-owo
    - Provide simplified chinese translation – [#20](https://github.com/Qendolin/better-clouds/pull/20)
  - Myuui
-   - Provide french translation - [#60](https://github.com/Qendolin/better-clouds/pull/60)
+   - Provide french translation – [#60](https://github.com/Qendolin/better-clouds/pull/60)
  - Merhaf
-   - Provide korean translation - [#91](https://github.com/Qendolin/better-clouds/pull/91)
+   - Provide korean translation – [#91](https://github.com/Qendolin/better-clouds/pull/91)
+ - yichifauzi
+   - Provide traditional chinese translation – [#115](https://github.com/Qendolin/better-clouds/pull/115)
 
 ... got a PR accepted
  
@@ -29,12 +31,6 @@
    - Rendering issue where stencil buffers where used inappropriately – [#28](https://github.com/Qendolin/better-clouds/issues/28)
 
 ... were especially helpful when troubleshooting errors
-
-## Financial Contributions
-    
- - 👑 wilebaldo – 5€
-
-... donated to my Ko-fi
 
 ## Third Party Licensed Code
 
