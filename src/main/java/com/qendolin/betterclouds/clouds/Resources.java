@@ -229,7 +229,38 @@ public class Resources implements Closeable {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, oitDataTexture, 0);
         glDrawBuffers(new int[]{GL_COLOR_ATTACHMENT0});
 
-        if (glCompat.useStencilTextureFallback()) {
+        boolean useStencilTextureFallback = glCompat.useStencilTextureFallback();
+        boolean useDepthWriteFallback = glCompat.useDepthWriteFallback();
+        boolean[][] configurations = {{false, false}, {true, false}, {true, true}};
+        int configurationIndex = -1;
+
+        while (true) {
+            createFramebufferAttachments(useStencilTextureFallback, useDepthWriteFallback);
+            int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+            if (status == GL_FRAMEBUFFER_COMPLETE) {
+                Main.LOGGER.info("Framebuffer complete. useStencilTextureFallback={}, useDepthWriteFallback={}", useStencilTextureFallback, useDepthWriteFallback);
+                if(configurationIndex != -1) {
+                    glCompat.setUseStencilTextureFallback(useStencilTextureFallback);
+                    glCompat.setUseDepthWriteFallback(useDepthWriteFallback);
+                }
+                break;
+            }
+
+            deleteFramebufferAttachments();
+
+            configurationIndex++;
+            if(configurationIndex >= configurations.length) {
+                throw new RuntimeException("Better Clouds framebuffer incomplete, exhausted all options, your GPU is likely incompatible, status: " + status);
+            }
+
+            Main.LOGGER.warn("Framebuffer incomplete, trying different creation configuration. useStencilTextureFallback={}, useDepthWriteFallback={}, status={}", useStencilTextureFallback, useDepthWriteFallback, status);
+            useStencilTextureFallback = configurations[configurationIndex][0];
+            useDepthWriteFallback = configurations[configurationIndex][1];
+        }
+    }
+
+    private void createFramebufferAttachments(boolean useStencilTextureFallback, boolean useDepthWriteFallback) {
+        if (useStencilTextureFallback) {
             oitCoverageTexture = glGenTextures();
             RenderSystem.bindTexture(oitCoverageTexture);
             glCompat.objectLabelDev(GL_TEXTURE, oitCoverageTexture, "coverage_color_fallback");
@@ -256,7 +287,7 @@ public class Resources implements Closeable {
             glTexParameteri(GL_TEXTURE_2D, glCompat.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_STENCIL_INDEX);
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, oitCoverageTexture, 0);
 
-            if (glCompat.useDepthWriteFallback()) {
+            if (useDepthWriteFallback) {
                 oitCoverageDepthTexture = oitCoverageTexture;
             } else {
                 oitCoverageDepthTexture = glGenTextures();
@@ -270,19 +301,18 @@ public class Resources implements Closeable {
         }
 
         RenderSystem.bindTexture(0);
-
-        int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-        if (status != GL_FRAMEBUFFER_COMPLETE) {
-            throw new RuntimeException("Better Clouds framebuffer incomplete, your GPU is likely incompatible, status: " + status);
-        }
     }
 
     public void deleteFramebuffer() {
         if (oitFbo != 0) glDeleteFramebuffers(oitFbo);
+        deleteFramebufferAttachments();
+        oitFbo = UNASSIGNED;
+    }
+
+    private void deleteFramebufferAttachments() {
         if (oitDataTexture != 0) RenderSystem.deleteTexture(oitDataTexture);
         if (oitCoverageTexture != 0) RenderSystem.deleteTexture(oitCoverageTexture);
         if (oitCoverageDepthTexture != 0) RenderSystem.deleteTexture(oitCoverageDepthTexture);
-        oitFbo = UNASSIGNED;
         oitDataTexture = UNASSIGNED;
         oitCoverageTexture = UNASSIGNED;
         oitCoverageDepthTexture = UNASSIGNED;
