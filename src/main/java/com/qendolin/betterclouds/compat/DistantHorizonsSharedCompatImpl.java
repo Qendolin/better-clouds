@@ -12,13 +12,14 @@ import com.seibel.distanthorizons.api.methods.events.sharedParameterObjects.DhAp
 import com.seibel.distanthorizons.api.objects.DhApiResult;
 import org.joml.Matrix4f;
 
+import java.lang.reflect.Field;
 import java.util.Optional;
 
-class DistantHorizonsCompatImpl extends DistantHorizonsCompat {
+abstract class DistantHorizonsSharedCompatImpl extends DistantHorizonsCompat {
     private boolean isDhInitialized = false;
     private DhApiRenderParam lastRenderParam = null;
 
-    public DistantHorizonsCompatImpl() {
+    public DistantHorizonsSharedCompatImpl() {
         Main.LOGGER.info("Registering DH Api events");
         // Lambdas didn't work
         DhApiEventRegister.on(DhApiAfterDhInitEvent.class, new DhApiAfterDhInitEvent() {
@@ -35,6 +36,10 @@ class DistantHorizonsCompatImpl extends DistantHorizonsCompat {
                 }
                 // With shaders the transparent rendering pass might be deferred and doesn't have a 'valid' dhProjectionMatrix
                 // Don't know if that's how it's supposed to be, but I can't use it.
+
+                if(Main.getConfig().enabled) {
+                    disableLodClouds();
+                }
             }
         });
     }
@@ -51,12 +56,14 @@ class DistantHorizonsCompatImpl extends DistantHorizonsCompat {
 
     @Override
     public Matrix4f getProjectionMatrix() {
-        float[] mat = lastRenderParam.dhProjectionMatrix.getValuesAsArray();
+        float[] mat = getDhProjectionMatrixValues(lastRenderParam);
         return new Matrix4f(mat[0], mat[4], mat[8], mat[12],
             mat[1], mat[5], mat[9], mat[13],
             mat[2], mat[6], mat[10], mat[14],
             mat[3], mat[7], mat[11], mat[15]);
     }
+
+    abstract float[] getDhProjectionMatrixValues(DhApiRenderParam renderParam);
 
     @Override
     public Optional<Integer> getDepthTextureId() {
@@ -66,5 +73,4 @@ class DistantHorizonsCompatImpl extends DistantHorizonsCompat {
         }
         return Optional.empty();
     }
-
 }

@@ -1,5 +1,6 @@
 package com.qendolin.betterclouds.compat;
 
+import com.seibel.distanthorizons.api.DhApi;
 import net.fabricmc.loader.api.FabricLoader;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
@@ -22,14 +23,20 @@ public abstract class DistantHorizonsCompat {
         if (instance != null) return;
 
         boolean isLoaded = FabricLoader.getInstance().isModLoaded("distanthorizons");
+        boolean isVersion2 = false;
+        boolean isVersion3 = false;
         try {
             Class.forName("com.seibel.distanthorizons.api.DhApi");
+            isVersion2 = DhApi.getModVersion().startsWith("2.");
+            isVersion3 = DhApi.getModVersion().startsWith("3.");
         } catch (ClassNotFoundException e) {
             isLoaded = false;
         }
 
-        if (isLoaded) {
-            instance = new DistantHorizonsCompatImpl();
+        if (isLoaded && isVersion3) {
+            instance = new DistantHorizons3CompatImpl();
+        } else if (isLoaded && isVersion2) {
+            instance = new DistantHorizons2CompatImpl();
         } else {
             instance = new DistantHorizonsCompatStub();
         }
@@ -47,4 +54,6 @@ public abstract class DistantHorizonsCompat {
     public abstract Matrix4f getProjectionMatrix();
 
     public abstract Optional<Integer> getDepthTextureId();
+
+    public abstract void disableLodClouds();
 }
