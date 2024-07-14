@@ -23,7 +23,6 @@ import com.sun.jna.ptr.LongByReference;
 import com.sun.jna.ptr.PointerByReference;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
@@ -31,16 +30,16 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.EnumSet;
 
-@ApiStatus.Experimental
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public final class RenderDoc {
 
-    private RenderDoc() {}
+    private RenderDoc() {
+    }
 
     private static RenderDocLibrary.RenderdocApi renderdoc;
 
     public static void init(RenderDocLibrary renderdocLibrary) {
-        if(renderdoc != null) return;
+        if (renderdoc != null) return;
 
         var apiPointer = new PointerByReference();
         RenderDocLibrary.RenderdocApi apiInstance = null;
@@ -457,5 +456,6 @@ public final class RenderDoc {
         }
     }
 
-    public record Capture(String path, Instant timestamp) {}
+    public record Capture(String path, Instant timestamp) {
+    }
 }

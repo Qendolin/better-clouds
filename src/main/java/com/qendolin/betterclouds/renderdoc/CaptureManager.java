@@ -1,6 +1,5 @@
 package com.qendolin.betterclouds.renderdoc;
 
-import javax.security.auth.callback.Callback;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -24,7 +23,7 @@ public class CaptureManager {
         int captureIndex = RenderDoc.getNumCaptures();
         RenderDoc.triggerCapture();
         synchronized (callbacks) {
-            callbacks.add(Map.entry(frameIndex.get()+2, () -> {
+            callbacks.add(Map.entry(frameIndex.get() + 2, () -> {
                 callback.accept(RenderDoc.getCapture(captureIndex));
             }));
         }
@@ -41,7 +40,7 @@ public class CaptureManager {
     public static LaunchConfig readLaunchConfig() {
         try {
             List<String> confLines = Files.readAllLines(LAUNCH_CONFIG_PATH, StandardCharsets.UTF_8);
-            Map<String,String> conf = confLines.stream()
+            Map<String, String> conf = confLines.stream()
                 .map(line -> line.split("="))
                 .collect(Collectors.toMap(kvp -> kvp[0], kvp -> kvp[1]));
             boolean load = conf.get("load").equalsIgnoreCase("true");
@@ -56,16 +55,17 @@ public class CaptureManager {
     public static void deleteLaunchConfig() {
         try {
             Files.delete(LAUNCH_CONFIG_PATH);
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) {
+        }
     }
 
     public static void onSwapBuffers() {
         long idx = frameIndex.getAndIncrement();
-        if(callbacks.isEmpty()) return;
+        if (callbacks.isEmpty()) return;
         Iterator<Map.Entry<Long, Runnable>> iterator = callbacks.iterator();
         while (iterator.hasNext()) {
             Map.Entry<Long, Runnable> entry = iterator.next();
-            if(idx >= entry.getKey()) {
+            if (idx >= entry.getKey()) {
                 entry.getValue().run();
                 iterator.remove();
             }

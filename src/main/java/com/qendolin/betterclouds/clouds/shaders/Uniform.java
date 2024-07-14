@@ -22,6 +22,7 @@ public abstract class Uniform {
     }
 
     public abstract void setMat4(Matrix4f mat);
+
     public abstract void setMat4(float[] mat, boolean transpose);
 
     public abstract void setVec4(float x, float y, float z, float w);

@@ -1,9 +1,6 @@
 package com.qendolin.betterclouds;
 
-import com.qendolin.betterclouds.gui.ConfigScreen;
-import com.qendolin.betterclouds.gui.CustomButtonOption;
-import com.qendolin.betterclouds.gui.CustomIntegerFieldController;
-import com.qendolin.betterclouds.gui.SelectController;
+import com.qendolin.betterclouds.gui.*;
 import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.gui.controllers.BooleanController;
 import dev.isxander.yacl3.gui.controllers.ColorController;
@@ -65,8 +62,12 @@ public class ConfigGUI {
     public final Option<Boolean> useIrisFBO;
     public final Option<Float> upscaleResolutionFactor;
     public final Option<Boolean> usePersistentBuffers;
+    public final Option<Boolean> useFrustumCulling;
     public final Option<Integer> selectedPreset;
     public final Option<String> presetTitle;
+    public final List<Integer> worldCurvatureValues = List.of(0, -256, -512, -1024, -2048, -4096, -8192, -16384, 16384, 8192, 4096, 2048, 1024, 512, 256, 128, 64, 32, 16);
+    public final Option<Integer> worldCurvatureSize; // option value is the index
+
     public final ButtonOption copyPresetButton;
     public final ButtonOption removePresetButton;
 
@@ -93,6 +94,7 @@ public class ConfigGUI {
     protected final List<Option<?>> shadersGeneralGroup = new ArrayList<>();
     protected final List<Option<?>> shadersPresetGroup = new ArrayList<>();
     protected final List<Option<?>> shadersColorGroup = new ArrayList<>();
+    protected final List<Option<?>> shadersMiscGroup = new ArrayList<>();
     protected final List<Option<?>> shadersTechnicalGroup = new ArrayList<>();
 
     protected final List<Option<?>> shaderConfigPresetOptions = new ArrayList<>();
@@ -202,6 +204,10 @@ public class ConfigGUI {
             .binding(defaults.usePersistentBuffers, () -> config.usePersistentBuffers, val -> config.usePersistentBuffers = val)
             .customController(TickBoxController::new)
             .build();
+        this.useFrustumCulling = createOption(boolean.class, "useFrustumCulling")
+            .binding(defaults.useFrustumCulling, () -> config.useFrustumCulling, val -> config.useFrustumCulling = val)
+            .customController(TickBoxController::new)
+            .build();
 
         // FIXME: defaults.preset() gives default values defined in the code, not from the `default` preset
 
@@ -297,6 +303,14 @@ public class ConfigGUI {
             .binding(defaults.preset().opacity, () -> config.preset().opacity, val -> config.preset().opacity = val)
             .customController(opt -> new FloatSliderController(opt, 0, 1, 0.01f, ConfigGUI::formatAsPercent))
             .build();
+        this.worldCurvatureSize = createOption(int.class, "worldCurvatureSize")
+            .binding(
+                Math.max(worldCurvatureValues.indexOf(defaults.preset().worldCurvatureSize), 0),
+                () -> Math.max(worldCurvatureValues.indexOf(config.preset().worldCurvatureSize), 0),
+                val -> config.preset().worldCurvatureSize = worldCurvatureValues.get(val))
+            .customController(opt -> new IntegerSliderController(opt, 0, worldCurvatureValues.size()-1, 1,
+                i -> i == 0 ? Text.translatable("options.off") : Text.literal(worldCurvatureValues.get(i).toString())))
+            .build();
         shaderConfigPresetOptions.addAll(List.of(presetTitle,
             saturation,
             tint,
@@ -311,7 +325,8 @@ public class ConfigGUI {
             sunPathAngle,
             opacityFactor,
             opacityExponent,
-            opacity));
+            opacity,
+            worldCurvatureSize));
         shaderConfigPresetOptions.forEach(opt -> opt.setAvailable(config.preset().editable));
 
         final Text removeButtonRemoveText = Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.remove");
@@ -387,7 +402,7 @@ public class ConfigGUI {
         appearanceColorGroup.addAll(List.of(colorVariationFactor, gamma, dayBrightness, nightBrightness, saturation, tint));
         appearanceCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("appearance.sky")), appearanceSkyGroup));
-        appearanceSkyGroup.addAll(List.of(celestialBodyHalo));
+        appearanceSkyGroup.add(celestialBodyHalo);
 
         categories.add(new Pair<>(ConfigCategory.createBuilder()
             .name(categoryLabel("performance")), performanceCategory));
@@ -396,7 +411,7 @@ public class ConfigGUI {
         performanceGenerationGroup.addAll(List.of(spacing, chunkSize, distance, sparsity, fuzziness, shuffle));
         performanceCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("performance.technical")), performanceTechnicalGroup));
-        performanceTechnicalGroup.addAll(List.of(usePersistentBuffers));
+        performanceTechnicalGroup.addAll(List.of(usePersistentBuffers, useFrustumCulling));
 
         categories.add(new Pair<>(ConfigCategory.createBuilder()
             .name(categoryLabel("shaders")), shadersCategory));
@@ -409,6 +424,9 @@ public class ConfigGUI {
         shadersCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("shaders.color")), shadersColorGroup));
         shadersColorGroup.addAll(List.of(gamma, dayBrightness, nightBrightness, saturation, tint));
+        shadersCategory.add(new Pair<>(OptionGroup.createBuilder()
+            .name(groupLabel("shaders.misc")), shadersMiscGroup));
+        shadersMiscGroup.add(worldCurvatureSize);
         shadersCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("shaders.technical")), shadersTechnicalGroup));
 

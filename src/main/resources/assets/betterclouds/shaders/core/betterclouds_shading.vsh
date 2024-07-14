@@ -12,5 +12,5 @@ void main() {
     pass_dir = in_vert;
 
     gl_Position = u_vp_matrix * vec4(in_vert, 1.0);
-    gl_Position.z = gl_Position.w;
+    gl_Position.z = 0.0;
 }

@@ -54,10 +54,15 @@ public class Buffer implements AutoCloseable {
 
         writeBufferId = glGenBuffers();
         drawBufferId = glGenBuffers();
+        if(size <= 0) {
+            // There is no way for the size to be zero or less, but I've reports of it happening regardless.
+            Main.LOGGER.error("Impossible, invalid buffer size of {}, forcing it to 1", size);
+            size = 1;
+        }
         long vboSize = (long) size * size * 3 * Float.BYTES;
         if (usePersistent) {
             try {
-                allocatePersistent((int) vboSize);
+                allocatePersistent(vboSize);
             } catch (IllegalStateException e) {
                 Main.getConfig().usePersistentBuffers = false;
                 Main.getConfigHandler().save();
@@ -66,7 +71,7 @@ public class Buffer implements AutoCloseable {
             }
         }
 
-        if(!usePersistent) {
+        if (!usePersistent) {
             allocateMutable(vboSize);
         }
 
@@ -85,14 +90,14 @@ public class Buffer implements AutoCloseable {
         glBindBuffer(GL_ARRAY_BUFFER, writeBufferId);
         glCompat.bufferStorage(GL_ARRAY_BUFFER, vboSize, flags);
         ByteBuffer buffer = glMapBufferRange(GL_ARRAY_BUFFER, 0, vboSize, flags);
-        if(buffer == null) throw new IllegalStateException("glMapBufferRange returned null");
+        if (buffer == null) throw new IllegalStateException("glMapBufferRange returned null");
         writeBuffer = buffer.asFloatBuffer();
         glCompat.objectLabelDev(glCompat.GL_BUFFER, writeBufferId, "cloud_positions_a");
 
         glBindBuffer(GL_ARRAY_BUFFER, drawBufferId);
         glCompat.bufferStorage(GL_ARRAY_BUFFER, vboSize, flags);
         buffer = glMapBufferRange(GL_ARRAY_BUFFER, 0, vboSize, flags);
-        if(buffer == null) throw new IllegalStateException("glMapBufferRange returned null");
+        if (buffer == null) throw new IllegalStateException("glMapBufferRange returned null");
         drawBuffer = buffer.asFloatBuffer();
         glCompat.objectLabelDev(glCompat.GL_BUFFER, drawBufferId, "cloud_positions_b");
     }

@@ -113,7 +113,7 @@ public class CustomCategoryTab implements TabExt {
         }
     }
 
-    private void updateButtons() {
+    public void updateButtons() {
         boolean pendingChanges = screen.pendingChanges();
 
         if (Screen.hasShiftDown()) {
@@ -123,11 +123,10 @@ public class CustomCategoryTab implements TabExt {
             cancelResetButton.active = false;
             cancelResetButton.setTooltip(Tooltip.of(Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".reset.tooltip.holdShift")));
         }
+        cancelResetButton.setMessage(pendingChanges ? GuiUtils.translatableFallback("yacl.gui.cancel", ScreenTexts.CANCEL) : Text.translatable("controls.reset"));
 
         saveFinishedButton.setMessage(pendingChanges ? Text.translatable("yacl.gui.save") : GuiUtils.translatableFallback("yacl.gui.done", ScreenTexts.DONE));
         saveFinishedButton.setTooltip(Tooltip.of(pendingChanges ? Text.translatable("yacl.gui.save.tooltip") : Text.translatable("yacl.gui.finished.tooltip")));
-        cancelResetButton.setMessage(pendingChanges ? GuiUtils.translatableFallback("yacl.gui.cancel", ScreenTexts.CANCEL) : Text.translatable("controls.reset"));
-        cancelResetButton.setTooltip(Tooltip.of(pendingChanges ? Text.translatable("yacl.gui.cancel.tooltip") : Text.translatable("yacl.gui.reset.tooltip")));
     }
 
     @Override

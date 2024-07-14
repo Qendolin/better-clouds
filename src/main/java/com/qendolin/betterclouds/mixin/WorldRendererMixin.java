@@ -14,7 +14,6 @@ import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.resource.ResourceManager;
-import net.minecraft.world.dimension.DimensionTypes;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector3d;
@@ -84,12 +83,12 @@ public abstract class WorldRendererMixin {
         if (cloudRenderer != null) cloudRenderer.setWorld(world);
     }
 
-    @Inject(at = @At("HEAD"), method = "renderClouds(Lnet/minecraft/client/util/math/MatrixStack;Lorg/joml/Matrix4f;FDDD)V", cancellable = true)
-    private void renderClouds(MatrixStack matrices, Matrix4f projMat, float tickDelta, double camX, double camY, double camZ, CallbackInfo ci) {
+    @Inject(at = @At("HEAD"), method = "renderClouds(Lnet/minecraft/client/util/math/MatrixStack;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;FDDD)V", cancellable = true)
+    private void renderClouds(MatrixStack matrices, Matrix4f viewMat, Matrix4f projMat, float tickDelta, double camX, double camY, double camZ, CallbackInfo ci) {
         if (cloudRenderer == null) return;
         if (glCompat.isIncompatible()) return;
         if (world == null) return;
-        if (!Main.getConfig().enabledDimensions.contains(world.getDimensionKey())) return;
+        if (!Main.getConfig().enabledDimensions.contains(world.getDimensionEntry().getKey().orElse(null))) return;
         if (!Main.getConfig().enabled) return;
 
         client.getProfiler().push(Main.MODID);
@@ -108,27 +107,26 @@ public abstract class WorldRendererMixin {
         long startTime = System.nanoTime();
 
         int ticks = this.ticks;
-        if(Debug.animationPause >= 0) {
-            if(Debug.animationPause == 0) Debug.animationPause = ticks;
+        if (Debug.animationPause >= 0) {
+            if (Debug.animationPause == 0) Debug.animationPause = ticks;
             else ticks = Debug.animationPause;
             tickDelta = 0;
         }
 
-        matrices.push();
         try {
-            Renderer.PrepareResult prepareResult = cloudRenderer.prepare(matrices, projMat, ticks, tickDelta, cam);
-            if(RenderDoc.isFrameCapturing()) glCompat.debugMessage("renderer prepare returned " + prepareResult.name());
+            Renderer.PrepareResult prepareResult = cloudRenderer.prepare(viewMat, projMat, ticks, tickDelta, cam);
+            if (RenderDoc.isFrameCapturing())
+                glCompat.debugMessage("renderer prepare returned " + prepareResult.name());
             if (prepareResult == Renderer.PrepareResult.RENDER) {
                 ci.cancel();
                 cloudRenderer.render(ticks, tickDelta, cam, frustumPos, frustum);
-            } else if(prepareResult == Renderer.PrepareResult.NO_RENDER) {
+            } else if (prepareResult == Renderer.PrepareResult.NO_RENDER) {
                 ci.cancel();
             }
         } catch (Exception e) {
             Telemetry.INSTANCE.sendUnhandledException(e);
             throw e;
         }
-        matrices.pop();
 
         if (Main.isProfilingEnabled()) {
             GL32.glFinish();

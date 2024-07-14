@@ -35,8 +35,7 @@ public class Debug {
 
     public static void drawFrustumCulledBoxes(Vector3d cam) {
         if (!frustumCulling) return;
-        BufferBuilder vertices = Tessellator.getInstance().getBuffer();
-        vertices.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
+        BufferBuilder vertices = Tessellator.getInstance().begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
         ShaderProgram prevShader = RenderSystem.getShader();
         RenderSystem.setShader(GameRenderer::getPositionColorProgram);
         for (Pair<Box, Boolean> pair : frustumCulledBoxes) {
@@ -47,7 +46,7 @@ public class Debug {
                 drawBox(cam, vertices, box, 1f, 0.6f, 0.5f, 1f);
             }
         }
-        Tessellator.getInstance().draw();
+        BufferRenderer.drawWithGlobalProgram(vertices.end());
         RenderSystem.setShader(() -> prevShader);
     }
 
@@ -59,29 +58,29 @@ public class Debug {
         float maxX = (float) (box.maxX - cam.x);
         float maxY = (float) (box.maxY - cam.y);
         float maxZ = (float) (box.maxZ - cam.z);
-        vertexConsumer.vertex(minX, minY, minZ).color(red, green, blue, alpha).next();
-        vertexConsumer.vertex(maxX, minY, minZ).color(red, green, blue, alpha).next();
-        vertexConsumer.vertex(minX, minY, minZ).color(red, green, blue, alpha).next();
-        vertexConsumer.vertex(minX, maxY, minZ).color(red, green, blue, alpha).next();
-        vertexConsumer.vertex(minX, minY, minZ).color(red, green, blue, alpha).next();
-        vertexConsumer.vertex(minX, minY, maxZ).color(red, green, blue, alpha).next();
-        vertexConsumer.vertex(maxX, minY, minZ).color(red, green, blue, alpha).next();
-        vertexConsumer.vertex(maxX, maxY, minZ).color(red, green, blue, alpha).next();
-        vertexConsumer.vertex(maxX, maxY, minZ).color(red, green, blue, alpha).next();
-        vertexConsumer.vertex(minX, maxY, minZ).color(red, green, blue, alpha).next();
-        vertexConsumer.vertex(minX, maxY, minZ).color(red, green, blue, alpha).next();
-        vertexConsumer.vertex(minX, maxY, maxZ).color(red, green, blue, alpha).next();
-        vertexConsumer.vertex(minX, maxY, maxZ).color(red, green, blue, alpha).next();
-        vertexConsumer.vertex(minX, minY, maxZ).color(red, green, blue, alpha).next();
-        vertexConsumer.vertex(minX, minY, maxZ).color(red, green, blue, alpha).next();
-        vertexConsumer.vertex(maxX, minY, maxZ).color(red, green, blue, alpha).next();
-        vertexConsumer.vertex(maxX, minY, maxZ).color(red, green, blue, alpha).next();
-        vertexConsumer.vertex(maxX, minY, minZ).color(red, green, blue, alpha).next();
-        vertexConsumer.vertex(minX, maxY, maxZ).color(red, green, blue, alpha).next();
-        vertexConsumer.vertex(maxX, maxY, maxZ).color(red, green, blue, alpha).next();
-        vertexConsumer.vertex(maxX, minY, maxZ).color(red, green, blue, alpha).next();
-        vertexConsumer.vertex(maxX, maxY, maxZ).color(red, green, blue, alpha).next();
-        vertexConsumer.vertex(maxX, maxY, minZ).color(red, green, blue, alpha).next();
-        vertexConsumer.vertex(maxX, maxY, maxZ).color(red, green, blue, alpha).next();
+        vertexConsumer.vertex(minX, minY, minZ).color(red, green, blue, alpha);
+        vertexConsumer.vertex(maxX, minY, minZ).color(red, green, blue, alpha);
+        vertexConsumer.vertex(minX, minY, minZ).color(red, green, blue, alpha);
+        vertexConsumer.vertex(minX, maxY, minZ).color(red, green, blue, alpha);
+        vertexConsumer.vertex(minX, minY, minZ).color(red, green, blue, alpha);
+        vertexConsumer.vertex(minX, minY, maxZ).color(red, green, blue, alpha);
+        vertexConsumer.vertex(maxX, minY, minZ).color(red, green, blue, alpha);
+        vertexConsumer.vertex(maxX, maxY, minZ).color(red, green, blue, alpha);
+        vertexConsumer.vertex(maxX, maxY, minZ).color(red, green, blue, alpha);
+        vertexConsumer.vertex(minX, maxY, minZ).color(red, green, blue, alpha);
+        vertexConsumer.vertex(minX, maxY, minZ).color(red, green, blue, alpha);
+        vertexConsumer.vertex(minX, maxY, maxZ).color(red, green, blue, alpha);
+        vertexConsumer.vertex(minX, maxY, maxZ).color(red, green, blue, alpha);
+        vertexConsumer.vertex(minX, minY, maxZ).color(red, green, blue, alpha);
+        vertexConsumer.vertex(minX, minY, maxZ).color(red, green, blue, alpha);
+        vertexConsumer.vertex(maxX, minY, maxZ).color(red, green, blue, alpha);
+        vertexConsumer.vertex(maxX, minY, maxZ).color(red, green, blue, alpha);
+        vertexConsumer.vertex(maxX, minY, minZ).color(red, green, blue, alpha);
+        vertexConsumer.vertex(minX, maxY, maxZ).color(red, green, blue, alpha);
+        vertexConsumer.vertex(maxX, maxY, maxZ).color(red, green, blue, alpha);
+        vertexConsumer.vertex(maxX, minY, maxZ).color(red, green, blue, alpha);
+        vertexConsumer.vertex(maxX, maxY, maxZ).color(red, green, blue, alpha);
+        vertexConsumer.vertex(maxX, maxY, minZ).color(red, green, blue, alpha);
+        vertexConsumer.vertex(maxX, maxY, maxZ).color(red, green, blue, alpha);
     }
 }

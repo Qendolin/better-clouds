@@ -25,8 +25,8 @@ public class ShaderPresetLoader implements SimpleResourceReloadListener<Map<Stri
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
         .registerTypeAdapter(Config.ShaderConfigPreset.class, Config.ShaderConfigPreset.INSTANCE_CREATOR)
         .create();
-    public static final Identifier ID = new Identifier(Main.MODID, "shader_presets");
-    public static final Identifier RESOURCE_ID = new Identifier(Main.MODID, "betterclouds/shader_presets.json");
+    public static final Identifier ID = Identifier.of(Main.MODID, "shader_presets");
+    public static final Identifier RESOURCE_ID = Identifier.of(Main.MODID, "betterclouds/shader_presets.json");
     public static final ShaderPresetLoader INSTANCE = new ShaderPresetLoader();
 
     private Map<String, Config.ShaderConfigPreset> presets = null;
@@ -53,7 +53,7 @@ public class ShaderPresetLoader implements SimpleResourceReloadListener<Map<Stri
                     if (presets == null) continue;
                     mergedPresets.putAll(presets);
                 } catch (Exception exception) {
-                    Main.LOGGER.warn("Failed to parse shader presets {} in pack {}", RESOURCE_ID, resource.getResourcePackName(), exception);
+                    Main.LOGGER.warn("Failed to parse shader presets {} in pack '{}' ({})", RESOURCE_ID, resource.getPack().getInfo().title(), resource.getPack().getId(), exception);
                 }
             }
 

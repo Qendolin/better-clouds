@@ -11,10 +11,14 @@ import org.spongepowered.asm.mixin.Unique;
 @Mixin(value = World.class, priority = 900)
 public abstract class WorldMixin implements WorldDuck {
 
-    @Shadow protected float rainGradientPrev;
-    @Shadow protected float rainGradient;
-    @Shadow protected float thunderGradientPrev;
-    @Shadow protected float thunderGradient;
+    @Shadow
+    protected float rainGradientPrev;
+    @Shadow
+    protected float rainGradient;
+    @Shadow
+    protected float thunderGradientPrev;
+    @Shadow
+    protected float thunderGradient;
 
     @Unique
     public float betterclouds$getOriginalRainGradient(float delta) {

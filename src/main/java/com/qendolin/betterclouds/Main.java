@@ -1,11 +1,10 @@
 package com.qendolin.betterclouds;
 
-import com.google.gson.*;
+import com.google.gson.FieldNamingPolicy;
+import com.mojang.blaze3d.platform.GlDebugInfo;
 import com.qendolin.betterclouds.clouds.Debug;
 import com.qendolin.betterclouds.compat.*;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
-import dev.isxander.yacl3.config.GsonConfigInstance;
-import com.qendolin.betterclouds.renderdoc.RenderDocLoader;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
 import net.fabricmc.api.ClientModInitializer;
@@ -17,37 +16,26 @@ import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.Version;
-import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import net.fabricmc.loader.impl.util.version.StringVersion;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.InvalidIdentifierException;
-import net.minecraft.world.dimension.DimensionType;
-import net.minecraft.world.dimension.DimensionTypes;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.lwjgl.opengl.GL32;
 
 import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 
 public class Main implements ClientModInitializer {
@@ -65,7 +53,7 @@ public class Main implements ClientModInitializer {
     static {
         if (IS_CLIENT) {
             CONFIG = ConfigClassHandler.createBuilder(Config.class)
-                .id(new Identifier(MODID, "betterclouds-v1"))
+                .id(Identifier.of(MODID, "betterclouds-v1"))
                 .serializer(config -> GsonConfigSerializerBuilder.create(config)
                     .appendGsonBuilder(b -> b
                         .setLenient()
@@ -102,7 +90,7 @@ public class Main implements ClientModInitializer {
             LOGGER.info(" - Functions:    {}", String.join(", ", glCompat.supportedCheckedFunctions));
         } else if (glCompat.isPartiallyIncompatible()) {
             LOGGER.warn("Your GPU is not fully compatible with Better Clouds.");
-            for (String fallback : glCompat.usedFallbacks) {
+            for (String fallback : glCompat.usedFallbacks()) {
                 LOGGER.info("- Using {} fallback", fallback);
             }
         }
@@ -171,7 +159,11 @@ public class Main implements ClientModInitializer {
                 CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
                     .execute(() -> client.execute(Main::sendGpuPartiallyIncompatibleChatMessage));
             }
-            if(RenderDoc.isAvailable()) {
+            if (HardwareCompat.isMaybeIncompatible()) {
+                CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
+                    .execute(() -> client.execute(Main::sendHardwareMaybeIncompatibleChatMessage));
+            }
+            if (RenderDoc.isAvailable()) {
                 Main.debugChatMessage("renderdoc.load.ready", RenderDoc.getAPIVersion());
             }
         });
@@ -182,6 +174,7 @@ public class Main implements ClientModInitializer {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> Commands.register(dispatcher));
 
         DistantHorizonsCompat.initialize();
+        IrisCompat.initialize();
 
         if (!IS_DEV) return;
         LOGGER.info("Initialized in dev mode, performance might vary");
@@ -198,7 +191,7 @@ public class Main implements ClientModInitializer {
         }
 
         File file = CONFIG_PATH.toFile();
-        if(file.exists() && file.isFile()) {
+        if (file.exists() && file.isFile()) {
             String backupName = FilenameUtils.getBaseName(file.getName()) +
                 "-backup-" + new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date()) +
                 "." + FilenameUtils.getExtension(file.getName());
@@ -209,7 +202,7 @@ public class Main implements ClientModInitializer {
             } catch (Exception backupException) {
                 LOGGER.error("Failed to create config backup: ", backupException);
             }
-        } else if(file.exists()) {
+        } else if (file.exists()) {
             //noinspection ResultOfMethodCallIgnored
             file.delete();
             LOGGER.info("Deleted old config");
@@ -239,6 +232,17 @@ public class Main implements ClientModInitializer {
         if (!getConfig().gpuIncompatibleMessageEnabled) return;
         debugChatMessage(
             Text.translatable(debugChatMessageKey("gpuPartiallyIncompatible"))
+                .append(Text.literal("\n - "))
+                .append(Text.translatable(debugChatMessageKey("generic.disable"))
+                    .styled(style -> style.withItalic(true).withUnderline(true).withColor(Formatting.GRAY)
+                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
+                            "/betterclouds:config gpuIncompatibleMessage false")))));
+    }
+
+    public static void sendHardwareMaybeIncompatibleChatMessage() {
+        if (!getConfig().gpuIncompatibleMessageEnabled) return;
+        debugChatMessage(
+            Text.translatable(debugChatMessageKey("hwMaybeIncompatible"), GlDebugInfo.getCpuInfo(), GlDebugInfo.getRenderer())
                 .append(Text.literal("\n - "))
                 .append(Text.translatable(debugChatMessageKey("generic.disable"))
                     .styled(style -> style.withItalic(true).withUnderline(true).withColor(Formatting.GRAY)

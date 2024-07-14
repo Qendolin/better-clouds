@@ -3,12 +3,11 @@ package com.qendolin.betterclouds.clouds;
 import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.qendolin.betterclouds.Config;
 import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.clouds.shaders.CoverageShader;
 import com.qendolin.betterclouds.clouds.shaders.DepthShader;
+import com.qendolin.betterclouds.clouds.shaders.ShaderParameters;
 import com.qendolin.betterclouds.clouds.shaders.ShadingShader;
-import com.qendolin.betterclouds.compat.DistantHorizonsCompat;
 import com.qendolin.betterclouds.compat.Telemetry;
 import com.qendolin.betterclouds.mixin.BufferRendererAccessor;
 import com.qendolin.betterclouds.mixin.ShaderProgramAccessor;
@@ -26,9 +25,9 @@ import static org.lwjgl.opengl.GL32.*;
 
 public class Resources implements Closeable {
     // Texture Unit 5
-    public static final Identifier NOISE_TEXTURE = new Identifier(Main.MODID, "textures/environment/cloud_noise_rgb.png");
+    public static final Identifier NOISE_TEXTURE = Identifier.of(Main.MODID, "textures/environment/cloud_noise_rgb.png");
     // Texture Unit 4
-    public static final Identifier LIGHTING_TEXTURE = new Identifier(Main.MODID, "textures/environment/cloud_light_gradient.png");
+    public static final Identifier LIGHTING_TEXTURE = Identifier.of(Main.MODID, "textures/environment/cloud_light_gradient.png");
 
     private static final int UNASSIGNED = 0;
 
@@ -207,7 +206,7 @@ public class Resources implements Closeable {
     }
 
     public void reloadFramebuffer(int width, int height) {
-        if(width == 0 || height == 0) {
+        if (width == 0 || height == 0) {
             LOGGER.warn("Cannot create framebuffer with size 0 ({}x{})! Skipping framebuffer creation to avoid an error.", width, height);
             return;
         }
@@ -230,7 +229,38 @@ public class Resources implements Closeable {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, oitDataTexture, 0);
         glDrawBuffers(new int[]{GL_COLOR_ATTACHMENT0});
 
-        if (glCompat.useStencilTextureFallback) {
+        boolean useStencilTextureFallback = glCompat.useStencilTextureFallback();
+        boolean useDepthWriteFallback = glCompat.useDepthWriteFallback();
+        boolean[][] configurations = {{false, false}, {true, false}, {true, true}};
+        int configurationIndex = -1;
+
+        while (true) {
+            createFramebufferAttachments(useStencilTextureFallback, useDepthWriteFallback);
+            int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+            if (status == GL_FRAMEBUFFER_COMPLETE) {
+                Main.LOGGER.info("Framebuffer complete. useStencilTextureFallback={}, useDepthWriteFallback={}", useStencilTextureFallback, useDepthWriteFallback);
+                if(configurationIndex != -1) {
+                    glCompat.setUseStencilTextureFallback(useStencilTextureFallback);
+                    glCompat.setUseDepthWriteFallback(useDepthWriteFallback);
+                }
+                break;
+            }
+
+            deleteFramebufferAttachments();
+
+            configurationIndex++;
+            if(configurationIndex >= configurations.length) {
+                throw new RuntimeException("Better Clouds framebuffer incomplete, exhausted all options, your GPU is likely incompatible, status: " + status);
+            }
+
+            Main.LOGGER.warn("Framebuffer incomplete, trying different creation configuration. useStencilTextureFallback={}, useDepthWriteFallback={}, status={}", useStencilTextureFallback, useDepthWriteFallback, status);
+            useStencilTextureFallback = configurations[configurationIndex][0];
+            useDepthWriteFallback = configurations[configurationIndex][1];
+        }
+    }
+
+    private void createFramebufferAttachments(boolean useStencilTextureFallback, boolean useDepthWriteFallback) {
+        if (useStencilTextureFallback) {
             oitCoverageTexture = glGenTextures();
             RenderSystem.bindTexture(oitCoverageTexture);
             glCompat.objectLabelDev(GL_TEXTURE, oitCoverageTexture, "coverage_color_fallback");
@@ -257,7 +287,7 @@ public class Resources implements Closeable {
             glTexParameteri(GL_TEXTURE_2D, glCompat.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_STENCIL_INDEX);
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, oitCoverageTexture, 0);
 
-            if (glCompat.useDepthWriteFallback) {
+            if (useDepthWriteFallback) {
                 oitCoverageDepthTexture = oitCoverageTexture;
             } else {
                 oitCoverageDepthTexture = glGenTextures();
@@ -271,61 +301,61 @@ public class Resources implements Closeable {
         }
 
         RenderSystem.bindTexture(0);
-
-        int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-        if (status != GL_FRAMEBUFFER_COMPLETE) {
-            throw new RuntimeException("Better Clouds framebuffer incomplete, your GPU is likely incompatible, status: " + status);
-        }
     }
 
     public void deleteFramebuffer() {
         if (oitFbo != 0) glDeleteFramebuffers(oitFbo);
+        deleteFramebufferAttachments();
+        oitFbo = UNASSIGNED;
+    }
+
+    private void deleteFramebufferAttachments() {
         if (oitDataTexture != 0) RenderSystem.deleteTexture(oitDataTexture);
         if (oitCoverageTexture != 0) RenderSystem.deleteTexture(oitCoverageTexture);
         if (oitCoverageDepthTexture != 0) RenderSystem.deleteTexture(oitCoverageDepthTexture);
-        oitFbo = UNASSIGNED;
         oitDataTexture = UNASSIGNED;
         oitCoverageTexture = UNASSIGNED;
         oitCoverageDepthTexture = UNASSIGNED;
     }
 
-    public void reloadShaders(ResourceManager manager) {
+    public void reloadShaders(ResourceManager manager, ShaderParameters shaderParameters) {
         try {
-            reloadShadersInternal(manager, false);
-        } catch (Exception ignored) {
-            try {
-                reloadShadersInternal(manager, true);
-            } catch (Exception e) {
-                Main.sendGpuIncompatibleChatMessage();
-                Main.LOGGER.error(e);
-                Telemetry.INSTANCE.sendShaderCompileError(e.toString());
-                deleteShaders();
-            }
+            reloadShadersInternal(manager, shaderParameters);
+        } catch (Exception e) {
+            Main.sendGpuIncompatibleChatMessage();
+            Main.LOGGER.error(e);
+            Telemetry.INSTANCE.sendShaderCompileError(e.toString());
+            deleteShaders();
         }
         unbindShader();
     }
 
-    protected void reloadShadersInternal(ResourceManager manager, boolean safeMode) throws IOException {
+    protected void reloadShadersInternal(ResourceManager manager, ShaderParameters shaderParameters) throws IOException {
         deleteShaders();
-
-        Config config = Main.getConfig();
 
         depthShader = DepthShader.create(manager);
         depthShader.bind();
         depthShader.uDepthTexture.setInt(6);
         glCompat.objectLabelDev(glCompat.GL_PROGRAM, depthShader.glId(), "depth");
 
-        int edgeFade = (int) (config.fadeEdge * config.blockDistance());
-        coverageShader = CoverageShader.create(manager, config.sizeXZ, config.sizeY, edgeFade, glCompat.useStencilTextureFallback,
-            DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled());
+        int edgeFade = (int) (shaderParameters.configFadeEdge() * shaderParameters.blockViewDistance());
+        coverageShader = CoverageShader.create(manager,
+            shaderParameters.configSizeXZ(),
+            shaderParameters.configSizeY(),
+            edgeFade,
+            shaderParameters.useStencilTextureFallback(),
+            shaderParameters.useDistantHorizonsCompat(),
+            shaderParameters.worldCurvatureSize());
         coverageShader.bind();
         coverageShader.uDepthTexture.setInt(0);
         coverageShader.uNoiseTexture.setInt(5);
         coverageShader.uDhDepthTexture.setInt(6);
         glCompat.objectLabelDev(glCompat.GL_PROGRAM, coverageShader.glId(), "coverage");
 
-        shadingShader = ShadingShader.create(manager, glCompat.useDepthWriteFallback, glCompat.useStencilTextureFallback,
-            config.celestialBodyHalo);
+        shadingShader = ShadingShader.create(manager,
+            shaderParameters.useDepthWriteFallback(),
+            shaderParameters.useStencilTextureFallback(),
+            shaderParameters.configCelestialBodyHalo());
         shadingShader.bind();
         shadingShader.uDepthTexture.setInt(1);
         shadingShader.uDataTexture.setInt(2);

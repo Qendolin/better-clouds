@@ -54,11 +54,16 @@ public class Config {
         this.useIrisFBO = other.useIrisFBO;
         this.selectedPreset = other.selectedPreset;
         this.presets = other.presets;
+        if(this.presets == null) {
+            //noinspection IncompleteCopyConstructor
+            this.presets = new ArrayList<>();
+        }
         this.presets.replaceAll(ShaderConfigPreset::new);
         this.lastTelemetryVersion = other.lastTelemetryVersion;
         this.gpuIncompatibleMessageEnabled = other.gpuIncompatibleMessageEnabled;
         this.enabledDimensions = other.enabledDimensions;
         this.celestialBodyHalo = other.celestialBodyHalo;
+        this.useFrustumCulling = other.useFrustumCulling;
     }
 
     @SerialEntry
@@ -103,6 +108,8 @@ public class Config {
     public float fadeEdge = 0.15f;
     @SerialEntry
     public boolean usePersistentBuffers = true;
+    @SerialEntry
+    public boolean useFrustumCulling = true;
     @SerialEntry
     public boolean irisSupport = true;
     @SerialEntry
@@ -152,7 +159,7 @@ public class Config {
 
     @NotNull
     public ShaderConfigPreset preset() {
-        if (presets.isEmpty()) {
+        if (presets == null || presets.isEmpty()) {
             addFirstPreset();
         }
         selectedPreset = MathHelper.clamp(selectedPreset, 0, presets.size() - 1);
@@ -180,6 +187,7 @@ public class Config {
     }
 
     public void addFirstPreset() {
+        if (presets == null) presets = new ArrayList<>();
         if (!presets.isEmpty()) return;
         presets.add(new ShaderConfigPreset());
     }
@@ -221,6 +229,7 @@ public class Config {
             this.tintRed = other.tintRed;
             this.tintGreen = other.tintGreen;
             this.tintBlue = other.tintBlue;
+            this.worldCurvatureSize = other.worldCurvatureSize;
 
             //!! NOTE: Don't forget to update `isEqualTo` when adding fields
         }
@@ -264,6 +273,9 @@ public class Config {
         public float tintGreen = 1f;
         @SerialEntry
         public float tintBlue = 1f;
+        @SerialEntry
+        public int worldCurvatureSize = 0;
+
 
         public float gamma() {
             if (gamma > 0) {
@@ -278,6 +290,7 @@ public class Config {
             key = null;
         }
 
+        // Can't override the Object#equals method since it causes an issue with indexOf in the GUI
         public boolean isEqualTo(ShaderConfigPreset other) {
             if (this == other) return true;
             if (other == null) return false;
@@ -299,17 +312,21 @@ public class Config {
                 Float.compare(other.tintGreen, tintGreen) == 0 &&
                 Float.compare(other.tintBlue, tintBlue) == 0 &&
                 Objects.equal(title, other.title) &&
-                Objects.equal(key, other.key);
+                Objects.equal(key, other.key) &&
+                worldCurvatureSize == other.worldCurvatureSize;
         }
     }
 
     public static class RegistryKeySerializer implements JsonSerializer<RegistryKey<DimensionType>>, JsonDeserializer<RegistryKey<DimensionType>> {
-        private RegistryKeySerializer() {}
+        private RegistryKeySerializer() {
+        }
+
         @Override
         public RegistryKey<DimensionType> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-            if(!json.isJsonPrimitive() || !json.getAsJsonPrimitive().isString()) throw new JsonParseException("RegistryKey must be a string");
+            if (!json.isJsonPrimitive() || !json.getAsJsonPrimitive().isString())
+                throw new JsonParseException("RegistryKey must be a string");
             try {
-                Identifier id = new Identifier(json.getAsString());
+                Identifier id = Identifier.of(json.getAsString());
                 return RegistryKey.of(RegistryKeys.DIMENSION_TYPE, id);
             } catch (InvalidIdentifierException e) {
                 throw new JsonParseException("Invalid RegistryKey: " + e.getMessage());

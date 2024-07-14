@@ -56,7 +56,6 @@ public class CustomOptionListWidget extends OptionListWidget {
 
     @Override
     public void renderWidget(DrawContext graphics, int mouseX, int mouseY, float delta) {
-        setRenderBackground(client == null || client.world == null);
         super.renderWidget(graphics, mouseX, mouseY, delta);
     }
 
@@ -157,11 +156,6 @@ public class CustomOptionListWidget extends OptionListWidget {
         @Override
         public ScreenRect getNavigationFocus() {
             return delegate.getNavigationFocus();
-        }
-
-        @Override
-        public void focusOn(@Nullable Element element) {
-            delegate.focusOn(element);
         }
 
         @Override
