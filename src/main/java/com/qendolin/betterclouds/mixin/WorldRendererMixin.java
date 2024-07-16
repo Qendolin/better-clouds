@@ -83,11 +83,9 @@ public abstract class WorldRendererMixin {
         if (cloudRenderer != null) cloudRenderer.setWorld(world);
     }
 
-    //? if >=1.21 {
-    
+    //? if >=1.20.6 {
     @Inject(at = @At("HEAD"), method = "renderClouds(Lnet/minecraft/client/util/math/MatrixStack;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;FDDD)V", cancellable = true)
     private void renderClouds(MatrixStack matrices, Matrix4f viewMat, Matrix4f projMat, float tickDelta, double camX, double camY, double camZ, CallbackInfo ci) {
-    
     //?} else {
     /*@Inject(at = @At("HEAD"), method = "renderClouds(Lnet/minecraft/client/util/math/MatrixStack;Lorg/joml/Matrix4f;FDDD)V", cancellable = true)
     private void renderClouds(MatrixStack matrices, Matrix4f projMat, float tickDelta, double camX, double camY, double camZ, CallbackInfo ci) {

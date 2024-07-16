@@ -54,7 +54,7 @@ public class CustomOptionListWidget extends OptionListWidget {
         resetSmoothScrolling();
     }
 
-    //? if >=1.21 {
+    //? if >=1.20.6 {
     //?} elif >1.20.1 {
     /*@Override
     public void renderWidget(DrawContext graphics, int mouseX, int mouseY, float delta) {

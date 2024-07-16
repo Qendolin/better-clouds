@@ -59,7 +59,7 @@ public class ConfigScreen extends YACLScreen {
     //?} else {
     /*public void renderBackground(DrawContext context) {
     *///?}
-    //? if >=1.21 {
+    //? if >=1.20.6 {
         if (client == null || client.world == null) {
             this.renderPanoramaBackground(context, delta);
             this.applyBlur(delta);
@@ -67,33 +67,33 @@ public class ConfigScreen extends YACLScreen {
     //?} else {
         /*if (client == null || client.world == null) {
             //? if >1.20.1 {
-            /^super.renderBackground(context, mouseX, mouseY, delta);
-            ^///?} else {
-            super.renderBackground(context);
-            //?}
+            super.renderBackground(context, mouseX, mouseY, delta);
+            //?} else {
+            /^super.renderBackground(context);
+            ^///?}
         }
     *///?}
         this.renderDarkening(context);
     }
 
-    //? if <1.21 {
+    //? if <1.20.6 {
     /*@Override
     public void renderBackgroundTexture(DrawContext context) {
         if (client == null || client.world == null) {
             super.renderBackgroundTexture(context);
         }
         //? if <1.20.2
-        renderDarkening(context);
+        /^renderDarkening(context);^/
     }
     *///?}
 
-    //? if >=1.21
+    //? if >=1.20.6
     @Override
     public void renderInGameBackground(DrawContext context) {
         this.renderDarkening(context);
     }
 
-    //? if >=1.21
+    //? if >=1.20.6
     @Override
     protected void renderDarkening(DrawContext context) {
         context.fill(width / 3 * 2 + 1, tabArea.getTop(), width, tabArea.getBottom(), 0x6b000000);
@@ -124,19 +124,19 @@ public class ConfigScreen extends YACLScreen {
             return false;
         }
 
-        //? if >=1.21
+        //? if >=1.20.6
         @Override
         public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
             // nothing
         }
 
-        //? if >=1.21
+        //? if >=1.20.6
         @Override
         public void renderInGameBackground(DrawContext context) {
             // nothing
         }
 
-        //? if >=1.21
+        //? if >=1.20.6
         @Override
         protected void renderDarkening(DrawContext context) {
             // nothing
