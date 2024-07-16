@@ -1,22 +1,26 @@
 plugins {
-	id 'fabric-loom' version '1.7-SNAPSHOT'
-	id 'maven-publish'
-	id "com.modrinth.minotaur" version "2.+"
+	id "fabric-loom"
+	id "com.modrinth.minotaur"
 }
 
 loom {
-	accessWidenerPath = file("src/main/resources/betterclouds.accesswidener")
+	accessWidenerPath = project.rootProject.file("src/main/resources/betterclouds.accesswidener")
+	runConfigs.configureEach {
+		ideConfigGenerated false
+		runDir "../../run"
+	}
 }
 
 base {
 	archivesName = project.archives_base_name
 }
 
+var mcVersion = stonecutter.current.version
 version = project.mod_version
 if(project.version_type != "release") {
 	version += "-" + project.version_type
 }
-version += "+" + project.minecraft_version
+version += "+" + mcVersion
 if(project.version_type != "release") {
 	version += ".rev." + 'git rev-parse --short HEAD'.execute().text.trim()
 }
@@ -45,17 +49,17 @@ repositories {
 
 dependencies {
 	// To change the versions see the gradle.properties file
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+	minecraft "com.mojang:minecraft:$mcVersion"
+	mappings "net.fabricmc:yarn:${property('yarn_mappings')}:v2"
 
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
-	modImplementation("dev.isxander:yet-another-config-lib:${project.yacl_version}-fabric")
-	compileOnly files("libraries/DistantHorizonsApi-3.0.0-nightly-377f7d23.jar")
+	modImplementation "net.fabricmc:fabric-loader:${property('loader_version')}"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${property('fabric_version')}"
+	modImplementation "com.terraformersmc:modmenu:${property('modmenu_version')}"
+	modImplementation("dev.isxander:yet-another-config-lib:${property('yacl_version')}-fabric")
+	compileOnly project.rootProject.files("libraries/DistantHorizonsApi-3.0.0-nightly-377f7d23.jar")
 
-	modCompileOnly "maven.modrinth:sodium-extra:${project.sodium_extra_version}"
-	modCompileOnly "maven.modrinth:iris:${project.iris_version}"
+	modCompileOnly "maven.modrinth:sodium-extra:${property('sodium_extra_version')}"
+	modCompileOnly "maven.modrinth:iris:${property('iris_version')}"
 }
 
 processResources {
@@ -90,46 +94,29 @@ jar {
 	}
 }
 
-// configure the maven publication
-publishing {
-	publications {
-		create("mavenJava", MavenPublication) {
-			artifactId = project.archives_base_name
-			from components.java
-		}
-	}
-
-	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
-	repositories {
-		// Add repositories to publish to here.
-		// Notice: This block does NOT have the same function as the block in the top level.
-		// The repositories here will be used for publishing your artifact, not for
-		// retrieving dependencies.
-	}
-}
-
 modrinth  { // Make sure it runs after build!
 	def secrets = new Properties()
 
-	file("./secrets.properties").withInputStream {
+	project.rootProject.file("secrets.properties").withInputStream {
 		stream -> secrets.load(stream)
 	}
 
+
 	token.set(secrets.MODRINTH as String)
 	projectId = '5srFLIaK'
-	versionNumber = "${project.mod_version}+${project.minecraft_version}-${project.version_type.substring(0, 1)}" // Will fail if Modrinth has this version already
-	versionName = "${project.mod_version} for ${project.minecraft_version} ${project.version_type}"
-	versionType = "${project.version_type}"
+	versionNumber = "${property('mod_version')}+${mcVersion}-${property('version_type').substring(0, 1)}" // Will fail if Modrinth has this version already
+	versionName = "${property('mod_version')} for ${mcVersion} ${property('version_type')}"
+	versionType = "${property('version_type')}"
 	// On fabric, use 'remapJar' instead of 'jar'
 	uploadFile = remapJar  // This is the java jar task. If it can't find the jar, try 'jar.outputs.getFiles().asPath' in place of 'jar'
-	gameVersions.add("${project.minecraft_version}")
+	gameVersions.add(mcVersion)
 	loaders.add('fabric')
 	dependencies { // A special DSL for creating dependencies
 		// scope.type
 		// The scope can be `required`, `optional`, `incompatible`, or `embedded`
 		// The type can either be `project` or `version`
 		required.project "fabric-api"
-		required.version "yacl", "${project.yacl_version}-fabric"
+		required.version "yacl", "${property('yacl_version')}-fabric"
 		optional.project "sodium"
 		optional.project "iris"
 		optional.project "modmenu"
