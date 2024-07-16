@@ -6,7 +6,7 @@ plugins {
 loom {
 	accessWidenerPath = project.rootProject.file("src/main/resources/betterclouds.accesswidener")
 	runConfigs.configureEach {
-		ideConfigGenerated false
+		ideConfigGenerated true
 		runDir "../../run"
 	}
 }
@@ -55,7 +55,7 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${property('loader_version')}"
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${property('fabric_version')}"
 	modImplementation "com.terraformersmc:modmenu:${property('modmenu_version')}"
-	modImplementation("dev.isxander:yet-another-config-lib:${property('yacl_version')}-fabric")
+	modImplementation "dev.isxander:yet-another-config-lib:${property('yacl_version')}-fabric"
 	compileOnly project.rootProject.files("libraries/DistantHorizonsApi-3.0.0-nightly-377f7d23.jar")
 
 	modCompileOnly "maven.modrinth:sodium-extra:${property('sodium_extra_version')}"
@@ -74,8 +74,7 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-	// Minecraft 1.20.5 upwards uses Java 21.
-	it.options.release = 21
+	it.options.release = findProperty('java_version').toString().toInteger()
 }
 
 java {
@@ -90,7 +89,7 @@ java {
 
 jar {
 	from("LICENSE") {
-		rename { "${it}_${project.base.archivesName.get()}"}
+		rename { "${it}_${project.archives_base_name}"}
 	}
 }
 
