@@ -55,11 +55,13 @@ public class CustomOptionListWidget extends OptionListWidget {
     }
 
     //? if >=1.21 {
-    @Override
+    //?} elif >1.20.1 {
+    /*@Override
     public void renderWidget(DrawContext graphics, int mouseX, int mouseY, float delta) {
+        setRenderBackground(false);
         super.renderWidget(graphics, mouseX, mouseY, delta);
     }
-    //?} else {
+    *///?} else {
     /*@Override
     protected void renderBackground(DrawContext context) {
         setRenderBackground(false);
@@ -70,13 +72,13 @@ public class CustomOptionListWidget extends OptionListWidget {
     public boolean mouseScrolled(
         double mouseX,
         double mouseY,
-        /*? if >=1.21 {*/
+        /*? if >1.20.1 {*/
         double horizontalAmount,
         /*?}*/
         double verticalAmount
     ) {
         for (dev.isxander.yacl3.gui.OptionListWidget.Entry child : children()) {
-            //? if >=1.21 {
+            //? if >1.20.1 {
             if (child.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)) {
             //?} else
             /*if (child.mouseScrolled(mouseX, mouseY, verticalAmount)) {*/
@@ -144,13 +146,11 @@ public class CustomOptionListWidget extends OptionListWidget {
             return delegate.mouseReleased(mouseX, mouseY, button);
         }
 
-        //? if >=1.21 {
-        
+        //? if >1.20.1 {
         @Override
         public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
             return delegate.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
         }
-         
         //?} else {
         /*@Override
         public boolean mouseScrolled(double mouseX, double mouseY, double verticalAmount) {

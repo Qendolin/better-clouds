@@ -54,17 +54,23 @@ public class ConfigScreen extends YACLScreen {
     }
 
     @Override
-    //? if >=1.21 {
+    //? if >1.20.1 {
     public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
-        assert this.client != null;
-        if (this.client.world == null) {
+    //?} else {
+    /*public void renderBackground(DrawContext context) {
+    *///?}
+    //? if >=1.21 {
+        if (client == null || client.world == null) {
             this.renderPanoramaBackground(context, delta);
             this.applyBlur(delta);
         }
     //?} else {
-    /*public void renderBackground(DrawContext context) {
-        if (client == null || client.world == null) {
+        /*if (client == null || client.world == null) {
+            //? if >1.20.1 {
+            /^super.renderBackground(context, mouseX, mouseY, delta);
+            ^///?} else {
             super.renderBackground(context);
+            //?}
         }
     *///?}
         this.renderDarkening(context);
@@ -76,6 +82,7 @@ public class ConfigScreen extends YACLScreen {
         if (client == null || client.world == null) {
             super.renderBackgroundTexture(context);
         }
+        //? if <1.20.2
         renderDarkening(context);
     }
     *///?}

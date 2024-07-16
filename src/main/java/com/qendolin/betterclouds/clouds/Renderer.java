@@ -456,7 +456,7 @@ public class Renderer implements AutoCloseable {
     }
 
     private float getEffectLuminance(Vector3d cam, float tickDelta) {
-        //? if >=1.21 {
+        //? if >1.20.1 {
         BackgroundRenderer.applyFogColor();
         //?} else
         /*BackgroundRenderer.setFogBlack();*/

@@ -278,7 +278,7 @@ public class SelectController<T> implements Controller<Integer> {
         public boolean mouseScrolled(
             double mouseX,
             double mouseY,
-        /*? if >=1.21 {*/
+        /*? if >1.20.1 {*/
             double horizontalAmount,
         /*?}*/
             double verticalAmount

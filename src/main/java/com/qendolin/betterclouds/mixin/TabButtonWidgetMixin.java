@@ -20,9 +20,15 @@ public abstract class TabButtonWidgetMixin extends ClickableWidget {
         super(x, y, width, height, message);
     }
 
-    //? <1.21 {
+
+    //? if >=1.21 {
+    //?} elif >1.20.2 {
+    /*@Inject(method = "renderWidget", at = @At("HEAD"), cancellable = true)
+    *///?} else {
     /*@Inject(method = "renderButton", at = @At("HEAD"), cancellable = true)
-    private void onRenderButton(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+    *///?}
+    //? if <1.21 {
+    /*private void onRenderButton(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
         MinecraftClient client = MinecraftClient.getInstance();
         // I'm gonna go to hell for this
         if (client == null || client.world == null || !(client.currentScreen instanceof ConfigScreen)) {
