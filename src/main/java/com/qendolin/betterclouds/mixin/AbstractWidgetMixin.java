@@ -20,7 +20,7 @@ public abstract class AbstractWidgetMixin {
 
     @Inject(method = "drawButtonRect", at = @At("HEAD"), cancellable = true)
     private void onDrawButtonRect(DrawContext context, int x1, int y1, int x2, int y2, boolean hovered, boolean enabled, CallbackInfo ci) {
-        // This is so hacky, but I don't expect it to break until YACL 3.5.0 is released
+        // This is so hacky, but I don't expect it to break until YACL 4 is released
         if (client == null || client.world == null || !(client.currentScreen instanceof ConfigScreen)) {
             return;
         }

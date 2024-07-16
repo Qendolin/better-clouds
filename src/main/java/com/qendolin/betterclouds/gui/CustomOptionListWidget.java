@@ -54,20 +54,37 @@ public class CustomOptionListWidget extends OptionListWidget {
         resetSmoothScrolling();
     }
 
+    //? if >=1.21 {
     @Override
     public void renderWidget(DrawContext graphics, int mouseX, int mouseY, float delta) {
         super.renderWidget(graphics, mouseX, mouseY, delta);
     }
+    //?} else {
+    /*@Override
+    protected void renderBackground(DrawContext context) {
+        setRenderBackground(false);
+    }
+    *///?}
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double horizontal, double vertical) {
+    public boolean mouseScrolled(
+        double mouseX,
+        double mouseY,
+        /*? if >=1.21 {*/
+        double horizontalAmount,
+        /*?}*/
+        double verticalAmount
+    ) {
         for (dev.isxander.yacl3.gui.OptionListWidget.Entry child : children()) {
-            if (child.mouseScrolled(mouseX, mouseY, horizontal, vertical)) {
+            //? if >=1.21 {
+            if (child.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)) {
+            //?} else
+            /*if (child.mouseScrolled(mouseX, mouseY, verticalAmount)) {*/
                 return true;
             }
         }
 
-        this.setScrollAmount(this.getScrollAmount() - (vertical + horizontal) * 20);
+        this.setScrollAmount(this.getScrollAmount() - (verticalAmount) * 20);
         return true;
     }
 
@@ -127,10 +144,19 @@ public class CustomOptionListWidget extends OptionListWidget {
             return delegate.mouseReleased(mouseX, mouseY, button);
         }
 
+        //? if >=1.21 {
+        
         @Override
         public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
             return delegate.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
         }
+         
+        //?} else {
+        /*@Override
+        public boolean mouseScrolled(double mouseX, double mouseY, double verticalAmount) {
+            return delegate.mouseScrolled(mouseX, mouseY, verticalAmount);
+        }
+        *///?}
 
         @Override
         public boolean keyPressed(int keyCode, int scanCode, int modifiers) {

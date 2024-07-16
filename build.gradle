@@ -63,10 +63,15 @@ dependencies {
 }
 
 processResources {
-	inputs.property "version", project.version
+	var props = [
+			version: project.version,
+			mc_version: findProperty("minecraft_version_range")
+	]
+
+	props.forEach(inputs::property)
 
 	filesMatching("fabric.mod.json") {
-		expand "version": project.version
+		expand props
 	}
 
 	exclude("assets/**/*.ase")

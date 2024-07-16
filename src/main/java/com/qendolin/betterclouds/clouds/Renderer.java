@@ -7,7 +7,6 @@ import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.clouds.shaders.ShaderParameters;
 import com.qendolin.betterclouds.compat.*;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
-import net.minecraft.block.enums.CameraSubmersionType;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.CloudRenderMode;
 import net.minecraft.client.render.*;
@@ -17,6 +16,9 @@ import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import org.joml.*;
+
+//? if >=1.21
+ import net.minecraft.block.enums.CameraSubmersionType; 
 
 import java.lang.Math;
 import java.util.List;
@@ -454,7 +456,11 @@ public class Renderer implements AutoCloseable {
     }
 
     private float getEffectLuminance(Vector3d cam, float tickDelta) {
+        //? if >=1.21 {
         BackgroundRenderer.applyFogColor();
+        //?} else
+        /*BackgroundRenderer.setFogBlack();*/
+
         float[] fogRgb = RenderSystem.getShaderFogColor();
         Vec3d fogColor = new Vec3d(fogRgb[0], fogRgb[1], fogRgb[2]);
         Vec3d skyColor = world.getSkyColor(new Vec3d(cam.x, cam.y, cam.z), tickDelta);
@@ -466,7 +472,7 @@ public class Renderer implements AutoCloseable {
             (cloudsColor.z * 2 + skyColor.z * 1.5786 + fogColor.z * 1.2458) / (2 + 1 + 1)
         );
         double luma = color.x * 0.299 + color.y * 0.587 + color.z * 0.114;
-        return (float) Math.clamp(luma * 0.95 + 0.05, 0.0, 1.0);
+        return (float) MathHelper.clamp(luma * 0.95 + 0.05, 0.0, 1.0);
     }
 
     private float getTrueRainGradient(float tickDelta) {

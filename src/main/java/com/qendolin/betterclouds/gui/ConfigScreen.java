@@ -54,25 +54,39 @@ public class ConfigScreen extends YACLScreen {
     }
 
     @Override
-    public void cancelOrReset() {
-        super.cancelOrReset();
-    }
-
-    @Override
+    //? if >=1.21 {
     public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
         assert this.client != null;
         if (this.client.world == null) {
             this.renderPanoramaBackground(context, delta);
             this.applyBlur(delta);
         }
+    //?} else {
+    /*public void renderBackground(DrawContext context) {
+        if (client == null || client.world == null) {
+            super.renderBackground(context);
+        }
+    *///?}
         this.renderDarkening(context);
     }
 
+    //? if <1.21 {
+    /*@Override
+    public void renderBackgroundTexture(DrawContext context) {
+        if (client == null || client.world == null) {
+            super.renderBackgroundTexture(context);
+        }
+        renderDarkening(context);
+    }
+    *///?}
+
+    //? if >=1.21
     @Override
     public void renderInGameBackground(DrawContext context) {
         this.renderDarkening(context);
     }
 
+    //? if >=1.21
     @Override
     protected void renderDarkening(DrawContext context) {
         context.fill(width / 3 * 2 + 1, tabArea.getTop(), width, tabArea.getBottom(), 0x6b000000);
@@ -103,16 +117,19 @@ public class ConfigScreen extends YACLScreen {
             return false;
         }
 
+        //? if >=1.21
         @Override
         public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
             // nothing
         }
 
+        //? if >=1.21
         @Override
         public void renderInGameBackground(DrawContext context) {
             // nothing
         }
 
+        //? if >=1.21
         @Override
         protected void renderDarkening(DrawContext context) {
             // nothing

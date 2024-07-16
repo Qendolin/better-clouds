@@ -326,7 +326,10 @@ public class Config {
             if (!json.isJsonPrimitive() || !json.getAsJsonPrimitive().isString())
                 throw new JsonParseException("RegistryKey must be a string");
             try {
+                //? if >=1.21 {
                 Identifier id = Identifier.of(json.getAsString());
+                //?} else
+                /*Identifier id = new Identifier(json.getAsString());*/
                 return RegistryKey.of(RegistryKeys.DIMENSION_TYPE, id);
             } catch (InvalidIdentifierException e) {
                 throw new JsonParseException("Invalid RegistryKey: " + e.getMessage());

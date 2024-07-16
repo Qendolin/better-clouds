@@ -275,7 +275,14 @@ public class SelectController<T> implements Controller<Integer> {
         }
 
         @Override
-        public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+        public boolean mouseScrolled(
+            double mouseX,
+            double mouseY,
+        /*? if >=1.21 {*/
+            double horizontalAmount,
+        /*?}*/
+            double verticalAmount
+        ) {
             if (!isMouseOver(mouseX, mouseY) || !isAvailable()) return false;
             if (hoveringStart == 0 || Util.getEpochTimeMs() - hoveringStart <= 100) return false;
             if (verticalAmount == 0) return false;
