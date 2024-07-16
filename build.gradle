@@ -64,8 +64,8 @@ dependencies {
 
 processResources {
 	var props = [
-			version: project.version,
-			mc_version: findProperty("minecraft_version_range")
+		version: project.version,
+		mc_version: findProperty("minecraft_version_range")
 	]
 
 	props.forEach(inputs::property)
@@ -93,7 +93,7 @@ java {
 }
 
 jar {
-	from("LICENSE") {
+	from(project.rootProject.file("LICENSE").path) {
 		rename { "${it}_${project.archives_base_name}"}
 	}
 }

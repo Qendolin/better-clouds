@@ -46,12 +46,12 @@ public abstract class AbstractWidgetMixin {
 
         context.fill(x1, y1, x2, y2, 0x6b000000);
         if (color != 0) {
-            drawOutline(context, x1, y1, x2, y2, 1, color);
+            bc$drawOutline(context, x1, y1, x2, y2, 1, color);
         }
     }
 
     @Unique
-    private static void drawOutline(DrawContext context, int x1, int y1, int x2, int y2, int width, int color) {
+    private static void bc$drawOutline(DrawContext context, int x1, int y1, int x2, int y2, int width, int color) {
         context.fill(x1, y1, x2, y1 + width, color);
         context.fill(x2, y1, x2 - width, y2, color);
         context.fill(x1, y2, x2, y2 - width, color);
