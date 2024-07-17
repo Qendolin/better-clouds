@@ -31,7 +31,7 @@ void main() {
     out_one = 0.0;
 
     float depth = texelFetch(u_depth_texture, ivec2(gl_FragCoord.xy), 0).r;
-    if(gl_FragCoord.z > depth) discard;
+    if(min(gl_FragCoord.z, 1.0) > depth) discard;
 
 #if DISTANT_HORIZONS
     // pass_dh_depth is always 0 if the depth texture cloud not be set.

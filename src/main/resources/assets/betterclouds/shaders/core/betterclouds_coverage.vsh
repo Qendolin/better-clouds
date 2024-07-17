@@ -36,7 +36,8 @@ uniform vec3 u_miscellaneous;
 uniform float u_time;
 // start, end
 uniform vec2 u_fog_range;
-uniform vec2 u_depth_range;
+// near, far, configured view distance
+uniform vec3 u_depth_range;
 
 flat out float pass_opacity;
 out vec3 pass_color;
@@ -47,13 +48,6 @@ float linear_fog(float distance, float fogStart, float fogEnd) {
     if(distance > fogEnd) return 1.0;
 
     return smoothstep(fogStart, fogEnd, distance);
-}
-
-float linearize_depth(float depth)
-{
-    float near = u_depth_range.x;
-    float far  = u_depth_range.y;
-    return (2.0 * near * far) / (far + near - depth * (far - near));
 }
 
 void main() {
@@ -102,8 +96,4 @@ void main() {
 #else
     gl_Position = u_mvp_matrix * vec4(vertexPos, 1.0);
 #endif
-
-    // "Fix" for #75
-    float depth = linearize_depth(gl_Position.z / gl_Position.w);
-    pass_opacity *= 1.0 - smoothstep(u_depth_range.y - FAR_VISIBILITY_EDGE, u_depth_range.y - FAR_VISIBILITY_EDGE / 2.0, depth);
 }

@@ -258,6 +258,7 @@ public class Renderer implements AutoCloseable {
         RenderSystem.enableDepthTest();
         RenderSystem.colorMask(true, true, true, true);
         RenderSystem.depthMask(true);
+        glEnable(GL_DEPTH_CLAMP);
 
         if (glCompat.useStencilTextureFallback()) {
             RenderSystem.depthFunc(GL_ALWAYS);
@@ -268,7 +269,7 @@ public class Renderer implements AutoCloseable {
             glCompat.blendFunci(1, GL_ONE, GL_ONE);
             glDisable(GL_STENCIL_TEST);
         } else {
-            RenderSystem.depthFunc(GL_LESS);
+            RenderSystem.depthFunc(GL_LEQUAL);
             RenderSystem.disableBlend();
             glEnable(GL_STENCIL_TEST);
             glStencilMask(0xff);
@@ -303,7 +304,7 @@ public class Renderer implements AutoCloseable {
         Vector4d nearPlane = new Vector4d(0, 0, -1, 1);
         pInverseMatrix.transform(farPlane);
         pInverseMatrix.transform(nearPlane);
-        res.coverageShader().uDepthRange.setVec2((float) (-nearPlane.z / nearPlane.w), (float) (-farPlane.z / farPlane.w));
+        res.coverageShader().uDepthRange.setVec3((float) (-nearPlane.z / nearPlane.w), (float) (-farPlane.z / farPlane.w), config.blockDistance());
 
         RenderSystem.activeTexture(GL_TEXTURE0);
         RenderSystem.bindTexture(client.getFramebuffer().getDepthAttachment());
@@ -371,12 +372,13 @@ public class Renderer implements AutoCloseable {
             glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
         }
 
+        glDisable(GL_DEPTH_CLAMP);
         RenderSystem.enableCull();
     }
 
     private void drawShading(Vector3d cam, float tickDelta) {
         Config config = Main.getConfig();
-        RenderSystem.depthFunc(GL_LESS);
+        RenderSystem.depthFunc(GL_LEQUAL);
 
         if (!glCompat.useDepthWriteFallback()) {
             RenderSystem.depthMask(true);
