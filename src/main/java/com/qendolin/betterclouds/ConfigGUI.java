@@ -67,6 +67,7 @@ public class ConfigGUI {
     public final Option<String> presetTitle;
     public final List<Integer> worldCurvatureValues = List.of(0, -256, -512, -1024, -2048, -4096, -8192, -16384, 16384, 8192, 4096, 2048, 1024, 512, 256, 128, 64, 32, 16);
     public final Option<Integer> worldCurvatureSize; // option value is the index
+    public final Option<Boolean> useVoxyViewDistance;
 
     public final ButtonOption copyPresetButton;
     public final ButtonOption removePresetButton;
@@ -206,6 +207,10 @@ public class ConfigGUI {
             .build();
         this.useFrustumCulling = createOption(boolean.class, "useFrustumCulling")
             .binding(defaults.useFrustumCulling, () -> config.useFrustumCulling, val -> config.useFrustumCulling = val)
+            .customController(TickBoxController::new)
+            .build();
+        this.useVoxyViewDistance = createOption(boolean.class, "useVoxyViewDistance")
+            .binding(defaults.useVoxyViewDistance, () -> config.useVoxyViewDistance, val -> config.useVoxyViewDistance = val)
             .customController(TickBoxController::new)
             .build();
 
@@ -370,7 +375,7 @@ public class ConfigGUI {
         commonPresetsGroup.addAll(List.of(selectedPreset, presetTitle, copyPresetButton, removePresetButton));
         commonCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("common.generation")), commonGenerationGroup));
-        commonGenerationGroup.addAll(List.of(sizeXZ, sizeY, spacing, samplingScale, distance));
+        commonGenerationGroup.addAll(List.of(sizeXZ, sizeY, spacing, samplingScale, distance, useVoxyViewDistance));
         commonCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("common.appearance")), commonAppearanceGroup));
         commonAppearanceGroup.addAll(List.of(enabled, opacity, opacityFactor));
@@ -387,7 +392,7 @@ public class ConfigGUI {
         ));
         generationCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("generation.performance")), generationPerformanceGroup));
-        generationPerformanceGroup.addAll(List.of(distance, chunkSize));
+        generationPerformanceGroup.addAll(List.of(distance, chunkSize, useVoxyViewDistance));
 
         categories.add(new Pair<>(ConfigCategory.createBuilder()
             .name(categoryLabel("appearance")), appearanceCategory));
@@ -408,7 +413,7 @@ public class ConfigGUI {
             .name(categoryLabel("performance")), performanceCategory));
         performanceCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("performance.generation")), performanceGenerationGroup));
-        performanceGenerationGroup.addAll(List.of(spacing, chunkSize, distance, sparsity, fuzziness, shuffle));
+        performanceGenerationGroup.addAll(List.of(spacing, chunkSize, distance, sparsity, fuzziness, shuffle, useVoxyViewDistance));
         performanceCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("performance.technical")), performanceTechnicalGroup));
         performanceTechnicalGroup.addAll(List.of(usePersistentBuffers, useFrustumCulling));

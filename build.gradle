@@ -60,6 +60,7 @@ dependencies {
 
 	modCompileOnly "maven.modrinth:sodium-extra:${property('sodium_extra_version')}"
 	modCompileOnly "maven.modrinth:iris:${property('iris_version')}"
+	modCompileOnly "maven.modrinth:voxy:0.1.5-alpha"
 }
 
 processResources {
