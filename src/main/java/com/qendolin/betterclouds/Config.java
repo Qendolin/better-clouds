@@ -14,9 +14,6 @@ import net.minecraft.world.dimension.DimensionTypes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import me.cortex.voxy.client;
-import me.cortex.voxy.client.config;
-
 import java.lang.reflect.Type;
 import java.util.*;
 
