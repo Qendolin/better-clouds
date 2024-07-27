@@ -2,6 +2,8 @@ package com.qendolin.betterclouds;
 
 import com.google.common.base.Objects;
 import com.google.gson.*;
+import com.qendolin.betterclouds.Config.ShaderConfigPreset;
+
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.registry.RegistryKey;
@@ -13,6 +15,10 @@ import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.dimension.DimensionTypes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import net.fabricmc.loader.api.FabricLoader;
+import me.cortex.voxy.client.config.*;
+import me.cortex.voxy.client.config.VoxyConfig.*;
 
 import java.lang.reflect.Type;
 import java.util.*;
@@ -196,7 +202,7 @@ public class Config {
     }
 
     public int blockDistance() {
-        if (FabricLoader.getInstance().isModLoaded("voxy") && VoxyConfig.renderDistance > 0 && VoxyConfig.enabled && useVoxyViewDistance) return (int) (VoxyConfig.renderDistance * 16);
+        if (FabricLoader.getInstance().isModLoaded("voxy") && VoxyConfig.CONFIG.renderDistance > 0 && VoxyConfig.CONFIG.enabled && useVoxyViewDistance) return (int) (VoxyConfig.CONFIG.renderDistance * 16);
         return (int) (this.distance * MinecraftClient.getInstance().options.getViewDistance().getValue() * 16);
     }
 
