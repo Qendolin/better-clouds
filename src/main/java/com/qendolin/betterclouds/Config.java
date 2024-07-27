@@ -54,6 +54,7 @@ public class Config {
         this.useIrisFBO = other.useIrisFBO;
         this.selectedPreset = other.selectedPreset;
         this.presets = other.presets;
+        this.useVoxyViewDistance = other.useVoxyViewDistance;
         if(this.presets == null) {
             //noinspection IncompleteCopyConstructor
             this.presets = new ArrayList<>();
@@ -126,6 +127,8 @@ public class Config {
     public boolean gpuIncompatibleMessageEnabled = true;
     @SerialEntry
     public List<RegistryKey<DimensionType>> enabledDimensions = new ArrayList<>(List.of(DimensionTypes.OVERWORLD));
+    @SerialEntry
+    public boolean useVoxyViewDistance = true;
 
     public void loadDefaultPresets() {
         // Remember which default preset was selected, if any
@@ -193,7 +196,7 @@ public class Config {
     }
 
     public int blockDistance() {
-        if (FabricLoader.getInstance().isModLoaded("voxy") && VoxyConfig.renderDistance > 0 && VoxyConfig.enabled) return (int) (this.distance * VoxyConfig.renderDistance * 16);
+        if (FabricLoader.getInstance().isModLoaded("voxy") && VoxyConfig.renderDistance > 0 && VoxyConfig.enabled && useVoxyViewDistance) return (int) (this.distance * VoxyConfig.renderDistance * 16);
         return (int) (this.distance * MinecraftClient.getInstance().options.getViewDistance().getValue() * 16);
     }
 
