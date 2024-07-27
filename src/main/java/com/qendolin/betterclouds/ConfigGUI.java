@@ -113,7 +113,7 @@ public class ConfigGUI {
             .build();
         this.distance = createOption(float.class, "distance")
             .binding(defaults.distance, () -> config.distance, val -> config.distance = val)
-            .customController(opt -> new FloatSliderController(opt, 1, 4, 0.05f, ConfigGUI::formatAsTimes))
+            .customController(opt -> new FloatSliderController(opt, 1, 256, 0.05f, ConfigGUI::formatAsTimes))
             .build();
         this.fuzziness = createOption(float.class, "fuzziness")
             .binding(defaults.fuzziness, () -> config.fuzziness, val -> config.fuzziness = val)
