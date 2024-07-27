@@ -375,7 +375,7 @@ public class ConfigGUI {
         commonPresetsGroup.addAll(List.of(selectedPreset, presetTitle, copyPresetButton, removePresetButton));
         commonCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("common.generation")), commonGenerationGroup));
-        commonGenerationGroup.addAll(List.of(sizeXZ, sizeY, spacing, samplingScale, distance));
+        commonGenerationGroup.addAll(List.of(sizeXZ, sizeY, spacing, samplingScale, distance, useVoxyViewDistance));
         commonCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("common.appearance")), commonAppearanceGroup));
         commonAppearanceGroup.addAll(List.of(enabled, opacity, opacityFactor));
@@ -392,7 +392,7 @@ public class ConfigGUI {
         ));
         generationCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("generation.performance")), generationPerformanceGroup));
-        generationPerformanceGroup.addAll(List.of(distance, chunkSize));
+        generationPerformanceGroup.addAll(List.of(distance, chunkSize, useVoxyViewDistance));
 
         categories.add(new Pair<>(ConfigCategory.createBuilder()
             .name(categoryLabel("appearance")), appearanceCategory));
@@ -413,7 +413,7 @@ public class ConfigGUI {
             .name(categoryLabel("performance")), performanceCategory));
         performanceCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("performance.generation")), performanceGenerationGroup));
-        performanceGenerationGroup.addAll(List.of(spacing, chunkSize, distance, sparsity, fuzziness, shuffle));
+        performanceGenerationGroup.addAll(List.of(spacing, chunkSize, distance, sparsity, fuzziness, shuffle, useVoxyViewDistance));
         performanceCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("performance.technical")), performanceTechnicalGroup));
         performanceTechnicalGroup.addAll(List.of(usePersistentBuffers, useFrustumCulling));
