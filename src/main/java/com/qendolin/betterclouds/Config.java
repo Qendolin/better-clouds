@@ -196,7 +196,7 @@ public class Config {
     }
 
     public int blockDistance() {
-        if (FabricLoader.getInstance().isModLoaded("voxy") && VoxyConfig.renderDistance > 0 && VoxyConfig.enabled && useVoxyViewDistance) return (int) (this.distance * VoxyConfig.renderDistance * 16);
+        if (FabricLoader.getInstance().isModLoaded("voxy") && VoxyConfig.renderDistance > 0 && VoxyConfig.enabled && useVoxyViewDistance) return (int) (VoxyConfig.renderDistance * 16);
         return (int) (this.distance * MinecraftClient.getInstance().options.getViewDistance().getValue() * 16);
     }
 
