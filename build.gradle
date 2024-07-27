@@ -105,6 +105,7 @@ dependencies {
 
 		modCompileOnly "maven.modrinth:sodium-extra:${property('deps.sodium_extra')}"
 		modCompileOnly "maven.modrinth:iris:${property('deps.iris')}"
+        modCompileOnly "maven.modrinth:voxy:0.1.5-alpha"
 	}
 
 	if (isNeoForge || isForge) {
