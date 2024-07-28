@@ -22,7 +22,9 @@
       "com.qendolin.betterclouds.Main"
     ],
     "modmenu": [ "com.qendolin.betterclouds.ModMenuIntegration" ],
-    "preLaunch": ["com.qendolin.betterclouds.PreLaunchHandler"]
+    "preLaunch": [
+      "com.qendolin.betterclouds.platform.fabric.PreLaunchHandler"
+    ]
   },
   "mixins": [
     "betterclouds.mixins.json",

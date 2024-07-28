@@ -3,6 +3,7 @@ package com.qendolin.betterclouds.compat;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.platform.ModVersion;
 import net.fabricmc.loader.api.*;
 import net.minecraft.MinecraftVersion;
 import org.apache.commons.io.IOUtils;
@@ -183,7 +184,7 @@ public class Telemetry implements ITelemetry {
             }
         }
 
-        public static Optional<SemVer> fromFabricVersion(Version version) {
+        public static Optional<SemVer> fromFabricVersion(ModVersion version) {
             if (!(version instanceof SemanticVersion semver)) {
                 return Optional.empty();
             }
@@ -205,7 +206,7 @@ public class Telemetry implements ITelemetry {
         public final MetaInfo metaInfo;
         public final List<String> mods;
 
-        public RequestBody(SystemDetails systemDetails, List<String> labels, String payload, Version modVersion, int telemetryVersion) {
+        public RequestBody(SystemDetails systemDetails, List<String> labels, String payload, ModVersion modVersion, int telemetryVersion) {
             this.systemDetails = systemDetails;
             this.labels = labels;
             this.payload = payload;
@@ -220,7 +221,7 @@ public class Telemetry implements ITelemetry {
             public final SemVer mcSemVer;
             public final String modVersion;
 
-            public MetaInfo(Version modVersion) {
+            public MetaInfo(ModVersion modVersion) {
                 this.modVersion = modVersion.getFriendlyString();
                 this.modSemVer = SemVer.fromFabricVersion(modVersion).orElse(null);
                 this.mcVersion = MinecraftVersion.CURRENT.getName();

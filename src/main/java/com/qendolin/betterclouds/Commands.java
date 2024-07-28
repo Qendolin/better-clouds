@@ -1,8 +1,11 @@
 package com.qendolin.betterclouds;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.serialization.Codec;
 import com.qendolin.betterclouds.clouds.Debug;
@@ -10,8 +13,9 @@ import com.qendolin.betterclouds.compat.GLCompat;
 import com.qendolin.betterclouds.renderdoc.CaptureManager;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import com.qendolin.betterclouds.renderdoc.RenderDocLoader;
-import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientCommandSource;
+import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.EnumArgumentType;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Text;
@@ -23,12 +27,32 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.argument;
-import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
-
 public class Commands {
 
-    static void register(CommandDispatcher<FabricClientCommandSource> dispatcher) {
+    /**
+     * Creates a literal argument builder.
+     *
+     * @param name the literal name
+     * @return the created argument builder
+     */
+    private static <T> LiteralArgumentBuilder<ClientCommandSource> literal(String name) {
+        return LiteralArgumentBuilder.literal(name);
+    }
+
+    /**
+     * Creates a required argument builder.
+     *
+     * @param name the name of the argument
+     * @param type the type of the argument
+     * @param <T>  the type of the parsed argument value
+     * @return the created argument builder
+     */
+    private static <T> RequiredArgumentBuilder<ClientCommandSource, T> argument(String name, ArgumentType<T> type) {
+        return RequiredArgumentBuilder.argument(name, type);
+    }
+
+    static void register(final CommandDispatcher<ClientCommandSource> dispatcher) {
+        final MinecraftClient client = MinecraftClient.getInstance();
         dispatcher.register(literal(Main.MODID + ":profile")
             .then(argument("interval", IntegerArgumentType.integer(30))
                 .executes(context -> {
@@ -47,12 +71,12 @@ public class Commands {
         dispatcher.register(literal(Main.MODID + ":frustum")
             .then(literal("capture")
                 .executes(context -> {
-                    context.getSource().getClient().worldRenderer.captureFrustum();
+                    client.worldRenderer.captureFrustum();
                     return 1;
                 }))
             .then(literal("release")
                 .executes(context -> {
-                    context.getSource().getClient().worldRenderer.killFrustum();
+                    client.worldRenderer.killFrustum();
                     return 1;
                 }))
             .then(literal("debugCulling")
@@ -100,7 +124,6 @@ public class Commands {
                 })));
         dispatcher.register(literal(Main.MODID + ":config")
             .then(literal("open").executes(context -> {
-                MinecraftClient client = context.getSource().getClient();
                 // The chat screen will call setScreen(null) after the command handler
                 // which would override our call, so we delay it
                 client.send(() -> client.setScreen(ConfigGUI.create(null)));
@@ -229,7 +252,7 @@ public class Commands {
                             FallbackArgument fallback = FallbackArgumentType.getFallback(context, "name");
                             boolean enable = BoolArgumentType.getBool(context, "enable");
                             fallback.set(Main.glCompat, enable);
-                            context.getSource().getClient().reloadResources().whenComplete((unused, throwable) -> {
+                            client.reloadResources().whenComplete((unused, throwable) -> {
                                 Main.debugChatMessage(Text.literal(String.format("Fallback %s is now %s", fallback.asString(), enable ? "enabled" : "disabled")));
                             });
                             return 1;

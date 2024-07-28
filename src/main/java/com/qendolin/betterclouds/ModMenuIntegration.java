@@ -1,6 +1,7 @@
 package com.qendolin.betterclouds;
 
-import com.terraformersmc.modmenu.api.ConfigScreenFactory;
+//? if fabric {
+/*import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
 
 public class ModMenuIntegration implements ModMenuApi {
@@ -9,4 +10,8 @@ public class ModMenuIntegration implements ModMenuApi {
         return ConfigGUI::create;
     }
 
+}*/
+//?} else {
+public abstract class ModMenuIntegration {
 }
+//?}

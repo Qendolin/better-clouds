@@ -1,7 +1,7 @@
 package com.qendolin.betterclouds.compat;
 
+import com.qendolin.betterclouds.platform.ModLoader;
 import com.seibel.distanthorizons.api.DhApi;
-import net.fabricmc.loader.api.FabricLoader;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
 
@@ -22,7 +22,7 @@ public abstract class DistantHorizonsCompat {
     public static void initialize() {
         if (instance != null) return;
 
-        boolean isLoaded = FabricLoader.getInstance().isModLoaded("distanthorizons");
+        boolean isLoaded = ModLoader.isModLoaded("distanthorizons");
         boolean isVersion2 = false;
         boolean isVersion3 = false;
         try {

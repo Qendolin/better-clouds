@@ -4,14 +4,6 @@ plugins {
 	id "com.modrinth.minotaur"
 }
 
-loom {
-	accessWidenerPath = project.rootProject.file("src/main/resources/betterclouds.accesswidener")
-	runConfigs.configureEach {
-		ideConfigGenerated true
-		runDir "../../run"
-	}
-}
-
 base {
 	archivesName = project.archives_base_name
 }
@@ -56,6 +48,15 @@ repositories {
 	}
 }
 
+loom {
+	accessWidenerPath = project.rootProject.file("src/main/resources/betterclouds.accesswidener")
+
+	runConfigs.configureEach {
+		ideConfigGenerated true
+		runDir "../../run"
+	}
+}
+
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:$mcVersion"
@@ -69,6 +70,7 @@ dependencies {
 	if (isFabric) {
 		modImplementation "net.fabricmc:fabric-loader:${property('fabric_loader_version')}"
 		modImplementation "net.fabricmc.fabric-api:fabric-api:${property('fabric_version')}"
+
 		modImplementation "com.terraformersmc:modmenu:${property('modmenu_version')}"
 		modImplementation "dev.isxander:yet-another-config-lib:${property('yacl_version')}-fabric"
 
@@ -80,6 +82,9 @@ dependencies {
 		neoForge "net.neoforged:neoforge:${property('neoforge_loader_version')}"
 
 		modImplementation "dev.isxander:yet-another-config-lib:${property('yacl_version')}-neoforge"
+
+		modCompileOnly "maven.modrinth:sodium-extra:${property('sodium_extra_version')}"
+		modCompileOnly "maven.modrinth:iris:${property('iris_version')}"
 	}
 
 	compileOnly project.rootProject.files("libraries/DistantHorizonsApi-3.0.0-nightly-377f7d23.jar")

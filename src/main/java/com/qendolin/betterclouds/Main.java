@@ -4,22 +4,14 @@ import com.google.gson.FieldNamingPolicy;
 import com.mojang.blaze3d.platform.GlDebugInfo;
 import com.qendolin.betterclouds.clouds.Debug;
 import com.qendolin.betterclouds.compat.*;
+import com.qendolin.betterclouds.platform.EventHooks;
+import com.qendolin.betterclouds.platform.ModLoader;
+import com.qendolin.betterclouds.platform.ModVersion;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.api.ModContainer;
-import net.fabricmc.loader.api.Version;
-import net.fabricmc.loader.impl.util.version.StringVersion;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.registry.RegistryKey;
-import net.minecraft.resource.ResourceType;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -38,17 +30,17 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 
-public class Main implements ClientModInitializer {
+public class Main {
     public static final String MODID = "betterclouds";
-    public static final boolean IS_DEV = FabricLoader.getInstance().isDevelopmentEnvironment();
-    public static final boolean IS_CLIENT = FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT;
+    public static final boolean IS_DEV = ModLoader.isDevelopmentEnvironment();
+    public static final boolean IS_CLIENT = ModLoader.isClientEnvironment();
     public static final NamedLogger LOGGER = new NamedLogger(LogManager.getLogger(MODID), !IS_DEV);
 
     public static GLCompat glCompat;
-    public static Version version;
+    public static ModVersion version;
 
     private static final ConfigClassHandler<Config> CONFIG;
-    private static final Path CONFIG_PATH = FabricLoader.getInstance().getConfigDir().resolve("betterclouds-v1.json");
+    private static final Path CONFIG_PATH = ModLoader.getConfigDir().resolve("betterclouds-v1.json");
 
     static {
         if (IS_CLIENT) {
@@ -131,7 +123,7 @@ public class Main implements ClientModInitializer {
         return MODID + ".message." + id;
     }
 
-    public static Version getVersion() {
+    public static ModVersion getVersion() {
         return version;
     }
 
@@ -139,19 +131,15 @@ public class Main implements ClientModInitializer {
         return CONFIG;
     }
 
-    @Override
-    public void onInitializeClient() {
+    public static void initializeClient() {
         if (!IS_CLIENT)
-            throw new IllegalStateException("Fabric environment is " + FabricLoader.getInstance().getEnvironmentType().name() + " but onInitializeClient was called");
+            throw new IllegalStateException("Minecraft environment is not 'client' but the client initializer was called");
         loadConfig();
 
-        ModContainer mod = FabricLoader.getInstance().getModContainer(MODID).orElse(null);
-        if (mod != null) version = mod.getMetadata().getVersion();
-        else version = new StringVersion("unknown");
+        version = ModLoader.getModVersion(MODID);
 
-        ClientLifecycleEvents.CLIENT_STARTED.register(client -> glCompat.enableDebugOutputSynchronousDev());
-
-        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+        EventHooks.instance().onClientStarted(client -> glCompat.enableDebugOutputSynchronousDev());
+        EventHooks.instance().onWorldJoin(client -> {
             if (glCompat.isIncompatible()) {
                 CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
                     .execute(() -> client.execute(Main::sendGpuIncompatibleChatMessage));
@@ -167,11 +155,8 @@ public class Main implements ClientModInitializer {
                 Main.debugChatMessage("renderdoc.load.ready", RenderDoc.getAPIVersion());
             }
         });
-
-        ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES)
-            .registerReloadListener(ShaderPresetLoader.INSTANCE);
-
-        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> Commands.register(dispatcher));
+        EventHooks.instance().onClientResourcesReload(() -> ShaderPresetLoader.INSTANCE);
+        //EventHooks.instance().onClientCommandRegistration(Commands::register);
 
         DistantHorizonsCompat.initialize();
         IrisCompat.initialize();
@@ -180,7 +165,7 @@ public class Main implements ClientModInitializer {
         LOGGER.info("Initialized in dev mode, performance might vary");
     }
 
-    private void loadConfig() {
+    private static void loadConfig() {
         assert CONFIG != null;
 
         try {

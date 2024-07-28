@@ -1,8 +1,8 @@
 package com.qendolin.betterclouds.compat;
 
-import net.fabricmc.loader.api.FabricLoader;
+import com.qendolin.betterclouds.platform.ModLoader;
 
 public class HeadInTheCloudsCompat {
-    public static final boolean IS_LOADED = FabricLoader.getInstance().isModLoaded("head_in_the_clouds");
+    public static final boolean IS_LOADED = ModLoader.isModLoaded("head_in_the_clouds");
 
 }

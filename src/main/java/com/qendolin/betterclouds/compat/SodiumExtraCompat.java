@@ -1,8 +1,8 @@
 package com.qendolin.betterclouds.compat;
 
-import net.fabricmc.loader.api.FabricLoader;
+import com.qendolin.betterclouds.platform.ModLoader;
 
 public class SodiumExtraCompat {
-    public static final boolean IS_LOADED = FabricLoader.getInstance().isModLoaded("sodium-extra");
+    public static final boolean IS_LOADED = ModLoader.isModLoaded("sodium-extra");
 
 }
