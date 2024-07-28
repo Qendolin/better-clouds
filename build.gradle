@@ -1,5 +1,6 @@
 plugins {
-	id "fabric-loom"
+	id "dev.architectury.loom"
+	id "architectury-plugin"
 	id "com.modrinth.minotaur"
 }
 
@@ -15,15 +16,22 @@ base {
 	archivesName = project.archives_base_name
 }
 
-var mcVersion = stonecutter.current.version
-version = project.mod_version
-if(project.version_type != "release") {
-	version += "-" + project.version_type
+var String loader = loom.platform.get().displayName.toLowerCase()
+var String mcVersion = stonecutter.current.version
+
+var isFabric = loader == "fabric"
+var isNeoForge = loader == "neoforge"
+
+static def buildVersionString(String modVersion, String releaseType, String mcVersion, String loader) {
+	var semver = modVersion
+	var isPrerelease = releaseType != "release"
+	if (isPrerelease) semver += "-" + releaseType
+	semver += "+" + mcVersion + "-" + loader
+	if (isPrerelease) semver += ".rev." + 'git rev-parse --short HEAD'.execute().text.trim()
+	return semver
 }
-version += "+" + mcVersion
-if(project.version_type != "release") {
-	version += ".rev." + 'git rev-parse --short HEAD'.execute().text.trim()
-}
+
+version = buildVersionString(project.mod_version, project.release_type.toLowerCase(), mcVersion, loader)
 group = project.maven_group
 
 repositories {
@@ -38,28 +46,43 @@ repositories {
 			includeGroup "maven.modrinth"
 		}
 	}
-	maven { url "https://maven.shedaniel.me/" }
 	maven {
-		name 'Xander Maven'
-		url 'https://maven.isxander.dev/releases'
+		name = "Xander"
+		url = "https://maven.isxander.dev/releases"
 	}
-	maven { url "https://oss.sonatype.org/content/repositories/snapshots" } // for com.twelvemonkeys.imageio
-	maven { url "https://maven.quiltmc.org/repository/release" } // for org.quiltmc.parsers
+	maven {
+		name = 'NeoForged'
+		url = 'https://maven.neoforged.net/releases'
+	}
 }
 
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:$mcVersion"
-	mappings "net.fabricmc:yarn:${property('yarn_mappings')}:v2"
+	mappings loom.layered {
+		it.mappings("net.fabricmc:yarn:${property('yarn_mappings')}:v2")
+		if (property('yarn_mappings_patch_neoforge_version') != "") {
+			it.mappings("dev.architectury:yarn-mappings-patch-neoforge:${property('yarn_mappings_patch_neoforge_version')}")
+		}
+	}
 
-	modImplementation "net.fabricmc:fabric-loader:${property('loader_version')}"
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${property('fabric_version')}"
-	modImplementation "com.terraformersmc:modmenu:${property('modmenu_version')}"
-	modImplementation "dev.isxander:yet-another-config-lib:${property('yacl_version')}-fabric"
+	if (isFabric) {
+		modImplementation "net.fabricmc:fabric-loader:${property('fabric_loader_version')}"
+		modImplementation "net.fabricmc.fabric-api:fabric-api:${property('fabric_version')}"
+		modImplementation "com.terraformersmc:modmenu:${property('modmenu_version')}"
+		modImplementation "dev.isxander:yet-another-config-lib:${property('yacl_version')}-fabric"
+
+		modCompileOnly "maven.modrinth:sodium-extra:${property('sodium_extra_version')}"
+		modCompileOnly "maven.modrinth:iris:${property('iris_version')}"
+	}
+
+	if (isNeoForge) {
+		neoForge "net.neoforged:neoforge:${property('neoforge_loader_version')}"
+
+		modImplementation "dev.isxander:yet-another-config-lib:${property('yacl_version')}-neoforge"
+	}
+
 	compileOnly project.rootProject.files("libraries/DistantHorizonsApi-3.0.0-nightly-377f7d23.jar")
-
-	modCompileOnly "maven.modrinth:sodium-extra:${property('sodium_extra_version')}"
-	modCompileOnly "maven.modrinth:iris:${property('iris_version')}"
 }
 
 processResources {
@@ -71,6 +94,10 @@ processResources {
 	props.forEach(inputs::property)
 
 	filesMatching("fabric.mod.json") {
+		expand props
+	}
+
+	filesMatching("neoforge.mods.toml") {
 		expand props
 	}
 
@@ -108,9 +135,9 @@ modrinth  { // Make sure it runs after build!
 
 	token.set(secrets.MODRINTH as String)
 	projectId = '5srFLIaK'
-	versionNumber = "${property('mod_version')}+${mcVersion}-${property('version_type').substring(0, 1)}" // Will fail if Modrinth has this version already
-	versionName = "${property('mod_version')} for ${mcVersion} ${property('version_type')}"
-	versionType = "${property('version_type')}"
+	versionNumber = "${property('mod_version')}+${mcVersion}-${property('release_type').substring(0, 1)}" // Will fail if Modrinth has this version already
+	versionName = "${property('mod_version')} for ${mcVersion} ${property('release_type')}"
+	versionType = "${property('release_type')}"
 	// On fabric, use 'remapJar' instead of 'jar'
 	uploadFile = remapJar  // This is the java jar task. If it can't find the jar, try 'jar.outputs.getFiles().asPath' in place of 'jar'
 	gameVersions.add(mcVersion)

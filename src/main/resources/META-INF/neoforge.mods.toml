@@ -1,0 +1,31 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+issueTrackerURL = "https://github.com/Qendolin/better-clouds/issues/new"
+license = "MPL-2.0"
+
+[[mods]]
+modId = "betterclouds"
+version = "${version}"
+displayName = "Better Clouds"
+authors = "Qendolin"
+description = '''
+Beautiful clouds in touch with the vanilla style.
+'''
+logoFile = "assets/betterclouds/icon.png"
+
+[[dependencies.better-clouds]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.0,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.better-clouds]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[mixins]]
+config = "better-clouds.mixins.json"
