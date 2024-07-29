@@ -30,7 +30,8 @@ public class EventHooksImpl extends EventHooks {
     @Override
     public void onClientStarted(Consumer<MinecraftClient> callback) {
         modEventBus.addListener(FMLLoadCompleteEvent.class, event -> {
-            callback.accept(MinecraftClient.getInstance());
+            MinecraftClient client = MinecraftClient.getInstance();
+            client.execute(() -> callback.accept(client));
         });
     }
 
