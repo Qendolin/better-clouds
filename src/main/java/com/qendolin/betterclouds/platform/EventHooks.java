@@ -7,13 +7,15 @@ import java.util.function.Supplier;
 
 
 //? if fabric {
-/*import com.qendolin.betterclouds.platform.fabric.EventHooksImpl;*/
+/*import com.qendolin.betterclouds.platform.fabric.EventHooksImpl;
+import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;*/
 //?}
 
 //? if neoforge {
 import com.qendolin.betterclouds.platform.neoforge.EventHooksImpl;
 import net.minecraft.command.CommandSource;
 import net.minecraft.resource.ResourceReloader;
+import net.minecraft.server.command.ServerCommandSource;
 //?}
 
 public abstract class EventHooks {
@@ -27,8 +29,8 @@ public abstract class EventHooks {
             //?} elif neoforge {
             instance = new EventHooksImpl();
             //?} else {
-            /*instance = new EventHooks();*/
-            //?}
+            /*instance = new EventHooks();
+            *///?}
         }
 
         return instance;
@@ -40,5 +42,9 @@ public abstract class EventHooks {
 
     public abstract void onClientResourcesReload(Supplier<ResourceReloader> supplier);
 
-    public abstract void onClientCommandRegistration(Consumer<CommandDispatcher<? extends CommandSource>> callback);
+    //? if fabric {
+    /*public abstract void onClientCommandRegistration(Consumer<CommandDispatcher<FabricClientCommandSource>> callback);
+    *///?} else {
+    public abstract void onClientCommandRegistration(Consumer<CommandDispatcher<ServerCommandSource>> callback);
+    //?}
 }

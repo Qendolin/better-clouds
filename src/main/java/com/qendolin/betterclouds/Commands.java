@@ -14,8 +14,6 @@ import com.qendolin.betterclouds.renderdoc.CaptureManager;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import com.qendolin.betterclouds.renderdoc.RenderDocLoader;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientCommandSource;
-import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.EnumArgumentType;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Text;
@@ -27,15 +25,17 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+//? if fabric {
+/*import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
+import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.argument;
+import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
+*///?} else {
+import net.minecraft.server.command.ServerCommandSource;
+//?}
 public class Commands {
 
-    /**
-     * Creates a literal argument builder.
-     *
-     * @param name the literal name
-     * @return the created argument builder
-     */
-    private static <T> LiteralArgumentBuilder<ClientCommandSource> literal(String name) {
+    //? if !fabric {
+    public static LiteralArgumentBuilder<ServerCommandSource> literal(String name) {
         return LiteralArgumentBuilder.literal(name);
     }
 
@@ -47,12 +47,26 @@ public class Commands {
      * @param <T>  the type of the parsed argument value
      * @return the created argument builder
      */
-    private static <T> RequiredArgumentBuilder<ClientCommandSource, T> argument(String name, ArgumentType<T> type) {
+    public static <T> RequiredArgumentBuilder<ServerCommandSource, T> argument(String name, ArgumentType<T> type) {
         return RequiredArgumentBuilder.argument(name, type);
     }
+    //?}
 
-    static void register(final CommandDispatcher<ClientCommandSource> dispatcher) {
+    //? if fabric {
+    /*static void register(CommandDispatcher<FabricClientCommandSource> dispatcher) {
+    *///?} else {
+    static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
+    //?}
         final MinecraftClient client = MinecraftClient.getInstance();
+        dispatcher.register(literal(Main.MODID + ":profile")
+                .then(argument("interval", IntegerArgumentType.integer(30))
+                    .executes(context -> {
+                        int interval = IntegerArgumentType.getInteger(context, "interval");
+                        Main.debugChatMessage("profiling.enabled", interval);
+                        Debug.profileInterval = interval;
+                        return 1;
+                    })));
+
         dispatcher.register(literal(Main.MODID + ":profile")
             .then(argument("interval", IntegerArgumentType.integer(30))
                 .executes(context -> {

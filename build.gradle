@@ -13,6 +13,7 @@ var String mcVersion = stonecutter.current.version
 
 var isFabric = loader == "fabric"
 var isNeoForge = loader == "neoforge"
+var isForge = loader == "forge"
 
 static def buildVersionString(String modVersion, String releaseType, String mcVersion, String loader) {
 	var semver = modVersion
@@ -55,6 +56,14 @@ loom {
 		ideConfigGenerated true
 		runDir "../../run"
 	}
+
+	if (isForge) forge {
+		convertAccessWideners.set(true)
+		mixinConfigs(
+			"betterclouds.mixins.json",
+			"betterclouds.optional.mixins.json",
+		)
+	}
 }
 
 dependencies {
@@ -78,13 +87,16 @@ dependencies {
 		modCompileOnly "maven.modrinth:iris:${property('iris_version')}"
 	}
 
-	if (isNeoForge) {
-		neoForge "net.neoforged:neoforge:${property('neoforge_loader_version')}"
+	if (isNeoForge || isForge) {
+		if (isNeoForge)
+			neoForge "net.neoforged:neoforge:${property('neoforge_loader_version')}"
+		if (isForge)
+			neoForge "net.neoforged:neoforge:${property('forge_loader_version')}"
 
 		modImplementation "dev.isxander:yet-another-config-lib:${property('yacl_version')}-neoforge"
 
 		modCompileOnly "maven.modrinth:sodium-extra:${property('sodium_extra_version')}"
-		modCompileOnly "maven.modrinth:iris:${property('iris_version')}"
+		modCompileOnly "maven.modrinth:oculus:1.20.1-1.7.0"
 	}
 
 	compileOnly project.rootProject.files("libraries/DistantHorizonsApi-3.0.0-nightly-377f7d23.jar")
@@ -102,7 +114,7 @@ processResources {
 		expand props
 	}
 
-	filesMatching("neoforge.mods.toml") {
+	filesMatching("META-INF/neoforge.mods.toml") {
 		expand props
 	}
 
@@ -114,14 +126,13 @@ tasks.withType(JavaCompile).configureEach {
 	it.options.release = findProperty('java_version').toString().toInteger()
 }
 
-java {
-	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-	// if it is present.
-	// If you remove this line, sources will not be generated.
-	withSourcesJar()
-
-	sourceCompatibility = JavaVersion.VERSION_21
-	targetCompatibility = JavaVersion.VERSION_21
+stonecutter {
+	var j21 = eval(mcVersion, ">=1.20.6")
+	java {
+		withSourcesJar()
+		sourceCompatibility = j21 ? JavaVersion.VERSION_21 : JavaVersion.VERSION_17
+		targetCompatibility = j21 ? JavaVersion.VERSION_21 : JavaVersion.VERSION_17
+	}
 }
 
 jar {

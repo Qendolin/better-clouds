@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.platform.ModVersion;
-import net.fabricmc.loader.api.*;
 import net.minecraft.MinecraftVersion;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -22,7 +21,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class Telemetry implements ITelemetry {
@@ -160,44 +158,6 @@ public class Telemetry implements ITelemetry {
         // TODO:
     }
 
-    public static final class SemVer {
-        public final int major;
-        public final int minor;
-        public final int patch;
-        public final String build;
-        public final String prerelease;
-
-        public SemVer(int major, int minor, int patch, String build, String prerelease) {
-            this.major = major;
-            this.minor = minor;
-            this.patch = patch;
-            this.build = build;
-            this.prerelease = prerelease;
-        }
-
-        public static Optional<SemVer> fromString(String s) {
-            try {
-                SemanticVersion v = SemanticVersion.parse(s);
-                return fromFabricVersion(v);
-            } catch (VersionParsingException e) {
-                return Optional.empty();
-            }
-        }
-
-        public static Optional<SemVer> fromFabricVersion(ModVersion version) {
-            if (!(version instanceof SemanticVersion semver)) {
-                return Optional.empty();
-            }
-            int major = 0, minor = 0, patch = 0;
-            int count = semver.getVersionComponentCount();
-            if (count == 0) return Optional.empty();
-            if (count >= 1) major = semver.getVersionComponent(0);
-            if (count >= 2) minor = semver.getVersionComponent(1);
-            if (count >= 3) patch = semver.getVersionComponent(2);
-            return Optional.of(new SemVer(major, minor, patch, semver.getBuildKey().orElse(""), semver.getPrereleaseKey().orElse("")));
-        }
-    }
-
     public static final class RequestBody {
         public final SystemDetails systemDetails;
         public final List<String> labels;
@@ -216,16 +176,16 @@ public class Telemetry implements ITelemetry {
         }
 
         public static final class MetaInfo {
-            public final SemVer modSemVer;
+            public final ModVersion.SemVer modSemVer;
             public final String mcVersion;
-            public final SemVer mcSemVer;
+            public final ModVersion.SemVer mcSemVer;
             public final String modVersion;
 
             public MetaInfo(ModVersion modVersion) {
                 this.modVersion = modVersion.getFriendlyString();
-                this.modSemVer = SemVer.fromFabricVersion(modVersion).orElse(null);
+                this.modSemVer = modVersion.asSemVer().orElse(null);
                 this.mcVersion = MinecraftVersion.CURRENT.getName();
-                this.mcSemVer = SemVer.fromString(MinecraftVersion.CURRENT.getName()).orElse(null);
+                this.mcSemVer = ModVersion.fromString(MinecraftVersion.CURRENT.getName()).asSemVer().orElse(null);
             }
         }
     }

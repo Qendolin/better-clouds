@@ -4,6 +4,7 @@ import com.qendolin.betterclouds.platform.ModVersion;
 
 //? if neoforge {
 import org.apache.maven.artifact.versioning.ArtifactVersion;
+
 public class ModVersionImpl extends ModVersion {
 
     private final ArtifactVersion delegate;
@@ -14,15 +15,15 @@ public class ModVersionImpl extends ModVersion {
 
     @Override
     public boolean isPresent() {
-        return true;
+        return delegate != null;
     }
 
     @Override
     public String getFriendlyString() {
-        return delegate.getQualifier();
+        return delegate.toString();
     }
 }
 //?} else {
 /*public abstract class ModVersionImpl extends ModVersion {
-}*/
-//?}
+}
+*///?}

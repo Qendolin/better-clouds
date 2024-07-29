@@ -156,7 +156,7 @@ public class Main {
             }
         });
         EventHooks.instance().onClientResourcesReload(() -> ShaderPresetLoader.INSTANCE);
-        //EventHooks.instance().onClientCommandRegistration(Commands::register);
+        EventHooks.instance().onClientCommandRegistration(Commands::register);
 
         DistantHorizonsCompat.initialize();
         IrisCompat.initialize();

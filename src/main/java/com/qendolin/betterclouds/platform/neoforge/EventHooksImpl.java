@@ -5,8 +5,8 @@ import com.qendolin.betterclouds.platform.EventHooks;
 //? if neoforge {
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.command.CommandSource;
 import net.minecraft.resource.ResourceReloader;
+import net.minecraft.server.command.ServerCommandSource;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
@@ -39,7 +39,7 @@ public class EventHooksImpl extends EventHooks {
     }
 
     @Override
-    public void onClientCommandRegistration(Consumer<CommandDispatcher<? extends CommandSource>> callback) {
+    public void onClientCommandRegistration(Consumer<CommandDispatcher<ServerCommandSource>> callback) {
         NeoForge.EVENT_BUS.addListener(RegisterClientCommandsEvent.class, event -> {
             callback.accept(event.getDispatcher());
         });

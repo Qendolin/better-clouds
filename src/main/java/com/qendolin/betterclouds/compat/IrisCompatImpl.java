@@ -24,7 +24,7 @@ public class IrisCompatImpl extends IrisCompat {
             return;
         }
 
-        ShaderProgram program = corePipeline.getShaderMap().getShader(ShaderKey.CLOUDS);
+        Object program = corePipeline.getShaderMap().getShader(ShaderKey.CLOUDS);
         GlFramebuffer before = null, after = null;
         if (program instanceof ExtendedShader extended) {
             ExtendedShaderAccessor access = (ExtendedShaderAccessor) extended;

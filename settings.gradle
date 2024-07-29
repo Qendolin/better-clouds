@@ -9,6 +9,10 @@ pluginManagement {
             url = "https://files.minecraftforge.net/maven/"
         }
         maven {
+            name = "NeoForged"
+            url = "https://maven.neoforged.net/releases"
+        }
+        maven {
             name = "Kikugie"
             url = "https://maven.kikugie.dev/releases"
         }
