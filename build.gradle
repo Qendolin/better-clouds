@@ -34,6 +34,15 @@ static def buildVersionString(String modVersion, String releaseType, String mcVe
 version = buildVersionString(project.mod_version, project.release_type.toLowerCase(), mcVersion, loader)
 group = project.maven_group
 
+// I'm not sure if this should be removed, I don't see it in any stonecutter repo
+architectury {
+	platformSetupLoomIde()
+	if (isFabric)
+		fabric()
+	if (isNeoForge)
+		neoForge()
+}
+
 repositories {
 	maven {
 		name = "TerraformersMC"
@@ -98,14 +107,14 @@ dependencies {
 	if (isNeoForge || isForge) {
 		if (isNeoForge)
 			neoForge "net.neoforged:neoforge:${property('neoforge_loader_version')}"
+		if (isForge)
+			forge "net.minecraftforge:forge:${property('forge_loader_version')}"
 
 		modImplementation "dev.isxander:yet-another-config-lib:${property('yacl_version')}-neoforge"
 
 		// TODO: Need a proper solution!! Should be included with yacl
-		implementation "org.quiltmc.parsers:gson:0.2.1"
-		implementation "org.quiltmc.parsers:json:0.2.1"
-		forgeRuntimeLibrary "org.quiltmc.parsers:gson:0.2.1"
-		forgeRuntimeLibrary "org.quiltmc.parsers:json:0.2.1"
+		forgeRuntimeLibrary(runtimeOnly("org.quiltmc.parsers:json:0.2.1"))
+		forgeRuntimeLibrary(runtimeOnly("org.quiltmc.parsers:gson:0.2.1"))
 
 		modCompileOnly "maven.modrinth:sodium-extra:${property('sodium_extra_version')}"
 		modCompileOnly "maven.modrinth:oculus:1.20.1-1.7.0"
