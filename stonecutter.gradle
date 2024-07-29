@@ -5,14 +5,7 @@ plugins {
     id 'architectury-plugin' version '3.4-SNAPSHOT' apply false
 }
 
-stonecutter.active "1.21-fabric" /* [SC] DO NOT EDIT */
-
-stonecutter.configureEach {
-    def platform = project.property("loom.platform").toString()
-    stonecutter.const("fabric", platform == "fabric")
-    stonecutter.const("forge", platform == "forge")
-    stonecutter.const("neoforge", platform == "neoforge")
-}
+stonecutter.active "1.21-forge" /* [SC] DO NOT EDIT */
 
 stonecutter.registerChiseled tasks.register("chiseledBuild", stonecutter.chiseled) {
     setGroup "project"

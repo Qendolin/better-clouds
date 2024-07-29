@@ -13,19 +13,29 @@ Beautiful clouds in touch with the vanilla style.
 '''
 logoFile = "assets/betterclouds/icon.png"
 
-[[dependencies.better-clouds]]
+[[dependencies.betterclouds]]
 modId = "neoforge"
 type = "required"
 versionRange = "[21.0,)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.better-clouds]]
+[[dependencies.betterclouds]]
 modId = "minecraft"
 type = "required"
 versionRange = "[1.21,)"
 ordering = "NONE"
 side = "BOTH"
 
+[[dependencies.modid]]
+modId = "yet_another_config_lib_v3"
+mandatory = true
+versionRange = "[3.5.0,4.0.0)"
+ordering = "NONE"
+side = "CLIENT"
+
 [[mixins]]
-config = "better-clouds.mixins.json"
+config = "betterclouds.mixins.json"
+
+[[mixins]]
+config = "betterclouds.optional.mixins.json"

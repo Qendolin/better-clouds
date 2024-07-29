@@ -19,10 +19,14 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
+//? if fabric {
+/*import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
+*///?}
+
 public class ShaderPresetLoader
 //? if fabric {
-/*implements IdentifiableResourceReloadListener {*/
-//?} else {
+/*implements IdentifiableResourceReloadListener {
+*///?} else {
 implements ResourceReloader {
 //?}
     private static final Gson GSON = new GsonBuilder()
@@ -45,8 +49,8 @@ implements ResourceReloader {
     /*@Override
     public Identifier getFabricId() {
         return ID;
-    }*/
-    //?}
+    }
+    *///?}
 
     @Override
     public CompletableFuture<Void> reload(ResourceReloader.Synchronizer helper, ResourceManager manager, Profiler loadProfiler, Profiler applyProfiler, Executor loadExecutor, Executor applyExecutor) {

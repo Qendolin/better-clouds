@@ -22,7 +22,7 @@ import java.util.function.Supplier;
 public class EventHooksImpl extends EventHooks {
     @Override
     public void onClientStarted(Consumer<MinecraftClient> callback) {
-        ClientLifecycleEvents.CLIENT_STARTED.register(client -> callback.accept(client));
+        ClientLifecycleEvents.CLIENT_STARTED.register(callback::accept);
     }
 
     @Override

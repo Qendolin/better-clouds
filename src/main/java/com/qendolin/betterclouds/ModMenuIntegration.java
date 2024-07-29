@@ -10,8 +10,8 @@ public class ModMenuIntegration implements ModMenuApi {
         return ConfigGUI::create;
     }
 
-}*/
-//?} else {
+}
+*///?} else {
 public abstract class ModMenuIntegration {
 }
 //?}

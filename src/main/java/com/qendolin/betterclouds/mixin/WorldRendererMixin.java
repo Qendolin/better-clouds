@@ -69,6 +69,7 @@ public abstract class WorldRendererMixin {
 
     @Inject(at = @At("TAIL"), method = "reload(Lnet/minecraft/resource/ResourceManager;)V")
     private void onReload(ResourceManager manager, CallbackInfo ci) {
+        if (!Main.initialized()) return;
         if (glCompat.isIncompatible()) return;
         try {
             if (cloudRenderer != null) cloudRenderer.reload(manager);

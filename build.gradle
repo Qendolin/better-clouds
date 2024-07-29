@@ -15,6 +15,13 @@ var isFabric = loader == "fabric"
 var isNeoForge = loader == "neoforge"
 var isForge = loader == "forge"
 
+// The current stonecutter version (0.4) has an issue with groovy gradle which makes
+// stonecutter.configureEach { stonecutter.const(...) } not work correctly inside stonecutter.gradle.
+// Putting it here fixes the problem.
+stonecutter.const("fabric", isFabric)
+stonecutter.const("neoforge", isNeoForge)
+stonecutter.const("forge", isForge)
+
 static def buildVersionString(String modVersion, String releaseType, String mcVersion, String loader) {
 	var semver = modVersion
 	var isPrerelease = releaseType != "release"
@@ -90,8 +97,6 @@ dependencies {
 	if (isNeoForge || isForge) {
 		if (isNeoForge)
 			neoForge "net.neoforged:neoforge:${property('neoforge_loader_version')}"
-		if (isForge)
-			neoForge "net.neoforged:neoforge:${property('forge_loader_version')}"
 
 		modImplementation "dev.isxander:yet-another-config-lib:${property('yacl_version')}-neoforge"
 

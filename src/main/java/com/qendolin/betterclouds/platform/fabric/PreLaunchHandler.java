@@ -52,8 +52,8 @@ public class PreLaunchHandler implements PreLaunchEntrypoint {
             logger.error("RenderDoc could not be loaded: {}", e);
         }
     }
-}*/
-//?} else {
+}
+*///?} else {
 public abstract class PreLaunchHandler {
 }
 //?}

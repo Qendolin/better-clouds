@@ -19,7 +19,7 @@
   "environment": "client",
   "entrypoints": {
     "client": [
-      "com.qendolin.betterclouds.Main"
+      "com.qendolin.betterclouds.Entrypoint"
     ],
     "modmenu": [ "com.qendolin.betterclouds.ModMenuIntegration" ],
     "preLaunch": [

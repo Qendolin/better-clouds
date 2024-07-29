@@ -39,30 +39,9 @@ public class Main {
     public static GLCompat glCompat;
     public static ModVersion version;
 
-    private static final ConfigClassHandler<Config> CONFIG;
     private static final Path CONFIG_PATH = ModLoader.getConfigDir().resolve("betterclouds-v1.json");
-
-    static {
-        if (IS_CLIENT) {
-            CONFIG = ConfigClassHandler.createBuilder(Config.class)
-                .id(Identifier.of(MODID, "betterclouds-v1"))
-                .serializer(config -> GsonConfigSerializerBuilder.create(config)
-                    .appendGsonBuilder(b -> b
-                        .setLenient()
-                        .serializeNulls()
-                        .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-                        .setPrettyPrinting()
-                        .registerTypeAdapter(Config.class, Config.INSTANCE_CREATOR)
-                        .registerTypeAdapter(Config.ShaderConfigPreset.class, Config.ShaderConfigPreset.INSTANCE_CREATOR)
-                        .registerTypeAdapter(RegistryKey.class, Config.REGISTRY_KEY_SERIALIZER))
-                    .setPath(CONFIG_PATH)
-                    .setJson5(false)
-                    .build())
-                .build();
-        } else {
-            CONFIG = null;
-        }
-    }
+    private static ConfigClassHandler<Config> config;
+    private static boolean isInitialized = false;
 
     public static void initGlCompat() {
         try {
@@ -86,23 +65,10 @@ public class Main {
                 LOGGER.info("- Using {} fallback", fallback);
             }
         }
-
-        if (getConfig().lastTelemetryVersion < Telemetry.VERSION) {
-            Telemetry.INSTANCE.sendSystemInfo()
-                .whenComplete((success, throwable) -> {
-                    MinecraftClient client = MinecraftClient.getInstance();
-                    if (success && client != null) {
-                        client.execute(() -> {
-                            getConfig().lastTelemetryVersion = Telemetry.VERSION;
-                            CONFIG.save();
-                        });
-                    }
-                });
-        }
     }
 
     public static Config getConfig() {
-        return CONFIG.instance();
+        return config.instance();
     }
 
     public static boolean isProfilingEnabled() {
@@ -128,18 +94,12 @@ public class Main {
     }
 
     public static ConfigClassHandler<Config> getConfigHandler() {
-        return CONFIG;
+        return config;
     }
 
-    public static void initializeClient() {
-        if (!IS_CLIENT)
-            throw new IllegalStateException("Minecraft environment is not 'client' but the client initializer was called");
-        loadConfig();
-
-        version = ModLoader.getModVersion(MODID);
-
-        EventHooks.instance().onClientStarted(client -> glCompat.enableDebugOutputSynchronousDev());
-        EventHooks.instance().onWorldJoin(client -> {
+    public static void initializeClientEvents() {
+        EventHooks.instance.onClientStarted(client -> glCompat.enableDebugOutputSynchronousDev());
+        EventHooks.instance.onWorldJoin(client -> {
             if (glCompat.isIncompatible()) {
                 CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
                     .execute(() -> client.execute(Main::sendGpuIncompatibleChatMessage));
@@ -155,21 +115,60 @@ public class Main {
                 Main.debugChatMessage("renderdoc.load.ready", RenderDoc.getAPIVersion());
             }
         });
-        EventHooks.instance().onClientResourcesReload(() -> ShaderPresetLoader.INSTANCE);
-        EventHooks.instance().onClientCommandRegistration(Commands::register);
+        EventHooks.instance.onClientResourcesReload(() -> ShaderPresetLoader.INSTANCE);
+        EventHooks.instance.onClientCommandRegistration(Commands::register);
+    }
+
+    public static void initializeClient() {
+        if (!IS_CLIENT)
+            throw new IllegalStateException("Minecraft environment is not 'client' but the client initializer was called");
+        if(isInitialized) return;
+
+        initConfig();
+        loadConfig();
+
+        sendSystemDetailsTelemetry();
+
+        version = ModLoader.getModVersion(MODID);
 
         DistantHorizonsCompat.initialize();
         IrisCompat.initialize();
+
+        isInitialized = true;
 
         if (!IS_DEV) return;
         LOGGER.info("Initialized in dev mode, performance might vary");
     }
 
+    public static boolean initialized() {
+        return isInitialized;
+    }
+
+    private static void initConfig() {
+        if (!IS_CLIENT || config != null) return;
+
+        config = ConfigClassHandler.createBuilder(Config.class)
+            .id(Identifier.of(MODID, "betterclouds-v1"))
+            .serializer(config -> GsonConfigSerializerBuilder.create(config)
+                .appendGsonBuilder(b -> b
+                    .setLenient()
+                    .serializeNulls()
+                    .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+                    .setPrettyPrinting()
+                    .registerTypeAdapter(Config.class, Config.INSTANCE_CREATOR)
+                    .registerTypeAdapter(Config.ShaderConfigPreset.class, Config.ShaderConfigPreset.INSTANCE_CREATOR)
+                    .registerTypeAdapter(RegistryKey.class, Config.REGISTRY_KEY_SERIALIZER))
+                .setPath(CONFIG_PATH)
+                .setJson5(false)
+                .build())
+            .build();
+    }
+
     private static void loadConfig() {
-        assert CONFIG != null;
+        assert config != null;
 
         try {
-            CONFIG.load();
+            config.load();
             return;
         } catch (Exception loadException) {
             LOGGER.error("Failed to load config: ", loadException);
@@ -194,12 +193,26 @@ public class Main {
         }
 
         try {
-            CONFIG.save();
+            config.save();
             LOGGER.info("Created new config");
-            CONFIG.load();
+            config.load();
         } catch (Exception loadException) {
             LOGGER.error("Failed to load config again, please report this issue: ", loadException);
         }
+    }
+
+    private static void sendSystemDetailsTelemetry() {
+        if (getConfig().lastTelemetryVersion >= Telemetry.VERSION) return;
+        Telemetry.INSTANCE.sendSystemInfo()
+            .whenComplete((success, throwable) -> {
+                MinecraftClient client = MinecraftClient.getInstance();
+                if (success && client != null) {
+                    client.execute(() -> {
+                        getConfig().lastTelemetryVersion = Telemetry.VERSION;
+                        config.save();
+                    });
+                }
+            });
     }
 
     public static void sendGpuIncompatibleChatMessage() {

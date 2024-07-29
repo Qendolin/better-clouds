@@ -31,14 +31,9 @@ public final class ModLoader {
     }
 
     public static ModVersion getModVersion(String modId) {
-        ModList modList = ModList.get();
-        if(modList != null) {
-            Main.LOGGER.warn("getModVersion called before the mod list is initialized.");
-            return ModVersion.NONE;
-        }
-        Optional<ModContainer> mod = = FabricLoader.getInstance().getModContainer(MODID).orElse(null);
+        Optional<ModContainer> mod = FabricLoader.getInstance().getModContainer(modId);
         if(mod.isEmpty()) return ModVersion.NONE;
-        return new ModVersionImpl(mod.getMetadata().getVersion());
+        return new ModVersionImpl(mod.get().getMetadata().getVersion());
     }
 }*///?} elif neoforge {
 import com.qendolin.betterclouds.Main;
