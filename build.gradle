@@ -191,6 +191,10 @@ jar {
 }
 
 modrinth  { // Make sure it runs after build!
+	var loaderName = loom.platform.get().displayName
+	var releaseName = property('mod.release').toString().capitalize()
+	var releaseLetter = property('mod.release').toString().toLowerCase().substring(0, 1)
+
 	def secrets = new Properties()
 
 	project.rootProject.file("secrets.properties").withInputStream {
@@ -199,21 +203,32 @@ modrinth  { // Make sure it runs after build!
 
 	token.set(secrets.MODRINTH as String)
 	projectId = '5srFLIaK'
-	versionNumber = "${property('mod.version')}+${mcVersion}-${property('mod.release').substring(0, 1)}" // Will fail if Modrinth has this version already
-	versionName = "${property('mod.version')} for ${mcVersion} ${property('mod.release')}"
+	// Will fail if Modrinth has this version already
+	versionNumber = "${property('mod.version')}+${mcVersion}-${loader}-${releaseLetter}"
+	versionName = "${releaseName} ${property('mod.version')} for ${mcVersion} ${loaderName}"
 	versionType = "${property('mod.release')}"
 	uploadFile = remapJar
 	gameVersions.add(mcVersion)
 	loaders.add(loader)
-	dependencies { // A special DSL for creating dependencies
+	dependencies {
+		// A special DSL for creating dependencies
 		// scope.type
 		// The scope can be `required`, `optional`, `incompatible`, or `embedded`
 		// The type can either be `project` or `version`
-		required.project "fabric-api"
-		required.version "yacl", "${property('deps.yacl')}-fabric"
-		optional.project "sodium"
-		optional.project "iris"
-		optional.project "modmenu"
-		incompatible.project "vulkanmod"
+		required.version "yacl", "${property('deps.yacl')}-${loader}"
+
+		if(isFabric) {
+			required.project "fabric-api"
+			optional.project "modmenu"
+			incompatible.project "vulkanmod"
+		}
+
+		if(isFabric || stonecutter.eval(mcVersion, ">=1.21")) {
+			optional.project "sodium"
+			optional.project "iris"
+		} else {
+			optional.project "embeddium"
+			optional.project "oculus"
+		}
 	}
 }
