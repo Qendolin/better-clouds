@@ -16,6 +16,7 @@ public final class Entrypoint implements ClientModInitializer {
 *///?} elif neoforge {
 import com.qendolin.betterclouds.platform.EventHooks;
 import com.qendolin.betterclouds.platform.neoforge.EventHooksImpl;
+import net.minecraft.client.MinecraftClient;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.common.Mod;
@@ -30,7 +31,7 @@ public final class Entrypoint {
         Main.initializeClientEvents();
 
         modEventBus.addListener(FMLClientSetupEvent.class, event -> {
-            Main.initializeClient();
+            MinecraftClient.getInstance().execute(Main::initializeClient);
 
             ModLoadingContext.get().registerExtensionPoint(IConfigScreenFactory.class, () ->
                 (modContainer, parent) -> ConfigGUI.create(parent));

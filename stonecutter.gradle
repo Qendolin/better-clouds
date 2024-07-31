@@ -2,7 +2,7 @@ plugins {
     id "dev.kikugie.stonecutter"
     id "com.modrinth.minotaur" version "2.+" apply false
     id "dev.architectury.loom" version "1.7-SNAPSHOT" apply false
-    id 'architectury-plugin' version '3.4-SNAPSHOT' apply false
+    id "architectury-plugin" version "3.4-SNAPSHOT" apply false
 }
 
 stonecutter.active "1.21-forge" /* [SC] DO NOT EDIT */

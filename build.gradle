@@ -1,6 +1,6 @@
 plugins {
-	id "dev.architectury.loom"
-	id "architectury-plugin"
+	id "dev.architectury.loom" version "1.7-SNAPSHOT"
+	id "architectury-plugin" version "3.4-SNAPSHOT"
 	id "com.modrinth.minotaur"
 }
 
@@ -34,11 +34,14 @@ static def buildVersionString(String modVersion, String releaseType, String mcVe
 version = buildVersionString(project.mod_version, project.release_type.toLowerCase(), mcVersion, loader)
 group = project.maven_group
 
-// I'm not sure if this should be removed, I don't see it in any stonecutter repo
 architectury {
+	minecraft = mcVersion
+
 	platformSetupLoomIde()
 	if (isFabric)
 		fabric()
+	if (isForge)
+		forge()
 	if (isNeoForge)
 		neoForge()
 }
@@ -116,8 +119,23 @@ dependencies {
 		forgeRuntimeLibrary(runtimeOnly("org.quiltmc.parsers:json:0.2.1"))
 		forgeRuntimeLibrary(runtimeOnly("org.quiltmc.parsers:gson:0.2.1"))
 
-		modCompileOnly "maven.modrinth:sodium-extra:${property('sodium_extra_version')}"
+		modCompileOnly "maven.modrinth:rubidium-extra:0.5.7e+mc1.21-build.129"
 		modCompileOnly "maven.modrinth:oculus:1.20.1-1.7.0"
+
+		// Because yarn mappings are used the mods can't be loaded from the 'mods' directory at runtime.
+		// It causes NoClassDefFoundErrors due to the different mappings.
+		// This is a workaround that uses 'modLocalRuntime' to remap the mods found in the 'mods-forge' directory.
+		// It requires a project reload when the mods change.
+		def localModsDir = project.rootProject.file('./run/mods-forge/')
+		if (localModsDir.exists() && localModsDir.isDirectory()) {
+			def localMods = localModsDir
+					.listFiles({ file -> file.isFile() && file.name.endsWith('.jar') } as FileFilter)
+			localMods.each { mod ->
+				dependencies {
+					modLocalRuntime files(mod)
+				}
+			}
+		}
 	}
 
 	compileOnly project.rootProject.files("libraries/DistantHorizonsApi-3.0.0-nightly-377f7d23.jar")
@@ -145,6 +163,12 @@ processResources {
 
 tasks.withType(JavaCompile).configureEach {
 	it.options.release = findProperty('java_version').toString().toInteger()
+}
+
+remapJar {
+	if (isNeoForge) {
+		atAccessWideners.add("betterclouds.accesswidener")
+	}
 }
 
 stonecutter {
