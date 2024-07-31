@@ -3,7 +3,7 @@ package com.qendolin.betterclouds.platform.fabric;
 import com.qendolin.betterclouds.platform.EventHooks;
 
 //? if fabric {
-/*import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.CommandDispatcher;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
@@ -41,8 +41,8 @@ public class EventHooksImpl extends EventHooks {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> callback.accept(dispatcher));
     }
 }
-*///?} else {
-public abstract class EventHooksImpl extends EventHooks {
+//?} else {
+/*public abstract class EventHooksImpl extends EventHooks {
 }
-//?}
+*///?}
 

@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[3,)"
+loaderVersion = "[2,)"
 issueTrackerURL = "https://github.com/Qendolin/better-clouds/issues/new"
 license = "MPL-2.0"
 
@@ -29,7 +29,7 @@ side = "BOTH"
 
 [[dependencies.betterclouds]]
 modId = "yet_another_config_lib_v3"
-mandatory = true
+type = "required"
 versionRange = "[3.5.0,4.0.0)"
 ordering = "NONE"
 side = "CLIENT"

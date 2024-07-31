@@ -1,5 +1,8 @@
 accessWidener	v1	named
 
+# For <=1.20.4 forge
+accessible field net/minecraft/client/render/RenderPhase CLOUDS_TARGET Lnet/minecraft/client/render/RenderPhase$Target;
+
 mutable		field	net/minecraft/client/render/Frustum	frustumIntersection			Lorg/joml/FrustumIntersection;
 accessible	field	net/minecraft/client/render/Frustum	frustumIntersection			Lorg/joml/FrustumIntersection;
 mutable 	field 	net/minecraft/client/render/Frustum positionProjectionMatrix 	Lorg/joml/Matrix4f;

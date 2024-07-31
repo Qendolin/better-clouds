@@ -37,10 +37,11 @@ stonecutter {
             }
         }
 
-        mc("1.20.1", "fabric")
-        mc("1.20.4", "fabric", "forge")
-        mc("1.20.6", "fabric", "forge")
+        // The topmost version is considered the "default" and activated with "Reset active project"
         mc("1.21", "fabric", "forge")
+        mc("1.20.6", "fabric", "forge")
+        mc("1.20.4", "fabric", "forge")
+        mc("1.20.1", "fabric")
     }
 
     create rootProject

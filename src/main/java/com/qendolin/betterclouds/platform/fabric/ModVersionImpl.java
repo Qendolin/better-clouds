@@ -3,7 +3,7 @@ package com.qendolin.betterclouds.platform.fabric;
 import com.qendolin.betterclouds.platform.ModVersion;
 
 //? if fabric {
-/*import net.fabricmc.loader.api.SemanticVersion;
+import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
 
@@ -50,7 +50,7 @@ public class ModVersionImpl extends ModVersion {
     }
 
 }
-*///?} else {
-public abstract class ModVersionImpl extends ModVersion {
+//?} else {
+/*public abstract class ModVersionImpl extends ModVersion {
 }
-//?}
+*///?}

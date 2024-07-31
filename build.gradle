@@ -31,7 +31,7 @@ static def buildVersionString(String modVersion, String releaseType, String mcVe
 	return semver
 }
 
-version = buildVersionString(project.mod_version, project.release_type.toLowerCase(), mcVersion, loader)
+version = buildVersionString(property('mod.version').toString(), property('mod.release').toString().toLowerCase(), mcVersion, loader)
 group = project.maven_group
 
 architectury {
@@ -90,32 +90,34 @@ dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:$mcVersion"
 	mappings loom.layered {
-		it.mappings("net.fabricmc:yarn:${property('yarn_mappings')}:v2")
-		if (property('yarn_mappings_patch_neoforge_version') != "") {
-			it.mappings("dev.architectury:yarn-mappings-patch-neoforge:${property('yarn_mappings_patch_neoforge_version')}")
+		it.mappings("net.fabricmc:yarn:${property('loom.yarn')}:v2")
+		if (property('loom.yarn_patch_neoforge') != "") {
+			it.mappings("dev.architectury:yarn-mappings-patch-neoforge:${property('loom.yarn_patch_neoforge')}")
 		}
 	}
 
 	if (isFabric) {
-		modImplementation "net.fabricmc:fabric-loader:${property('fabric_loader_version')}"
-		modImplementation "net.fabricmc.fabric-api:fabric-api:${property('fabric_version')}"
+		modImplementation "net.fabricmc:fabric-loader:${property('loader.fabric')}"
+		modImplementation "net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}"
 
-		modImplementation "com.terraformersmc:modmenu:${property('modmenu_version')}"
-		modImplementation "dev.isxander:yet-another-config-lib:${property('yacl_version')}-fabric"
+		modImplementation "com.terraformersmc:modmenu:${property('deps.modmenu')}"
+		modImplementation "dev.isxander:yet-another-config-lib:${property('deps.yacl')}-fabric"
 
-		modCompileOnly "maven.modrinth:sodium-extra:${property('sodium_extra_version')}"
-		modCompileOnly "maven.modrinth:iris:${property('iris_version')}"
+		modCompileOnly "maven.modrinth:sodium-extra:${property('deps.sodium_extra')}"
+		modCompileOnly "maven.modrinth:iris:${property('deps.iris')}"
 	}
 
 	if (isNeoForge || isForge) {
 		if (isNeoForge)
-			neoForge "net.neoforged:neoforge:${property('neoforge_loader_version')}"
+			neoForge "net.neoforged:neoforge:${property('loader.neoforge')}"
 		if (isForge)
-			forge "net.minecraftforge:forge:${property('forge_loader_version')}"
+			forge "net.minecraftforge:forge:${property('loader.forge')}"
 
-		modImplementation "dev.isxander:yet-another-config-lib:${property('yacl_version')}-neoforge"
+		modImplementation("dev.isxander:yet-another-config-lib:${property('deps.yacl')}-neoforge") {
+			transitive = false
+		}
 
-		// TODO: Need a proper solution!! Should be included with yacl
+		// These should be included with yacl, but it doesn't work correctly, so adding them here
 		forgeRuntimeLibrary(runtimeOnly("org.quiltmc.parsers:json:0.2.1"))
 		forgeRuntimeLibrary(runtimeOnly("org.quiltmc.parsers:gson:0.2.1"))
 
@@ -144,25 +146,22 @@ dependencies {
 processResources {
 	var props = [
 		version: project.version,
-		mc_version: findProperty("minecraft_version_range")
+		mc_version: findProperty("deps.minecraft.range")
 	]
 
 	props.forEach(inputs::property)
 
-	filesMatching("fabric.mod.json") {
+	filesMatching(["fabric.mod.json", "META-INF/mods.toml", "META-INF/neoforge.mods.toml"]) {
 		expand props
 	}
 
-	filesMatching("META-INF/neoforge.mods.toml") {
-		expand props
-	}
+	if(isNeoForge || isForge)
+		exclude("fabric.mod.json")
+	if(isFabric)
+		exclude("META-INF/mods.toml", "META-INF/neoforge.mods.toml")
 
 	exclude("assets/**/*.ase")
 	exclude("assets/**/*.xcf")
-}
-
-tasks.withType(JavaCompile).configureEach {
-	it.options.release = findProperty('java_version').toString().toInteger()
 }
 
 remapJar {
@@ -173,6 +172,11 @@ remapJar {
 
 stonecutter {
 	var j21 = eval(mcVersion, ">=1.20.6")
+
+	tasks.withType(JavaCompile).configureEach {
+		it.options.release = j21 ? 21 : 17
+	}
+
 	java {
 		withSourcesJar()
 		sourceCompatibility = j21 ? JavaVersion.VERSION_21 : JavaVersion.VERSION_17
@@ -193,22 +197,20 @@ modrinth  { // Make sure it runs after build!
 		stream -> secrets.load(stream)
 	}
 
-
 	token.set(secrets.MODRINTH as String)
 	projectId = '5srFLIaK'
-	versionNumber = "${property('mod_version')}+${mcVersion}-${property('release_type').substring(0, 1)}" // Will fail if Modrinth has this version already
-	versionName = "${property('mod_version')} for ${mcVersion} ${property('release_type')}"
-	versionType = "${property('release_type')}"
-	// On fabric, use 'remapJar' instead of 'jar'
-	uploadFile = remapJar  // This is the java jar task. If it can't find the jar, try 'jar.outputs.getFiles().asPath' in place of 'jar'
+	versionNumber = "${property('mod.version')}+${mcVersion}-${property('mod.release').substring(0, 1)}" // Will fail if Modrinth has this version already
+	versionName = "${property('mod.version')} for ${mcVersion} ${property('mod.release')}"
+	versionType = "${property('mod.release')}"
+	uploadFile = remapJar
 	gameVersions.add(mcVersion)
-	loaders.add('fabric')
+	loaders.add(loader)
 	dependencies { // A special DSL for creating dependencies
 		// scope.type
 		// The scope can be `required`, `optional`, `incompatible`, or `embedded`
 		// The type can either be `project` or `version`
 		required.project "fabric-api"
-		required.version "yacl", "${property('yacl_version')}-fabric"
+		required.version "yacl", "${property('deps.yacl')}-fabric"
 		optional.project "sodium"
 		optional.project "iris"
 		optional.project "modmenu"

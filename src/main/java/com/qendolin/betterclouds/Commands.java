@@ -26,37 +26,37 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 //? if fabric {
-/*import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
+import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.argument;
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
-*///?} else {
-import net.minecraft.server.command.ServerCommandSource;
-//?}
+//?} else {
+/*import net.minecraft.server.command.ServerCommandSource;
+*///?}
 public class Commands {
 
     //? if !fabric {
-    public static LiteralArgumentBuilder<ServerCommandSource> literal(String name) {
+    /*public static LiteralArgumentBuilder<ServerCommandSource> literal(String name) {
         return LiteralArgumentBuilder.literal(name);
     }
 
-    /**
+    /^*
      * Creates a required argument builder.
      *
      * @param name the name of the argument
      * @param type the type of the argument
      * @param <T>  the type of the parsed argument value
      * @return the created argument builder
-     */
+     ^/
     public static <T> RequiredArgumentBuilder<ServerCommandSource, T> argument(String name, ArgumentType<T> type) {
         return RequiredArgumentBuilder.argument(name, type);
     }
-    //?}
+    *///?}
 
     //? if fabric {
-    /*static void register(CommandDispatcher<FabricClientCommandSource> dispatcher) {
-    *///?} else {
-    static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-    //?}
+    static void register(CommandDispatcher<FabricClientCommandSource> dispatcher) {
+    //?} else {
+    /*static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
+    *///?}
         final MinecraftClient client = MinecraftClient.getInstance();
         dispatcher.register(literal(Main.MODID + ":profile")
                 .then(argument("interval", IntegerArgumentType.integer(30))

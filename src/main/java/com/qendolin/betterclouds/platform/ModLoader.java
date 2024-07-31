@@ -4,7 +4,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 //? if fabric {
-/*import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.ModContainer;
 import com.qendolin.betterclouds.platform.fabric.ModVersionImpl;
@@ -35,8 +35,8 @@ public final class ModLoader {
         if(mod.isEmpty()) return ModVersion.NONE;
         return new ModVersionImpl(mod.get().getMetadata().getVersion());
     }
-}*///?} elif neoforge {
-import com.qendolin.betterclouds.Main;
+}//?} elif neoforge {
+/*import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.platform.neoforge.ModVersionImpl;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
@@ -84,4 +84,4 @@ public final class ModLoader {
         return new ModVersionImpl(mod.get().getModInfo().getVersion());
     }
 }
-//?}
+*///?}
