@@ -7,6 +7,11 @@ public class IrisCompatStub extends IrisCompat {
     }
 
     @Override
+    public boolean isFrustumCullingDisabled() {
+        return false;
+    }
+
+    @Override
     public void bindFramebuffer() {
 
     }

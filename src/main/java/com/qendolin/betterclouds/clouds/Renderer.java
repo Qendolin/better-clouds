@@ -21,7 +21,6 @@ import org.joml.*;
  import net.minecraft.block.enums.CameraSubmersionType; 
 
 import java.lang.Math;
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -345,12 +344,31 @@ public class Renderer implements AutoCloseable {
             return;
         }
 
+
+        boolean frustumCulling = config.useFrustumCulling;
+        if(IrisCompat.instance().isFrustumCullingDisabled() || config.preset().worldCurvatureSize != 0) {
+            frustumCulling = false;
+        }
+
+        if(frustumCulling)
+            drawCloudsWithFrustumCulling(frustumAtOrigin, config);
+        else
+            drawCloudsWithoutFrustumCulling();
+
+        glDisable(GL_DEPTH_CLAMP);
+        RenderSystem.enableCull();
+    }
+
+    private void drawCloudsWithFrustumCulling(Frustum frustumAtOrigin, Config config) {
+        // This algorithm loops over chunks, which are in a line-by-line order.
+        // When a visible chunk is found it's marked as a run start. The run continues until
+        // the next non-visible chunk is found. At the end of a run the entire run is rendered as once.
+        // This is possible due to the memory layout of the instance buffers.
         int runStart = -1;
         int runCount = 0;
         for (ChunkedGenerator.ChunkIndex chunk : res.generator().chunks()) {
-            boolean frustumCulling = config.useFrustumCulling && config.preset().worldCurvatureSize == 0;
             Box bounds = chunk.bounds(cloudsHeight, config.sizeXZ, config.sizeY);
-            if (frustumCulling && !frustumAtOrigin.isVisible(bounds)) {
+            if (!frustumAtOrigin.isVisible(bounds)) {
                 Debug.addFrustumCulledBox(bounds, false);
                 if (runCount != 0) {
                     if (glCompat.useBaseInstanceFallback()) {
@@ -372,9 +390,19 @@ public class Renderer implements AutoCloseable {
             }
             glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
         }
+    }
 
-        glDisable(GL_DEPTH_CLAMP);
-        RenderSystem.enableCull();
+    private void drawCloudsWithoutFrustumCulling() {
+        List<ChunkedGenerator.ChunkIndex> chunks = res.generator().chunks();
+        if(chunks.isEmpty()) return;
+        ChunkedGenerator.ChunkIndex first = chunks.get(0);
+        ChunkedGenerator.ChunkIndex last = chunks.get(chunks.size()-1);
+        int start = first.start();
+        int count = last.start() + last.count();
+        if (glCompat.useBaseInstanceFallback()) {
+            res.generator().buffer().setVAPointerToInstance(start);
+        }
+        glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), count, start);
     }
 
     private void drawShading(Vector3d cam, float tickDelta) {

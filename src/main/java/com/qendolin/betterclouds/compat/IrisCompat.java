@@ -28,5 +28,7 @@ public abstract class IrisCompat {
 
     public abstract boolean isShadersEnabled();
 
+    public abstract boolean isFrustumCullingDisabled();
+
     public abstract void bindFramebuffer();
 }

@@ -35,6 +35,7 @@ public class Debug {
 
     public static void drawFrustumCulledBoxes(Vector3d cam) {
         if (!frustumCulling) return;
+        if (frustumCulledBoxes.isEmpty()) return;
 
         //? if >=1.21 {
         BufferBuilder vertices = Tessellator.getInstance().begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
