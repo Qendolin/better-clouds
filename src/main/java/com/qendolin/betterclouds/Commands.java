@@ -9,6 +9,7 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.serialization.Codec;
 import com.qendolin.betterclouds.clouds.Debug;
+import com.qendolin.betterclouds.clouds.FrustumCuller;
 import com.qendolin.betterclouds.compat.GLCompat;
 import com.qendolin.betterclouds.renderdoc.CaptureManager;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
@@ -85,12 +86,14 @@ public class Commands {
         dispatcher.register(literal(Main.MODID + ":frustum")
             .then(literal("capture")
                 .executes(context -> {
-                    client.worldRenderer.captureFrustum();
+                    //client.worldRenderer.captureFrustum();
+                    FrustumCuller.DEBUG_LOCK = true;
                     return 1;
                 }))
             .then(literal("release")
                 .executes(context -> {
-                    client.worldRenderer.killFrustum();
+                    //client.worldRenderer.killFrustum();
+                    FrustumCuller.DEBUG_LOCK = false;
                     return 1;
                 }))
             .then(literal("debugCulling")

@@ -121,7 +121,7 @@ public class ChunkedGenerator implements AutoCloseable {
         int size = MathHelper.floor(distance / options.spacing)
             + MathHelper.ceil(distance / options.spacing);
         if (size <= 0) {
-            Telemetry.INSTANCE.sendEvent("invalid_buffer_size", String.format("Invalid buffer size result %d from block_distance=%d (distance=%f) and spacing %f".formatted(size, distance, options.distance, options.spacing)));
+            Telemetry.INSTANCE.sendEvent("invalid_buffer_size", String.format("Invalid buffer size result %d from block_distance=%d (distance=%f) and spacing %f".formatted(size, distance, options.renderDistance, options.spacing)));
             return 8 * 16;
         }
         return size;
@@ -171,7 +171,7 @@ public class ChunkedGenerator implements AutoCloseable {
                 || options.sparsity != prevOptions.sparsity
                 || options.spacing != prevOptions.spacing
                 || options.randomPlacement != prevOptions.randomPlacement
-                || options.distance != prevOptions.distance
+                || options.renderDistance != prevOptions.renderDistance
                 || options.samplingScale != prevOptions.samplingScale
                 || options.shuffle != prevOptions.shuffle;
 

@@ -37,6 +37,8 @@ group = project.maven_group
 architectury {
 	minecraft = mcVersion
 
+	compileOnly();
+
 	platformSetupLoomIde()
 	if (isFabric)
 		fabric()

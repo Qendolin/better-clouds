@@ -41,6 +41,7 @@ public class Renderer implements AutoCloseable {
     private final Matrix4f tempMatrix = new Matrix4f();
     private final Vector3f tempVector = new Vector3f();
     private final Frustum tempFrustum = new Frustum(new Matrix4f().identity(), new Matrix4f().identity());
+    private final FrustumCuller frustumCuller = new FrustumCuller();
     private ShaderParameters shaderParameters = null;
 
     private final Resources res = new Resources();
@@ -139,6 +140,9 @@ public class Renderer implements AutoCloseable {
             res.generator().swap();
             client.getProfiler().swap("render_setup");
         }
+
+        frustumCuller.update(viewMat, cam, projMat, cloudsHeight);
+
 
         tempMatrix.set(viewMat);
 
@@ -368,7 +372,8 @@ public class Renderer implements AutoCloseable {
         int runCount = 0;
         for (ChunkedGenerator.ChunkIndex chunk : res.generator().chunks()) {
             Box bounds = chunk.bounds(cloudsHeight, config.sizeXZ, config.sizeY);
-            if (!frustumAtOrigin.isVisible(bounds)) {
+//            if (!frustumAtOrigin.isVisible(bounds)) {
+            if (!frustumCuller.test(bounds)) {
                 Debug.addFrustumCulledBox(bounds, false);
                 if (runCount != 0) {
                     if (glCompat.useBaseInstanceFallback()) {

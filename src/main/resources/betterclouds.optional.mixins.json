@@ -3,7 +3,6 @@
   "parent": "betterclouds.mixins.json",
   "package": "com.qendolin.betterclouds.mixin.optional",
   "client": [
-    "DimensionEffectsOverworldMixin",
     "ExtendedShaderAccessor",
     "FallbackShaderAccessor"
   ]
