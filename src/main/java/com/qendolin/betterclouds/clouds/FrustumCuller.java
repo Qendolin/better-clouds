@@ -17,6 +17,7 @@ public class FrustumCuller {
     private final Matrix4d inverseRotation = new Matrix4d();
 
     private final Vector3d origin = new Vector3d();
+    private final Vector4d xzPlane = new Vector4d(0, 1, 0, 0);
 
     private final Vector4d tl = new Vector4d();
     private final Vector4d tr = new Vector4d();
@@ -44,8 +45,8 @@ public class FrustumCuller {
             inverseRotation.set(rotation).invert();
 
             origin.set(cam);
+            xzPlane.w = height - origin.y;
         }
-        //view.getTranslation(origin);
 
         Vector4d farPlane = new Vector4d(0, 0, 1, 1);
         Vector4d nearPlane = new Vector4d(0, 0, -1, 1);
@@ -101,7 +102,6 @@ public class FrustumCuller {
             0
         );
 
-        Vector4d xzPlane = new Vector4d(0, 1, 0, height - origin.y);
 
         // Calculate intersecting line based on https://math.stackexchange.com/q/475953/1014081
         Vector3d topIntersection = new Vector3d(
@@ -129,7 +129,40 @@ public class FrustumCuller {
         ).normalize();
         Vector3d leftOrigin = new Vector3d(bl.x, bl.y, bl.z).mul(xzPlane.w / bl.y);
 
-        RenderSystem.applyModelViewMatrix();
+        // Calculate straight line equation in hesse normal form
+        // Normals will point inward
+        top.set(topIntersection.z, -topIntersection.x, 0);
+        top.z = top.x * topOrigin.x + top.y * topOrigin.z; // dot product with one of the points gives the distance
+
+        right.set(rightIntersection.z, -rightIntersection.x, 0);
+        right.z = right.x * rightOrigin.x + right.y * rightOrigin.z;
+
+        bottom.set(bottomIntersection.z, -bottomIntersection.x, 0);
+        bottom.z = bottom.x * bottomOrigin.x + bottom.y * bottomOrigin.z;
+
+        left.set(leftIntersection.z, -leftIntersection.x, 0);
+        left.z = left.x * leftOrigin.x + left.y * leftOrigin.z;
+
+        // https://math.stackexchange.com/q/1992153/1014081
+        Vector2d topRightCorner = new Vector2d(
+            (top.z * right.y - top.y * right.z) / (top.x * right.y - top.y * right.x),
+            (top.x * right.z - top.z * right.x) / (top.x * right.y - top.y * right.x));
+
+        Vector2d topLeftCorner = new Vector2d(
+            (top.z * left.y - top.y * left.z) / (top.x * left.y - top.y * left.x),
+            (top.x * left.z - top.z * left.x) / (top.x * left.y - top.y * left.x));
+
+        Vector2d bottomLeftCorner = new Vector2d(
+            (bottom.z * left.y - bottom.y * left.z) / (bottom.x * left.y - bottom.y * left.x),
+            (bottom.x * left.z - bottom.z * left.x) / (bottom.x * left.y - bottom.y * left.x));
+
+        Vector2d bottomRightCorner = new Vector2d(
+            (bottom.z * right.y - bottom.y * right.z) / (bottom.x * right.y - bottom.y * right.x),
+            (bottom.x * right.z - bottom.z * right.x) / (bottom.x * right.y - bottom.y * right.x));
+
+
+        if(!DEBUG_LOCK) return;
+
         Matrix4f mat = new Matrix4f().translate((float) -cam.x, (float) -cam.y, (float) -cam.z);
 
         mat.translate((float) origin.x, (float) origin.y, (float) origin.z);
@@ -188,38 +221,7 @@ public class FrustumCuller {
         lines.vertex(mat, (float) bl.x, (float) bl.y, (float) bl.z)
             .color(0f,0f,1.0f,1f);
 
-        // Calculate straight line equation in hesse normal form
-        // Normals will point inward
-        top.set(topIntersection.z, -topIntersection.x, 0);
-        top.z = top.x * topOrigin.x + top.y * topOrigin.z; // dot product with one of the points gives the distance
-
-        right.set(rightIntersection.z, -rightIntersection.x, 0);
-        right.z = right.x * rightOrigin.x + right.y * rightOrigin.z;
-
-        bottom.set(bottomIntersection.z, -bottomIntersection.x, 0);
-        bottom.z = bottom.x * bottomOrigin.x + bottom.y * bottomOrigin.z;
-
-        left.set(leftIntersection.z, -leftIntersection.x, 0);
-        left.z = left.x * leftOrigin.x + left.y * leftOrigin.z;
-
-        // https://math.stackexchange.com/q/1992153/1014081
-        Vector2d topRightCorner = new Vector2d(
-            (top.z * right.y - top.y * right.z) / (top.x * right.y - top.y * right.x),
-            (top.x * right.z - top.z * right.x) / (top.x * right.y - top.y * right.x));
-
-        Vector2d topLeftCorner = new Vector2d(
-            (top.z * left.y - top.y * left.z) / (top.x * left.y - top.y * left.x),
-            (top.x * left.z - top.z * left.x) / (top.x * left.y - top.y * left.x));
-
-        Vector2d bottomLeftCorner = new Vector2d(
-            (bottom.z * left.y - bottom.y * left.z) / (bottom.x * left.y - bottom.y * left.x),
-            (bottom.x * left.z - bottom.z * left.x) / (bottom.x * left.y - bottom.y * left.x));
-
-        Vector2d bottomRightCorner = new Vector2d(
-            (bottom.z * right.y - bottom.y * right.z) / (bottom.x * right.y - bottom.y * right.x),
-            (bottom.x * right.z - bottom.z * right.x) / (bottom.x * right.y - bottom.y * right.x));
-
-        mat.translate((float) 0, (float) (-origin.y + height), 0);
+        mat.translate((float) 0, (float) xzPlane.w, 0);
 
         lines.vertex(mat, (float) topLeftCorner.x, (float) 0, (float) topLeftCorner.y)
             .color(0.5f, 1f, 0.5f,1f);
@@ -246,13 +248,23 @@ public class FrustumCuller {
         lines.vertex(mat, (float) 0, (float) 1, 0)
             .color(0f, 0f, 0f,1f);
 
-        RenderSystem.setShader(GameRenderer::getPositionColorProgram);
         BuiltBuffer linesBuiltBuffer = lines.end();
 
         var faces = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
 
-        mat.translate((float) 0, (float) (-height + origin.y), 0);
+        // projected plane
+        faces.vertex(mat, -100, 0, -100)
+            .color(0.0f,0.0f,0.0f,0.1f)
+            .vertex(mat, -100, 0, 100)
+            .color(0.0f,0.0f,0.0f,0.1f)
+            .vertex(mat, 100, 0, 100)
+            .color(0.0f,0.0f,0.0f,0.1f)
+            .vertex(mat, 100, 0, -100)
+            .color(0.0f,0.0f,0.0f,0.1f);
 
+        mat.translate((float) 0, (float) -xzPlane.w, 0);
+
+        // frustum faces
         faces.vertex(mat, (float) tl.x, (float) tl.y, (float) tl.z)
             .color(0.5f,1f,0.5f,0.25f)
             .vertex(mat, 0, 0 ,0)
@@ -289,7 +301,10 @@ public class FrustumCuller {
             .vertex(mat, 0,0,0)
             .color(0.0f,0.5f,0.5f, 0.25f);
 
+        RenderSystem.applyModelViewMatrix();
+        RenderSystem.setShader(GameRenderer::getPositionColorProgram);
         RenderSystem.enableBlend();
+        RenderSystem.disableCull();
         RenderSystem.depthMask(false);
         GL32.glEnable(GL32.GL_DEPTH_CLAMP);
         BufferRenderer.drawWithGlobalProgram(linesBuiltBuffer);
@@ -300,6 +315,7 @@ public class FrustumCuller {
     }
 
     public boolean test(Box box) {
+        // FIXME: Bad assumption: Testing the corners is not enough. It is possible that only part of an edge intersects.
         return test(box.minX, box.minZ) || test(box.minX, box.maxZ) || test(box.maxX, box.minZ) || test(box.maxX, box.maxZ);
     }
 
