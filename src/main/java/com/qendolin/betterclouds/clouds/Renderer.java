@@ -144,7 +144,7 @@ public class Renderer implements AutoCloseable {
         float cloudsCullingHeightMin = cloudsHeight - config.sizeY;
         float cloudsCullingHeightMax = cloudsHeight + config.yRange + config.sizeY;
         float cloudsCullingHeight = MathHelper.clamp((float) cam.y, cloudsCullingHeightMin, cloudsCullingHeightMax);
-        frustumCuller.update(viewMat, cam, projMat, cloudsCullingHeight);
+        frustumCuller.update(viewMat, cam, projMat, cloudsCullingHeightMin, cloudsCullingHeightMax);
 
 
         tempMatrix.set(viewMat);

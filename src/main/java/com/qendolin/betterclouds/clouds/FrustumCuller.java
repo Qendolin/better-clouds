@@ -4,8 +4,9 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.render.*;
 import net.minecraft.util.math.Box;
 import org.joml.*;
-import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL32;
+
+import java.lang.Math;
 
 public class FrustumCuller {
 
@@ -17,7 +18,8 @@ public class FrustumCuller {
     private final Matrix4d inverseRotation = new Matrix4d();
 
     private final Vector3d origin = new Vector3d();
-    private final Vector4d xzPlane = new Vector4d(0, 1, 0, 0);
+    private final Vector4d xzPlaneLo = new Vector4d(0, 1, 0, 0);
+    private final Vector4d xzPlaneHi = new Vector4d(0, 1, 0, 0);
 
     private final Vector4d tl = new Vector4d();
     private final Vector4d tr = new Vector4d();
@@ -29,12 +31,17 @@ public class FrustumCuller {
     private final Vector3d bottom = new Vector3d();
     private final Vector3d left = new Vector3d();
 
+    private final Vector2d topRightCorner = new Vector2d();
+    private final Vector2d topLeftCorner = new Vector2d();
+    private final Vector2d bottomLeftCorner = new Vector2d();
+    private final Vector2d bottomRightCorner = new Vector2d();
+
     private double zNear;
     private double zFar;
 
     public static boolean DEBUG_LOCK = false;
 
-    public void update(Matrix4f viewMatrix, Vector3d cam, Matrix4f projectionMatrix, float height) {
+    public void update(Matrix4f viewMatrix, Vector3d cam, Matrix4f projectionMatrix, float heightLo, float heightHi) {
         if(!DEBUG_LOCK) {
             projection.set(projectionMatrix);
             view.set(viewMatrix);
@@ -45,7 +52,8 @@ public class FrustumCuller {
             inverseRotation.set(rotation).invert();
 
             origin.set(cam);
-            xzPlane.w = height - origin.y;
+            xzPlaneLo.w = heightLo - origin.y;
+            xzPlaneHi.w = heightHi - origin.y;
         }
 
         Vector4d farPlane = new Vector4d(0, 0, 1, 1);
@@ -102,6 +110,64 @@ public class FrustumCuller {
             0
         );
 
+        Vector3d topLo = new Vector3d(), topHi = new Vector3d();
+        Vector3d rightLo = new Vector3d(), rightHi = new Vector3d();
+        Vector3d bottomLo = new Vector3d(), bottomHi = new Vector3d();
+        Vector3d leftLo = new Vector3d(), leftHi = new Vector3d();
+
+        // intersect hi and lo plane, take maximum area
+        intersectFrustumPlane(xzPlaneLo, topFace, rightFace, bottomFace, leftFace, cam,
+            topLo,
+            rightLo,
+            bottomLo,
+            leftLo
+        );
+
+        intersectFrustumPlane(xzPlaneHi, topFace, rightFace, bottomFace, leftFace, cam,
+            topHi,
+            rightHi,
+            bottomHi,
+            leftHi
+        );
+
+        assert topLo.x == topHi.x && topLo.y == topHi.y;
+        assert rightLo.x == rightHi.x && rightLo.y == rightHi.y;
+        assert bottomLo.x == bottomHi.x && bottomLo.y == bottomHi.y;
+        assert leftLo.x == leftHi.x && leftLo.y == leftHi.y;
+
+        top.set(topLo.x, topLo.y, Math.min(topLo.z, topHi.z));
+        right.set(rightLo.x, rightLo.y, Math.min(rightLo.z, rightHi.z));
+        bottom.set(bottomLo.x, bottomLo.y, Math.min(bottomLo.z, bottomHi.z));
+        left.set(leftLo.x, leftLo.y, Math.min(leftLo.z, leftHi.z));
+
+        topRightCorner.set(
+            (top.z * right.y - top.y * right.z) / (top.x * right.y - top.y * right.x),
+            (top.x * right.z - top.z * right.x) / (top.x * right.y - top.y * right.x));
+
+        topLeftCorner.set(
+            (top.z * left.y - top.y * left.z) / (top.x * left.y - top.y * left.x),
+            (top.x * left.z - top.z * left.x) / (top.x * left.y - top.y * left.x));
+
+        bottomLeftCorner.set(
+            (bottom.z * left.y - bottom.y * left.z) / (bottom.x * left.y - bottom.y * left.x),
+            (bottom.x * left.z - bottom.z * left.x) / (bottom.x * left.y - bottom.y * left.x));
+
+        bottomRightCorner.set(
+            (bottom.z * right.y - bottom.y * right.z) / (bottom.x * right.y - bottom.y * right.x),
+            (bottom.x * right.z - bottom.z * right.x) / (bottom.x * right.y - bottom.y * right.x));
+    }
+
+    private void intersectFrustumPlane(
+        Vector4d xzPlane,
+        Vector4d topFace,
+        Vector4d rightFace,
+        Vector4d bottomFace,
+        Vector4d leftFace,
+        Vector3d cam,
+        Vector3d top,
+        Vector3d right,
+        Vector3d bottom,
+        Vector3d left) {
 
         // Calculate intersecting line based on https://math.stackexchange.com/q/475953/1014081
         Vector3d topIntersection = new Vector3d(
@@ -143,6 +209,8 @@ public class FrustumCuller {
         left.set(leftIntersection.z, -leftIntersection.x, 0);
         left.z = left.x * leftOrigin.x + left.y * leftOrigin.z;
 
+        if(!DEBUG_LOCK) return;
+
         // https://math.stackexchange.com/q/1992153/1014081
         Vector2d topRightCorner = new Vector2d(
             (top.z * right.y - top.y * right.z) / (top.x * right.y - top.y * right.x),
@@ -159,9 +227,6 @@ public class FrustumCuller {
         Vector2d bottomRightCorner = new Vector2d(
             (bottom.z * right.y - bottom.y * right.z) / (bottom.x * right.y - bottom.y * right.x),
             (bottom.x * right.z - bottom.z * right.x) / (bottom.x * right.y - bottom.y * right.x));
-
-
-        if(!DEBUG_LOCK) return;
 
         Matrix4f mat = new Matrix4f().translate((float) -cam.x, (float) -cam.y, (float) -cam.z);
 
@@ -315,11 +380,29 @@ public class FrustumCuller {
     }
 
     public boolean test(Box box) {
+
         // FIXME: Bad assumption: Testing the corners is not enough. It is possible that only part of an edge intersects.
-        return test(box.minX, box.minZ) || test(box.minX, box.maxZ) || test(box.maxX, box.minZ) || test(box.maxX, box.maxZ);
+        // A test both ways should fix this.
+        // No, they can overlap without one containing any points of the other. Fe. a cross formation.
+
+        // I need a fast overlap test between an axis-aligned rectangle and a convex quadrilateral
+        return testPointInProjection(box.minX, box.minZ)
+            || testPointInProjection(box.minX, box.maxZ)
+            || testPointInProjection(box.maxX, box.minZ)
+            || testPointInProjection(box.maxX, box.maxZ)
+            || testPointInAAR(topLeftCorner.x, topLeftCorner.y, box.maxZ, box.maxX, box.minZ, box.minX)
+            || testPointInAAR(topRightCorner.x, topRightCorner.y, box.maxZ, box.maxX, box.minZ, box.minX)
+            || testPointInAAR(bottomRightCorner.x, bottomRightCorner.y, box.maxZ, box.maxX, box.minZ, box.minX)
+            || testPointInAAR(bottomLeftCorner.x, bottomLeftCorner.y, box.maxZ, box.maxX, box.minZ, box.minX);
     }
 
-    public boolean test(double x, double z) {
+    private boolean testPointInAAR(double x, double z, double top, double right, double bottom, double left) {
+        x += origin.x;
+        z += origin.z;
+        return x >= left && x <= right && z >= top && z <= bottom;
+    }
+
+    private boolean testPointInProjection(double x, double z) {
         x -= origin.x;
         z -= origin.z;
         double dTop = x * top.x + z * top.y - top.z;

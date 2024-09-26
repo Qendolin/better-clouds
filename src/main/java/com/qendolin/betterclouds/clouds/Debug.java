@@ -37,6 +37,8 @@ public class Debug {
         if (!frustumCulling) return;
         if (frustumCulledBoxes.isEmpty()) return;
 
+        // FIXME: Does not take into account generator offset (wind)
+
         //? if >=1.21 {
         BufferBuilder vertices = Tessellator.getInstance().begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
         //?} else {
