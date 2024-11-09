@@ -386,14 +386,55 @@ public class FrustumCuller {
         // No, they can overlap without one containing any points of the other. Fe. a cross formation.
 
         // I need a fast overlap test between an axis-aligned rectangle and a convex quadrilateral
-        return testPointInProjection(box.minX, box.minZ)
-            || testPointInProjection(box.minX, box.maxZ)
-            || testPointInProjection(box.maxX, box.minZ)
-            || testPointInProjection(box.maxX, box.maxZ)
-            || testPointInAAR(topLeftCorner.x, topLeftCorner.y, box.maxZ, box.maxX, box.minZ, box.minX)
-            || testPointInAAR(topRightCorner.x, topRightCorner.y, box.maxZ, box.maxX, box.minZ, box.minX)
-            || testPointInAAR(bottomRightCorner.x, bottomRightCorner.y, box.maxZ, box.maxX, box.minZ, box.minX)
-            || testPointInAAR(bottomLeftCorner.x, bottomLeftCorner.y, box.maxZ, box.maxX, box.minZ, box.minX);
+
+        // I want to avoid the SPF and line intersection tests.
+        // Is it possible to determine overlap using only vertex tests?
+        // Idea: They do not overlap if:
+        // - all vertices of the rectangle are outside one side of the frustum
+        // - or all vertices of the frustum are outside one side of the rectangle
+        // This seems to hold true
+
+        return testAnyBoxPointInProjectionPlane(box.minX, box.minZ, box.maxX, box.maxZ, top)
+            && testAnyBoxPointInProjectionPlane(box.minX, box.minZ, box.maxX, box.maxZ, right)
+            && testAnyBoxPointInProjectionPlane(box.minX, box.minZ, box.maxX, box.maxZ, bottom)
+            && testAnyBoxPointInProjectionPlane(box.minX, box.minZ, box.maxX, box.maxZ, left);
+            // This additional check rarely rejects any boxes and would require more development
+            // && testAnyFrustumPointInBoxPlane(box.minX, box.minZ, box.maxX, box.maxZ);
+
+//        return testPointInProjection(box.minX, box.minZ)
+//            || testPointInProjection(box.minX, box.maxZ)
+//            || testPointInProjection(box.maxX, box.minZ)
+//            || testPointInProjection(box.maxX, box.maxZ)
+//            || testPointInAAR(topLeftCorner.x, topLeftCorner.y, box.maxZ, box.maxX, box.minZ, box.minX)
+//            || testPointInAAR(topRightCorner.x, topRightCorner.y, box.maxZ, box.maxX, box.minZ, box.minX)
+//            || testPointInAAR(bottomRightCorner.x, bottomRightCorner.y, box.maxZ, box.maxX, box.minZ, box.minX)
+//            || testPointInAAR(bottomLeftCorner.x, bottomLeftCorner.y, box.maxZ, box.maxX, box.minZ, box.minX);
+    }
+
+    private boolean testAnyFrustumPointInBoxPlane(double minX, double minZ, double maxX, double maxZ) {
+        // This implementation works if all sides of the frustum intersect the plane
+        // but not if looking horizontally. I could probably clamp corners behind the camera to the camera position.
+        minX -= origin.x;
+        maxX -= origin.x;
+        minZ -= origin.z;
+        maxZ -= origin.z;
+        boolean top = topLeftCorner.y > minZ || topRightCorner.y > minZ || bottomRightCorner.y > minZ || bottomLeftCorner.y > minZ;
+        boolean right = topLeftCorner.x < maxX || topRightCorner.x < maxX || bottomRightCorner.x < maxX || bottomLeftCorner.x < maxX;
+        boolean bottom = topLeftCorner.y < maxZ || topRightCorner.y < maxZ || bottomRightCorner.y < maxZ || bottomLeftCorner.y < maxZ;
+        boolean left = topLeftCorner.x > minX || topRightCorner.x > minX || bottomRightCorner.x > minX || bottomLeftCorner.x > minX;
+        return  top && right && bottom && left;
+    }
+
+    private boolean testAnyBoxPointInProjectionPlane(double minX, double minZ, double maxX, double maxZ, Vector3d plane) {
+        minX -= origin.x;
+        maxX -= origin.x;
+        minZ -= origin.z;
+        maxZ -= origin.z;
+        double d00 = minX * plane.x + minZ * plane.y - plane.z;
+        double d01 = minX * plane.x + maxZ * plane.y - plane.z;
+        double d10 = maxX * plane.x + minZ * plane.y - plane.z;
+        double d11 = maxX * plane.x + maxZ * plane.y - plane.z;
+        return d00 > 0 || d01 > 0 || d10 > 0 || d11 > 0;
     }
 
     private boolean testPointInAAR(double x, double z, double top, double right, double bottom, double left) {
