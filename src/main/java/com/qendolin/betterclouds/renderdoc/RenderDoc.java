@@ -17,12 +17,14 @@
  */
 package com.qendolin.betterclouds.renderdoc;
 
-import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.NamedLogger;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.LongByReference;
 import com.sun.jna.ptr.PointerByReference;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import net.fabricmc.loader.api.FabricLoader;
+import org.apache.logging.log4j.LogManager;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
@@ -32,6 +34,7 @@ import java.util.EnumSet;
 
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public final class RenderDoc {
+    public static final NamedLogger LOGGER = new NamedLogger(LogManager.getLogger("BetterClouds RenderDoc"), !FabricLoader.getInstance().isDevelopmentEnvironment());
 
     private RenderDoc() {
     }
@@ -46,7 +49,7 @@ public final class RenderDoc {
 
         int initResult = renderdocLibrary.RENDERDOC_GetAPI(10600, apiPointer);
         if (initResult != 1) {
-            Main.LOGGER.error("Could not connect to RenderDoc API, return code: {}", initResult);
+            LOGGER.error("Could not connect to RenderDoc API, return code: {}", initResult);
         } else {
             apiInstance = new RenderDocLibrary.RenderdocApi(apiPointer.getValue());
 
@@ -54,7 +57,7 @@ public final class RenderDoc {
             var minor = new IntByReference();
             var patch = new IntByReference();
             apiInstance.GetAPIVersion.call(major, minor, patch);
-            Main.LOGGER.info("Connected to RenderDoc API v" + major.getValue() + "." + minor.getValue() + "." + patch.getValue());
+            LOGGER.info("Connected to RenderDoc API v" + major.getValue() + "." + minor.getValue() + "." + patch.getValue());
         }
 
         renderdoc = apiInstance;
