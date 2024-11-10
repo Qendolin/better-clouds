@@ -53,13 +53,13 @@ implements IdentifiableResourceReloadListener {
     //?}
 
     @Override
-    public CompletableFuture<Void> reload(ResourceReloader.Synchronizer helper, ResourceManager manager, Profiler loadProfiler, Profiler applyProfiler, Executor loadExecutor, Executor applyExecutor) {
-        return load(manager, loadProfiler, loadExecutor).thenCompose(helper::whenPrepared).thenCompose(
-            (o) -> apply(o, manager, applyProfiler, applyExecutor)
+    public CompletableFuture<Void> reload(ResourceReloader.Synchronizer helper, ResourceManager manager, /*? if <1.21.3 {*/ /*Profiler loadProfiler, Profiler applyProfiler, *//*?}*/ Executor loadExecutor, Executor applyExecutor) {
+        return load(manager, loadExecutor).thenCompose(helper::whenPrepared).thenCompose(
+            (o) -> apply(o, manager, applyExecutor)
         );
     }
 
-    public CompletableFuture<Map<String, Config.ShaderConfigPreset>> load(ResourceManager manager, Profiler profiler, Executor executor) {
+    public CompletableFuture<Map<String, Config.ShaderConfigPreset>> load(ResourceManager manager, Executor executor) {
         return CompletableFuture.supplyAsync(() -> {
             Map<String, Config.ShaderConfigPreset> mergedPresets = new HashMap<>();
             Type mapType = new TypeToken<Map<String, Config.ShaderConfigPreset>>() {
@@ -88,7 +88,7 @@ implements IdentifiableResourceReloadListener {
         });
     }
 
-    public CompletableFuture<Void> apply(Map<String, Config.ShaderConfigPreset> data, ResourceManager manager, Profiler profiler, Executor executor) {
+    public CompletableFuture<Void> apply(Map<String, Config.ShaderConfigPreset> data, ResourceManager manager, Executor executor) {
         presets = data;
         if (Main.getConfig() != null) {
             Main.getConfig().loadDefaultPresets();

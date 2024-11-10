@@ -31,6 +31,10 @@ public class CustomButtonOption implements ButtonOption {
         this.available = available;
         this.controller = new CustomActionController(this);
         this.binding = new EmptyBinderImpl();
+
+        //?if >=1.21.3 {
+        this.stateManager = StateManager.createImmutable(action);
+        //?
     }
 
     public static com.qendolin.betterclouds.gui.CustomButtonOption.Builder createBuilder() {

@@ -1,7 +1,9 @@
 package com.qendolin.betterclouds.clouds;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.qendolin.betterclouds.compat.RenderSystemWrapper;
 import net.minecraft.client.gl.ShaderProgram;
+import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.render.*;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.Box;
@@ -44,7 +46,8 @@ public class Debug {
         vertices.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
         *///?}
         ShaderProgram prevShader = RenderSystem.getShader();
-        RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+        RenderSystemWrapper.setPositionColorShader();
+
         for (Pair<Box, Boolean> pair : frustumCulledBoxes) {
             Box box = pair.getLeft();
             if (pair.getRight()) {
@@ -54,7 +57,7 @@ public class Debug {
             }
         }
         BufferRenderer.drawWithGlobalProgram(vertices.end());
-        RenderSystem.setShader(() -> prevShader);
+        RenderSystemWrapper.setShader(prevShader);
     }
 
     public static void drawBox(Vector3d cam, VertexConsumer vertexConsumer, Box box, float red, float green, float blue, float alpha) {

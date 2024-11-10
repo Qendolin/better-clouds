@@ -6,7 +6,9 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(ShaderProgram.class)
 public interface ShaderProgramAccessor {
-    @Accessor("activeProgramGlRef")
+    //? if >=1.21.3 {
+    //?} else {
+    /*@Accessor("activeProgramGlRef")
     static int getActiveProgramGlRef() {
         throw new AssertionError();
     }
@@ -15,4 +17,5 @@ public interface ShaderProgramAccessor {
     static void setActiveProgramGlRef(int id) {
         throw new AssertionError();
     }
+    *///?}
 }

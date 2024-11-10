@@ -166,7 +166,11 @@ public class Resources implements Closeable {
     public static void unbindVbo() {
         VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
         if (buffer == null) return;
-        int previousVboId = buffer.getVertexBufferId();
+        //? if >=1.21.3 {
+        int previousVboId = buffer.getVertexBuffer().handle;
+        //?} else {
+        /*int previousVboId = buffer.getVertexBufferId();
+        *///?}
         if (previousVboId > 0)
             glBindBuffer(GL_ARRAY_BUFFER, previousVboId);
     }
@@ -374,9 +378,13 @@ public class Resources implements Closeable {
     }
 
     public static void unbindShader() {
-        int previousProgramId = ShaderProgramAccessor.getActiveProgramGlRef();
+        //? if >=1.21.3 {
+        glUseProgram(0);
+        //?} else {
+        /*int previousProgramId = ShaderProgramAccessor.getActiveProgramGlRef();
         if (previousProgramId > 0)
             glUseProgram(previousProgramId);
+        *///?}
     }
 
     @Override

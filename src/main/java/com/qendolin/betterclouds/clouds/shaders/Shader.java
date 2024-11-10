@@ -60,7 +60,11 @@ public class Shader implements AutoCloseable {
             shaderSrc = shaderSrc.replace(entry.getKey(), entry.getValue());
         }
         int id = GlStateManager.glCreateShader(type);
-        GlStateManager.glShaderSource(id, Collections.singletonList(shaderSrc));
+        //? if >=1.21.3 {
+        GlStateManager.glShaderSource(id, shaderSrc);
+        //?} else {
+        /*GlStateManager.glShaderSource(id, Collections.singletonList(shaderSrc));
+        *///?}
         GlStateManager.glCompileShader(id);
         if (GlStateManager.glGetShaderi(id, GL_COMPILE_STATUS) == 0) {
             String log = StringUtils.trim(GlStateManager.glGetShaderInfoLog(id, 32768));

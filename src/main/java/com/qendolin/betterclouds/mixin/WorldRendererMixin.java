@@ -6,14 +6,17 @@ import com.qendolin.betterclouds.clouds.Renderer;
 import com.qendolin.betterclouds.compat.Telemetry;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.option.CloudRenderMode;
 import net.minecraft.client.render.BufferBuilderStorage;
+import net.minecraft.client.render.FrameGraphBuilder;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.resource.ResourceManager;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector3d;
@@ -27,6 +30,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static com.qendolin.betterclouds.Main.glCompat;
+import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
 
 @Mixin(WorldRenderer.class)
 public abstract class WorldRendererMixin {
@@ -53,9 +57,11 @@ public abstract class WorldRendererMixin {
     @Shadow
     private @Nullable Frustum capturedFrustum;
 
-    @Shadow
-    @Final
-    private Vector3d capturedFrustumPosition;
+    //? if <1.21.3 {
+//    @Shadow
+//    @Final
+//    private Vector3d capturedFrustumPosition;
+    //?}
 
     @Shadow
     @Final
@@ -66,6 +72,8 @@ public abstract class WorldRendererMixin {
 
     @Shadow
     private int ticks;
+
+    @Shadow public abstract Frustum getCapturedFrustum();
 
     @Inject(at = @At("TAIL"), method = "reload(Lnet/minecraft/resource/ResourceManager;)V")
     private void onReload(ResourceManager manager, CallbackInfo ci) {
@@ -84,9 +92,23 @@ public abstract class WorldRendererMixin {
         if (cloudRenderer != null) cloudRenderer.setWorld(world);
     }
 
-    //? if >=1.20.6 {
-    @Inject(at = @At("HEAD"), method = "renderClouds(Lnet/minecraft/client/util/math/MatrixStack;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;FDDD)V", cancellable = true)
-    private void renderClouds(MatrixStack matrices, Matrix4f viewMat, Matrix4f projMat, float tickDelta, double camX, double camY, double camZ, CallbackInfo ci) {
+    @Unique
+    private Vector3d getCapturedFrustumPosition() {
+        //? if >=1.21.3 {
+        return new Vector3d(getCapturedFrustum().x, getCapturedFrustum().y, getCapturedFrustum().z);
+        //?} else {
+//        return new Vector3d(capturedFrustumPosition);
+        //?}
+    }
+
+    //? if >=1.21.3 {
+    @Inject(at = @At("HEAD"), method = "renderClouds", cancellable = true)
+    private void renderClouds(FrameGraphBuilder frameGraphBuilder, Matrix4f viewMat, Matrix4f projMat, CloudRenderMode renderMode, Vec3d cameraPos, float _ticks, int _color, float _cloudHeight, CallbackInfo ci) {
+        double camX = cameraPos.x, camY = cameraPos.y, camZ = cameraPos.z;
+        float tickDelta = MathHelper.fractionalPart(_ticks);
+    //?} elif >=1.20.6 {
+//    @Inject(at = @At("HEAD"), method = "renderClouds(Lnet/minecraft/client/util/math/MatrixStack;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;FDDD)V", cancellable = true)
+//    private void renderClouds(MatrixStack matrices, Matrix4f viewMat, Matrix4f projMat, float tickDelta, double camX, double camY, double camZ, CallbackInfo ci) {
     //?} else {
     /*@Inject(at = @At("HEAD"), method = "renderClouds(Lnet/minecraft/client/util/math/MatrixStack;Lorg/joml/Matrix4f;FDDD)V", cancellable = true)
     private void renderClouds(MatrixStack matrices, Matrix4f projMat, float tickDelta, double camX, double camY, double camZ, CallbackInfo ci) {
@@ -98,16 +120,16 @@ public abstract class WorldRendererMixin {
         if (!Main.getConfig().enabledDimensions.contains(world.getDimensionEntry().getKey().orElse(null))) return;
         if (!Main.getConfig().enabled) return;
 
-        client.getProfiler().push(Main.MODID);
+        getProfiler().push(Main.MODID);
         glCompat.pushDebugGroupDev("Better Clouds");
 
         Vector3d cam = tempVector.set(camX, camY, camZ);
         Frustum frustum = this.frustum;
         Vector3d frustumPos = cam;
         if (capturedFrustum != null) {
+            frustumPos = getCapturedFrustumPosition();
             frustum = capturedFrustum;
-            frustum.setPosition(capturedFrustumPosition.x, this.capturedFrustumPosition.y, this.capturedFrustumPosition.z);
-            frustumPos = capturedFrustumPosition;
+            frustum.setPosition(frustumPos.x, frustumPos.y, frustumPos.z);
         }
 
         if (Main.isProfilingEnabled()) GL32.glFinish();
@@ -146,7 +168,7 @@ public abstract class WorldRendererMixin {
             }
         }
 
-        client.getProfiler().pop();
+        getProfiler().pop();
         glCompat.popDebugGroupDev();
     }
 

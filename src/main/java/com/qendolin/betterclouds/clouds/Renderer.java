@@ -26,6 +26,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static com.qendolin.betterclouds.Main.glCompat;
+import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
 import static org.lwjgl.opengl.GL32.*;
 
 public class Renderer implements AutoCloseable {
@@ -96,7 +97,7 @@ public class Renderer implements AutoCloseable {
 
     public PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, int ticks, float tickDelta, Vector3d cam) {
         assert RenderSystem.isOnRenderThread();
-        client.getProfiler().swap("render_setup");
+        getProfiler().swap("render_setup");
         Config config = Main.getConfig();
 
         if (res.failedToLoadCritical()) {
@@ -129,15 +130,15 @@ public class Renderer implements AutoCloseable {
 
         res.generator().update(cam, ticks + tickDelta, Main.getConfig(), cloudiness);
         if (res.generator().canGenerate() && !res.generator().generating() && !Debug.generatorPause) {
-            client.getProfiler().swap("generate_clouds");
+            getProfiler().swap("generate_clouds");
             res.generator().generate();
-            client.getProfiler().swap("render_setup");
+            getProfiler().swap("render_setup");
         }
 
         if (res.generator().canSwap()) {
-            client.getProfiler().swap("swap");
+            getProfiler().swap("swap");
             res.generator().swap();
-            client.getProfiler().swap("render_setup");
+            getProfiler().swap("render_setup");
         }
 
         tempMatrix.set(viewMat);
@@ -170,7 +171,7 @@ public class Renderer implements AutoCloseable {
     // Don't forget to push / pop matrix stack outside
     // Note: render must not return early, this will cause corruption because prepare binds stuff
     public void render(int ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
-        client.getProfiler().swap("render_setup");
+        getProfiler().swap("render_setup");
         if (Main.isProfilingEnabled()) {
             if (res.timer() == null) res.reloadTimer();
             res.timer().start();
@@ -187,11 +188,11 @@ public class Renderer implements AutoCloseable {
         RenderSystem.clearColor(0, 0, 0, 0);
         RenderSystem.clearDepth(1);
 
-        client.getProfiler().swap("draw_coverage");
+        getProfiler().swap("draw_coverage");
         drawCoverage(ticks + tickDelta, cam, frustumPos, frustum);
 
 
-        client.getProfiler().swap("draw_shading");
+        getProfiler().swap("draw_shading");
 
         RenderPhase renderPhase = null;
         if (IrisCompat.instance().isShadersEnabled() && config.useIrisFBO) {
@@ -205,7 +206,7 @@ public class Renderer implements AutoCloseable {
         drawShading(cam, tickDelta);
 
 
-        client.getProfiler().swap("render_cleanup");
+        getProfiler().swap("render_cleanup");
         res.generator().unbind();
         Resources.unbindShader();
         RenderSystem.disableBlend();

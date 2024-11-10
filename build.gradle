@@ -204,9 +204,14 @@ stonecutter {
 }
 
 if (stonecutter.current.isActive) {
-	rootProject.tasks.register("buildActive") {
+	rootProject.tasks.register("activeBuild") {
 		group = "project"
 		dependsOn(tasks.named("build"))
+	}
+	// Register task to run genSources for the active version only
+	rootProject.tasks.register("activeGenSources") {
+		group = "project"
+		dependsOn(tasks.named("genSources"))
 	}
 }
 
