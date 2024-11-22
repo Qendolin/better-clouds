@@ -39,7 +39,6 @@ public class Renderer implements AutoCloseable {
     private final Matrix4f pMatrix = new Matrix4f();
     private final Matrix4d pInverseMatrix = new Matrix4d();
     private final Matrix4f rotationProjectionMatrix = new Matrix4f();
-    private final Matrix4f rotationMatrix = new Matrix4f();
     private final Matrix4f tempMatrix = new Matrix4f();
     private final Vector3f tempVector = new Vector3f();
     private final Frustum tempFrustum = new Frustum(new Matrix4f().identity(), new Matrix4f().identity());
@@ -149,15 +148,15 @@ public class Renderer implements AutoCloseable {
         tempMatrix.m30(0);
         tempMatrix.m31(0);
         tempMatrix.m32(0);
-        tempMatrix.m33(1);
+        // If this isn't 0 then https://github.com/Qendolin/better-clouds/issues/165 occurs, but idk why.
+        // If it is 0 then the matrix is not invertible
+        tempMatrix.m33(0);
         tempMatrix.m23(0);
         tempMatrix.m13(0);
         tempMatrix.m03(0);
 
-        rotationMatrix.set(tempMatrix);
-
         rotationProjectionMatrix.set(projMat);
-        rotationProjectionMatrix.mul(rotationMatrix);
+        rotationProjectionMatrix.mul(tempMatrix);
 
         tempMatrix.translate((float) res.generator().renderOriginX(cam.x), (float) (cloudsHeight - cam.y), (float) res.generator().renderOriginZ(cam.z));
 

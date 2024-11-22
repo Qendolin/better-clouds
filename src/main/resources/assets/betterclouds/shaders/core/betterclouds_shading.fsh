@@ -33,14 +33,9 @@ uniform vec4 u_color_grading;
 uniform vec3 u_tint;
 // color noise factor
 uniform float u_noise_factor;
-uniform mat4 u_inverse_vp_matrix;
-uniform vec3 u_look_dir;
 
 // near, far
 uniform vec2 u_depth_range;
-
-// start, end
-uniform vec2 u_fog_range;
 
 const float pi = 3.14159265359;
 const float sqrt2 = 1.41421356237;
