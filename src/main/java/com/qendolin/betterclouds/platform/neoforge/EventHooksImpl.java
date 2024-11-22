@@ -3,7 +3,7 @@ package com.qendolin.betterclouds.platform.neoforge;
 import com.qendolin.betterclouds.platform.EventHooks;
 
 //? if neoforge {
-import com.mojang.brigadier.CommandDispatcher;
+/*import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.resource.ResourceReloader;
 import net.minecraft.server.command.ServerCommandSource;
@@ -57,8 +57,8 @@ public class EventHooksImpl extends EventHooks {
     }
 
 }
-//?} else {
-/*public abstract class EventHooksImpl extends EventHooks {
+*///?} else {
+public abstract class EventHooksImpl extends EventHooks {
 }
-*///?}
+//?}
 

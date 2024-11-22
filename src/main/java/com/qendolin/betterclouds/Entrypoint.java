@@ -4,7 +4,7 @@ import com.qendolin.betterclouds.gui.ConfigScreen;
 import com.qendolin.betterclouds.platform.EventHooks;
 
 //? if fabric {
-/*import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.api.ClientModInitializer;
 import com.qendolin.betterclouds.platform.fabric.EventHooksImpl;
 
 public final class Entrypoint implements ClientModInitializer {
@@ -16,8 +16,8 @@ public final class Entrypoint implements ClientModInitializer {
         Main.initializeClient();
     }
 }
-*///?} elif neoforge {
-import com.qendolin.betterclouds.platform.neoforge.EventHooksImpl;
+//?} elif neoforge {
+/*import com.qendolin.betterclouds.platform.neoforge.EventHooksImpl;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.neoforged.bus.api.IEventBus;
@@ -38,14 +38,14 @@ public final class Entrypoint {
             MinecraftClient.getInstance().execute(Main::initializeClient);
 
             //? if <1.20.6 {
-            /*ModLoadingContext.get().registerExtensionPoint(net.neoforged.neoforge.client.ConfigScreenHandler.ConfigScreenFactory.class,
+            /^ModLoadingContext.get().registerExtensionPoint(net.neoforged.neoforge.client.ConfigScreenHandler.ConfigScreenFactory.class,
                 () -> new net.neoforged.neoforge.client.ConfigScreenHandler.ConfigScreenFactory(
                     (client, parent) -> ConfigGUI.create(parent)));
-            *///?} else {
+            ^///?} else {
             ModLoadingContext.get().registerExtensionPoint(net.neoforged.neoforge.client.gui.IConfigScreenFactory.class,
                 () -> (modContainer, parent) -> ConfigGUI.create(parent));
             //?}
         });
     }
 }
-//?}
+*///?}

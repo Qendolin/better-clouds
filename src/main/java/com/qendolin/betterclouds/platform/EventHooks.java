@@ -8,15 +8,15 @@ import net.minecraft.resource.ResourceReloader;
 
 
 //? if fabric {
-/*import com.qendolin.betterclouds.platform.fabric.EventHooksImpl;
+import com.qendolin.betterclouds.platform.fabric.EventHooksImpl;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
-*///?}
+//?}
 
 //? if neoforge {
-import com.qendolin.betterclouds.platform.neoforge.EventHooksImpl;
+/*import com.qendolin.betterclouds.platform.neoforge.EventHooksImpl;
 import net.minecraft.command.CommandSource;
 import net.minecraft.server.command.ServerCommandSource;
-//?}
+*///?}
 
 public abstract class EventHooks {
 
@@ -29,8 +29,8 @@ public abstract class EventHooks {
     public abstract void onClientResourcesReload(Supplier<ResourceReloader> supplier);
 
     //? if fabric {
-    /*public abstract void onClientCommandRegistration(Consumer<CommandDispatcher<FabricClientCommandSource>> callback);
-    *///?} else {
-    public abstract void onClientCommandRegistration(Consumer<CommandDispatcher<ServerCommandSource>> callback);
-    //?}
+    public abstract void onClientCommandRegistration(Consumer<CommandDispatcher<FabricClientCommandSource>> callback);
+    //?} else {
+    /*public abstract void onClientCommandRegistration(Consumer<CommandDispatcher<ServerCommandSource>> callback);
+    *///?}
 }

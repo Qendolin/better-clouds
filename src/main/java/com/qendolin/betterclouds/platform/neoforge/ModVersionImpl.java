@@ -3,7 +3,7 @@ package com.qendolin.betterclouds.platform.neoforge;
 import com.qendolin.betterclouds.platform.ModVersion;
 
 //? if neoforge {
-import org.apache.maven.artifact.versioning.ArtifactVersion;
+/*import org.apache.maven.artifact.versioning.ArtifactVersion;
 
 public class ModVersionImpl extends ModVersion {
 
@@ -23,7 +23,7 @@ public class ModVersionImpl extends ModVersion {
         return delegate.toString();
     }
 }
-//?} else {
-/*public abstract class ModVersionImpl extends ModVersion {
+*///?} else {
+public abstract class ModVersionImpl extends ModVersion {
 }
-*///?}
+//?}
