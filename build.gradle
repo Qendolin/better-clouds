@@ -215,6 +215,10 @@ if (stonecutter.current.isActive) {
 		group = "project"
 		dependsOn(tasks.named("build"))
 	}
+	rootProject.tasks.register("activeModrinth") {
+		group = "project"
+		dependsOn(tasks.named("modrinth"))
+	}
 	// Register task to run genSources for the active version only
 	rootProject.tasks.register("activeGenSources") {
 		group = "project"
