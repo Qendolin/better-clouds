@@ -135,8 +135,14 @@ dependencies {
 		forgeRuntimeLibrary(runtimeOnly("org.quiltmc.parsers:json:0.2.1"))
 		forgeRuntimeLibrary(runtimeOnly("org.quiltmc.parsers:gson:0.2.1"))
 
-		modCompileOnly "maven.modrinth:rubidium-extra:0.5.7e+mc1.21-build.129"
-		modCompileOnly "maven.modrinth:oculus:1.20.1-1.7.0"
+
+		if(stonecutter.eval(mcVersion, ">=1.21")) {
+			modCompileOnly "maven.modrinth:iris:${property('deps.iris')}"
+			modCompileOnly "maven.modrinth:sodium-extra:${property('deps.sodium_extra')}"
+		} else {
+			modCompileOnly "maven.modrinth:oculus:1.20.1-1.7.0"
+			modCompileOnly "maven.modrinth:rubidium-extra:0.5.7e+mc1.21-build.129"
+		}
 
 		// Because yarn mappings are used the mods can't be loaded from the 'mods' directory at runtime.
 		// It causes NoClassDefFoundErrors due to the different mappings.

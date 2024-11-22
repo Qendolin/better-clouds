@@ -23,7 +23,6 @@ import com.sun.jna.ptr.LongByReference;
 import com.sun.jna.ptr.PointerByReference;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.fabricmc.loader.api.FabricLoader;
 import org.apache.logging.log4j.LogManager;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
@@ -34,7 +33,7 @@ import java.util.EnumSet;
 
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public final class RenderDoc {
-    public static final NamedLogger LOGGER = new NamedLogger(LogManager.getLogger("BetterClouds RenderDoc"), !FabricLoader.getInstance().isDevelopmentEnvironment());
+    public static final NamedLogger LOGGER = new NamedLogger(LogManager.getLogger("BetterClouds RenderDoc"), false);
 
     private RenderDoc() {
     }
