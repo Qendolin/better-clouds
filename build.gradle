@@ -263,6 +263,7 @@ modrinth  { // Make sure it runs after build!
 			required.project "fabric-api"
 			optional.project "modmenu"
 			incompatible.project "vulkanmod"
+			incompatible.project "immersiveportals"
 		}
 
 		if(isFabric || stonecutter.eval(mcVersion, ">=1.21")) {
