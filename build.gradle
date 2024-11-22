@@ -22,6 +22,11 @@ stonecutter.const("fabric", isFabric)
 stonecutter.const("neoforge", isNeoForge)
 stonecutter.const("forge", isForge)
 
+stonecutter  {
+	dependency("yacl", property('deps.yacl'))
+}
+
+
 static def buildVersionString(String modVersion, String releaseType, String mcVersion, String loader) {
 	var semver = modVersion
 	var isPrerelease = releaseType != "release"
