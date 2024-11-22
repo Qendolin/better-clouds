@@ -42,6 +42,8 @@ version = buildVersionString(property('mod.version').toString(), property('mod.r
 group = project.maven_group
 
 architectury {
+	// arch runtime, enables hot reloading
+	compileOnly()
 	minecraft = mcVersion
 
 	platformSetupLoomIde()

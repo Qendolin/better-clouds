@@ -6,7 +6,6 @@
 #define SIZE vec3(_SIZE_XZ_, _SIZE_Y_, _SIZE_XZ_)
 #define NEAR_VISIBILITY_START 10.0 + _SIZE_XZ_
 #define NEAR_VISIBILITY_END 20.0 + _SIZE_XZ_
-#define FAR_VISIBILITY_EDGE _VISIBILITY_EDGE_
 
 #define POSITIONAL_COLORING _POSITIONAL_COLORING_
 #define WORLD_CURVATURE _WORLD_CURVATURE_
@@ -34,20 +33,21 @@ uniform vec4 u_bounding_box;
 // scale falloff minimum, dynamic scale factor, dynamic scale speed
 uniform vec3 u_miscellaneous;
 uniform float u_time;
-// start, end
-uniform vec2 u_fog_range;
 // near, far, configured view distance
 uniform vec3 u_depth_range;
+uniform vec2 u_fog_range;
 
 flat out float pass_opacity;
 out vec3 pass_color;
 
+float linearFogFade(float distance, float fog_start, float fog_end) {
+    if (distance <= fog_start) {
+        return 1.0;
+    } else if (distance >= fog_end) {
+        return 0.0;
+    }
 
-float linear_fog(float distance, float fogStart, float fogEnd) {
-    if(distance <= fogStart) return 0.0;
-    if(distance > fogEnd) return 1.0;
-
-    return smoothstep(fogStart, fogEnd, distance);
+    return smoothstep(fog_end, fog_start, distance);
 }
 
 void main() {
@@ -56,14 +56,7 @@ void main() {
     vec3 cloudPos = in_pos; // in world space but anchored to the chunk grid
     cloudPos.y *= scaleFalloff;
 
-    pass_opacity =
-        smoothstep(NEAR_VISIBILITY_START, NEAR_VISIBILITY_END, length(localWorldPosition))
-        * smoothstep(u_bounding_box.z, u_bounding_box.z-FAR_VISIBILITY_EDGE,
-            length(vec3(localWorldPosition.x, 0, localWorldPosition.z)));
-
-    if(u_fog_range.y * 4.0 < u_bounding_box.z-FAR_VISIBILITY_EDGE) {
-        pass_opacity *= 1.0 - linear_fog(length(localWorldPosition.xyz), u_fog_range.x, u_fog_range.y);
-    }
+    pass_opacity = smoothstep(NEAR_VISIBILITY_START, NEAR_VISIBILITY_END, length(localWorldPosition));
 
     vec3 worldDirection = normalize(localWorldPosition);
 
@@ -74,6 +67,13 @@ void main() {
     float dynScale = mix(1.0, waveScale, fDynScale * u_miscellaneous.y);
     vec3 scale = SIZE * dynScale * scaleFalloff;
 
+    vec3 vertexPos = scale * in_vert + cloudPos;
+    vec3 localWorldVertexPos = vertexPos - u_origin_offset;
+
+    // Due to the limited max depth this can sometimes result in issues but they're barely visible
+    pass_color.r = linearFogFade(length(localWorldVertexPos.xz), u_fog_range.x, u_fog_range.y);
+    pass_color.r *= linearFogFade(abs(localWorldVertexPos.y), u_fog_range.y-16, u_fog_range.y);
+
 #if POSITIONAL_COLORING
     pass_color.g = (scale.y * 0.625 * (in_vert.y+0.375) + in_pos.y) / (u_bounding_box.w);
 #else
@@ -81,8 +81,6 @@ void main() {
 #endif
     pass_color.b = texture(u_noise_texture, localWorldPosition.xz / 1024.0).g;
 
-    vec3 vertexPos = scale * in_vert + cloudPos;
-    vec3 localWorldVertexPos = vertexPos - u_origin_offset;
 
 #if WORLD_CURVATURE != 0
     vertexPos.y -= dot(localWorldVertexPos, localWorldVertexPos) / WORLD_CURVATURE;

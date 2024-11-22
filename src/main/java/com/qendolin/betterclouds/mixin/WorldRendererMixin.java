@@ -6,17 +6,11 @@ import com.qendolin.betterclouds.clouds.Renderer;
 import com.qendolin.betterclouds.compat.Telemetry;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.option.CloudRenderMode;
-import net.minecraft.client.render.BufferBuilderStorage;
-import net.minecraft.client.render.FrameGraphBuilder;
-import net.minecraft.client.render.Frustum;
-import net.minecraft.client.render.WorldRenderer;
+import net.minecraft.client.render.*;
 import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector3d;
@@ -28,6 +22,14 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+//? if >=1.21.3 {
+import net.minecraft.client.option.CloudRenderMode;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.MathHelper;
+//?} else {
+/*import net.minecraft.client.util.math.MatrixStack;
+*///?}
 
 import static com.qendolin.betterclouds.Main.glCompat;
 import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
@@ -57,23 +59,21 @@ public abstract class WorldRendererMixin {
     @Shadow
     private @Nullable Frustum capturedFrustum;
 
-    //? if <1.21.3 {
-//    @Shadow
-//    @Final
-//    private Vector3d capturedFrustumPosition;
-    //?}
-
-    @Shadow
-    @Final
-    private MinecraftClient client;
-
     @Shadow
     private @Nullable ClientWorld world;
 
     @Shadow
     private int ticks;
 
+    //? if >=1.21.3 {
     @Shadow public abstract Frustum getCapturedFrustum();
+
+    @Shadow @Final private DefaultFramebufferSet framebufferSet;
+    //?} else {
+    /*@Shadow
+    @Final
+    private Vector3d capturedFrustumPosition;
+    *///?}
 
     @Inject(at = @At("TAIL"), method = "reload(Lnet/minecraft/resource/ResourceManager;)V")
     private void onReload(ResourceManager manager, CallbackInfo ci) {
@@ -97,8 +97,8 @@ public abstract class WorldRendererMixin {
         //? if >=1.21.3 {
         return new Vector3d(getCapturedFrustum().x, getCapturedFrustum().y, getCapturedFrustum().z);
         //?} else {
-//        return new Vector3d(capturedFrustumPosition);
-        //?}
+        /*return new Vector3d(capturedFrustumPosition);
+        *///?}
     }
 
     //? if >=1.21.3 {
@@ -148,7 +148,29 @@ public abstract class WorldRendererMixin {
                 glCompat.debugMessage("renderer prepare returned " + prepareResult.name());
             if (prepareResult == Renderer.PrepareResult.RENDER) {
                 ci.cancel();
-                cloudRenderer.render(ticks, tickDelta, cam, frustumPos, frustum);
+
+                //? if >=1.21.3 {
+                RenderPass renderPass = frameGraphBuilder.createPass("clouds");
+                if (framebufferSet.cloudsFramebuffer != null) {
+                    framebufferSet.cloudsFramebuffer = renderPass.transfer(framebufferSet.cloudsFramebuffer);
+                } else {
+                    framebufferSet.mainFramebuffer = renderPass.transfer(framebufferSet.mainFramebuffer);
+                }
+
+                final var fticks = ticks;
+                final var ftickDelta = tickDelta;
+                final var fcam = cam;
+                final var ffrustumPos = frustumPos;
+                final var ffrustum = frustum;
+                renderPass.setRenderer(() -> {
+                    glCompat.pushDebugGroupDev("Better Clouds");
+                    cloudRenderer.render(fticks, ftickDelta, fcam, ffrustumPos, ffrustum);
+                    glCompat.popDebugGroupDev();
+                });
+                //?} else {
+                /*cloudRenderer.render(ticks, tickDelta, cam, frustumPos, frustum);
+                *///?}
+
             } else if (prepareResult == Renderer.PrepareResult.NO_RENDER) {
                 ci.cancel();
             }

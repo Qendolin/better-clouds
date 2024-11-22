@@ -54,7 +54,7 @@ public class ConfigGUI {
     public final Option<Float> opacity;
     public final Option<Float> opacityFactor;
     public final Option<Float> opacityExponent;
-    public final Option<Float> fadeEdge;
+    public final Option<Float> fogRangeFactor;
     public final LabelOption irisDisclaimer;
     public final Option<Boolean> irisSupport;
     public final Option<Boolean> cloudOverride;
@@ -183,9 +183,9 @@ public class ConfigGUI {
             .binding(defaults.enabled, () -> config.enabled, val -> config.enabled = val)
             .customController(opt -> new BooleanController(opt, val -> Text.translatable(LANG_KEY_PREFIX + ".entry.enabled." + val), false))
             .build();
-        this.fadeEdge = createOption(float.class, "fadeEdge")
-            .binding(defaults.fadeEdge, () -> config.fadeEdge, val -> config.fadeEdge = val)
-            .customController(opt -> new FloatSliderController(opt, 0.1f, 0.5f, 0.01f, ConfigGUI::formatAsPercent))
+        this.fogRangeFactor = createOption(float.class, "fogRangeFactor")
+            .binding(defaults.fogRangeFactor, () -> config.fogRangeFactor, val -> config.fogRangeFactor = val)
+            .customController(opt -> new FloatSliderController(opt, 0.1f, 8.0f, 0.1f, ConfigGUI::formatAsTimes))
             .build();
         this.irisDisclaimer = LabelOption.create(Text.translatable(LANG_KEY_PREFIX + ".text.shaders"));
         this.irisSupport = createOption(boolean.class, "irisSupport")
@@ -396,7 +396,7 @@ public class ConfigGUI {
         appearanceGeometryGroup.addAll(List.of(sizeXZ, sizeY, scaleFalloffMin, travelSpeed, windEffectFactor, windSpeedFactor));
         appearanceCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("appearance.visibility")), appearanceVisibilityGroup));
-        appearanceVisibilityGroup.addAll(List.of(enabled, opacity, opacityFactor, opacityExponent, fadeEdge));
+        appearanceVisibilityGroup.addAll(List.of(enabled, opacity, opacityFactor, opacityExponent, fogRangeFactor));
         appearanceCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("appearance.color")), appearanceColorGroup));
         appearanceColorGroup.addAll(List.of(colorVariationFactor, gamma, dayBrightness, nightBrightness, saturation, tint));

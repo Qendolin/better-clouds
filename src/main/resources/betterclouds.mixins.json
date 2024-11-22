@@ -10,7 +10,7 @@
     "AbstractWidgetMixin",
     "BufferRendererAccessor",
     "CloudSettingMixin",
-    "DimensionalEffectsMixin",
+    "DimensionEffectsMixin",
     "RenderSystemMixin",
     "ShaderProgramAccessor",
     "TabButtonWidgetMixin",

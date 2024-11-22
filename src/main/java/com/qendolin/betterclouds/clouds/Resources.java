@@ -10,11 +10,14 @@ import com.qendolin.betterclouds.clouds.shaders.ShaderParameters;
 import com.qendolin.betterclouds.clouds.shaders.ShadingShader;
 import com.qendolin.betterclouds.compat.Telemetry;
 import com.qendolin.betterclouds.mixin.BufferRendererAccessor;
-import com.qendolin.betterclouds.mixin.ShaderProgramAccessor;
 import com.qendolin.betterclouds.mixin.VertexBufferAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
+
+//? if <1.21.3 {
+/*import com.qendolin.betterclouds.mixin.ShaderProgramAccessor;
+*///?}
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -342,11 +345,9 @@ public class Resources implements Closeable {
         depthShader.uDepthTexture.setInt(6);
         glCompat.objectLabelDev(glCompat.GL_PROGRAM, depthShader.glId(), "depth");
 
-        int edgeFade = (int) (shaderParameters.configFadeEdge() * shaderParameters.blockViewDistance());
         coverageShader = CoverageShader.create(manager,
             shaderParameters.configSizeXZ(),
             shaderParameters.configSizeY(),
-            edgeFade,
             shaderParameters.useStencilTextureFallback(),
             shaderParameters.useDistantHorizonsCompat(),
             shaderParameters.worldCurvatureSize());

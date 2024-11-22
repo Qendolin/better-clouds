@@ -8,6 +8,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+//? if >=1.21.3 {
+import net.minecraft.client.util.tracy.TracyFrameCapturer;
+//?}
+
 @Mixin(RenderSystem.class)
 public abstract class RenderSystemMixin {
 
@@ -17,7 +21,11 @@ public abstract class RenderSystemMixin {
     }
 
     @Inject(method = "flipFrame", at = @At(value = "INVOKE", target = "Lorg/lwjgl/glfw/GLFW;glfwSwapBuffers(J)V", shift = At.Shift.AFTER, remap = false))
-    private static void afterSwapBuffers(long window, CallbackInfo ci) {
+    //? if >=1.21.3 {
+    private static void afterSwapBuffers(long window, TracyFrameCapturer capturer, CallbackInfo ci) {
+    //?} else {
+     /*private static void afterSwapBuffers(long window, CallbackInfo ci) {
+    *///?}
         CaptureManager.onSwapBuffers();
     }
 }

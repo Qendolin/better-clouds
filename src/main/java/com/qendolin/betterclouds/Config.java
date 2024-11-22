@@ -46,7 +46,7 @@ public class Config {
         this.chunkSize = other.chunkSize;
         this.samplingScale = other.samplingScale;
         this.scaleFalloffMin = other.scaleFalloffMin;
-        this.fadeEdge = other.fadeEdge;
+        this.fogRangeFactor = other.fogRangeFactor;
         this.usePersistentBuffers = other.usePersistentBuffers;
         this.irisSupport = other.irisSupport;
         this.enabled = other.enabled;
@@ -93,9 +93,9 @@ public class Config {
     @SerialEntry
     public float windEffectFactor = 1.0f;
     @SerialEntry
-    public float windSpeedFactor = 1.0f;
+    public float windSpeedFactor = 0.8f;
     @SerialEntry
-    public float colorVariationFactor = 1.0f;
+    public float colorVariationFactor = 0.8f;
     @SerialEntry
     public boolean celestialBodyHalo = true;
     @SerialEntry
@@ -105,7 +105,7 @@ public class Config {
     @SerialEntry
     public float scaleFalloffMin = 0.25f;
     @SerialEntry
-    public float fadeEdge = 0.15f;
+    public float fogRangeFactor = 1f;
     @SerialEntry
     public boolean usePersistentBuffers = true;
     @SerialEntry

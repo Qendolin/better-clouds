@@ -11,6 +11,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.CloudRenderMode;
 import net.minecraft.client.render.*;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
@@ -39,6 +40,7 @@ public class Renderer implements AutoCloseable {
     private final Matrix4f pMatrix = new Matrix4f();
     private final Matrix4d pInverseMatrix = new Matrix4d();
     private final Matrix4f rotationProjectionMatrix = new Matrix4f();
+    private final Matrix4f rotationMatrix = new Matrix4f();
     private final Matrix4f tempMatrix = new Matrix4f();
     private final Vector3f tempVector = new Vector3f();
     private final Frustum tempFrustum = new Frustum(new Matrix4f().identity(), new Matrix4f().identity());
@@ -87,8 +89,7 @@ public class Renderer implements AutoCloseable {
     private ShaderParameters createShaderParameters(Config config) {
         return new ShaderParameters(
             client.options.getCloudRenderModeValue(),
-            config.blockDistance(),
-            config.fadeEdge, config.sizeXZ, config.sizeY, config.celestialBodyHalo,
+            config.blockDistance(), config.sizeXZ, config.sizeY, config.celestialBodyHalo,
             glCompat.useDepthWriteFallback(), glCompat.useStencilTextureFallback(),
             DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled(),
             config.preset().worldCurvatureSize
@@ -141,21 +142,24 @@ public class Renderer implements AutoCloseable {
             getProfiler().swap("render_setup");
         }
 
-        tempMatrix.set(viewMat);
 
-        rotationProjectionMatrix.set(projMat);
+
         // This is fixes issue #14, not entirely sure why, but it forces the matrix to be homogenous
+        tempMatrix.set(viewMat);
         tempMatrix.m30(0);
         tempMatrix.m31(0);
         tempMatrix.m32(0);
-        tempMatrix.m33(0);
+        tempMatrix.m33(1);
         tempMatrix.m23(0);
         tempMatrix.m13(0);
         tempMatrix.m03(0);
-        rotationProjectionMatrix.mul(tempMatrix);
+
+        rotationMatrix.set(tempMatrix);
+
+        rotationProjectionMatrix.set(projMat);
+        rotationProjectionMatrix.mul(rotationMatrix);
 
         tempMatrix.translate((float) res.generator().renderOriginX(cam.x), (float) (cloudsHeight - cam.y), (float) res.generator().renderOriginZ(cam.z));
-        tempMatrix.m33(1);
 
         pMatrix.set(projMat);
         pInverseMatrix.set(projMat);
@@ -171,6 +175,9 @@ public class Renderer implements AutoCloseable {
     // Don't forget to push / pop matrix stack outside
     // Note: render must not return early, this will cause corruption because prepare binds stuff
     public void render(int ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
+        // In 1.21.3 render is called some time after prepare, so this may be false by now
+        if(res.failedToLoadCritical()) return;
+
         getProfiler().swap("render_setup");
         if (Main.isProfilingEnabled()) {
             if (res.timer() == null) res.reloadTimer();
@@ -188,8 +195,16 @@ public class Renderer implements AutoCloseable {
         RenderSystem.clearColor(0, 0, 0, 0);
         RenderSystem.clearDepth(1);
 
+        // "Fast" computation of the near and far plane doesn't work because of nausea and view bobbing.
+        // This is slightly slower but should always give the correct results.
+        Vector4d farPlane = new Vector4d(0, 0, 1, 1);
+        Vector4d nearPlane = new Vector4d(0, 0, -1, 1);
+        pInverseMatrix.transform(farPlane);
+        pInverseMatrix.transform(nearPlane);
+        Vector2d clippingPlanes = new Vector2d((float) (-nearPlane.z / nearPlane.w), (float) (-farPlane.z / farPlane.w));
+
         getProfiler().swap("draw_coverage");
-        drawCoverage(ticks + tickDelta, cam, frustumPos, frustum);
+        drawCoverage(ticks + tickDelta, cam, frustumPos, frustum, clippingPlanes, tickDelta);
 
 
         getProfiler().swap("draw_shading");
@@ -203,7 +218,7 @@ public class Renderer implements AutoCloseable {
             renderPhase.startDrawing();
         }
 
-        drawShading(cam, tickDelta);
+        drawShading(cam, tickDelta, clippingPlanes);
 
 
         getProfiler().swap("render_cleanup");
@@ -254,8 +269,7 @@ public class Renderer implements AutoCloseable {
         return res.fboWidth() != scaledFramebufferWidth() || res.fboHeight() != scaledFramebufferHeight();
     }
 
-    private void drawCoverage(float ticks, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
-
+    private void drawCoverage(float ticks, Vector3d cam, Vector3d frustumPos, Frustum frustum, Vector2d clippingPlanes, float tickDelta) {
         RenderSystem.enableDepthTest();
         RenderSystem.colorMask(true, true, true, true);
         RenderSystem.depthMask(true);
@@ -286,26 +300,17 @@ public class Renderer implements AutoCloseable {
         Config generatorConfig = getGeneratorConfig();
         Config config = Main.getConfig();
 
+        RenderSystemWrapper.Fog fog = getAdjustedFog(client.gameRenderer.getCamera(), config.blockDistance(), config.fogRangeFactor, tickDelta);
+
         res.coverageShader().bind();
         res.coverageShader().uMVPMatrix.setMat4(mvpMatrix);
         res.coverageShader().uOriginOffset.setVec3((float) -res.generator().renderOriginX(cam.x), (float) cam.y - cloudsHeight, (float) -res.generator().renderOriginZ(cam.z));
         res.coverageShader().uBoundingBox.setVec4((float) cam.x, (float) cam.z, generatorConfig.blockDistance() - generatorConfig.chunkSize / 2f, generatorConfig.yRange + config.sizeY);
         res.coverageShader().uTime.setFloat(ticks / 20);
         res.coverageShader().uMiscellaneous.setVec3(config.scaleFalloffMin, config.windEffectFactor, config.windSpeedFactor);
-        FogShape shape = RenderSystem.getShaderFogShape();
-        if (shape == FogShape.CYLINDER) {
-            res.coverageShader().uFogRange.setVec2(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
-        } else {
-            res.coverageShader().uFogRange.setVec2(RenderSystem.getShaderFogStart(), RenderSystem.getShaderFogEnd());
-        }
+        res.coverageShader().uFogRange.setVec2(fog.start(), fog.end());
+        res.coverageShader().uDepthRange.setVec3((float) clippingPlanes.x, (float) clippingPlanes.y, config.blockDistance());
 
-        // "Fast" computation of the near and far plane doesn't work because of nausea and view bobbing.
-        // This is slightly slower but should always give the correct results.
-        Vector4d farPlane = new Vector4d(0, 0, 1, 1);
-        Vector4d nearPlane = new Vector4d(0, 0, -1, 1);
-        pInverseMatrix.transform(farPlane);
-        pInverseMatrix.transform(nearPlane);
-        res.coverageShader().uDepthRange.setVec3((float) (-nearPlane.z / nearPlane.w), (float) (-farPlane.z / farPlane.w), config.blockDistance());
 
         RenderSystem.activeTexture(GL_TEXTURE0);
         RenderSystem.bindTexture(client.getFramebuffer().getDepthAttachment());
@@ -406,7 +411,7 @@ public class Renderer implements AutoCloseable {
         glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), count, start);
     }
 
-    private void drawShading(Vector3d cam, float tickDelta) {
+    private void drawShading(Vector3d cam, float tickDelta, Vector2d clippingPlanes) {
         Config config = Main.getConfig();
         RenderSystem.depthFunc(GL_LEQUAL);
 
@@ -439,7 +444,7 @@ public class Renderer implements AutoCloseable {
         RenderSystem.activeTexture(GL_TEXTURE4);
         client.getTextureManager().getTexture(Resources.LIGHTING_TEXTURE).bindTexture();
 
-        float effectLuma = getEffectLuminance(cam, tickDelta);
+        Vector3f effectTint = getEffectTint(tickDelta);
         long skyTime = world.getLunarTime() % 24000;
         float skyAngleRad = world.getSkyAngleRadians(tickDelta);
         float sunPathAngleRad = (float) Math.toRadians(config.preset().sunPathAngle);
@@ -456,8 +461,8 @@ public class Renderer implements AutoCloseable {
         res.shadingShader().uSunDirection.setVec4(sunDir.x, sunDir.y, sunDir.z, mappedTime / 24000f);
         res.shadingShader().uSunAxis.setVec3(0, sunAxisY, sunAxisZ);
         res.shadingShader().uOpacity.setVec3(config.preset().opacity, config.preset().opacityFactor, config.preset().opacityExponent);
-        res.shadingShader().uColorGrading.setVec4(brightness, 1f / config.preset().gamma(), effectLuma, config.preset().saturation);
-        res.shadingShader().uTint.setVec3(config.preset().tintRed, config.preset().tintGreen, config.preset().tintBlue);
+        res.shadingShader().uColorGrading.setVec4(brightness, 1f / config.preset().gamma(), 0.0f, config.preset().saturation);
+        res.shadingShader().uTint.setVec3(config.preset().tintRed * effectTint.x, config.preset().tintGreen * effectTint.y, config.preset().tintBlue * effectTint.z);
         res.shadingShader().uNoiseFactor.setFloat(config.colorVariationFactor);
 
         glBindVertexArray(res.cubeVao());
@@ -479,6 +484,31 @@ public class Renderer implements AutoCloseable {
         return Main.getConfig();
     }
 
+    private RenderSystemWrapper.Fog getAdjustedFog(Camera camera, float cloudDistance, float fogRangeFactor, float tickDelta) {
+        RenderSystemWrapper.Fog original = RenderSystemWrapper.getFog();
+        //? if >=1.21.3 {
+        var adjusted = BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_TERRAIN, new Vector4f(original.red(), original.green(), original.blue(), original.alpha()), cloudDistance, shouldUseThickFog(world, camera.getPos()), tickDelta);
+        float start = adjusted.start();
+        float end = adjusted.end();
+        FogShape shape = adjusted.shape();
+        //?} else {
+        /*BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_TERRAIN, cloudDistance, shouldUseThickFog(world, camera.getPos()), tickDelta);
+        float start = RenderSystem.getShaderFogStart();
+        float end = RenderSystem.getShaderFogEnd();
+        FogShape shape = RenderSystem.getShaderFogShape();
+        *///?}
+
+        // Revert any changes
+        original.apply();
+        float range = end - start;
+        return new RenderSystemWrapper.Fog(Math.max(end - fogRangeFactor * range, 0), end, shape, original.red(), original.green(), original.blue(), original.alpha());
+    }
+
+    private static boolean shouldUseThickFog(ClientWorld world, Vec3d pos) {
+        return world.getDimensionEffects().useThickFog(MathHelper.floor(pos.x), MathHelper.floor(pos.z)) ||
+            MinecraftClient.getInstance().inGameHud.getBossBarHud().shouldThickenFog();
+    }
+
     private void setFrustumTo(Frustum dst, Frustum src) {
         dst.frustumIntersection = src.frustumIntersection;
         dst.positionProjectionMatrix.set(src.positionProjectionMatrix);
@@ -488,24 +518,64 @@ public class Renderer implements AutoCloseable {
         dst.recession = src.recession;
     }
 
-    private float getEffectLuminance(Vector3d cam, float tickDelta) {
-        //? if >1.20.1 {
-        BackgroundRenderer.applyFogColor();
-        //?} else
-        /*BackgroundRenderer.setFogBlack();*/
 
-        float[] fogRgb = RenderSystem.getShaderFogColor();
-        Vec3d fogColor = new Vec3d(fogRgb[0], fogRgb[1], fogRgb[2]);
-        Vec3d skyColor = world.getSkyColor(new Vec3d(cam.x, cam.y, cam.z), tickDelta);
-        Vec3d cloudsColor = world.getCloudsColor(tickDelta);
+    private Vector3f getEffectTint(float tickDelta) {
+        var fog = RenderSystemWrapper.getFog();
+        Vector3f fogColor = new Vector3f(fog.red(), fog.green(), fog.blue());
+        fogColor.set((float) Math.pow(fogColor.x, 2.2), (float) Math.pow(fogColor.y, 2.2), (float) Math.pow(fogColor.z, 2.2));
 
-        Vec3d color = new Vec3d(
-            (cloudsColor.x * 2 + skyColor.x * 1.5786 + fogColor.x * 1.2458) / (2 + 1 + 1),
-            (cloudsColor.y * 2 + skyColor.y * 1.5786 + fogColor.y * 1.2458) / (2 + 1 + 1),
-            (cloudsColor.z * 2 + skyColor.z * 1.5786 + fogColor.z * 1.2458) / (2 + 1 + 1)
-        );
-        double luma = color.x * 0.299 + color.y * 0.587 + color.z * 0.114;
-        return (float) MathHelper.clamp(luma * 0.95 + 0.05, 0.0, 1.0);
+        final Vector3f Y = new Vector3f(0.299f, 0.587f, 0.114f);
+
+        Vector3f cloudColor = getCloudsColor(tickDelta);
+        cloudColor.set((float) Math.pow(cloudColor.x, 2.2), (float) Math.pow(cloudColor.y, 2.2), (float) Math.pow(cloudColor.z, 2.2));
+
+        float fogLuma = fogColor.dot(Y);
+        float cloudBaseLuma = cloudColor.dot(Y);
+        Vector3f fogChroma = fogLuma < 0.0001 ? new Vector3f(1.0f) : new Vector3f(fogColor).div(fogLuma);
+        Vector3f cloudBaseChroma = cloudBaseLuma < 0.0001 ? new Vector3f(1.0f) : new Vector3f(cloudColor).div(cloudBaseLuma);
+
+        float cloudLuma = cloudBaseLuma;
+        float moon = MathHelper.clamp(-MathHelper.cos(world.getSkyAngle(tickDelta) * 2 * MathHelper.PI), -0.25f, 0.25f) * 2 + 0.5f;
+        cloudLuma += world.getMoonSize() * moon * 0.65f;
+
+        Vector3f combinedChroma = new Vector3f(MathHelper.sqrt(fogChroma.x * cloudBaseChroma.x), MathHelper.sqrt(fogChroma.y * cloudBaseChroma.y), MathHelper.sqrt(fogChroma.z * cloudBaseChroma.z));
+
+        float combinedLuma = MathHelper.square(MathHelper.sqrt(cloudLuma) + MathHelper.sqrt(fogLuma)) / 4;
+        combinedLuma *= 1/0.9777f; // The new calculation produces slightly darker clouds, this is a 'fix'
+        combinedLuma = MathHelper.clamp(combinedLuma, 0, 1);
+
+        float saturation = (float) Math.pow(combinedLuma, 1/2.2);
+        Vector3f gray = new Vector3f(combinedLuma);
+        Vector3f desaturated = new Vector3f(combinedChroma).mul(saturation).add(new Vector3f(gray).mul(1 - saturation));
+
+        Vector3f result = new Vector3f(desaturated).mul(combinedLuma).min(new Vector3f(1.0f));
+        result.set((float) Math.pow(result.x, 1/2.2), (float) Math.pow(result.y, 1/2.2), (float) Math.pow(result.z, 1/2.2));
+
+        if (client.player != null && client.player.hasStatusEffect(StatusEffects.NIGHT_VISION)) {
+            float min = result.get(result.minComponent());
+            result.div(MathHelper.lerp(GameRenderer.getNightVisionStrength(this.client.player, tickDelta), 1.0f, min));
+        }
+        return result;
+    }
+
+    private Vector3f getCloudsColor(float tickDelta) {
+        final Vector3f Y = new Vector3f(0.299f, 0.587f, 0.114f);
+
+        // this is from ClientWorld#getCloudsColor
+        Vector3f color = new Vector3f(1.0f);
+        float rain = world.getRainGradient(tickDelta);
+        color.lerp(new Vector3f(color.dot(Y) * 0.6f), rain * 0.95f);
+
+        float sky = world.getSkyAngle(tickDelta);
+
+        float sun = MathHelper.cos(sky * (float) (Math.PI * 2)) * 2.0F + 0.5F;
+        sun = MathHelper.clamp(sun, 0.0F, 1.0F);
+        color.mul(sun * 0.9f + 0.1f, sun * 0.9f + 0.1f, sun * 0.85f + 0.15f);
+
+        float thunder = world.getThunderGradient(tickDelta);
+        color.lerp(new Vector3f(color.dot(Y) * 0.2f), thunder * 0.95f);
+
+        return color;
     }
 
     private float getTrueRainGradient(float tickDelta) {
