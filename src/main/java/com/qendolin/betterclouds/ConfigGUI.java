@@ -153,7 +153,7 @@ public class ConfigGUI {
             .build();
         this.sizeY = createOption(float.class, "sizeY")
             .binding(defaults.sizeY, () -> config.sizeY, val -> config.sizeY = val)
-            .customController(opt -> new FloatSliderController(opt, 1, 32, 1))
+            .customController(opt -> new FloatSliderController(opt, 0, 32, 1))
             .build();
         this.scaleFalloffMin = createOption(float.class, "scaleFalloffMin")
             .binding(defaults.scaleFalloffMin, () -> config.scaleFalloffMin, val -> config.scaleFalloffMin = val)

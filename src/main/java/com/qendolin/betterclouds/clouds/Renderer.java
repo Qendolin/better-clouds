@@ -8,7 +8,6 @@ import com.qendolin.betterclouds.clouds.shaders.ShaderParameters;
 import com.qendolin.betterclouds.compat.*;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.option.CloudRenderMode;
 import net.minecraft.client.render.*;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.effect.StatusEffects;
@@ -62,7 +61,7 @@ public class Renderer implements AutoCloseable {
         shaderParameters = createShaderParameters(Main.getConfig());
         res.reloadShaders(manager, shaderParameters);
         Main.LOGGER.debug("[2/6] Reloading generator");
-        res.reloadGenerator(isFancyMode());
+        res.reloadGenerator(useCubeClouds());
         Main.LOGGER.debug("[3/6] Reloading textures");
         res.reloadTextures(client);
         Main.LOGGER.debug("[4/6] Reloading primitive meshes");
@@ -74,8 +73,9 @@ public class Renderer implements AutoCloseable {
         Main.LOGGER.info("Cloud renderer initialized");
     }
 
-    private boolean isFancyMode() {
-        return client.options.getCloudRenderModeValue() == CloudRenderMode.FANCY;
+    // Used to be called isFancyMode
+    private boolean useCubeClouds() {
+        return Main.getConfig().sizeY > 0;
     }
 
     private int scaledFramebufferWidth() {
@@ -124,7 +124,7 @@ public class Renderer implements AutoCloseable {
             shaderParameters = currentShaderParameters;
             res.reloadShaders(client.getResourceManager(), shaderParameters);
         }
-        res.generator().reallocateIfStale(config, isFancyMode());
+        res.generator().reallocateIfStale(config, useCubeClouds());
 
         float raininess = Math.max(0.6f * getTrueRainGradient(tickDelta), getTrueThunderGradient(tickDelta));
         float cloudiness = raininess * 0.3f + 0.5f;
@@ -293,7 +293,7 @@ public class Renderer implements AutoCloseable {
             glStencilFunc(GL_ALWAYS, 0xff, 0xff);
         }
 
-        if (isFancyMode()) RenderSystem.enableCull();
+        if (useCubeClouds()) RenderSystem.enableCull();
         else RenderSystem.disableCull();
         glClear(GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

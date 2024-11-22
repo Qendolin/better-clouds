@@ -51,11 +51,6 @@ public class OptionBuilderWrapper<T> {
         return this;
     }
 
-    public OptionBuilderWrapper<T> addListeners(@NotNull Collection<OptionEventListener<T>> optionEventListeners) {
-        delegate.addListeners(optionEventListeners);
-        return this;
-    }
-
     /**
      * Sets if the option can be configured
      *
@@ -95,16 +90,6 @@ public class OptionBuilderWrapper<T> {
         return this;
     }
 
-    public OptionBuilderWrapper<T> stateManager(@NotNull StateManager<T> stateManager) {
-        delegate.stateManager(stateManager);
-        return this;
-    }
-
-    public OptionBuilderWrapper<T> addListener(@NotNull OptionEventListener<T> listener) {
-        delegate.addListener(listener);
-        return this;
-    }
-
     /**
      * Adds multiple listeners to the option. Invoked upon changing the pending value.
      *
@@ -113,7 +98,7 @@ public class OptionBuilderWrapper<T> {
      */
     public OptionBuilderWrapper<T> listeners(@NotNull Collection<BiConsumer<Option<T>, T>> listeners) {
         //? if yacl: >=3.6.0 {
-        this.addListeners(listeners.stream()
+        delegate.addListeners(listeners.stream()
             .map(listener ->
                 (OptionEventListener<T>) (opt, event) ->
                     listener.accept(opt, opt.pendingValue())

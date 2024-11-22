@@ -65,8 +65,8 @@ public class ConfigScreen extends YACLScreen {
             //? if >=1.21.3 {
             this.applyBlur();
             //?} else {
-            //this.applyBlur(delta);
-            //?}
+            /*this.applyBlur(delta);
+            *///?}
         }
     //?} else {
         /*if (client == null || client.world == null) {
