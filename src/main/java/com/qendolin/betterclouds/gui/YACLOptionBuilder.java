@@ -26,11 +26,7 @@ public interface YACLOptionBuilder<T> {
             return new YACL35OptionBuilderImpl<>(delegate);
         }
 
-        //? if yacl: >=3.6.0 {
         return new YACL36OptionBuilderImpl<>(delegate);
-        //?} else {
-        /*throw new RuntimeException("Unsupported YACL minor version, must be < 6: " + semver.minor);
-        *///?}
     }
 
     /**

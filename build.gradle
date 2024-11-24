@@ -221,6 +221,10 @@ if (stonecutter.current.isActive) {
 		group = "project"
 		dependsOn(tasks.named("build"))
 	}
+	rootProject.tasks.register("activeRemapJar") {
+		group = "project"
+		dependsOn(tasks.named("remapJar"))
+	}
 	rootProject.tasks.register("activeModrinth") {
 		group = "project"
 		dependsOn(tasks.named("modrinth"))

@@ -1,6 +1,5 @@
 package com.qendolin.betterclouds.gui;
 
-//? if yacl: >=3.6.0 {
 import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.api.controller.ControllerBuilder;
 import net.minecraft.text.Text;
@@ -114,4 +113,3 @@ public class YACL36OptionBuilderImpl<T> implements YACLOptionBuilder<T> {
         return this;
     }
 }
-//?}
