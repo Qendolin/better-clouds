@@ -476,12 +476,12 @@ public class ConfigGUI {
         return builder;
     }
 
-    private static <T> OptionBuilderWrapper<T> createOption(Class<T> typeClass, String key) {
+    private static <T> YACLOptionBuilder<T> createOption(Class<T> typeClass, String key) {
         return createOption(typeClass, key, true);
     }
 
-    private static <T> OptionBuilderWrapper<T> createOption(Class<T> typeClass, String key, boolean hasDescription) {
-        OptionBuilderWrapper<T> builder = new OptionBuilderWrapper<>(Option.<T>createBuilder())
+    private static <T> YACLOptionBuilder<T> createOption(Class<T> typeClass, String key, boolean hasDescription) {
+        YACLOptionBuilder<T> builder = YACLOptionBuilder.create(Option.<T>createBuilder())
             .name(optionLabel(key))
             .instant(true);
         if (hasDescription) builder.description(OptionDescription.of(optionDescription(key)));
