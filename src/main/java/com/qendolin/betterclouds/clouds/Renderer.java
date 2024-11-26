@@ -159,6 +159,7 @@ public class Renderer implements AutoCloseable {
         rotationProjectionMatrix.mul(tempMatrix);
 
         tempMatrix.translate((float) res.generator().renderOriginX(cam.x), (float) (cloudsHeight - cam.y), (float) res.generator().renderOriginZ(cam.z));
+        tempMatrix.m33(1);
 
         pMatrix.set(projMat);
         pInverseMatrix.set(projMat);
@@ -194,16 +195,8 @@ public class Renderer implements AutoCloseable {
         RenderSystem.clearColor(0, 0, 0, 0);
         RenderSystem.clearDepth(1);
 
-        // "Fast" computation of the near and far plane doesn't work because of nausea and view bobbing.
-        // This is slightly slower but should always give the correct results.
-        Vector4d farPlane = new Vector4d(0, 0, 1, 1);
-        Vector4d nearPlane = new Vector4d(0, 0, -1, 1);
-        pInverseMatrix.transform(farPlane);
-        pInverseMatrix.transform(nearPlane);
-        Vector2d clippingPlanes = new Vector2d((float) (-nearPlane.z / nearPlane.w), (float) (-farPlane.z / farPlane.w));
-
         getProfiler().swap("draw_coverage");
-        drawCoverage(ticks + tickDelta, cam, frustumPos, frustum, clippingPlanes, tickDelta);
+        drawCoverage(ticks + tickDelta, cam, frustumPos, frustum, tickDelta);
 
 
         getProfiler().swap("draw_shading");
@@ -217,7 +210,7 @@ public class Renderer implements AutoCloseable {
             renderPhase.startDrawing();
         }
 
-        drawShading(cam, tickDelta, clippingPlanes);
+        drawShading(tickDelta);
 
 
         getProfiler().swap("render_cleanup");
@@ -268,7 +261,7 @@ public class Renderer implements AutoCloseable {
         return res.fboWidth() != scaledFramebufferWidth() || res.fboHeight() != scaledFramebufferHeight();
     }
 
-    private void drawCoverage(float ticks, Vector3d cam, Vector3d frustumPos, Frustum frustum, Vector2d clippingPlanes, float tickDelta) {
+    private void drawCoverage(float ticks, Vector3d cam, Vector3d frustumPos, Frustum frustum, float tickDelta) {
         RenderSystem.enableDepthTest();
         RenderSystem.colorMask(true, true, true, true);
         RenderSystem.depthMask(true);
@@ -308,7 +301,6 @@ public class Renderer implements AutoCloseable {
         res.coverageShader().uTime.setFloat(ticks / 20);
         res.coverageShader().uMiscellaneous.setVec3(config.scaleFalloffMin, config.windEffectFactor, config.windSpeedFactor);
         res.coverageShader().uFogRange.setVec2(fog.start(), fog.end());
-        res.coverageShader().uDepthRange.setVec3((float) clippingPlanes.x, (float) clippingPlanes.y, config.blockDistance());
 
 
         RenderSystem.activeTexture(GL_TEXTURE0);
@@ -410,7 +402,7 @@ public class Renderer implements AutoCloseable {
         glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), count, start);
     }
 
-    private void drawShading(Vector3d cam, float tickDelta, Vector2d clippingPlanes) {
+    private void drawShading(float tickDelta) {
         Config config = Main.getConfig();
         RenderSystem.depthFunc(GL_LEQUAL);
 
@@ -475,6 +467,16 @@ public class Renderer implements AutoCloseable {
             glDrawArrays(GL_TRIANGLES, 0, Mesh.QUAD_MESH_VERTEX_COUNT);
             glTexParameteri(GL_TEXTURE_2D, glCompat.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_STENCIL_INDEX);
         }
+    }
+
+    private Vector2d calculateClippingPlanes() {
+        // "Fast" computation of the near and far plane doesn't work because of nausea and view bobbing.
+        // This is slightly slower but should always give the correct results.
+        Vector4d farPlane = new Vector4d(0, 0, 1, 1);
+        Vector4d nearPlane = new Vector4d(0, 0, -1, 1);
+        pInverseMatrix.transform(farPlane);
+        pInverseMatrix.transform(nearPlane);
+        return new Vector2d((float) (-nearPlane.z / nearPlane.w), (float) (-farPlane.z / farPlane.w));
     }
 
     private Config getGeneratorConfig() {

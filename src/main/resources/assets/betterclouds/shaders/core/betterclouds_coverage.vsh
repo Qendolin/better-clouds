@@ -33,8 +33,7 @@ uniform vec4 u_bounding_box;
 // scale falloff minimum, dynamic scale factor, dynamic scale speed
 uniform vec3 u_miscellaneous;
 uniform float u_time;
-// near, far, configured view distance
-uniform vec3 u_depth_range;
+// start, end
 uniform vec2 u_fog_range;
 
 flat out float pass_opacity;
