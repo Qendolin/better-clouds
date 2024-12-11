@@ -50,7 +50,11 @@ public class CustomOptionListWidget extends OptionListWidget {
         }
 
         recacheViewableChildren();
-        setScrollAmount(0);
+        //? if >=1.21.4 {
+        setScrollY(0);
+        //?} else {
+        /*setScrollAmount(0);
+        *///?}
         resetSmoothScrolling();
     }
 
@@ -86,7 +90,11 @@ public class CustomOptionListWidget extends OptionListWidget {
             }
         }
 
-        this.setScrollAmount(this.getScrollAmount() - (verticalAmount) * 20);
+        //? if >=1.21.4 {
+        this.setScrollY(this.getScrollY() - (verticalAmount) * 20);
+        //?} else {
+        /*this.setScrollAmount(this.getScrollAmount() - (verticalAmount) * 20);
+        *///?}
         return true;
     }
 
