@@ -15,6 +15,7 @@ import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import org.jetbrains.annotations.Nullable;
 import org.joml.*;
 
 //? if >=1.21
@@ -195,8 +196,10 @@ public class Renderer implements AutoCloseable {
         RenderSystem.clearColor(0, 0, 0, 0);
         RenderSystem.clearDepth(1);
 
+        RenderSystemWrapper.Fog fog = getAdjustedFog(client.gameRenderer.getCamera(), config.blockDistance(), config.fogRangeFactor, tickDelta);
+
         getProfiler().swap("draw_coverage");
-        drawCoverage(ticks + tickDelta, cam, frustumPos, frustum, tickDelta);
+        drawCoverage(ticks + tickDelta, cam, frustumPos, frustum, fog);
 
 
         getProfiler().swap("draw_shading");
@@ -210,7 +213,7 @@ public class Renderer implements AutoCloseable {
             renderPhase.startDrawing();
         }
 
-        drawShading(tickDelta);
+        drawShading(tickDelta, fog);
 
 
         getProfiler().swap("render_cleanup");
@@ -261,7 +264,7 @@ public class Renderer implements AutoCloseable {
         return res.fboWidth() != scaledFramebufferWidth() || res.fboHeight() != scaledFramebufferHeight();
     }
 
-    private void drawCoverage(float ticks, Vector3d cam, Vector3d frustumPos, Frustum frustum, float tickDelta) {
+    private void drawCoverage(float ticks, Vector3d cam, Vector3d frustumPos, Frustum frustum, RenderSystemWrapper.Fog fog) {
         RenderSystem.enableDepthTest();
         RenderSystem.colorMask(true, true, true, true);
         RenderSystem.depthMask(true);
@@ -292,16 +295,17 @@ public class Renderer implements AutoCloseable {
         Config generatorConfig = getGeneratorConfig();
         Config config = Main.getConfig();
 
-        RenderSystemWrapper.Fog fog = getAdjustedFog(client.gameRenderer.getCamera(), config.blockDistance(), config.fogRangeFactor, tickDelta);
-
         res.coverageShader().bind();
         res.coverageShader().uMVPMatrix.setMat4(mvpMatrix);
         res.coverageShader().uOriginOffset.setVec3((float) -res.generator().renderOriginX(cam.x), (float) cam.y - cloudsHeight, (float) -res.generator().renderOriginZ(cam.z));
         res.coverageShader().uBoundingBox.setVec4((float) cam.x, (float) cam.z, generatorConfig.blockDistance() - generatorConfig.chunkSize / 2f, generatorConfig.yRange + config.sizeY);
         res.coverageShader().uTime.setFloat(ticks / 20);
         res.coverageShader().uMiscellaneous.setVec3(config.scaleFalloffMin, config.windEffectFactor, config.windSpeedFactor);
-        res.coverageShader().uFogRange.setVec2(fog.start(), fog.end());
-
+        if(fog == null) { // Fog off
+            res.coverageShader().uFogRange.setVec2(config.blockDistance()-8, config.blockDistance());
+        } else {
+            res.coverageShader().uFogRange.setVec2(fog.start(), fog.end());
+        }
 
         RenderSystem.activeTexture(GL_TEXTURE0);
         RenderSystem.bindTexture(client.getFramebuffer().getDepthAttachment());
@@ -402,7 +406,7 @@ public class Renderer implements AutoCloseable {
         glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), count, start);
     }
 
-    private void drawShading(float tickDelta) {
+    private void drawShading(float tickDelta, RenderSystemWrapper.Fog fog) {
         Config config = Main.getConfig();
         RenderSystem.depthFunc(GL_LEQUAL);
 
@@ -435,7 +439,7 @@ public class Renderer implements AutoCloseable {
         RenderSystem.activeTexture(GL_TEXTURE4);
         client.getTextureManager().getTexture(Resources.LIGHTING_TEXTURE).bindTexture();
 
-        Vector3f effectTint = getEffectTint(tickDelta);
+        Vector3f effectTint = getEffectTint(tickDelta, fog);
         long skyTime = world.getLunarTime() % 24000;
         float skyAngleRad = world.getSkyAngleRadians(tickDelta);
         float sunPathAngleRad = (float) Math.toRadians(config.preset().sunPathAngle);
@@ -485,24 +489,50 @@ public class Renderer implements AutoCloseable {
         return Main.getConfig();
     }
 
+    @Nullable
     private RenderSystemWrapper.Fog getAdjustedFog(Camera camera, float cloudDistance, float fogRangeFactor, float tickDelta) {
+        SodiumExtraCompat.PREVENT_FOG_MODIFICATION.set(true);
         RenderSystemWrapper.Fog original = RenderSystemWrapper.getFog();
+        Vector4f color = new Vector4f(original.red(), original.green(), original.blue(), original.alpha());
+
         //? if >=1.21.3 {
-        var adjusted = BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_TERRAIN, new Vector4f(original.red(), original.green(), original.blue(), original.alpha()), cloudDistance, shouldUseThickFog(world, camera.getPos()), tickDelta);
+        if(color.w == 0.0) { // Fog off
+            // Need to fix the color, thanks sodium-extras for all the extra work /s
+            assert client.world != null;
+            color = BackgroundRenderer.getFogColor(camera, tickDelta, client.world, client.options.getClampedViewDistance(), client.gameRenderer.getSkyDarkness(tickDelta));
+        }
+        var adjusted = BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_TERRAIN, color, cloudDistance, shouldUseThickFog(world, camera.getPos()), tickDelta);
         float start = adjusted.start();
         float end = adjusted.end();
         FogShape shape = adjusted.shape();
+
         //?} else {
-        /*BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_TERRAIN, cloudDistance, shouldUseThickFog(world, camera.getPos()), tickDelta);
+            /*BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_TERRAIN, cloudDistance, shouldUseThickFog(world, camera.getPos()), tickDelta);
         float start = RenderSystem.getShaderFogStart();
         float end = RenderSystem.getShaderFogEnd();
         FogShape shape = RenderSystem.getShaderFogShape();
+        if(color.w == 0.0) { // Fog off
+            //? if >1.20.1 {
+            /^BackgroundRenderer.applyFogColor();
+            ^///?} else {
+            BackgroundRenderer.setFogBlack();
+            //?}
+            color.set(RenderSystem.getShaderFogColor());
+        }
         *///?}
+        SodiumExtraCompat.PREVENT_FOG_MODIFICATION.set(false);
 
         // Revert any changes
         original.apply();
-        float range = end - start;
-        return new RenderSystemWrapper.Fog(Math.max(end - fogRangeFactor * range, 0), end, shape, original.red(), original.green(), original.blue(), original.alpha());
+
+        if(end == 0.0) {
+            // Assume fog is disabled
+            return null;
+        } else {
+            float range = end - start;
+            start = Math.max(end - fogRangeFactor * range, 0);
+        }
+        return new RenderSystemWrapper.Fog(start, end, shape, color.x, color.y, color.z, color.w);
     }
 
     private static boolean shouldUseThickFog(ClientWorld world, Vec3d pos) {
@@ -519,29 +549,44 @@ public class Renderer implements AutoCloseable {
         dst.recession = src.recession;
     }
 
+    private static void gammaToLinear(Vector3f color) {
+        color.set((float) Math.pow(color.x, 2.2), (float) Math.pow(color.y, 2.2), (float) Math.pow(color.z, 2.2));
+    }
 
-    private Vector3f getEffectTint(float tickDelta) {
-        var fog = RenderSystemWrapper.getFog();
-        Vector3f fogColor = new Vector3f(fog.red(), fog.green(), fog.blue());
-        fogColor.set((float) Math.pow(fogColor.x, 2.2), (float) Math.pow(fogColor.y, 2.2), (float) Math.pow(fogColor.z, 2.2));
+    private static void linearToGamma(Vector3f color) {
+        color.set((float) Math.pow(color.x, 1/2.2), (float) Math.pow(color.y, 1/2.2), (float) Math.pow(color.z, 1/2.2));
+    }
 
+    private Vector3f getEffectTint(float tickDelta, @Nullable RenderSystemWrapper.Fog fog) {
         final Vector3f Y = new Vector3f(0.299f, 0.587f, 0.114f);
 
         Vector3f cloudColor = getCloudsColor(tickDelta);
-        cloudColor.set((float) Math.pow(cloudColor.x, 2.2), (float) Math.pow(cloudColor.y, 2.2), (float) Math.pow(cloudColor.z, 2.2));
+        gammaToLinear(cloudColor);
 
-        float fogLuma = fogColor.dot(Y);
         float cloudBaseLuma = cloudColor.dot(Y);
-        Vector3f fogChroma = fogLuma < 0.0001 ? new Vector3f(1.0f) : new Vector3f(fogColor).div(fogLuma);
         Vector3f cloudBaseChroma = cloudBaseLuma < 0.0001 ? new Vector3f(1.0f) : new Vector3f(cloudColor).div(cloudBaseLuma);
 
         float cloudLuma = cloudBaseLuma;
         float moon = MathHelper.clamp(-MathHelper.cos(world.getSkyAngle(tickDelta) * 2 * MathHelper.PI), -0.25f, 0.25f) * 2 + 0.5f;
         cloudLuma += world.getMoonSize() * moon * 0.65f;
 
-        Vector3f combinedChroma = new Vector3f(MathHelper.sqrt(fogChroma.x * cloudBaseChroma.x), MathHelper.sqrt(fogChroma.y * cloudBaseChroma.y), MathHelper.sqrt(fogChroma.z * cloudBaseChroma.z));
+        Vector3f combinedChroma;
+        float combinedLuma;
 
-        float combinedLuma = MathHelper.square(MathHelper.sqrt(cloudLuma) + MathHelper.sqrt(fogLuma)) / 4;
+        if(fog == null) { // Fog OFF
+            combinedChroma = new Vector3f(cloudBaseChroma);
+            combinedLuma = cloudLuma;
+        } else {
+            Vector3f fogColor = new Vector3f(fog.red(), fog.green(), fog.blue());
+            gammaToLinear(fogColor);
+
+            float fogLuma = fogColor.dot(Y);
+            Vector3f fogChroma = fogLuma < 0.0001 ? new Vector3f(1.0f) : new Vector3f(fogColor).div(fogLuma);
+
+            combinedChroma = new Vector3f(MathHelper.sqrt(fogChroma.x * cloudBaseChroma.x), MathHelper.sqrt(fogChroma.y * cloudBaseChroma.y), MathHelper.sqrt(fogChroma.z * cloudBaseChroma.z));
+            combinedLuma = MathHelper.square(MathHelper.sqrt(cloudLuma) + MathHelper.sqrt(fogLuma)) / 4;
+        }
+
         combinedLuma *= 1/0.9777f; // The new calculation produces slightly darker clouds, this is a 'fix'
         combinedLuma = MathHelper.clamp(combinedLuma, 0, 1);
 
@@ -550,7 +595,7 @@ public class Renderer implements AutoCloseable {
         Vector3f desaturated = new Vector3f(combinedChroma).mul(saturation).add(new Vector3f(gray).mul(1 - saturation));
 
         Vector3f result = new Vector3f(desaturated).mul(combinedLuma).min(new Vector3f(1.0f));
-        result.set((float) Math.pow(result.x, 1/2.2), (float) Math.pow(result.y, 1/2.2), (float) Math.pow(result.z, 1/2.2));
+        linearToGamma(result);
 
         if (client.player != null && client.player.hasStatusEffect(StatusEffects.NIGHT_VISION)) {
             float min = result.get(result.minComponent());

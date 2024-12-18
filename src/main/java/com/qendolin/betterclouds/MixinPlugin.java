@@ -1,5 +1,6 @@
 package com.qendolin.betterclouds;
 
+import com.bawnorton.mixinsquared.MixinSquaredBootstrap;
 import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.compat.SodiumExtraCompat;
 import org.objectweb.asm.tree.ClassNode;
@@ -9,11 +10,14 @@ import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 import java.util.List;
 import java.util.Set;
 
-public class OptionalMixinPlugin implements IMixinConfigPlugin {
+public class MixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
         if(mixinClassName.endsWith("DimensionEffectsOverworldMixin")) {
+            return SodiumExtraCompat.IS_LOADED;
+        }
+        if(mixinClassName.endsWith("BackgroundRendererMixinMixin")) {
             return SodiumExtraCompat.IS_LOADED;
         }
         if(mixinClassName.endsWith("ExtendedShaderAccessor") || mixinClassName.endsWith("FallbackShaderAccessor")) {
@@ -24,7 +28,7 @@ public class OptionalMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public void onLoad(String mixinPackage) {
-
+        MixinSquaredBootstrap.init();
     }
 
     @Override

@@ -4,6 +4,8 @@ plugins {
 	id "com.modrinth.minotaur"
 }
 
+apply from: rootProject.file('common.gradle').path
+
 base {
 	archivesName = project.archives_base_name
 }
@@ -81,6 +83,7 @@ repositories {
 		url = 'https://maven.neoforged.net/releases'
 	}
 	maven { url "https://maven.quiltmc.org/repository/release" }
+	maven { url = "https://maven.bawnorton.com/releases" }
 }
 
 loom {
@@ -119,6 +122,8 @@ dependencies {
 
 		modCompileOnly "maven.modrinth:sodium-extra:${property('deps.sodium_extra')}"
 		modCompileOnly "maven.modrinth:iris:${property('deps.iris')}"
+
+		include(implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.2.0")))
 	}
 
 	if (isNeoForge || isForge) {
@@ -143,6 +148,9 @@ dependencies {
 			modCompileOnly "maven.modrinth:oculus:1.20.1-1.7.0"
 			modCompileOnly "maven.modrinth:rubidium-extra:0.5.7e+mc1.21-build.129"
 		}
+
+		compileOnly(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-common:0.2.0"))
+		implementation(include("com.github.bawnorton.mixinsquared:mixinsquared-forge:0.2.0"))
 
 		// Because yarn mappings are used the mods can't be loaded from the 'mods' directory at runtime.
 		// It causes NoClassDefFoundErrors due to the different mappings.
@@ -229,6 +237,11 @@ if (stonecutter.current.isActive) {
 		group = "project"
 		dependsOn(tasks.named("modrinth"))
 	}
+	rootProject.tasks.named("activeModrinth") {
+		doLast {
+			new File(rootProject.relativePath("changelog.txt")).delete()
+		}
+	}
 	// Register task to run genSources for the active version only
 	rootProject.tasks.register("activeGenSources") {
 		group = "project"
@@ -242,7 +255,7 @@ jar {
 	}
 }
 
-modrinth  { // Make sure it runs after build!
+modrinth { // Make sure it runs after build!
 	var loaderName = loom.platform.get().displayName
 	var releaseName = property('mod.release').toString().capitalize()
 	var releaseLetter = property('mod.release').toString().toLowerCase().substring(0, 1)
@@ -251,6 +264,33 @@ modrinth  { // Make sure it runs after build!
 
 	project.rootProject.file("secrets.properties").withInputStream {
 		stream -> secrets.load(stream)
+	}
+
+    //noinspection GroovyAssignabilityCheck
+    changelog = project.provider {
+		def file = rootProject.file("changelog.txt")
+		def lock = rootProject.file("changelog.txt.lock")
+		if(lock.createNewFile()) {
+			println("Opening changelog in notepad")
+			file.createNewFile()
+			def process = new ProcessBuilder("notepad", file.absolutePath)
+					.start()
+			process.waitFor()
+			lock.delete()
+		} else {
+			println("Waiting changelog lock")
+			while(lock.exists()) {
+				sleep(100)
+			}
+		}
+
+		def changelog = file.getText('UTF-8')
+		if (changelog.isBlank()) {
+			file.delete()
+			throw new GradleException("Changelog was blank")
+		}
+
+		return changelog
 	}
 
 	token.set(secrets.MODRINTH as String)

@@ -5,6 +5,8 @@ plugins {
     id "architectury-plugin" version "3.4-SNAPSHOT" apply false
 }
 
+apply from: 'common.gradle'
+
 stonecutter.active "1.21.4-fabric" /* [SC] DO NOT EDIT */
 
 // Chiseled tasks run for every version in their own "instance", in the respective versions/ subdirs
@@ -16,4 +18,9 @@ stonecutter.registerChiseled tasks.register("chiseledBuild", stonecutter.chisele
 stonecutter.registerChiseled tasks.register("chiseledModrinth", stonecutter.chiseled) {
     setGroup "project"
     ofTask "modrinth"
+
+    doLast {
+        new File(rootProject.relativePath("changelog.txt")).delete()
+    }
 }
+

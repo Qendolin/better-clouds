@@ -2,10 +2,11 @@
   "required": false,
   "parent": "betterclouds.mixins.json",
   "package": "com.qendolin.betterclouds.mixin.optional",
-  "plugin": "com.qendolin.betterclouds.OptionalMixinPlugin",
+  "plugin": "com.qendolin.betterclouds.MixinPlugin",
   "client": [
     "DimensionEffectsOverworldMixin",
     "ExtendedShaderAccessor",
-    "FallbackShaderAccessor"
+    "FallbackShaderAccessor",
+    "BackgroundRendererMixinMixin"
   ]
 }
