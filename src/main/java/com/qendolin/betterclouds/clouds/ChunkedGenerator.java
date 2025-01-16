@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ChunkedGenerator implements AutoCloseable {
+    private float windDirection = (float) (Math.random() * 360);
     private double originX;
     private double originZ;
     private float prevTime = Float.POSITIVE_INFINITY;
@@ -149,8 +150,12 @@ public class ChunkedGenerator implements AutoCloseable {
         float timeDelta = MathHelper.clamp(time - prevTime, 0, 200);
         prevTime = time;
 
-        originX -= timeDelta * options.travelSpeed;
-        originZ = 0;
+        windDirection += (float) ((Math.random() * 2 - 1) * timeDelta);
+        windDirection %= 360;
+
+        // -0.5 to make clouds prefer -x, like in vanilla
+        originX += (Math.cos(windDirection * MathHelper.PI / 180) - 0.5) * timeDelta * options.travelSpeed;
+        originZ += Math.sin(windDirection * MathHelper.PI / 180) * timeDelta * options.travelSpeed;
         double worldOriginX = camera.x - this.originX;
         double worldOriginZ = camera.z - this.originZ;
 

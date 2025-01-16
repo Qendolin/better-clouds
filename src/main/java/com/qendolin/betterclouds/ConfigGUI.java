@@ -161,7 +161,7 @@ public class ConfigGUI {
             .build();
         this.travelSpeed = createOption(float.class, "travelSpeed")
             .binding(defaults.travelSpeed, () -> config.travelSpeed, val -> config.travelSpeed = val)
-            .customController(opt -> new FloatSliderController(opt, 0, 0.1f, 0.005f, ConfigGUI::formatAsBlocksPerSecond))
+            .customController(opt -> new FloatSliderController(opt, 0, 0.2f, 0.005f, ConfigGUI::formatAsBlocksPerSecond))
             .build();
         this.windEffectFactor = createOption(float.class, "windEffectFactor")
             .binding(defaults.windEffectFactor, () -> config.windEffectFactor, val -> config.windEffectFactor = val)
