@@ -6,6 +6,7 @@ import net.minecraft.client.render.*;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.Box;
 import org.joml.Vector3d;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,9 +29,9 @@ public class Debug {
         }
     }
 
-    public static void addFrustumCulledBox(Box box, boolean visible) {
+    public static void addFrustumCulledBox(Box box, double offsetX, double offsetZ, boolean visible) {
         if (!frustumCulling) return;
-        frustumCulledBoxes.add(new Pair<>(box, visible));
+        frustumCulledBoxes.add(new Pair<>(box.offset(offsetX, 0, offsetZ), visible));
     }
 
     public static void drawFrustumCulledBoxes(Vector3d cam) {

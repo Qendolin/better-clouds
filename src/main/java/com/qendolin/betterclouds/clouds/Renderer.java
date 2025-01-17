@@ -144,7 +144,8 @@ public class Renderer implements AutoCloseable {
         float cloudsCullingHeightMin = cloudsHeight - config.sizeY;
         float cloudsCullingHeightMax = cloudsHeight + config.yRange + config.sizeY;
         float cloudsCullingHeight = MathHelper.clamp((float) cam.y, cloudsCullingHeightMin, cloudsCullingHeightMax);
-        frustumCuller.update(viewMat, cam, projMat, cloudsCullingHeightMin, cloudsCullingHeightMax);
+        Vector3d frustumOrigin = new Vector3d(cam).sub(res.generator().originX(), 0, res.generator().originZ());
+        frustumCuller.update(viewMat, frustumOrigin, projMat, cloudsCullingHeightMin, cloudsCullingHeightMax);
 
 
         tempMatrix.set(viewMat);
@@ -377,7 +378,7 @@ public class Renderer implements AutoCloseable {
             Box bounds = chunk.bounds(cloudsHeight, config.sizeXZ, config.sizeY);
 //            if (!frustumAtOrigin.isVisible(bounds)) {
             if (!frustumCuller.test(bounds)) {
-                Debug.addFrustumCulledBox(bounds, false);
+                Debug.addFrustumCulledBox(bounds, res.generator().originX(), res.generator().originZ(), false);
                 if (runCount != 0) {
                     if (glCompat.useBaseInstanceFallback()) {
                         res.generator().buffer().setVAPointerToInstance(runStart);
@@ -387,7 +388,7 @@ public class Renderer implements AutoCloseable {
                 runStart = -1;
                 runCount = 0;
             } else {
-                Debug.addFrustumCulledBox(bounds, true);
+                Debug.addFrustumCulledBox(bounds, res.generator().originX(), res.generator().originZ(), true);
                 if (runStart == -1) runStart = chunk.start();
                 runCount += chunk.count();
             }

@@ -41,7 +41,7 @@ public class FrustumCuller {
 
     public static boolean DEBUG_LOCK = false;
 
-    public void update(Matrix4f viewMatrix, Vector3d cam, Matrix4f projectionMatrix, float heightLo, float heightHi) {
+    public void update(Matrix4f viewMatrix, Vector3d origin, Matrix4f projectionMatrix, float heightLo, float heightHi) {
         if(!DEBUG_LOCK) {
             projection.set(projectionMatrix);
             view.set(viewMatrix);
@@ -51,9 +51,9 @@ public class FrustumCuller {
             inverseView.set(view).invert();
             inverseRotation.set(rotation).invert();
 
-            origin.set(cam);
-            xzPlaneLo.w = heightLo - origin.y;
-            xzPlaneHi.w = heightHi - origin.y;
+            this.origin.set(origin);
+            xzPlaneLo.w = heightLo - this.origin.y;
+            xzPlaneHi.w = heightHi - this.origin.y;
         }
 
         Vector4d farPlane = new Vector4d(0, 0, 1, 1);
@@ -116,14 +116,14 @@ public class FrustumCuller {
         Vector3d leftLo = new Vector3d(), leftHi = new Vector3d();
 
         // intersect hi and lo plane, take maximum area
-        intersectFrustumPlane(xzPlaneLo, topFace, rightFace, bottomFace, leftFace, cam,
+        intersectFrustumPlane(xzPlaneLo, topFace, rightFace, bottomFace, leftFace, origin,
             topLo,
             rightLo,
             bottomLo,
             leftLo
         );
 
-        intersectFrustumPlane(xzPlaneHi, topFace, rightFace, bottomFace, leftFace, cam,
+        intersectFrustumPlane(xzPlaneHi, topFace, rightFace, bottomFace, leftFace, origin,
             topHi,
             rightHi,
             bottomHi,
