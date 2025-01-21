@@ -453,6 +453,7 @@ public class ChunkedGenerator implements AutoCloseable {
                 if (chunkCloudIndex != cloudCount && bounds != null) {
                     Box boundingBox = new Box(bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5])
                         .offset(this.chunkX * options.chunkSize, 0, this.chunkZ * options.chunkSize);
+
                     chunks.add(new ChunkIndex(chunkCloudIndex, cloudCount - chunkCloudIndex, boundingBox));
                 }
 

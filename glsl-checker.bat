@@ -21,15 +21,17 @@ REM Step 2: Copy files to temporary folder
 xcopy /i /y /q %folder%\%1 ".validator"
 
 REM Step 3: Process files in the temporary folder
-for /r ".validator" %%F in (*.vsh, *.fsh) do (
+for /r ".validator" %%F in (*.vert, *.frag, *.comp) do (
     set "stage="
     set "filename=%%~nxF"
 
     REM Step 4: Determine the stage based on file extension
-    if "%%~xF"==".vsh" (
+    if "%%~xF"==".vert" (
         set "stage=vert"
-    ) else if "%%~xF"==".fsh" (
+    ) else if "%%~xF"==".frag" (
         set "stage=frag"
+    ) else if "%%~xF"==".comp" (
+	    set "stage=comp"
     )
 
     if defined stage (

@@ -18,9 +18,11 @@ import net.minecraft.util.math.Vec3d;
 import org.joml.*;
 
 //? if >=1.21
- import net.minecraft.block.enums.CameraSubmersionType; 
+ import net.minecraft.block.enums.CameraSubmersionType;
+import org.lwjgl.opengl.GL43;
 
 import java.lang.Math;
+import java.nio.FloatBuffer;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -138,6 +140,14 @@ public class Renderer implements AutoCloseable {
         if (res.generator().canSwap()) {
             client.getProfiler().swap("swap");
             res.generator().swap();
+//            FloatBuffer cullingBuffer = res.generator().buffer().cullingBuffer;
+//            for (ChunkedGenerator.ChunkIndex chunk : res.generator().chunks()) {
+//                Box bounds = chunk.bounds(cloudsHeight, config.sizeXZ, config.sizeY);
+//                cullingBuffer.put((float)bounds.minX);
+//                cullingBuffer.put((float)bounds.minZ);
+//                cullingBuffer.put((float)bounds.maxX);
+//                cullingBuffer.put((float)bounds.maxZ);
+//            }
             client.getProfiler().swap("render_setup");
         }
 
@@ -368,7 +378,33 @@ public class Renderer implements AutoCloseable {
     }
 
     private void drawCloudsWithFrustumCulling(Frustum frustumAtOrigin, Config config) {
-        // This algorithm loops over chunks, which are in a line-by-line order.
+
+        int groups = MathHelper.ceilDiv(res.generator().cloudCount(), 64);
+        res.cullingShader().bind();
+        res.cullingShader().uFrustumPlaneTop.setVec3((float) frustumCuller.top().x, (float) frustumCuller.top().y, (float) frustumCuller.top().z);
+        res.cullingShader().uFrustumPlaneRight.setVec3((float) frustumCuller.right().x, (float) frustumCuller.right().y, (float) frustumCuller.right().z);
+        res.cullingShader().uFrustumPlaneBottom.setVec3((float) frustumCuller.bottom().x, (float) frustumCuller.bottom().y, (float) frustumCuller.bottom().z);
+        res.cullingShader().uFrustumPlaneLeft.setVec3((float) frustumCuller.left().x, (float) frustumCuller.left().y, (float) frustumCuller.left().z);
+        res.cullingShader().uOrigin.setVec3((float) frustumCuller.origin().x, (float) frustumCuller.origin().y, (float) frustumCuller.origin().z);
+        res.cullingShader().uCloudCount.setInt(res.generator().cloudCount());
+        GL43.glBindBufferBase(GL43.GL_ATOMIC_COUNTER_BUFFER, 0, res.generator().buffer().atomicCounterId);
+        GL43.glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER, 1, res.generator().buffer().drawBufferId());
+        GL43.glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER, 2, res.generator().buffer().compactBufferId);
+        GL43.glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER, 3, res.generator().buffer().drawIndirectBufferId);
+
+        GL43.glDispatchCompute(groups, 1, 1);
+
+        GL43.glMemoryBarrier(GL43.GL_COMMAND_BARRIER_BIT | GL43.GL_SHADER_STORAGE_BARRIER_BIT);
+        glBindBuffer(GL43.GL_DRAW_INDIRECT_BUFFER, res.generator().buffer().drawIndirectBufferId);
+        res.coverageShader().bind();
+        GL43.glDrawArraysIndirect(GL_TRIANGLE_STRIP, 0);
+//        GL43.glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, groups, 0);
+        glBindBuffer(GL43.GL_ATOMIC_COUNTER_BUFFER, res.generator().buffer().atomicCounterId);
+        GL43.glBufferSubData(GL43.GL_ATOMIC_COUNTER_BUFFER, 0, new int[] {0}); // reset counter
+        GL43.glBufferSubData(GL43.GL_DRAW_INDIRECT_BUFFER, Integer.BYTES, new int[] {0}); // reset instance count
+        if(1==1) return;
+
+        // This algorithm loops over chunks, which are in a line-by-line order.a
         // When a visible chunk is found it's marked as a run start. The run continues until
         // the next non-visible chunk is found. At the end of a run the entire run is rendered as once.
         // This is possible due to the memory layout of the instance buffers.

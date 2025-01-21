@@ -6,6 +6,7 @@ import org.joml.Vector3f;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.FloatBuffer;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
 import static org.lwjgl.opengl.GL32.*;
@@ -129,7 +130,9 @@ public abstract class Uniform {
     }
 
     public static class Cached extends Uniform {
-        private final float[] cache = {-1, -1, -1, -1};
+        private final float[] floatCache = {0,0,0,0};
+        private final int[] intCache = {0,0,0,0};
+        private final AtomicBoolean initialized = new AtomicBoolean(false);
 
         protected Cached(String name, int location) {
             super(name, location);
@@ -153,14 +156,29 @@ public abstract class Uniform {
         }
 
         private boolean checkCache(float x, float y, float z, float w) {
-            return x == cache[0] && y == cache[1] && z == cache[2] && w == cache[3];
+            if(!initialized.get()) return false;
+            return x == floatCache[0] && y == floatCache[1] && z == floatCache[2] && w == floatCache[3];
         }
 
         private void setCache(float x, float y, float z, float w) {
-            cache[0] = x;
-            cache[1] = y;
-            cache[2] = z;
-            cache[3] = w;
+            floatCache[0] = x;
+            floatCache[1] = y;
+            floatCache[2] = z;
+            floatCache[3] = w;
+            initialized.set(true);
+        }
+
+        private boolean checkCache(int x, int y, int z, int w) {
+            if(!initialized.get()) return false;
+            return x == intCache[0] && y == intCache[1] && z == intCache[2] && w == intCache[3];
+        }
+
+        private void setCache(int x, int y, int z, int w) {
+            intCache[0] = x;
+            intCache[1] = y;
+            intCache[2] = z;
+            intCache[3] = w;
+            initialized.set(true);
         }
 
         @Override
@@ -191,7 +209,9 @@ public abstract class Uniform {
 
         @Override
         public void setInt(int i) {
-            throw new NotImplementedException();
+            if (checkCache(i, 0, 0, 0)) return;
+            setCache(i, 0, 0, 0);
+            glUniform1i(location, i);
         }
     }
 }

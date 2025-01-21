@@ -26,6 +26,26 @@ public class FrustumCuller {
     private final Vector4d bl = new Vector4d();
     private final Vector4d br = new Vector4d();
 
+    public Vector3d top() {
+        return top;
+    }
+
+    public Vector3d right() {
+        return right;
+    }
+
+    public Vector3d bottom() {
+        return bottom;
+    }
+
+    public Vector3d left() {
+        return left;
+    }
+
+    public Vector3d origin() {
+        return origin;
+    }
+
     private final Vector3d top = new Vector3d();
     private final Vector3d right = new Vector3d();
     private final Vector3d bottom = new Vector3d();

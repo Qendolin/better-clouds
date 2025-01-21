@@ -8,6 +8,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.InvalidHierarchicalFileException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.lwjgl.opengl.GL43;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -16,25 +17,29 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 
-import static org.lwjgl.opengl.GL32.*;
+import static org.lwjgl.opengl.GL20.*;
+import static org.lwjgl.opengl.GL20.glGetUniformLocation;
 
-public class Shader implements Closeable {
+public class CullingShader implements Closeable {
 
-    private final Map<String, String> defs;
+    public static final Identifier COMPUTE_SHADER_ID = Identifier.of(Main.MODID, "shaders/core/betterclouds_culling.comp");
+
+    public final Uniform uFrustumPlaneTop;
+    public final Uniform uFrustumPlaneRight;
+    public final Uniform uFrustumPlaneBottom;
+    public final Uniform uFrustumPlaneLeft;
+    public final Uniform uOrigin;
+    public final Uniform uCloudCount;
 
     protected int programId;
 
-    public Shader(ResourceManager resMan, Identifier vshId, Identifier fshId, Map<String, String> defs) throws IOException {
-        this.defs = defs;
-        int vsh = compileShader(GL_VERTEX_SHADER, vshId, resMan);
-        int fsh = compileShader(GL_FRAGMENT_SHADER, fshId, resMan);
+    public CullingShader(ResourceManager resMan) throws IOException {
+        int comp = compileShader(GL43.GL_COMPUTE_SHADER, COMPUTE_SHADER_ID, resMan);
 
-        Main.glCompat.objectLabelDev(Main.glCompat.GL_SHADER, vsh, vshId.getPath());
-        Main.glCompat.objectLabelDev(Main.glCompat.GL_SHADER, fsh, fshId.getPath());
+        Main.glCompat.objectLabelDev(Main.glCompat.GL_SHADER, comp, COMPUTE_SHADER_ID.getPath());
 
         programId = GlStateManager.glCreateProgram();
-        glAttachShader(programId, vsh);
-        glAttachShader(programId, fsh);
+        glAttachShader(programId, comp);
 
         glLinkProgram(programId);
         if (glGetProgrami(programId, GL_LINK_STATUS) == 0) {
@@ -42,8 +47,14 @@ public class Shader implements Closeable {
             throw new IllegalStateException("Failed to link program: " + log);
         }
 
-        GlStateManager.glDeleteShader(vsh);
-        GlStateManager.glDeleteShader(fsh);
+        GlStateManager.glDeleteShader(comp);
+
+        uFrustumPlaneTop = getUniform("u_frustum_planes[0]", true);
+        uFrustumPlaneRight = getUniform("u_frustum_planes[1]", true);
+        uFrustumPlaneBottom = getUniform("u_frustum_planes[2]", true);
+        uFrustumPlaneLeft = getUniform("u_frustum_planes[3]", true);
+        uOrigin = getUniform("u_origin", false);
+        uCloudCount = getUniform("u_cloud_count", true);
     }
 
     protected int compileShader(int type, Identifier resource, ResourceManager resMan) throws IOException {
@@ -56,9 +67,6 @@ public class Shader implements Closeable {
             InvalidHierarchicalFileException fileEx = InvalidHierarchicalFileException.wrap(ex);
             fileEx.addInvalidFile(resource.toString());
             throw fileEx;
-        }
-        for (Map.Entry<String, String> entry : defs.entrySet()) {
-            shaderSrc = shaderSrc.replace(entry.getKey(), entry.getValue());
         }
         int id = GlStateManager.glCreateShader(type);
         GlStateManager.glShaderSource(id, Collections.singletonList(shaderSrc));

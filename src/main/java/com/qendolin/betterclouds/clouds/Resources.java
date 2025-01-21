@@ -4,10 +4,7 @@ import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.Main;
-import com.qendolin.betterclouds.clouds.shaders.CoverageShader;
-import com.qendolin.betterclouds.clouds.shaders.DepthShader;
-import com.qendolin.betterclouds.clouds.shaders.ShaderParameters;
-import com.qendolin.betterclouds.clouds.shaders.ShadingShader;
+import com.qendolin.betterclouds.clouds.shaders.*;
 import com.qendolin.betterclouds.compat.Telemetry;
 import com.qendolin.betterclouds.mixin.BufferRendererAccessor;
 import com.qendolin.betterclouds.mixin.ShaderProgramAccessor;
@@ -35,6 +32,7 @@ public class Resources implements Closeable {
     private DepthShader depthShader = null;
     private CoverageShader coverageShader = null;
     private ShadingShader shadingShader = null;
+    private CullingShader cullingShader = null;
 
     // Generator
     private ChunkedGenerator generator = null;
@@ -73,6 +71,10 @@ public class Resources implements Closeable {
         return shadingShader;
     }
 
+    public CullingShader cullingShader() {
+        return cullingShader;
+    }
+
     public int cubeVao() {
         return cubeVao;
     }
@@ -106,8 +108,8 @@ public class Resources implements Closeable {
     }
 
     public boolean failedToLoadCritical() {
-        if (depthShader == null || coverageShader == null || shadingShader == null) return true;
-        if (depthShader.isIncomplete() || coverageShader.isIncomplete() || shadingShader.isIncomplete()) return true;
+        if (depthShader == null || coverageShader == null || shadingShader == null || cullingShader == null) return true;
+        if (depthShader.isIncomplete() || coverageShader.isIncomplete() || shadingShader.isIncomplete() || cullingShader.isIncomplete()) return true;
         if (generator == null) return true;
         if (oitFbo == UNASSIGNED) return true;
         if (oitDataTexture == UNASSIGNED || oitCoverageTexture == UNASSIGNED)
@@ -362,6 +364,8 @@ public class Resources implements Closeable {
         shadingShader.uCoverageTexture.setInt(3);
         shadingShader.uLightTexture.setInt(4);
         glCompat.objectLabelDev(glCompat.GL_PROGRAM, shadingShader.glId(), "shading");
+
+        cullingShader = new CullingShader(manager);
     }
 
     public void deleteShaders() {
