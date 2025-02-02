@@ -421,18 +421,21 @@ public class ChunkedGenerator implements AutoCloseable {
             for (int[][] gridPoints : chunkGridPoints) {
                 int chunkCloudIndex = cloudCount;
                 float[] bounds = null;
+                int i = 0;
                 for (int[] point : gridPoints) {
                     if (point == null) continue;
                     int gridX = point[0], gridZ = point[1];
 
                     int sampleX = MathHelper.floor((gridX + gridOriginX) * spacing);
                     int sampleZ = MathHelper.floor((gridZ + gridOriginZ) * spacing);
-                    float value = sampler.sample(sampleX, sampleZ, cloudiness, options.fuzziness, options.samplingScale);
+//                    float value = sampler.sample(sampleX, sampleZ, cloudiness, options.fuzziness, options.samplingScale);
+                    float value = (float) (++i) / gridPoints.length;
                     if (value <= 0) continue;
 
                     float x = (float) (sampleX - this.chunkX * options.chunkSize + sampler.randomOffsetX(sampleX, sampleZ) * options.randomPlacement * spacing);
                     // TODO: cloudPointiness value
-                    float y = options.yRange * value * value;
+//                    float y = options.yRange * value * value;
+                    float y = value * 64;
                     float z = (float) (sampleZ - this.chunkZ * options.chunkSize + sampler.randomOffsetZ(sampleX, sampleZ) * options.randomPlacement * spacing);
 
                     if (bounds == null) {

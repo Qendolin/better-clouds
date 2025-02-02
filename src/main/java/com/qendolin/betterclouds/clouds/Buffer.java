@@ -8,6 +8,7 @@ import org.lwjgl.system.MemoryUtil;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
+import static com.qendolin.betterclouds.Main.getConfig;
 import static com.qendolin.betterclouds.Main.glCompat;
 import static org.lwjgl.opengl.GL32.*;
 
@@ -30,9 +31,11 @@ public class Buffer implements AutoCloseable {
 
     public int compactBufferId;
     public int cullingBufferId;
-    public FloatBuffer cullingBuffer;
+    public ByteBuffer cullingBuffer;
     public int atomicCounterId;
     public int drawIndirectBufferId;
+
+    public int tmp_drawCommandCount;
 
     public Buffer(int size, boolean fancy, boolean preferPersistent) {
         boolean usePersistent = preferPersistent && (glCompat.arbBufferStorage || glCompat.openGl44);
@@ -50,9 +53,10 @@ public class Buffer implements AutoCloseable {
         cullingBufferId = glGenBuffers();
         glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER, cullingBufferId);
         glCompat.objectLabelDev(glCompat.GL_BUFFER, cullingBufferId, "culling_buffer");
-        glBufferData(GL43.GL_SHADER_STORAGE_BUFFER, (long) size * size * 4 * Float.BYTES, GL_DYNAMIC_DRAW);
-//        ByteBuffer buffer = glMapBufferRange(GL43.GL_SHADER_STORAGE_BUFFER, 0, (long) size * size * 4 * Float.BYTES, GL_MAP_WRITE_BIT | glCompat.GL_MAP_PERSISTENT_BIT | glCompat.GL_MAP_COHERENT_BIT);
-//        cullingBuffer = buffer.asFloatBuffer();
+        glCompat.bufferStorage(GL43.GL_SHADER_STORAGE_BUFFER, (long) size * size * 4 * Float.BYTES, GL_MAP_WRITE_BIT | glCompat.GL_MAP_PERSISTENT_BIT | glCompat.GL_MAP_COHERENT_BIT);
+        // todo: use chunk size instead of 32
+        long cullingBufferSize = MathHelper.square(MathHelper.ceilDiv(size, 32)) * (4 * Float.BYTES + 2 * Integer.BYTES);
+        cullingBuffer = glMapBufferRange(GL43.GL_SHADER_STORAGE_BUFFER, 0, cullingBufferSize, GL_MAP_WRITE_BIT | glCompat.GL_MAP_PERSISTENT_BIT | glCompat.GL_MAP_COHERENT_BIT);
         atomicCounterId = glGenBuffers();
         glBindBuffer(GL43.GL_ATOMIC_COUNTER_BUFFER, atomicCounterId);
         glCompat.objectLabelDev(glCompat.GL_BUFFER, atomicCounterId, "atomic_counter");
@@ -60,12 +64,14 @@ public class Buffer implements AutoCloseable {
         drawIndirectBufferId = glGenBuffers();
         glBindBuffer(GL43.GL_DRAW_INDIRECT_BUFFER, drawIndirectBufferId);
         glCompat.objectLabelDev(glCompat.GL_BUFFER, drawIndirectBufferId, "draw_indirect_buffer");
-        int groups = MathHelper.ceilDiv(size * size, 64);
-        glBufferData(GL43.GL_DRAW_INDIRECT_BUFFER, (long) groups * 4 * Integer.BYTES, GL_DYNAMIC_DRAW);
-        var drawCommandStaticData = new int[groups * 4];
+//        int drawCommandCount = MathHelper.ceilDiv(size * size, 64);
+        int drawCommandCount = MathHelper.square(MathHelper.ceilDiv(2 * getConfig().blockDistance(), 32));
+        tmp_drawCommandCount = drawCommandCount;
+        glBufferData(GL43.GL_DRAW_INDIRECT_BUFFER, (long) drawCommandCount * 4 * Integer.BYTES, GL_DYNAMIC_DRAW);
+        var drawCommandStaticData = new int[drawCommandCount * 4];
         for (int i = 0; i < drawCommandStaticData.length; i += 4) {
             drawCommandStaticData[i] = instanceVertexCount; // vertex count
-            drawCommandStaticData[i+3] = 64 * (i / 4); // base instance
+//            drawCommandStaticData[i+3] = 64 * (i / 4); // base instance
         }
         glBufferSubData(GL43.GL_DRAW_INDIRECT_BUFFER, 0, drawCommandStaticData);
 
@@ -79,10 +85,10 @@ public class Buffer implements AutoCloseable {
         glCompat.objectLabelDev(glCompat.GL_BUFFER, meshId, "cloud_mesh");
 
         if (fancy) {
-            glEnableVertexAttribArray(1);
-            glEnableVertexAttribArray(2);
-            glVertexAttribPointer(1, 3, GL_FLOAT, false, Mesh.FANCY_MESH_VERTEX_SIZE * Float.BYTES, 0);
-            glVertexAttribPointer(2, 3, GL_FLOAT, false, Mesh.FANCY_MESH_VERTEX_SIZE * Float.BYTES, 3 * Float.BYTES);
+//            glEnableVertexAttribArray(1);
+//            glEnableVertexAttribArray(2);
+//            glVertexAttribPointer(1, 3, GL_FLOAT, false, Mesh.FANCY_MESH_VERTEX_SIZE * Float.BYTES, 0);
+//            glVertexAttribPointer(2, 3, GL_FLOAT, false, Mesh.FANCY_MESH_VERTEX_SIZE * Float.BYTES, 3 * Float.BYTES);
         } else {
             glEnableVertexAttribArray(1);
             glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
@@ -153,7 +159,7 @@ public class Buffer implements AutoCloseable {
         long pointer = (long) stride * baseInstance;
         if (pointer == prevInstancePointer) return;
         prevInstancePointer = pointer;
-        glVertexAttribPointer(0, 4, GL_FLOAT, false, stride, pointer);
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, stride, pointer);
     }
 
     public boolean hasChanged(int size, boolean fancy, boolean persistent) {
@@ -198,8 +204,8 @@ public class Buffer implements AutoCloseable {
             writeBufferId = tmpId;
             writeBuffer = tmpBuffer;
             glBindBuffer(GL_ARRAY_BUFFER, drawBufferId);
-//            // bind vbo to vao
-//            glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+            // bind vbo to vao
+            glVertexAttribPointer(0, 3, GL_FLOAT, false, 4 * Float.BYTES, 0);
         } else {
             glBindBuffer(GL_ARRAY_BUFFER, drawBufferId);
             writeBuffer.flip();

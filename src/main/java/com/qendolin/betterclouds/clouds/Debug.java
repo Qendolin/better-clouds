@@ -6,7 +6,6 @@ import net.minecraft.client.render.*;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.Box;
 import org.joml.Vector3d;
-import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +20,7 @@ public class Debug {
 
     public static final List<Pair<Box, Boolean>> frustumCulledBoxes = new ArrayList<>();
 
-    public static void clearFrustumCulledBoxed() {
+    public static void clearFrustumCulledBoxes() {
         if (frustumCulling) {
             frustumCulledBoxes.clear();
         } else if (!frustumCulledBoxes.isEmpty()) {

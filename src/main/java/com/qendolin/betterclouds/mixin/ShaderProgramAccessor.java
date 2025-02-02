@@ -8,7 +8,8 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 public interface ShaderProgramAccessor {
     @Accessor("activeProgramGlRef")
     static int getActiveProgramGlRef() {
-        throw new AssertionError();
+        // can be called during hot swap
+        return 0;
     }
 
     @Accessor("activeProgramGlRef")

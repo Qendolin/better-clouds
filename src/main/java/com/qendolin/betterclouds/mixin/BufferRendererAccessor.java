@@ -9,7 +9,8 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 public interface BufferRendererAccessor {
     @Accessor("currentVertexBuffer")
     static VertexBuffer getCurrentVertexBuffer() {
-        throw new AssertionError();
+        // can be called when hor reloading
+        return null;
     }
 
     @Accessor("currentVertexBuffer")

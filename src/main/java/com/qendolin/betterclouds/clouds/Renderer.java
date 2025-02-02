@@ -7,6 +7,7 @@ import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.clouds.shaders.ShaderParameters;
 import com.qendolin.betterclouds.compat.*;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.CloudRenderMode;
 import net.minecraft.client.render.*;
@@ -20,12 +21,13 @@ import org.joml.*;
 //? if >=1.21
  import net.minecraft.block.enums.CameraSubmersionType;
 import org.lwjgl.opengl.GL43;
+import org.lwjgl.opengl.GL46;
 
 import java.lang.Math;
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.nio.IntBuffer;
+import java.util.*;
 
 import static com.qendolin.betterclouds.Main.glCompat;
 import static org.lwjgl.opengl.GL32.*;
@@ -46,6 +48,11 @@ public class Renderer implements AutoCloseable {
     private final FrustumCuller frustumCuller = new FrustumCuller();
     private ShaderParameters shaderParameters = null;
 
+    private FloatBuffer cloudBuffer;
+    private int cloudBufferId;
+    private int cloudBufferWriteOnceId = -1;
+    private ChunkGenerator2 chunkGenerator2;
+
     private final Resources res = new Resources();
 
     public Renderer(MinecraftClient client) {
@@ -57,6 +64,23 @@ public class Renderer implements AutoCloseable {
     }
 
     public void reload(ResourceManager manager) {
+        float spacing = 8;
+        float blockDistance = 256 * 16; // radius
+        int size = ChunkGenerator2.calculateSize(blockDistance, spacing);
+//        int size = 1;
+        int clouds = MathHelper.square(size * ChunkGenerator2.GEN_CHUNK_SIZE);
+        int bufSize = clouds * 4 * Float.BYTES;
+        int flags = GL_MAP_WRITE_BIT | glCompat.GL_MAP_PERSISTENT_BIT | glCompat.GL_MAP_COHERENT_BIT;
+        cloudBufferId = glGenBuffers();
+        glBindBuffer(GL43.GL_ARRAY_BUFFER, cloudBufferId);
+        glCompat.bufferStorage(GL43.GL_ARRAY_BUFFER, bufSize, flags);
+        ByteBuffer buffer = glMapBufferRange(GL43.GL_ARRAY_BUFFER, 0, bufSize, flags);
+        if (buffer == null) throw new IllegalStateException("glMapBufferRange returned null");
+        cloudBuffer = buffer.asFloatBuffer();
+        glCompat.objectLabelDev(glCompat.GL_BUFFER, cloudBufferId, "cloud_buffer_2");
+
+        chunkGenerator2 = new ChunkGenerator2(cloudBuffer, size, spacing);
+
         Main.LOGGER.info("Reloading cloud renderer...");
         Main.LOGGER.debug("[1/6] Reloading shaders");
         shaderParameters = createShaderParameters(Main.getConfig());
@@ -116,6 +140,28 @@ public class Renderer implements AutoCloseable {
             return PrepareResult.NO_RENDER;
         }
 
+        if(!Debug.generatorPause) {
+            boolean updated = chunkGenerator2.update(cam.x, cam.z);
+            if(updated) {
+                glFlush();
+                GL43.glMemoryBarrier(GL43.GL_BUFFER_UPDATE_BARRIER_BIT | GL46.GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
+                glFlush();
+                if(cloudBufferWriteOnceId != -1) {
+                    glDeleteBuffers(cloudBufferWriteOnceId);
+                }
+                cloudBufferWriteOnceId = glGenBuffers();
+                glBindBuffer(GL_ARRAY_BUFFER, cloudBufferWriteOnceId);
+                glCompat.objectLabelDev(glCompat.GL_BUFFER, cloudBufferWriteOnceId, "cloud_buffer_write_once");
+                long size = (long) cloudBuffer.capacity() * Float.BYTES;
+                glCompat.bufferStorage(GL43.GL_ARRAY_BUFFER, size, 0);
+
+//                glBindBuffer(GL_COPY_READ_BUFFER, cloudBufferId);
+                GL46.glCopyNamedBufferSubData(cloudBufferId, cloudBufferWriteOnceId, 0 ,0, size);
+//                glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_ARRAY_BUFFER, 0, 0, size);
+            }
+        }
+
+
         DimensionEffects effects = world.getDimensionEffects();
         cloudsHeight = effects.getCloudsHeight();
 
@@ -140,14 +186,17 @@ public class Renderer implements AutoCloseable {
         if (res.generator().canSwap()) {
             client.getProfiler().swap("swap");
             res.generator().swap();
-//            FloatBuffer cullingBuffer = res.generator().buffer().cullingBuffer;
-//            for (ChunkedGenerator.ChunkIndex chunk : res.generator().chunks()) {
-//                Box bounds = chunk.bounds(cloudsHeight, config.sizeXZ, config.sizeY);
-//                cullingBuffer.put((float)bounds.minX);
-//                cullingBuffer.put((float)bounds.minZ);
-//                cullingBuffer.put((float)bounds.maxX);
-//                cullingBuffer.put((float)bounds.maxZ);
-//            }
+            ByteBuffer cullingBuffer = res.generator().buffer().cullingBuffer;
+            cullingBuffer.clear();
+            for (ChunkedGenerator.ChunkIndex chunk : res.generator().chunks()) {
+                Box bounds = chunk.bounds(cloudsHeight, config.sizeXZ, config.sizeY);
+                cullingBuffer.putFloat((float)bounds.minX);
+                cullingBuffer.putFloat((float)bounds.minZ);
+                cullingBuffer.putFloat((float)bounds.maxX);
+                cullingBuffer.putFloat((float)bounds.maxZ);
+                cullingBuffer.putInt(chunk.start());
+                cullingBuffer.putInt(chunk.count());
+            }
             client.getProfiler().swap("render_setup");
         }
 
@@ -171,7 +220,8 @@ public class Renderer implements AutoCloseable {
         tempMatrix.m03(0);
         rotationProjectionMatrix.mul(tempMatrix);
 
-        tempMatrix.translate((float) res.generator().renderOriginX(cam.x), (float) (cloudsHeight - cam.y), (float) res.generator().renderOriginZ(cam.z));
+//        tempMatrix.translate((float) res.generator().renderOriginX(cam.x), (float) (cloudsHeight - cam.y), (float) res.generator().renderOriginZ(cam.z));
+        tempMatrix.translate((float) -cam.x, (float) (cloudsHeight - cam.y), (float) -cam.z);
         tempMatrix.m33(1);
 
         pMatrix.set(projMat);
@@ -298,6 +348,7 @@ public class Renderer implements AutoCloseable {
 
         if (isFancyMode()) RenderSystem.enableCull();
         else RenderSystem.disableCull();
+//        RenderSystem.disableCull();
         glClear(GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         Config generatorConfig = getGeneratorConfig();
@@ -305,7 +356,7 @@ public class Renderer implements AutoCloseable {
 
         res.coverageShader().bind();
         res.coverageShader().uMVPMatrix.setMat4(mvpMatrix);
-        res.coverageShader().uOriginOffset.setVec3((float) -res.generator().renderOriginX(cam.x), (float) cam.y - cloudsHeight, (float) -res.generator().renderOriginZ(cam.z));
+//        res.coverageShader().uOriginOffset.setVec3((float) -res.generator().renderOriginX(cam.x), (float) cam.y - cloudsHeight, (float) -res.generator().renderOriginZ(cam.z));
         res.coverageShader().uBoundingBox.setVec4((float) cam.x, (float) cam.z, generatorConfig.blockDistance() - generatorConfig.chunkSize / 2f, generatorConfig.yRange + config.sizeY);
         res.coverageShader().uTime.setFloat(ticks / 20);
         res.coverageShader().uMiscellaneous.setVec3(config.scaleFalloffMin, config.windEffectFactor, config.windSpeedFactor);
@@ -355,7 +406,7 @@ public class Renderer implements AutoCloseable {
         setFrustumTo(tempFrustum, frustum);
         Frustum frustumAtOrigin = tempFrustum;
         frustumAtOrigin.setPosition(frustumPos.x - res.generator().originX(), frustumPos.y, frustumPos.z - res.generator().originZ());
-        Debug.clearFrustumCulledBoxed();
+        Debug.clearFrustumCulledBoxes();
 
         if (!res.generator().canRender()) {
             RenderSystem.enableCull();
@@ -368,73 +419,157 @@ public class Renderer implements AutoCloseable {
             frustumCulling = false;
         }
 
-        if(frustumCulling)
+        if(frustumCulling) {
             drawCloudsWithFrustumCulling(frustumAtOrigin, config);
-        else
+        } else {
             drawCloudsWithoutFrustumCulling();
+        }
 
         glDisable(GL_DEPTH_CLAMP);
         RenderSystem.enableCull();
     }
 
+    static class StackEntry {
+        int lvl; int x; int z;
+        void set(int lvl, int x, int z) {
+            this.lvl = lvl; this.x = x; this.z = z;
+        }
+    }
+    StackEntry[] cullingStack = new StackEntry[ChunkGenerator2.MAX_SUB_LVL * 4];
+    {
+        for (int i = 0; i < cullingStack.length; i++) {
+            cullingStack[i] = new StackEntry();
+        }
+    }
+    IntBuffer mdiBuffer;
+    int mdiBufferId;
+
     private void drawCloudsWithFrustumCulling(Frustum frustumAtOrigin, Config config) {
+//        glBindBuffer(GL_ARRAY_BUFFER, cloudBufferId);
+        glBindBuffer(GL_ARRAY_BUFFER, cloudBufferWriteOnceId);
+        // bind to vao, usually happens elsewhere, but rn I need tis
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, Float.BYTES * 4, 0);
+//        glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), chunkGenerator2.clouds());
 
-        int groups = MathHelper.ceilDiv(res.generator().cloudCount(), 64);
-        res.cullingShader().bind();
-        res.cullingShader().uFrustumPlaneTop.setVec3((float) frustumCuller.top().x, (float) frustumCuller.top().y, (float) frustumCuller.top().z);
-        res.cullingShader().uFrustumPlaneRight.setVec3((float) frustumCuller.right().x, (float) frustumCuller.right().y, (float) frustumCuller.right().z);
-        res.cullingShader().uFrustumPlaneBottom.setVec3((float) frustumCuller.bottom().x, (float) frustumCuller.bottom().y, (float) frustumCuller.bottom().z);
-        res.cullingShader().uFrustumPlaneLeft.setVec3((float) frustumCuller.left().x, (float) frustumCuller.left().y, (float) frustumCuller.left().z);
-        res.cullingShader().uOrigin.setVec3((float) frustumCuller.origin().x, (float) frustumCuller.origin().y, (float) frustumCuller.origin().z);
-        res.cullingShader().uCloudCount.setInt(res.generator().cloudCount());
-        GL43.glBindBufferBase(GL43.GL_ATOMIC_COUNTER_BUFFER, 0, res.generator().buffer().atomicCounterId);
-        GL43.glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER, 1, res.generator().buffer().drawBufferId());
-        GL43.glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER, 2, res.generator().buffer().compactBufferId);
-        GL43.glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER, 3, res.generator().buffer().drawIndirectBufferId);
+        // Issue: Too many draw calls
+        // Fixes:
+        // - reduce max sub level
+        // - use MDI (doesn't matter apparently)
 
-        GL43.glDispatchCompute(groups, 1, 1);
+        if(mdiBuffer == null) {
+            mdiBufferId = glGenBuffers();
+            glBindBuffer(GL43.GL_DRAW_INDIRECT_BUFFER, mdiBufferId);
+            int size = chunkGenerator2.index.length * 8 * ChunkGenerator2.MAX_SUB_LVL * 4 * Integer.BYTES;
+            glCompat.bufferStorage(GL43.GL_DRAW_INDIRECT_BUFFER, size, GL_MAP_WRITE_BIT | glCompat.GL_MAP_PERSISTENT_BIT | glCompat.GL_MAP_COHERENT_BIT);
+            mdiBuffer = glMapBufferRange(GL43.GL_DRAW_INDIRECT_BUFFER, 0, size, GL_MAP_WRITE_BIT | glCompat.GL_MAP_PERSISTENT_BIT | glCompat.GL_MAP_COHERENT_BIT)
+                .asIntBuffer();
+        }
+        mdiBuffer.clear();
 
-        GL43.glMemoryBarrier(GL43.GL_COMMAND_BARRIER_BIT | GL43.GL_SHADER_STORAGE_BARRIER_BIT);
-        glBindBuffer(GL43.GL_DRAW_INDIRECT_BUFFER, res.generator().buffer().drawIndirectBufferId);
-        res.coverageShader().bind();
-        GL43.glDrawArraysIndirect(GL_TRIANGLE_STRIP, 0);
-//        GL43.glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, groups, 0);
-        glBindBuffer(GL43.GL_ATOMIC_COUNTER_BUFFER, res.generator().buffer().atomicCounterId);
-        GL43.glBufferSubData(GL43.GL_ATOMIC_COUNTER_BUFFER, 0, new int[] {0}); // reset counter
-        GL43.glBufferSubData(GL43.GL_DRAW_INDIRECT_BUFFER, Integer.BYTES, new int[] {0}); // reset instance count
+        float[] bounds = new float[4];
+
+        for (int i = 0; i < chunkGenerator2.index.length; i++) {
+            int stackTop = 0;
+            cullingStack[stackTop++].set(0, 0, 0);
+            while (stackTop > 0) {
+                StackEntry entry = cullingStack[--stackTop];
+                int lvl = entry.lvl;
+                int x = entry.x;
+                int z = entry.z;
+                int submax = 1<<lvl;
+//                int sub = entry.x + submax * entry.z;
+//                float[] bounds = chunkGenerator2.bounds(i, entry.lvl, sub);
+                chunkGenerator2.bounds(i, lvl, x, z, bounds);
+                int visible = frustumCuller.test2(bounds[0], bounds[1], bounds[2], bounds[3]);
+                if (visible == 0) {
+                    if(Debug.frustumCulling)
+                        Debug.addFrustumCulledBox(new Box(bounds[0], cloudsHeight, bounds[1], bounds[2], cloudsHeight + 64, bounds[3]), 0, 0, false);
+                } else if (visible == 4 || lvl == ChunkGenerator2.MAX_SUB_LVL) {
+//                    int start = chunkGenerator2.startOf(i, entry.lvl, sub);
+                    int start = chunkGenerator2.startOf(i, lvl, x, z);
+//                    GL43.glDrawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), chunkGenerator2.countOf(entry.lvl), start);
+
+                    mdiBuffer.put(Mesh.FANCY_MESH_VERTEX_COUNT);
+                    mdiBuffer.put(chunkGenerator2.countOf(lvl));
+                    mdiBuffer.put(0);
+                    mdiBuffer.put(start);
+                    if(Debug.frustumCulling)
+                        Debug.addFrustumCulledBox(new Box(bounds[0], cloudsHeight, bounds[1], bounds[2], cloudsHeight + 64, bounds[3]), 0, 0, true);
+                } else {
+                    cullingStack[stackTop++].set(lvl+1, x*2+1, z*2+1);
+                    cullingStack[stackTop++].set(lvl+1, x*2, z*2+1);
+                    cullingStack[stackTop++].set(lvl+1, x*2+1, z*2);
+                    cullingStack[stackTop++].set(lvl+1, x*2, z*2);
+                }
+            }
+        }
+
+        mdiBuffer.flip();
+        glBindBuffer(GL43.GL_DRAW_INDIRECT_BUFFER, mdiBufferId);
+        GL43.glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, mdiBuffer.limit() / 4, 0);
+
         if(1==1) return;
+
+
+////        int groups = MathHelper.ceilDiv(res.generator().cloudCount(), 64);
+//        int groups = MathHelper.ceilDiv(res.generator().buffer().tmp_drawCommandCount, 64);
+//        res.cullingShader().bind();
+//        res.cullingShader().uFrustumPlaneTop.setVec3((float) frustumCuller.top().x, (float) frustumCuller.top().y, (float) frustumCuller.top().z);
+//        res.cullingShader().uFrustumPlaneRight.setVec3((float) frustumCuller.right().x, (float) frustumCuller.right().y, (float) frustumCuller.right().z);
+//        res.cullingShader().uFrustumPlaneBottom.setVec3((float) frustumCuller.bottom().x, (float) frustumCuller.bottom().y, (float) frustumCuller.bottom().z);
+//        res.cullingShader().uFrustumPlaneLeft.setVec3((float) frustumCuller.left().x, (float) frustumCuller.left().y, (float) frustumCuller.left().z);
+//        res.cullingShader().uOrigin.setVec3((float) frustumCuller.origin().x, (float) frustumCuller.origin().y, (float) frustumCuller.origin().z);
+//        res.cullingShader().uCloudCount.setInt(res.generator().cloudCount());
+//        GL43.glBindBufferBase(GL43.GL_ATOMIC_COUNTER_BUFFER, 0, res.generator().buffer().atomicCounterId);
+//        GL43.glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER, 1, res.generator().buffer().drawBufferId());
+//        GL43.glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER, 2, res.generator().buffer().compactBufferId);
+//        GL43.glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER, 3, res.generator().buffer().drawIndirectBufferId);
+//        GL43.glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER, 4, res.generator().buffer().cullingBufferId);
+//
+//        GL43.glDispatchCompute(groups, 1, 1);
+//
+//        GL43.glMemoryBarrier(GL43.GL_COMMAND_BARRIER_BIT | GL43.GL_SHADER_STORAGE_BARRIER_BIT);
+//        glBindBuffer(GL43.GL_DRAW_INDIRECT_BUFFER, res.generator().buffer().drawIndirectBufferId);
+//        res.coverageShader().bind();
+////        GL43.glDrawArraysIndirect(GL_TRIANGLE_STRIP, 0);
+////        GL43.glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, groups, 0);
+//        GL43.glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, res.generator().buffer().tmp_drawCommandCount, 0);
+//        glBindBuffer(GL43.GL_ATOMIC_COUNTER_BUFFER, res.generator().buffer().atomicCounterId);
+//        GL43.glBufferSubData(GL43.GL_ATOMIC_COUNTER_BUFFER, 0, new int[] {0}); // reset counter
+//        GL43.glBufferSubData(GL43.GL_DRAW_INDIRECT_BUFFER, Integer.BYTES, new int[] {0}); // reset instance count
+//        if(1==1) return;
 
         // This algorithm loops over chunks, which are in a line-by-line order.a
         // When a visible chunk is found it's marked as a run start. The run continues until
         // the next non-visible chunk is found. At the end of a run the entire run is rendered as once.
         // This is possible due to the memory layout of the instance buffers.
-        int runStart = -1;
-        int runCount = 0;
-        for (ChunkedGenerator.ChunkIndex chunk : res.generator().chunks()) {
-            Box bounds = chunk.bounds(cloudsHeight, config.sizeXZ, config.sizeY);
-//            if (!frustumAtOrigin.isVisible(bounds)) {
-            if (!frustumCuller.test(bounds)) {
-                Debug.addFrustumCulledBox(bounds, res.generator().originX(), res.generator().originZ(), false);
-                if (runCount != 0) {
-                    if (glCompat.useBaseInstanceFallback()) {
-                        res.generator().buffer().setVAPointerToInstance(runStart);
-                    }
-                    glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
-                }
-                runStart = -1;
-                runCount = 0;
-            } else {
-                Debug.addFrustumCulledBox(bounds, res.generator().originX(), res.generator().originZ(), true);
-                if (runStart == -1) runStart = chunk.start();
-                runCount += chunk.count();
-            }
-        }
-        if (runCount != 0) {
-            if (glCompat.useBaseInstanceFallback()) {
-                res.generator().buffer().setVAPointerToInstance(runStart);
-            }
-            glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
-        }
+//        int runStart = -1;
+//        int runCount = 0;
+//        for (ChunkedGenerator.ChunkIndex chunk : res.generator().chunks()) {
+//            Box bounds = chunk.bounds(cloudsHeight, config.sizeXZ, config.sizeY);
+////            if (!frustumAtOrigin.isVisible(bounds)) {
+//            if (!frustumCuller.test(bounds)) {
+//                Debug.addFrustumCulledBox(bounds, res.generator().originX(), res.generator().originZ(), false);
+//                if (runCount != 0) {
+//                    if (glCompat.useBaseInstanceFallback()) {
+//                        res.generator().buffer().setVAPointerToInstance(runStart);
+//                    }
+//                    glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
+//                }
+//                runStart = -1;
+//                runCount = 0;
+//            } else {
+//                Debug.addFrustumCulledBox(bounds, res.generator().originX(), res.generator().originZ(), true);
+//                if (runStart == -1) runStart = chunk.start();
+//                runCount += chunk.count();
+//            }
+//        }
+//        if (runCount != 0) {
+//            if (glCompat.useBaseInstanceFallback()) {
+//                res.generator().buffer().setVAPointerToInstance(runStart);
+//            }
+//            glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
+//        }
     }
 
     private void drawCloudsWithoutFrustumCulling() {

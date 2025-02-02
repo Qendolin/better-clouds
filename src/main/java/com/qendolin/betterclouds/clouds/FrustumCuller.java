@@ -399,6 +399,33 @@ public class FrustumCuller {
         RenderSystem.disableBlend();
     }
 
+    public boolean test(float minX, float minZ, float maxX, float maxZ) {
+        return testAnyBoxPointInProjectionPlane(minX, minZ, maxX, maxZ, top)
+            && testAnyBoxPointInProjectionPlane(minX, minZ, maxX, maxZ, right)
+            && testAnyBoxPointInProjectionPlane(minX, minZ, maxX, maxZ, bottom)
+            && testAnyBoxPointInProjectionPlane(minX, minZ, maxX, maxZ, left);
+    }
+
+    public int test2(float minX, float minZ, float maxX, float maxZ) {
+        int count = 0;
+        if(testBoxPointInAllProjectionPlanes(minX, minZ)) count++;
+        if(testBoxPointInAllProjectionPlanes(maxX, minZ)) count++;
+        if(testBoxPointInAllProjectionPlanes(minX, maxZ)) count++;
+        if(testBoxPointInAllProjectionPlanes(maxX, maxZ)) count++;
+        return count;
+    }
+
+    private boolean testBoxPointInAllProjectionPlanes(double x, double z) {
+        x -= origin.x;
+        z -= origin.z;
+
+        return (x * top.x + z * top.y - top.z > 0)
+            && (x * right.x + z * right.y - right.z > 0)
+            && (x * bottom.x + z * bottom.y - bottom.z > 0)
+            && (x * left.x + z * left.y - left.z > 0);
+    }
+
+
     public boolean test(Box box) {
 
         // FIXME: Bad assumption: Testing the corners is not enough. It is possible that only part of an edge intersects.

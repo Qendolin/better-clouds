@@ -7,6 +7,13 @@ struct DrawArraysIndirectCommand {
     uint  baseInstance;
 };
 
+struct CullingBox {
+    vec2 min;
+    vec2 max;
+    int first;
+    int count;
+};
+
 layout(local_size_x = 64) in;
 
 layout(binding = 0) uniform atomic_uint index_counter;
@@ -23,6 +30,10 @@ layout(std140, binding = 3) buffer DrawCommandBuffer {
     DrawArraysIndirectCommand draw_commands[];
 };
 
+layout(std430, binding = 4) buffer CullingBuffer {
+    CullingBox culling_boxes[];
+};
+
 // top, right, buttom, left
 uniform vec3 u_frustum_planes[4];
 uniform vec3 u_origin;
@@ -30,11 +41,27 @@ uniform int u_cloud_count;
 
 shared uint local_counter = 0;
 
-bool isInFrustum(vec2 position) {
-    return dot(position, u_frustum_planes[0].xy) - u_frustum_planes[0].z > 0
-        && dot(position, u_frustum_planes[1].xy) - u_frustum_planes[1].z > 0
-        && dot(position, u_frustum_planes[2].xy) - u_frustum_planes[2].z > 0
-        && dot(position, u_frustum_planes[3].xy) - u_frustum_planes[3].z > 0;
+//bool isInFrustum(vec2 position) {
+//    return dot(position, u_frustum_planes[0].xy) - u_frustum_planes[0].z > 0
+//        && dot(position, u_frustum_planes[1].xy) - u_frustum_planes[1].z > 0
+//        && dot(position, u_frustum_planes[2].xy) - u_frustum_planes[2].z > 0
+//        && dot(position, u_frustum_planes[3].xy) - u_frustum_planes[3].z > 0;
+//}
+
+bool testAnyBoxPointInProjectionPlane(vec2 min, vec2 max, vec3 plane) {
+    float d00 = min.x * plane.x + min.y * plane.y - plane.z;
+    float d01 = min.x * plane.x + max.y * plane.y - plane.z;
+    float d10 = max.x * plane.x + min.y * plane.y - plane.z;
+    float d11 = max.x * plane.x + max.y * plane.y - plane.z;
+    return d00 > 0 || d01 > 0 || d10 > 0 || d11 > 0;
+}
+
+bool isInFrustum(vec2 min, vec2 max) {
+    return testAnyBoxPointInProjectionPlane(min, max, u_frustum_planes[0])
+        && testAnyBoxPointInProjectionPlane(min, max, u_frustum_planes[1])
+        && testAnyBoxPointInProjectionPlane(min, max, u_frustum_planes[2])
+        && testAnyBoxPointInProjectionPlane(min, max, u_frustum_planes[3]);
+
 }
 
 void main() {
@@ -44,26 +71,35 @@ void main() {
 //
 //    memoryBarrierShared();
 //    barrier();
+//    if(in_index >= u_cloud_count) return;
 
     uint in_index = gl_GlobalInvocationID.x;
-    if(in_index >= u_cloud_count) return;
+    if(in_index >= culling_boxes.length()) return;
 
-    vec4 pos = in_vertices[in_index];
-
-    if (isInFrustum(pos.xz - u_origin.xz)) {
-//        uint local_count = atomicAdd(local_counter, 1);
-//        uint out_index = local_count + gl_WorkGroupID.x * 64;
-//        out_vertices[out_index] = pos;
-
-        uint out_index = atomicCounterIncrement(index_counter);
-        out_vertices[out_index] = pos;
-        atomicAdd(draw_commands[0].instanceCount, 1);
+    CullingBox box = culling_boxes[in_index];
+    draw_commands[in_index].baseInstance = box.first;
+    if(isInFrustum(box.min - u_origin.xz, box.max - u_origin.xz)) {
+        draw_commands[in_index].instanceCount = box.count;
+    } else {
+        draw_commands[in_index].instanceCount = 0;
     }
 
-//    memoryBarrierShared();
-//    barrier();
+//    vec4 pos = in_vertices[in_index];
 //
-//    if (gl_LocalInvocationID.x == 0) {
-//        draw_commands[gl_WorkGroupID.x].instanceCount = local_counter;
+//    if (isInFrustum(pos.xz - u_origin.xz)) {
+////        uint local_count = atomicAdd(local_counter, 1);
+////        uint out_index = local_count + gl_WorkGroupID.x * 64;
+////        out_vertices[out_index] = pos;
+//
+//        uint out_index = atomicCounterIncrement(index_counter);
+//        out_vertices[out_index] = pos;
+//        atomicAdd(draw_commands[0].instanceCount, 1);
 //    }
+//
+////    memoryBarrierShared();
+////    barrier();
+////
+////    if (gl_LocalInvocationID.x == 0) {
+////        draw_commands[gl_WorkGroupID.x].instanceCount = local_counter;
+////    }
 }
