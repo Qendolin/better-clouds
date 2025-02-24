@@ -448,7 +448,21 @@ public class Renderer implements AutoCloseable {
 //        glBindBuffer(GL_ARRAY_BUFFER, cloudBufferId);
         glBindBuffer(GL_ARRAY_BUFFER, cloudBufferWriteOnceId);
         // bind to vao, usually happens elsewhere, but rn I need tis
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, Float.BYTES * 4, 0);
+        glVertexAttribPointer(0, 4, GL_FLOAT, false, Float.BYTES * 4, 0);
+
+//        glEnableVertexAttribArray(0);
+//        glEnableVertexAttribArray(1);
+//        glEnableVertexAttribArray(2);
+//        glEnableVertexAttribArray(3);
+//        glVertexAttribPointer(0, 4, GL_FLOAT, false, 4 * Float.BYTES * 4, 0);
+//        glVertexAttribPointer(1, 4, GL_FLOAT, false, 4 * Float.BYTES * 4, Float.BYTES*4);
+//        glVertexAttribPointer(2, 4, GL_FLOAT, false, 4 * Float.BYTES * 4, 2*Float.BYTES*4);
+//        glVertexAttribPointer(3, 4, GL_FLOAT, false, 4 * Float.BYTES * 4, 3*Float.BYTES*4);
+//        glCompat.vertexAttribDivisor(0, 1);
+//        glCompat.vertexAttribDivisor(1, 1);
+//        glCompat.vertexAttribDivisor(2, 1);
+//        glCompat.vertexAttribDivisor(3, 1);
+
 //        glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), chunkGenerator2.clouds());
 
         // Issue: Too many draw calls
@@ -467,6 +481,10 @@ public class Renderer implements AutoCloseable {
         mdiBuffer.clear();
 
         float[] bounds = new float[4];
+
+        // FIXME: some chunks are drawn at a higher sub level than needed
+        // When the larger chunk is split, but all the children are drawn anyways, because they are at the lowest sub level
+        // In that case the subdiv was correct, but should be joined again.
 
         for (int i = 0; i < chunkGenerator2.index.length; i++) {
             int stackTop = 0;
@@ -490,9 +508,12 @@ public class Renderer implements AutoCloseable {
 //                    GL43.glDrawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), chunkGenerator2.countOf(entry.lvl), start);
 
                     mdiBuffer.put(Mesh.FANCY_MESH_VERTEX_COUNT);
+//                    mdiBuffer.put(15 * 4 - 1);
                     mdiBuffer.put(chunkGenerator2.countOf(lvl));
+//                    mdiBuffer.put(chunkGenerator2.countOf(lvl)/4);
                     mdiBuffer.put(0);
                     mdiBuffer.put(start);
+//                    mdiBuffer.put(start/4);
                     if(Debug.frustumCulling)
                         Debug.addFrustumCulledBox(new Box(bounds[0], cloudsHeight, bounds[1], bounds[2], cloudsHeight + 64, bounds[3]), 0, 0, true);
                 } else {
@@ -507,6 +528,7 @@ public class Renderer implements AutoCloseable {
         mdiBuffer.flip();
         glBindBuffer(GL43.GL_DRAW_INDIRECT_BUFFER, mdiBufferId);
         GL43.glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, mdiBuffer.limit() / 4, 0);
+//        GL43.glMultiDrawArraysIndirect(GL_TRIANGLES, 0, mdiBuffer.limit() / 4, 0);
 
         if(1==1) return;
 

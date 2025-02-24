@@ -7,7 +7,7 @@ import java.nio.FloatBuffer;
 public class ChunkGenerator2 {
 
     public static int GEN_CHUNK_SIZE = 128;
-    public static int MAX_SUB_LVL = 3;
+    public static int MAX_SUB_LVL = 4;
     public static int GEN_CHUNK_SIZE_2 = GEN_CHUNK_SIZE * GEN_CHUNK_SIZE;
 
     // inverse coordinate to index table, contains packed x,z positions
