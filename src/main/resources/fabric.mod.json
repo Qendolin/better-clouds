@@ -23,7 +23,7 @@
     ],
     "modmenu": [ "com.qendolin.betterclouds.ModMenuIntegration" ],
     "preLaunch": [
-      "com.qendolin.betterclouds.platform.fabric.PreLaunchHandler"
+      "com.qendolin.betterclouds.platform.fabric.Crash_Is_Not_Caused_By_BetterClouds"
     ]
   },
   "mixins": [
