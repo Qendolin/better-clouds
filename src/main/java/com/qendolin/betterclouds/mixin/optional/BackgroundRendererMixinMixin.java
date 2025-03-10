@@ -14,8 +14,8 @@ public class BackgroundRendererMixinMixin {
 
     // For 1.21 (and .1 unofficially) sodium extra 0.5 and 0.6 exist, thats why both are needed
 
-    //?if <=1.21.1 {
-    @TargetHandler(
+    //? if <=1.21.1 {
+    /*@TargetHandler(
         mixin = "me.flashyreese.mods.sodiumextra.mixin.fog.MixinBackgroundRenderer",
         name = "applyFog"
     )
@@ -28,9 +28,9 @@ public class BackgroundRendererMixinMixin {
     private static void preventFogModification5(CallbackInfo ci) {
         preventFogModificationCommon(ci);
     }
-    //?}
+    *///?}
 
-    //?if >=1.21 {
+    //? if >=1.21 {
     @TargetHandler(
         mixin = "me.flashyreese.mods.sodiumextra.mixin.fog.MixinFogRenderer",
         name = "applyFog"

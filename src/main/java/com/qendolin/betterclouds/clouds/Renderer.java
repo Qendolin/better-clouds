@@ -129,7 +129,7 @@ public class Renderer implements AutoCloseable {
         float raininess = Math.max(0.6f * getTrueRainGradient(tickDelta), getTrueThunderGradient(tickDelta));
         float cloudiness = raininess * 0.3f + 0.5f;
 
-        res.generator().update(cam, ticks + tickDelta, Main.getConfig(), cloudiness);
+        res.generator().update(cam, ticks, tickDelta, Main.getConfig(), cloudiness);
         if (res.generator().canGenerate() && !res.generator().generating() && !Debug.generatorPause) {
             getProfiler().swap("generate_clouds");
             res.generator().generate();
@@ -513,10 +513,10 @@ public class Renderer implements AutoCloseable {
         FogShape shape = RenderSystem.getShaderFogShape();
         if(color.w == 0.0) { // Fog off
             //? if >1.20.1 {
-            /^BackgroundRenderer.applyFogColor();
-            ^///?} else {
-            BackgroundRenderer.setFogBlack();
-            //?}
+            BackgroundRenderer.applyFogColor();
+            //?} else {
+            /^BackgroundRenderer.setFogBlack();
+            ^///?}
             color.set(RenderSystem.getShaderFogColor());
         }
         *///?}

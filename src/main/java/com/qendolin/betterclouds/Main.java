@@ -3,6 +3,7 @@ package com.qendolin.betterclouds;
 import com.google.gson.FieldNamingPolicy;
 import com.mojang.blaze3d.platform.GlDebugInfo;
 import com.qendolin.betterclouds.clouds.Debug;
+import com.qendolin.betterclouds.clouds.RandomPath;
 import com.qendolin.betterclouds.compat.*;
 import com.qendolin.betterclouds.platform.EventHooks;
 import com.qendolin.betterclouds.platform.ModLoader;
@@ -137,6 +138,8 @@ public class Main {
         IrisCompat.initialize();
 
         sendSystemDetailsTelemetry();
+
+        RandomPath.init();
 
         if (!IS_DEV) return;
         LOGGER.info("Initialized in dev mode, performance might vary");

@@ -16,10 +16,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ChunkedGenerator implements AutoCloseable {
-    private float windDirection = (float) (Math.random() * 360);
     private double originX;
     private double originZ;
-    private float prevTime = Float.POSITIVE_INFINITY;
 
     private Buffer buffer;
     private final Sampler sampler = new Sampler();
@@ -145,17 +143,10 @@ public class ChunkedGenerator implements AutoCloseable {
         clear();
     }
 
-    public synchronized void update(Vector3d camera, float time, Config options, float cloudiness) {
-        // This isn't quite right but whatever
-        float timeDelta = MathHelper.clamp(time - prevTime, 0, 200);
-        prevTime = time;
+    public synchronized void update(Vector3d camera, int ticks, float tickDelta, Config options, float cloudiness) {
+        originX = RandomPath.getPathX(ticks + tickDelta, options.travelSpeed);
+        originZ = RandomPath.getPathZ(ticks + tickDelta, options.travelSpeed);
 
-        windDirection += (float) ((Math.random() * 2 - 1) * timeDelta);
-        windDirection %= 360;
-
-        // -0.5 to make clouds prefer -x, like in vanilla
-        originX += (Math.cos(windDirection * MathHelper.PI / 180) - 0.5) * timeDelta * options.travelSpeed;
-        originZ += Math.sin(windDirection * MathHelper.PI / 180) * timeDelta * options.travelSpeed;
         double worldOriginX = camera.x - this.originX;
         double worldOriginZ = camera.z - this.originZ;
 
