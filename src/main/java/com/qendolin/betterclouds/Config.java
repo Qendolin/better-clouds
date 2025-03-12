@@ -328,8 +328,10 @@ public class Config {
             try {
                 //? if >=1.21 {
                 Identifier id = Identifier.of(json.getAsString());
-                //?} else
-                /*Identifier id = new Identifier(json.getAsString());*/
+                //?} else {
+                /*@SuppressWarnings("removal")
+                Identifier id = new Identifier(json.getAsString());
+                *///?}
                 return RegistryKey.of(RegistryKeys.DIMENSION_TYPE, id);
             } catch (InvalidIdentifierException e) {
                 throw new JsonParseException("Invalid RegistryKey: " + e.getMessage());

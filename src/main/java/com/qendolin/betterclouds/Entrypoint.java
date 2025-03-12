@@ -38,13 +38,37 @@ public final class Entrypoint {
             MinecraftClient.getInstance().execute(Main::initializeClient);
 
             //? if <1.20.6 {
-            /^ModLoadingContext.get().registerExtensionPoint(net.neoforged.neoforge.client.ConfigScreenHandler.ConfigScreenFactory.class,
+            ModLoadingContext.get().registerExtensionPoint(net.neoforged.neoforge.client.ConfigScreenHandler.ConfigScreenFactory.class,
                 () -> new net.neoforged.neoforge.client.ConfigScreenHandler.ConfigScreenFactory(
                     (client, parent) -> ConfigGUI.create(parent)));
-            ^///?} else {
-            ModLoadingContext.get().registerExtensionPoint(net.neoforged.neoforge.client.gui.IConfigScreenFactory.class,
+            //?} else {
+            /^ModLoadingContext.get().registerExtensionPoint(net.neoforged.neoforge.client.gui.IConfigScreenFactory.class,
                 () -> (modContainer, parent) -> ConfigGUI.create(parent));
-            //?}
+            ^///?}
+        });
+    }
+}
+*///?} elif forge {
+/*import com.qendolin.betterclouds.platform.forge.EventHooksImpl;
+import net.minecraft.client.MinecraftClient;
+import net.minecraftforge.client.ConfigScreenHandler;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+
+@Mod(Main.MODID)
+public final class Entrypoint {
+    public Entrypoint(FMLJavaModLoadingContext context) {
+        EventHooks.instance = new EventHooksImpl(context.getModEventBus());
+
+        Main.initializeClientEvents();
+
+        context.getModEventBus().<FMLClientSetupEvent>addListener(event -> {
+            MinecraftClient.getInstance().execute(Main::initializeClient);
+
+            context.registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class,
+                () -> new ConfigScreenHandler.ConfigScreenFactory(
+                    (client, parent) -> ConfigGUI.create(parent)));
         });
     }
 }

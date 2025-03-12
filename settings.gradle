@@ -6,7 +6,7 @@ pluginManagement {
         }
         maven {
             name = "Forge"
-            url = "https://files.minecraftforge.net/maven/"
+            url = "https://maven.minecraftforge.net"
         }
         maven {
             name = "NeoForged"
@@ -43,7 +43,7 @@ stonecutter {
         mc("1.21", "fabric", "forge")
         mc("1.20.6", "fabric", "forge")
         mc("1.20.4", "fabric", "forge")
-        mc("1.20.1", "fabric")
+        mc("1.20.1", "fabric", "forge")
     }
 
     create rootProject

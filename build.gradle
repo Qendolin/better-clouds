@@ -2,6 +2,7 @@ plugins {
 	id "dev.architectury.loom" version "1.7-SNAPSHOT"
 	id "architectury-plugin" version "3.4-SNAPSHOT"
 	id "com.modrinth.minotaur"
+	id "com.github.johnrengelman.shadow"
 }
 
 apply from: rootProject.file('common.gradle').path
@@ -95,7 +96,6 @@ loom {
 	}
 
 	if (isForge) forge {
-		convertAccessWideners.set(true)
 		mixinConfigs(
 			"betterclouds.mixins.json",
 			"betterclouds.optional.mixins.json",
@@ -132,14 +132,22 @@ dependencies {
 		if (isForge)
 			forge "net.minecraftforge:forge:${property('loader.forge')}"
 
-		modImplementation("dev.isxander:yet-another-config-lib:${property('deps.yacl')}-neoforge") {
+		modImplementation("dev.isxander:yet-another-config-lib:${property('deps.yacl')}-${loader}") {
 			transitive = false
+		}
+
+		compileOnly(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-common:0.2.0"))
+		implementation(include("com.github.bawnorton.mixinsquared:mixinsquared-${loader}:0.2.0"))
+
+		// neoforge includes mixinextras
+		if (isForge) {
+			compileOnly(implementation("io.github.llamalad7:mixinextras-common:${property("deps.mixin_extras")}"))
+			include(implementation("io.github.llamalad7:mixinextras-forge:${property("deps.mixin_extras")}"))
 		}
 
 		// These should be included with yacl, but it doesn't work correctly, so adding them here
 		forgeRuntimeLibrary(runtimeOnly("org.quiltmc.parsers:json:0.2.1"))
 		forgeRuntimeLibrary(runtimeOnly("org.quiltmc.parsers:gson:0.2.1"))
-
 
 		if(stonecutter.eval(mcVersion, ">=1.21")) {
 			modCompileOnly "maven.modrinth:iris:${property('deps.iris')}"
@@ -148,9 +156,6 @@ dependencies {
 			modCompileOnly "maven.modrinth:oculus:1.20.1-1.7.0"
 			modCompileOnly "maven.modrinth:rubidium-extra:0.5.7e+mc1.21-build.129"
 		}
-
-		compileOnly(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-common:0.2.0"))
-		implementation(include("com.github.bawnorton.mixinsquared:mixinsquared-forge:0.2.0"))
 
 		// Because yarn mappings are used the mods can't be loaded from the 'mods' directory at runtime.
 		// It causes NoClassDefFoundErrors due to the different mappings.
@@ -177,6 +182,7 @@ dependencies {
 processResources {
 	var props = [
 		version: project.version,
+		loader: loader,
 	]
 	if (isFabric) {
 		props["mc_version_range"] = findProperty("deps.minecraft").toString().split(",").collect {
@@ -195,6 +201,9 @@ processResources {
 		expand props
 	}
 
+	// other targets use the AW
+	if(!isForge)
+		exclude("META-INF/accesstransformer.cfg")
 	if(isNeoForge || isForge)
 		exclude("fabric.mod.json")
 	if(isFabric)
@@ -204,10 +213,23 @@ processResources {
 	exclude("assets/**/*.xcf")
 }
 
-remapJar {
-	if (isNeoForge) {
-		atAccessWideners.add("betterclouds.accesswidener")
+configurations {
+	shadowBundle {
+		canBeResolved = true
+		canBeConsumed = false
 	}
+}
+
+shadowJar {
+	configurations = [project.configurations.shadow]
+	archiveClassifier = "dev-shadow"
+}
+
+remapJar {
+	injectAccessWidener = true
+	input = tasks.shadowJar.archiveFile
+	archiveClassifier = null
+	dependsOn(tasks.shadowJar)
 }
 
 stonecutter {

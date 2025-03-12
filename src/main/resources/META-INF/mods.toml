@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[2,)"
+loaderVersion = "*"
 issueTrackerURL = "https://github.com/Qendolin/better-clouds/issues/new"
 license = "MPL-2.0"
 
@@ -14,15 +14,17 @@ Beautiful clouds in touch with the vanilla style.
 logoFile = "assets/betterclouds/icon.png"
 
 [[dependencies.betterclouds]]
-modId = "neoforge"
+modId = "${loader}"
 type = "required"
-versionRange = "[20.4,)"
+mandatory = true
+versionRange = "*"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.betterclouds]]
 modId = "minecraft"
 type = "required"
+mandatory = true
 versionRange = "${mc_version_range}"
 ordering = "NONE"
 side = "BOTH"
@@ -30,6 +32,7 @@ side = "BOTH"
 [[dependencies.betterclouds]]
 modId = "yet_another_config_lib_v3"
 type = "required"
+mandatory = true
 versionRange = "[3.5.0,4.0.0)"
 ordering = "NONE"
 side = "CLIENT"

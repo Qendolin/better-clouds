@@ -35,7 +35,8 @@ public final class ModLoader {
         if(mod.isEmpty()) return ModVersion.NONE;
         return new ModVersionImpl(mod.get().getMetadata().getVersion());
     }
-}//?} elif neoforge {
+}
+//?} elif neoforge {
 /*import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.platform.neoforge.ModVersionImpl;
 import net.neoforged.fml.ModContainer;
@@ -43,6 +44,55 @@ import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.fml.loading.LoadingModList;
+
+public final class ModLoader {
+    public static Path getConfigDir() {
+        return FMLPaths.CONFIGDIR.get();
+    }
+
+    public static Path getGameDir() {
+        return FMLPaths.GAMEDIR.get();
+    }
+
+    public static boolean isModLoaded(String modId) {
+        ModList modList = ModList.get();
+        if(modList != null) {
+            return modList.isLoaded(modId);
+        }
+        LoadingModList loadingModList = LoadingModList.get();
+        if(loadingModList != null) {
+            return loadingModList.getModFileById(modId) != null;
+        }
+        return false;
+    }
+
+    public static boolean isDevelopmentEnvironment() {
+        return !FMLLoader.isProduction();
+    }
+
+    public static boolean isClientEnvironment() {
+        return FMLLoader.getDist().isClient();
+    }
+
+    public static ModVersion getModVersion(String modId) {
+        ModList modList = ModList.get();
+        if(modList == null) {
+            Main.LOGGER.warn("getModVersion called before the mod list is initialized.");
+            return ModVersion.NONE;
+        }
+        Optional<? extends ModContainer> mod = modList.getModContainerById(modId);
+        if(mod.isEmpty()) return ModVersion.NONE;
+        return new ModVersionImpl(mod.get().getModInfo().getVersion());
+    }
+}
+*///?} elif forge {
+/*import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.platform.forge.ModVersionImpl;
+import net.minecraftforge.fml.ModContainer;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.loading.FMLLoader;
+import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraftforge.fml.loading.LoadingModList;
 
 public final class ModLoader {
     public static Path getConfigDir() {

@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[3,)"
+loaderVersion = "*"
 issueTrackerURL = "https://github.com/Qendolin/better-clouds/issues/new"
 license = "MPL-2.0"
 
