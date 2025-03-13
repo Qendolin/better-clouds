@@ -177,6 +177,8 @@ dependencies {
 	}
 
 	compileOnly "maven.modrinth:distanthorizonsapi:3.0.0"
+	modCompileOnly "maven.modrinth:serene-seasons:${property('deps.serene_seasons')}"
+	modCompileOnly "maven.modrinth:enhanced-celestials:${property('deps.enhanced_celestials')}"
 }
 
 processResources {

@@ -45,7 +45,7 @@ public abstract class DistantHorizonsCompat {
             instance = new DistantHorizons2CompatImpl();
         } else {
             Main.LOGGER.info("No DistantHorizons compat");
-            instance = new DistantHorizonsCompatStub();
+            instance = new Stub();
         }
     }
 
@@ -63,4 +63,31 @@ public abstract class DistantHorizonsCompat {
     public abstract Optional<Integer> getDepthTextureId();
 
     public abstract void disableLodClouds();
+
+    private static class Stub extends DistantHorizonsCompat {
+        @Override
+        public boolean isReady() {
+            return false;
+        }
+
+        @Override
+        public boolean isEnabled() {
+            return false;
+        }
+
+        @Override
+        public Matrix4f getProjectionMatrix() {
+            return NOOP_MATRIX;
+        }
+
+        @Override
+        public Optional<Integer> getDepthTextureId() {
+            return Optional.empty();
+        }
+
+        @Override
+        public void disableLodClouds() {
+
+        }
+    }
 }

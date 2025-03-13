@@ -10,7 +10,7 @@ public interface ShaderProgramAccessor {
     //?} else {
     /*@Accessor("activeProgramGlRef")
     static int getActiveProgramGlRef() {
-        throw new AssertionError();
+        return -1; // During hot reload this may get called
     }
 
     @Accessor("activeProgramGlRef")

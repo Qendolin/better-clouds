@@ -136,6 +136,8 @@ public class Main {
 
         DistantHorizonsCompat.initialize();
         IrisCompat.initialize();
+        SereneSeasonsCompat.initialize();
+        EnhancedCelestialsCompat.initialize();
 
         sendSystemDetailsTelemetry();
 

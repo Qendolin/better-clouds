@@ -128,6 +128,8 @@ public class Renderer implements AutoCloseable {
 
         float raininess = Math.max(0.6f * getTrueRainGradient(tickDelta), getTrueThunderGradient(tickDelta));
         float cloudiness = raininess * 0.3f + 0.5f;
+        cloudiness *= SereneSeasonsCompat.instance().getCloudinessFactor(world);
+        cloudiness = MathHelper.clamp(cloudiness, 0.0f, 1.0f);
 
         res.generator().update(cam, ticks, tickDelta, Main.getConfig(), cloudiness);
         if (res.generator().canGenerate() && !res.generator().generating() && !Debug.generatorPause) {
@@ -513,10 +515,10 @@ public class Renderer implements AutoCloseable {
         FogShape shape = RenderSystem.getShaderFogShape();
         if(color.w == 0.0) { // Fog off
             //? if >1.20.1 {
-            BackgroundRenderer.applyFogColor();
-            //?} else {
-            /^BackgroundRenderer.setFogBlack();
-            ^///?}
+            /^BackgroundRenderer.applyFogColor();
+            ^///?} else {
+            BackgroundRenderer.setFogBlack();
+            //?}
             color.set(RenderSystem.getShaderFogColor());
         }
         *///?}
@@ -561,6 +563,13 @@ public class Renderer implements AutoCloseable {
         final Vector3f Y = new Vector3f(0.299f, 0.587f, 0.114f);
 
         Vector3f cloudColor = getCloudsColor(tickDelta);
+
+        if(EnhancedCelestialsCompat.instance().isEventActive(world)) {
+            Vector3f tint = EnhancedCelestialsCompat.instance().getEventTint(world);
+            tint.div(0.2f, 0.2f, 1.0f); // divide be the default value
+            cloudColor.mul(tint);
+        }
+
         gammaToLinear(cloudColor);
 
         float cloudBaseLuma = cloudColor.dot(Y);
@@ -568,33 +577,26 @@ public class Renderer implements AutoCloseable {
 
         float cloudLuma = cloudBaseLuma;
         float moon = MathHelper.clamp(-MathHelper.cos(world.getSkyAngle(tickDelta) * 2 * MathHelper.PI), -0.25f, 0.25f) * 2 + 0.5f;
-        cloudLuma += world.getMoonSize() * moon * 0.65f;
+        float moonSize = world.getMoonSize() * EnhancedCelestialsCompat.instance().getMoonSize(world);
+        cloudLuma += moonSize * moon * 0.65f;
 
-        Vector3f combinedChroma;
-        float combinedLuma;
+        // CrY - Chroma and Luma
+        Vector4f cry = new Vector4f(cloudBaseChroma, cloudLuma);
 
-        if(fog == null) { // Fog OFF
-            combinedChroma = new Vector3f(cloudBaseChroma);
-            combinedLuma = cloudLuma;
-        } else {
+        if(fog != null) { // Fog ON
             Vector3f fogColor = new Vector3f(fog.red(), fog.green(), fog.blue());
-            gammaToLinear(fogColor);
-
-            float fogLuma = fogColor.dot(Y);
-            Vector3f fogChroma = fogLuma < 0.0001 ? new Vector3f(1.0f) : new Vector3f(fogColor).div(fogLuma);
-
-            combinedChroma = new Vector3f(MathHelper.sqrt(fogChroma.x * cloudBaseChroma.x), MathHelper.sqrt(fogChroma.y * cloudBaseChroma.y), MathHelper.sqrt(fogChroma.z * cloudBaseChroma.z));
-            combinedLuma = MathHelper.square(MathHelper.sqrt(cloudLuma) + MathHelper.sqrt(fogLuma)) / 4;
+            compositeColor(fogColor, cry);
         }
 
-        combinedLuma *= 1/0.9777f; // The new calculation produces slightly darker clouds, this is a 'fix'
-        combinedLuma = MathHelper.clamp(combinedLuma, 0, 1);
+        cry.w *= 1/0.9777f; // The new calculation produces slightly darker clouds, this is a 'fix'
+        cry.w = MathHelper.clamp(cry.w, 0, 2);
 
-        float saturation = (float) Math.pow(combinedLuma, 1/2.2);
-        Vector3f gray = new Vector3f(combinedLuma);
-        Vector3f desaturated = new Vector3f(combinedChroma).mul(saturation).add(new Vector3f(gray).mul(1 - saturation));
+        float saturation = (float) Math.pow(cry.w, 1/2.2);
+        Vector3f gray = new Vector3f(cry.w);
+        Vector3f desaturated = new Vector3f(cry.x, cry.y, cry.z).mul(saturation)
+            .add(new Vector3f(gray).mul(1 - saturation));
 
-        Vector3f result = new Vector3f(desaturated).mul(combinedLuma).min(new Vector3f(1.0f));
+        Vector3f result = new Vector3f(desaturated).mul(cry.w).min(new Vector3f(1.0f));
         linearToGamma(result);
 
         if (client.player != null && client.player.hasStatusEffect(StatusEffects.NIGHT_VISION)) {
@@ -602,6 +604,22 @@ public class Renderer implements AutoCloseable {
             result.div(MathHelper.lerp(GameRenderer.getNightVisionStrength(this.client.player, tickDelta), 1.0f, min));
         }
         return result;
+    }
+
+    private void compositeColor(Vector3f color, Vector4f cry) {
+        final Vector3f Y = new Vector3f(0.299f, 0.587f, 0.114f);
+
+        gammaToLinear(color);
+
+        float luma = color.dot(Y);
+        Vector3f chroma = luma < 0.0001 ? new Vector3f(1.0f) : new Vector3f(color).div(luma);
+
+        cry.set(
+            MathHelper.sqrt(chroma.x * cry.x),
+            MathHelper.sqrt(chroma.y * cry.y),
+            MathHelper.sqrt(chroma.z * cry.z),
+            MathHelper.square(MathHelper.sqrt(luma) + MathHelper.sqrt(cry.w)) / 4
+        );
     }
 
     private Vector3f getCloudsColor(float tickDelta) {
