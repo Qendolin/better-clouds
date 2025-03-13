@@ -193,6 +193,9 @@ processResources {
 			"[$it]"
 		}.join(",")
 	}
+	if(isNeoForge) {
+		props["neoforge_version_range"] = findProperty("deps.neoforge").toString()
+	}
 
 
 	props.forEach(inputs::property)
@@ -226,7 +229,9 @@ shadowJar {
 }
 
 remapJar {
-	injectAccessWidener = true
+	if (isNeoForge) {
+		atAccessWideners.add("betterclouds.accesswidener")
+	}
 	input = tasks.shadowJar.archiveFile
 	archiveClassifier = null
 	dependsOn(tasks.shadowJar)

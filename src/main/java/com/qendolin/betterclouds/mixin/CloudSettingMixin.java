@@ -18,7 +18,7 @@ public abstract class CloudSettingMixin {
     private SimpleOption<CloudRenderMode> cloudRenderMode;
 
     @SuppressWarnings("UnresolvedMixinReference")
-    @ModifyReturnValue(method = {"getCloudRenderModeValue", "method_1632", "m_92174_"}, remap = false, at = @At("RETURN"))
+    @ModifyReturnValue(method = {"getCloudRenderModeValue", "getCloudsType", "method_1632", "m_92174_"}, remap = false, at = @At("RETURN"))
     private CloudRenderMode overrideCloudRenderMode(CloudRenderMode value) {
         if (Main.getConfig().cloudOverride) {
             value = cloudRenderMode.getValue();

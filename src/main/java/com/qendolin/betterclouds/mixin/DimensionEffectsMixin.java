@@ -13,7 +13,7 @@ public abstract class DimensionEffectsMixin {
     // This doesn't work with sodium extras see DimensionEffectsOverworldMixin
 
     @SuppressWarnings("UnresolvedMixinReference")
-    @ModifyReturnValue(method = {"getCloudsHeight", "method_28108", "m_108871_"}, remap = false, at = @At("RETURN"))
+    @ModifyReturnValue(method = {"getCloudsHeight", "getCloudHeight", "method_28108", "m_108871_"}, remap = false, at = @At("RETURN"))
     public float addCloudsYOffset(float value) {
         if (SodiumExtraCompat.IS_LOADED) return value;
         //noinspection ConstantValue,EqualsBetweenInconvertibleTypes
