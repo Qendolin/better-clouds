@@ -64,6 +64,8 @@ public class Config {
         this.useFrustumCulling = other.useFrustumCulling;
         //noinspection IncompleteCopyConstructor
         this.sereneSeasonsConfig = new SereneSeasonsConfig(other.sereneSeasonsConfig);
+        //noinspection IncompleteCopyConstructor
+        this.fabricSeasonsConfig = new FabricSeasonsConfig(other.fabricSeasonsConfig);
     }
 
     @SerialEntry
@@ -128,6 +130,8 @@ public class Config {
     public List<RegistryKey<DimensionType>> enabledDimensions = new ArrayList<>(List.of(DimensionTypes.OVERWORLD));
     @SerialEntry
     public SereneSeasonsConfig sereneSeasonsConfig = new SereneSeasonsConfig();
+    @SerialEntry
+    public FabricSeasonsConfig fabricSeasonsConfig = new FabricSeasonsConfig();
 
     public void loadDefaultPresets() {
         // Remember which default preset was selected, if any

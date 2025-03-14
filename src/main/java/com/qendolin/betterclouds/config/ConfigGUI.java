@@ -1,7 +1,6 @@
 package com.qendolin.betterclouds.config;
 
 import com.qendolin.betterclouds.Main;
-import com.qendolin.betterclouds.compat.SereneSeasonsCompat;
 import com.qendolin.betterclouds.gui.ConfigScreen;
 import com.qendolin.betterclouds.gui.YACLOptionBuilder;
 import dev.isxander.yacl3.api.*;
@@ -22,6 +21,7 @@ public class ConfigGUI {
 
     public final ShaderPresetGUI shaderPresetGUI;
     public final SereneSeasonsGUI sereneSeasonsCompatGUI;
+    public final FabricSeasonsGUI fabricSeasonsCompatGUI;
 
     public final Option<Integer> chunkSize;
     public final Option<Float> distance;
@@ -72,6 +72,7 @@ public class ConfigGUI {
 
         shaderPresetGUI = new ShaderPresetGUI(defaults, config);
         sereneSeasonsCompatGUI = new SereneSeasonsGUI(defaults.sereneSeasonsConfig, config.sereneSeasonsConfig);
+        fabricSeasonsCompatGUI = new FabricSeasonsGUI(defaults.fabricSeasonsConfig, config.fabricSeasonsConfig);
 
         this.chunkSize = createOption(int.class, "chunkSize")
             .binding(defaults.chunkSize, () -> config.chunkSize, val -> config.chunkSize = val)
@@ -286,6 +287,11 @@ public class ConfigGUI {
             .name(groupLabel("compat.sereneSeasons"))
             .description(OptionDescription.of(groupDescription("compat.sereneSeasons")))
             .collapsed(true), sereneSeasonsCompatGUI.compatSereneSeasonsGroup));
+
+        compatCategory.add(new Pair<>(OptionGroup.createBuilder()
+            .name(groupLabel("compat.fabricSeasons"))
+            .description(OptionDescription.of(groupDescription("compat.fabricSeasons")))
+            .collapsed(true), fabricSeasonsCompatGUI.compatFabricSeasonsGroup));
     }
 
     public static ConfigScreen create(Screen parent) {
@@ -342,6 +348,10 @@ public class ConfigGUI {
 
     static Text formatAsTimes(float value) {
         return Text.translatable(LANG_KEY_PREFIX + ".unit.times", String.format("%.2f", value));
+    }
+
+    static Text formatAsDays(float value) {
+        return Text.translatable("gui.days", String.format("%.2f", value));
     }
 
     static Text formatAsDegrees(Float value) {

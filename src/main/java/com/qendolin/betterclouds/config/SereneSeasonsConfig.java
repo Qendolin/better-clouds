@@ -7,6 +7,7 @@ public class SereneSeasonsConfig {
     public SereneSeasonsConfig() {}
 
     public SereneSeasonsConfig(SereneSeasonsConfig other) {
+        this.transitionDays = other.transitionDays;
         this.earlySpringCloudiness = other.earlySpringCloudiness;
         this.midSpringCloudiness = other.midSpringCloudiness;
         this.lateSpringCloudiness = other.lateSpringCloudiness;
@@ -21,6 +22,8 @@ public class SereneSeasonsConfig {
         this.lateWinterCloudiness = other.lateWinterCloudiness;
     }
 
+    @SerialEntry
+    public float transitionDays = 2f;
     @SerialEntry
     public float earlySpringCloudiness = 1.2f;
     @SerialEntry

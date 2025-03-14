@@ -122,6 +122,7 @@ dependencies {
 
 		modCompileOnly "maven.modrinth:sodium-extra:${property('deps.sodium_extra')}"
 		modCompileOnly "maven.modrinth:iris:${property('deps.iris')}"
+		modCompileOnly "maven.modrinth:fabric-seasons:${property('deps.fabric_seasons')}"
 
 		include(implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.2.0")))
 	}

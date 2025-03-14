@@ -4,6 +4,7 @@ import com.qendolin.betterclouds.compat.SereneSeasonsCompat;
 import dev.isxander.yacl3.api.LabelOption;
 import dev.isxander.yacl3.api.Option;
 import dev.isxander.yacl3.gui.controllers.slider.FloatSliderController;
+import dev.isxander.yacl3.gui.controllers.string.number.FloatFieldController;
 import net.minecraft.text.Text;
 
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ public class SereneSeasonsGUI {
     public final List<Option<?>> compatSereneSeasonsGroup = new ArrayList<>();
 
     public final LabelOption info;
+    public final Option<Float> transitionDays;
     public final Option<Float> earlySpringCloudiness;
     public final Option<Float> midSpringCloudiness;
     public final Option<Float> lateSpringCloudiness;
@@ -31,6 +33,11 @@ public class SereneSeasonsGUI {
 
     public SereneSeasonsGUI(SereneSeasonsConfig defaults, SereneSeasonsConfig config) {
         info = LabelOption.create(optionLabel("sereneSeasons.info"));
+
+        transitionDays = createOption(float.class, "sereneSeasons.transitionDays", true)
+            .binding(defaults.transitionDays, () -> config.transitionDays, val -> config.transitionDays = val)
+            .customController(opt -> new FloatFieldController(opt, 0, Float.MAX_VALUE, ConfigGUI::formatAsDays))
+            .build();
 
         earlySpringCloudiness = createOption(float.class, "sereneSeasons.earlySpringCloudiness", false)
             .binding(defaults.earlySpringCloudiness, () -> config.earlySpringCloudiness, val -> config.earlySpringCloudiness = val)
@@ -84,6 +91,7 @@ public class SereneSeasonsGUI {
         compatSereneSeasonsGroup.add(info);
 
         var options = List.of(
+            transitionDays,
             earlySpringCloudiness,
             midSpringCloudiness,
             lateSpringCloudiness,
