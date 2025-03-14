@@ -13,6 +13,7 @@ import net.minecraft.world.dimension.DimensionTypes;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static com.qendolin.betterclouds.config.ConfigGUI.groupDescription;
 import static com.qendolin.betterclouds.config.ConfigGUI.groupLabel;
@@ -49,12 +50,13 @@ public class DimensionsGUI {
     private void setValues(List<String> values) {
         this.values = values;
         this.config.enabledDimensions = values.stream()
-            .filter(value -> {
-                if (!value.contains(":")) return false;
-                return Identifier.tryParse(value) != null;
+            .map(value -> {
+                if (!value.contains(":")) return null;
+                return Identifier.tryParse(value);
             })
+            .filter(Objects::nonNull)
             .distinct()
-            .map(value -> RegistryKey.of(RegistryKeys.DIMENSION_TYPE, Identifier.of(value)))
+            .map(value -> RegistryKey.of(RegistryKeys.DIMENSION_TYPE, value))
             .toList();
     }
 }
