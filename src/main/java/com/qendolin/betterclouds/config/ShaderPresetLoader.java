@@ -1,11 +1,11 @@
-package com.qendolin.betterclouds;
+package com.qendolin.betterclouds.config;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.qendolin.betterclouds.config.ShaderPresetConfig;
+import com.qendolin.betterclouds.Main;
 import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceReloader;
@@ -22,6 +22,9 @@ import java.util.concurrent.Executor;
 //? if fabric {
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 //?}
+
+//? if <1.21.3
+/*import net.minecraft.util.profiler.Profiler;*/
 
 public class ShaderPresetLoader
 //? if fabric {

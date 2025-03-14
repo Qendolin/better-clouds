@@ -3,7 +3,7 @@ package com.qendolin.betterclouds.platform.neoforge;
 import com.qendolin.betterclouds.platform.EventHooks;
 
 //? if neoforge {
-/*import com.qendolin.betterclouds.ShaderPresetLoader;
+/*import com.qendolin.betterclouds.config.ShaderPresetLoader;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.resource.ResourceReloader;

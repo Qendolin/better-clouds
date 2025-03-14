@@ -1,7 +1,6 @@
 package com.qendolin.betterclouds.config;
 
 import com.google.gson.*;
-import com.qendolin.betterclouds.ShaderPresetLoader;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.registry.RegistryKey;

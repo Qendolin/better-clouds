@@ -509,7 +509,7 @@ public class Renderer implements AutoCloseable {
         FogShape shape = adjusted.shape();
 
         //?} else {
-            /*BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_TERRAIN, cloudDistance, shouldUseThickFog(world, camera.getPos()), tickDelta);
+        /*BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_TERRAIN, cloudDistance, shouldUseThickFog(world, camera.getPos()), tickDelta);
         float start = RenderSystem.getShaderFogStart();
         float end = RenderSystem.getShaderFogEnd();
         FogShape shape = RenderSystem.getShaderFogShape();

@@ -7,6 +7,7 @@ import com.qendolin.betterclouds.clouds.RandomPath;
 import com.qendolin.betterclouds.compat.*;
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ShaderPresetConfig;
+import com.qendolin.betterclouds.config.ShaderPresetLoader;
 import com.qendolin.betterclouds.platform.EventHooks;
 import com.qendolin.betterclouds.platform.ModLoader;
 import com.qendolin.betterclouds.platform.ModVersion;
