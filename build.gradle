@@ -200,7 +200,6 @@ processResources {
 		props["neoforge_version_range"] = findProperty("deps.neoforge").toString()
 	}
 
-
 	props.forEach(inputs::property)
 
 	filesMatching(["fabric.mod.json", "META-INF/mods.toml", "META-INF/neoforge.mods.toml"]) {
@@ -212,6 +211,8 @@ processResources {
 		exclude("META-INF/accesstransformer.cfg")
 	if(isNeoForge || isForge)
 		exclude("fabric.mod.json")
+	if(isForge)
+		exclude("META-INF/neoforge.mods.toml")
 	if(isFabric)
 		exclude("META-INF/mods.toml", "META-INF/neoforge.mods.toml")
 
