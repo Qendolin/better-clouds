@@ -160,6 +160,34 @@ public class Commands {
                         Main.debugChatMessage("updatedPreferences");
                         return 1;
                     }))));
+        dispatcher.register(literal(Main.MODID + ":dimension")
+            .then(literal("enable")
+                .executes(context -> {
+                    if(client.world == null)
+                        return 0;
+                    var entry = client.world.getDimensionEntry();
+                    var key = entry.getKey().orElse(null);
+                    if(key == null)
+                        return 0;
+                    if(!Main.getConfig().enabledDimensions.contains(key)) {
+                        Main.getConfig().enabledDimensions.add(key);
+                    }
+                    Main.getConfigHandler().serializer().save();
+                    Main.debugChatMessage("dimensionAdded", key.getValue().toString());
+                    return 1;
+                }))
+            .then(literal("disable")
+                .executes(context -> {
+                    if(client.world == null)
+                        return 0;
+                    var entry = client.world.getDimensionEntry();
+                    var key = entry.getKey().orElse(null);
+                    Main.getConfig().enabledDimensions.remove(key);
+                    Main.getConfigHandler().serializer().save();
+                    Main.debugChatMessage("dimensionRemoved", key.getValue().toString());
+                    return 1;
+                })));
+
         // rendedoc can't be loaded before opengl context creation on forge
         //? if fabric {
         dispatcher.register(literal(Main.MODID + ":debug")

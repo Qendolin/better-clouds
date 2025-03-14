@@ -100,6 +100,7 @@ public class ConfigScreen extends YACLScreen {
     //? if >=1.20.6
     @Override
     protected void renderDarkening(DrawContext context) {
+        if(tabArea == null) return;
         context.fill(width / 3 * 2 + 1, tabArea.getTop(), width, tabArea.getBottom(), 0x6b000000);
     }
 

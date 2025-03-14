@@ -34,7 +34,7 @@ import net.minecraft.util.math.MathHelper;
 import static com.qendolin.betterclouds.Main.glCompat;
 import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
 
-@Mixin(WorldRenderer.class)
+@Mixin(value = WorldRenderer.class, priority = 900)
 public abstract class WorldRendererMixin {
 
     @Unique

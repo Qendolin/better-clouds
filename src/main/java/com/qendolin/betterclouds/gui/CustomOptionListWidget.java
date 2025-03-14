@@ -31,6 +31,9 @@ public class CustomOptionListWidget extends OptionListWidget {
         super.refreshOptions();
         addEntry(new PaddingEntry());
         for (dev.isxander.yacl3.gui.OptionListWidget.Entry child : children()) {
+            if(child instanceof ListGroupSeparatorEntry)
+                continue;
+
             if (child instanceof OptionEntry optionEntry && optionEntry.option.controller() instanceof LabelController) {
                 addEntryBelow(optionEntry, new ProxyEntry<>(optionEntry)
                     .onBeforeRender((delegate, context, index, y, x, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta) -> {

@@ -2,6 +2,7 @@ package com.qendolin.betterclouds.config;
 
 import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.gui.ConfigScreen;
+import com.qendolin.betterclouds.gui.OptionGroupBuilderWrapper;
 import com.qendolin.betterclouds.gui.YACLOptionBuilder;
 import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.gui.controllers.BooleanController;
@@ -22,6 +23,7 @@ public class ConfigGUI {
     public final ShaderPresetGUI shaderPresetGUI;
     public final SereneSeasonsGUI sereneSeasonsCompatGUI;
     public final FabricSeasonsGUI fabricSeasonsCompatGUI;
+    public final DimensionsGUI dimensionsGUI;
 
     public final Option<Integer> chunkSize;
     public final Option<Float> distance;
@@ -73,6 +75,7 @@ public class ConfigGUI {
         shaderPresetGUI = new ShaderPresetGUI(defaults, config);
         sereneSeasonsCompatGUI = new SereneSeasonsGUI(defaults.sereneSeasonsConfig, config.sereneSeasonsConfig);
         fabricSeasonsCompatGUI = new FabricSeasonsGUI(defaults.fabricSeasonsConfig, config.fabricSeasonsConfig);
+        dimensionsGUI = new DimensionsGUI(defaults, config);
 
         this.chunkSize = createOption(int.class, "chunkSize")
             .binding(defaults.chunkSize, () -> config.chunkSize, val -> config.chunkSize = val)
@@ -168,6 +171,14 @@ public class ConfigGUI {
             .name(categoryLabel("common")), commonCategory));
 
         commonCategory.add(new Pair<>(OptionGroup.createBuilder()
+            .name(groupLabel("common.appearance")), commonAppearanceGroup));
+        commonAppearanceGroup.addAll(List.of(
+            enabled,
+            shaderPresetGUI.opacity,
+            shaderPresetGUI.opacityFactor
+        ));
+
+        commonCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("common.presets")), commonPresetsGroup));
         commonPresetsGroup.addAll(List.of(
             shaderPresetGUI.selectedPreset,
@@ -184,14 +195,6 @@ public class ConfigGUI {
             spacing,
             samplingScale,
             distance
-        ));
-
-        commonCategory.add(new Pair<>(OptionGroup.createBuilder()
-            .name(groupLabel("common.appearance")), commonAppearanceGroup));
-        commonAppearanceGroup.addAll(List.of(
-            enabled,
-            shaderPresetGUI.opacity,
-            shaderPresetGUI.opacityFactor
         ));
 
         commonCategory.add(new Pair<>(OptionGroup.createBuilder()
@@ -283,6 +286,9 @@ public class ConfigGUI {
         categories.add(new Pair<>(ConfigCategory.createBuilder()
             .name(categoryLabel("compat")), compatCategory));
 
+        compatCategory.add(new Pair<>(new OptionGroupBuilderWrapper(dimensionsGUI.compatDimensionsListGroup),
+            List.of()));
+
         compatCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("compat.sereneSeasons"))
             .description(OptionDescription.of(groupDescription("compat.sereneSeasons")))
@@ -313,9 +319,9 @@ public class ConfigGUI {
         for (Pair<ConfigCategory.Builder, List<Pair<OptionGroup.Builder, List<Option<?>>>>> categoryPair : categories) {
             ConfigCategory.Builder categoryBuilder = categoryPair.getLeft();
             for (Pair<OptionGroup.Builder, List<Option<?>>> groupPair : categoryPair.getRight()) {
-                if (groupPair.getRight().isEmpty()) continue;
                 OptionGroup.Builder groupBuilder = groupPair.getLeft();
-                groupBuilder.options(groupPair.getRight());
+                if (!groupPair.getRight().isEmpty())
+                    groupBuilder.options(groupPair.getRight());
                 categoryBuilder.group(groupBuilder.build());
             }
             builder.category(categoryBuilder.build());
