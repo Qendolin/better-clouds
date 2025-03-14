@@ -13,7 +13,7 @@ public class SereneSeasonsCompatImpl extends SereneSeasonsCompat {
         var season = state.getSubSeason();
         if(season == null) return 1.0f;
         String key = season.asString();
-        return SUB_SEASON_CLOUDINESS_VALUES.getOrDefault(key, config -> 1.0f)
+        return SUB_SEASON_CLOUDINESS_LOOKUP.getOrDefault(key, config -> 1.0f)
             .apply(Main.getConfig().sereneSeasonsConfig);
     }
 }

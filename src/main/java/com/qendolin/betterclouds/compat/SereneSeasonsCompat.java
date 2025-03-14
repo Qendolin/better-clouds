@@ -5,14 +5,13 @@ import com.qendolin.betterclouds.config.SereneSeasonsConfig;
 import com.qendolin.betterclouds.platform.ModLoader;
 import net.minecraft.world.World;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
 public abstract class SereneSeasonsCompat {
     public static final boolean IS_LOADED = ModLoader.isModLoaded("sereneseasons");
 
-    public static final Map<String, Function<SereneSeasonsConfig, Float>> SUB_SEASON_CLOUDINESS_VALUES = Map.ofEntries(
+    public static final Map<String, Function<SereneSeasonsConfig, Float>> SUB_SEASON_CLOUDINESS_LOOKUP = Map.ofEntries(
         Map.entry("early_spring", config -> config.earlySpringCloudiness),
         Map.entry("mid_spring", config -> config.midSpringCloudiness),
         Map.entry("late_spring", config -> config.lateSpringCloudiness),

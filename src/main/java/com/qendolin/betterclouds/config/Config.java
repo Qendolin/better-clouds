@@ -63,7 +63,8 @@ public class Config {
         this.enabledDimensions = other.enabledDimensions;
         this.celestialBodyHalo = other.celestialBodyHalo;
         this.useFrustumCulling = other.useFrustumCulling;
-        this.sereneSeasonsConfig = other.sereneSeasonsConfig;
+        //noinspection IncompleteCopyConstructor
+        this.sereneSeasonsConfig = new SereneSeasonsConfig(other.sereneSeasonsConfig);
     }
 
     @SerialEntry
