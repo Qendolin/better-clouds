@@ -69,6 +69,7 @@ public class EventHooksImpl extends EventHooks {
 
 }
 *///?} else {
+@SuppressWarnings("unused")
 public abstract class EventHooksImpl extends EventHooks {
 }
 //?}

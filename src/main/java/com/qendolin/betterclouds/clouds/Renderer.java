@@ -177,6 +177,7 @@ public class Renderer implements AutoCloseable {
 
     // Don't forget to push / pop matrix stack outside
     // Note: render must not return early, this will cause corruption because prepare binds stuff
+    @SuppressWarnings("SequencedCollectionMethodCanBeUsed")
     public void render(int ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
         // In 1.21.3 render is called some time after prepare, so this may be false by now
         if(res.failedToLoadCritical()) return;
