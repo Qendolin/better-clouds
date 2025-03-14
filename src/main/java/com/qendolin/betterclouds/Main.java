@@ -5,6 +5,8 @@ import com.mojang.blaze3d.platform.GlDebugInfo;
 import com.qendolin.betterclouds.clouds.Debug;
 import com.qendolin.betterclouds.clouds.RandomPath;
 import com.qendolin.betterclouds.compat.*;
+import com.qendolin.betterclouds.config.Config;
+import com.qendolin.betterclouds.config.ShaderPresetConfig;
 import com.qendolin.betterclouds.platform.EventHooks;
 import com.qendolin.betterclouds.platform.ModLoader;
 import com.qendolin.betterclouds.platform.ModVersion;
@@ -163,7 +165,7 @@ public class Main {
                     .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                     .setPrettyPrinting()
                     .registerTypeAdapter(Config.class, Config.INSTANCE_CREATOR)
-                    .registerTypeAdapter(Config.ShaderConfigPreset.class, Config.ShaderConfigPreset.INSTANCE_CREATOR)
+                    .registerTypeAdapter(ShaderPresetConfig.class, ShaderPresetConfig.INSTANCE_CREATOR)
                     .registerTypeAdapter(RegistryKey.class, Config.REGISTRY_KEY_SERIALIZER))
                 .setPath(CONFIG_PATH)
                 .setJson5(false)

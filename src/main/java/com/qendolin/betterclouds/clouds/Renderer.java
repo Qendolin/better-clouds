@@ -2,7 +2,7 @@ package com.qendolin.betterclouds.clouds;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.qendolin.betterclouds.Config;
+import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.clouds.shaders.ShaderParameters;
 import com.qendolin.betterclouds.compat.*;

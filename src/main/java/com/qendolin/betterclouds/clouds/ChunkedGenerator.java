@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds.clouds;
 
-import com.qendolin.betterclouds.Config;
+import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.compat.Telemetry;
 import net.minecraft.util.Util;
