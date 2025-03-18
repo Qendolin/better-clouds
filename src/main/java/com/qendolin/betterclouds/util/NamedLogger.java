@@ -1,4 +1,4 @@
-package com.qendolin.betterclouds;
+package com.qendolin.betterclouds.util;
 
 import org.apache.logging.log4j.Logger;
 

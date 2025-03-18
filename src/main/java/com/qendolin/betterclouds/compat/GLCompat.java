@@ -516,4 +516,20 @@ public class GLCompat {
         if (useDepthWriteFallback) usedFallbacks.add("depth_view_write");
         return ImmutableList.copyOf(usedFallbacks);
     }
+
+    public static String getVendor() {
+        return GL32.glGetString(GL32.GL_VENDOR);
+    }
+
+    public static String getCpuInfo() {
+        return GLX._getCpuInfo();
+    }
+
+    public static String getRenderer() {
+        return GL32.glGetString(GL32.GL_RENDERER);
+    }
+
+    public static String getVersion() {
+        return GL32.glGetString(GL32.GL_VERSION);
+    }
 }

@@ -1,7 +1,7 @@
 package com.qendolin.betterclouds.platform.fabric;
 
 //? if fabric {
-import com.qendolin.betterclouds.NamedLogger;
+import com.qendolin.betterclouds.util.NamedLogger;
 import com.qendolin.betterclouds.renderdoc.CaptureManager;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import com.qendolin.betterclouds.renderdoc.RenderDocLoader;

@@ -1,16 +1,13 @@
 package com.qendolin.betterclouds.compat;
 
-import com.mojang.blaze3d.platform.GlDebugInfo;
-
-import java.util.List;
 import java.util.stream.Stream;
 
 public class HardwareCompat {
     public static boolean isMaybeIncompatible() {
-        String cpu = GlDebugInfo.getCpuInfo();
+        String cpu = GLCompat.getCpuInfo();
         if(cpu == null) cpu = "";
         String cpuNormalized = cpu.toLowerCase();
-        String renderer = GlDebugInfo.getRenderer();
+        String renderer = GLCompat.getRenderer();
         if(renderer == null) renderer = "";
         String rendererNormalized = renderer.toLowerCase();
 

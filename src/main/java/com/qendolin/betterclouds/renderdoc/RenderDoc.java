@@ -17,7 +17,7 @@
  */
 package com.qendolin.betterclouds.renderdoc;
 
-import com.qendolin.betterclouds.NamedLogger;
+import com.qendolin.betterclouds.util.NamedLogger;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.LongByReference;
 import com.sun.jna.ptr.PointerByReference;

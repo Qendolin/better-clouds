@@ -15,6 +15,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.command.argument.EnumArgumentType;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.StringIdentifiable;
 
 import java.io.IOException;
@@ -205,7 +206,7 @@ public class Commands {
                                         Text.literal(path.toAbsolutePath().normalize().toString())
                                             .styled(style -> style
                                                 .withUnderline(true)
-                                                .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_FILE, path.getParent().toString()))
+                                                .withClickEvent(createOpenFileClickEvent(path.getParent().toString()))
                                             ));
                                 }
                             });
@@ -216,7 +217,7 @@ public class Commands {
                                 Text.translatable(Main.debugChatMessageKey("renderdoc.prompt.load.action"))
                                     .styled(style -> style
                                         .withUnderline(true)
-                                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/betterclouds:debug renderdoc load")))
+                                        .withClickEvent(createCommandClickEvent("/betterclouds:debug renderdoc load")))
                             ));
                             return 0;
                         } else {
@@ -225,7 +226,7 @@ public class Commands {
                                 Text.translatable(Main.debugChatMessageKey("renderdoc.prompt.install.action"))
                                     .styled(style -> style
                                         .withUnderline(true)
-                                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/betterclouds:debug renderdoc install")))
+                                        .withClickEvent(createCommandClickEvent("/betterclouds:debug renderdoc install")))
                             ));
                             return 0;
                         }
@@ -245,7 +246,7 @@ public class Commands {
                             Text.literal(path.toAbsolutePath().normalize().toString())
                                 .styled(style -> style
                                     .withUnderline(true)
-                                    .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_FILE, path.getParent().toString()))));
+                                    .withClickEvent(createOpenFileClickEvent(path.getParent().toString()))));
                     });
                     return 1;
                 }))
@@ -265,7 +266,7 @@ public class Commands {
                             Text.translatable(Main.debugChatMessageKey("renderdoc.prompt.install.action"))
                                 .styled(style -> style
                                     .withUnderline(true)
-                                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/betterclouds:debug renderdoc install")))
+                                    .withClickEvent(createCommandClickEvent("/betterclouds:debug renderdoc install")))
                         ));
                         return 0;
                     }
@@ -347,5 +348,54 @@ public class Commands {
         public static FallbackArgument getFallback(CommandContext<?> context, String id) {
             return context.getArgument(id, FallbackArgument.class);
         }
+    }
+
+    public static void sendGpuIncompatibleChatMessage() {
+        if (!Main.getConfig().gpuIncompatibleMessageEnabled) return;
+        Main.debugChatMessage(
+            Text.translatable(Main.debugChatMessageKey("gpuIncompatible"))
+                .append(Text.literal("\n - "))
+                .append(Text.translatable(Main.debugChatMessageKey("generic.disable"))
+                    .styled(style -> style.withItalic(true).withUnderline(true).withColor(Formatting.GRAY)
+                        .withClickEvent(createCommandClickEvent(
+                            "/betterclouds:config gpuIncompatibleMessage false")))));
+    }
+
+    public static void sendGpuPartiallyIncompatibleChatMessage() {
+        if (!Main.getConfig().gpuIncompatibleMessageEnabled) return;
+        Main.debugChatMessage(
+            Text.translatable(Main.debugChatMessageKey("gpuPartiallyIncompatible"))
+                .append(Text.literal("\n - "))
+                .append(Text.translatable(Main.debugChatMessageKey("generic.disable"))
+                    .styled(style -> style.withItalic(true).withUnderline(true).withColor(Formatting.GRAY)
+                        .withClickEvent(createCommandClickEvent(
+                            "/betterclouds:config gpuIncompatibleMessage false")))));
+    }
+
+    public static void sendHardwareMaybeIncompatibleChatMessage() {
+        if (!Main.getConfig().gpuIncompatibleMessageEnabled) return;
+        Main.debugChatMessage(
+            Text.translatable(Main.debugChatMessageKey("hwMaybeIncompatible"), GLCompat.getCpuInfo(), GLCompat.getRenderer())
+                .append(Text.literal("\n - "))
+                .append(Text.translatable(Main.debugChatMessageKey("generic.disable"))
+                    .styled(style -> style.withItalic(true).withUnderline(true).withColor(Formatting.GRAY)
+                        .withClickEvent(createCommandClickEvent(
+                            "/betterclouds:config gpuIncompatibleMessage false")))));
+    }
+
+    private static ClickEvent createCommandClickEvent(String command) {
+        //? if >1.21.4 {
+        /*return new ClickEvent.RunCommand(command);
+        *///?} else {
+        return new ClickEvent(ClickEvent.Action.RUN_COMMAND, command);
+        //?}
+    }
+
+    private static ClickEvent createOpenFileClickEvent(String path) {
+        //? if >1.21.4 {
+        /*return new ClickEvent.OpenFile(path);
+        *///?} else {
+        return new ClickEvent(ClickEvent.Action.OPEN_FILE, path);
+        //?}
     }
 }

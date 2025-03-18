@@ -1,12 +1,12 @@
 package com.qendolin.betterclouds.clouds;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.clouds.shaders.ShaderParameters;
 import com.qendolin.betterclouds.compat.*;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
+import com.qendolin.betterclouds.util.RenderHelper;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
 import net.minecraft.client.world.ClientWorld;
@@ -19,12 +19,18 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.*;
 
 //? if >=1.21
- import net.minecraft.block.enums.CameraSubmersionType; 
+import net.minecraft.block.enums.CameraSubmersionType;
+
+//? if >1.21.4 {
+/*import com.mojang.blaze3d.opengl.GlStateManager;
+import com.mojang.blaze3d.systems.RenderPass;
+import com.mojang.blaze3d.pipeline.BlendFunction;
+*///?} else {
+import com.mojang.blaze3d.platform.GlStateManager;
+//?}
 
 import java.lang.Math;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import static com.qendolin.betterclouds.Main.glCompat;
 import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
@@ -195,10 +201,10 @@ public class Renderer implements AutoCloseable {
             res.reloadFramebuffer(scaledFramebufferWidth(), scaledFramebufferHeight());
         }
 
-        RenderSystem.viewport(0, 0, res.fboWidth(), res.fboHeight());
+        GlStateManager._viewport(0, 0, res.fboWidth(), res.fboHeight());
         GlStateManager._glBindFramebuffer(GL_DRAW_FRAMEBUFFER, res.oitFbo());
-        RenderSystem.clearColor(0, 0, 0, 0);
-        RenderSystem.clearDepth(1);
+        glClearColor(0, 0, 0, 0);
+        glClearDepth(1);
 
         RenderSystemWrapper.Fog fog = getAdjustedFog(client.gameRenderer.getCamera(), config.blockDistance(), config.fogRangeFactor, tickDelta);
 
@@ -208,13 +214,27 @@ public class Renderer implements AutoCloseable {
 
         getProfiler().swap("draw_shading");
 
+        //? if >1.21.4 {
+        /*RenderPass renderPass = null;
+        *///?} else {
         RenderPhase renderPhase = null;
+        //?}
+
         if (IrisCompat.instance().isShadersEnabled() && config.useIrisFBO) {
             IrisCompat.instance().bindFramebuffer();
         } else {
+            //? if >1.21.4 {
+            /*var framebuffer = MinecraftClient.getInstance().worldRenderer.getCloudsFramebuffer();
+            if(framebuffer == null)
+                framebuffer = MinecraftClient.getInstance().getFramebuffer();
+            renderPass = RenderSystem.getDevice()
+                .createCommandEncoder()
+                .createRenderPass(framebuffer.getColorAttachment(), OptionalInt.empty(), framebuffer.getDepthAttachment(), OptionalDouble.empty());
+            *///?} else {
             client.getFramebuffer().beginWrite(false);
             renderPhase = RenderPhase.CLOUDS_TARGET;
             renderPhase.startDrawing();
+            //?}
         }
 
         drawShading(tickDelta, fog);
@@ -223,16 +243,23 @@ public class Renderer implements AutoCloseable {
         getProfiler().swap("render_cleanup");
         res.generator().unbind();
         Resources.unbindShader();
-        RenderSystem.disableBlend();
-        RenderSystem.enableDepthTest();
-        RenderSystem.depthMask(true);
-        RenderSystem.depthFunc(GL_LEQUAL);
-        RenderSystem.activeTexture(GL_TEXTURE0);
-        RenderSystem.colorMask(true, true, true, true);
+        GlStateManager._disableBlend();
+        GlStateManager._enableDepthTest();
+        GlStateManager._depthMask(true);
+        GlStateManager._depthFunc(GL_LEQUAL);
+        GlStateManager._activeTexture(GL_TEXTURE0);
+        GlStateManager._colorMask(true, true, true, true);
 
+        //? if >1.21.4 {
+        /*if(renderPass != null) {
+            renderPass.close();
+        }
+        *///?} else {
         if(renderPhase != null) {
             renderPhase.endDrawing();
         }
+        //?}
+
 
         if (!glCompat.useStencilTextureFallback()) {
             glDisable(GL_STENCIL_TEST);
@@ -269,22 +296,22 @@ public class Renderer implements AutoCloseable {
     }
 
     private void drawCoverage(float ticks, Vector3d cam, Vector3d frustumPos, Frustum frustum, RenderSystemWrapper.Fog fog) {
-        RenderSystem.enableDepthTest();
-        RenderSystem.colorMask(true, true, true, true);
-        RenderSystem.depthMask(true);
+        GlStateManager._enableDepthTest();
+        GlStateManager._colorMask(true, true, true, true);
+        GlStateManager._depthMask(true);
         glEnable(GL_DEPTH_CLAMP);
 
         if (glCompat.useStencilTextureFallback()) {
-            RenderSystem.depthFunc(GL_ALWAYS);
-            RenderSystem.enableBlend();
-            RenderSystem.blendEquation(GL_FUNC_ADD);
+            GlStateManager._depthFunc(GL_ALWAYS);
+            GlStateManager._enableBlend();
+            glBlendEquation(GL_FUNC_ADD);
             // FIXME: buf0 needs depth sorting
             glCompat.blendFunci(0, GL_ONE, GL_ZERO);
             glCompat.blendFunci(1, GL_ONE, GL_ONE);
             glDisable(GL_STENCIL_TEST);
         } else {
-            RenderSystem.depthFunc(GL_LEQUAL);
-            RenderSystem.disableBlend();
+            GlStateManager._depthFunc(GL_LEQUAL);
+            GlStateManager._disableBlend();
             glEnable(GL_STENCIL_TEST);
             glStencilMask(0xff);
             glClearStencil(0);
@@ -292,8 +319,8 @@ public class Renderer implements AutoCloseable {
             glStencilFunc(GL_ALWAYS, 0xff, 0xff);
         }
 
-        if (useCubeClouds()) RenderSystem.enableCull();
-        else RenderSystem.disableCull();
+        if (useCubeClouds()) GlStateManager._enableCull();
+        else GlStateManager._disableCull();
         glClear(GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         Config generatorConfig = getGeneratorConfig();
@@ -311,8 +338,8 @@ public class Renderer implements AutoCloseable {
             res.coverageShader().uFogRange.setVec2(fog.start(), fog.end());
         }
 
-        RenderSystem.activeTexture(GL_TEXTURE0);
-        RenderSystem.bindTexture(client.getFramebuffer().getDepthAttachment());
+        GlStateManager._activeTexture(GL_TEXTURE0);
+        RenderHelper.bindTexture(client.getFramebuffer().getDepthAttachment());
 
         // Distant Horizons compat
         if (DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled()) {
@@ -320,19 +347,19 @@ public class Renderer implements AutoCloseable {
             res.coverageShader().uMcPMatrix.setMat4(pMatrix);
 
             Optional<Integer> depthId = DistantHorizonsCompat.instance().getDepthTextureId();
-            RenderSystem.activeTexture(GL_TEXTURE6);
+            GlStateManager._activeTexture(GL_TEXTURE6);
             if (depthId.isPresent()) {
                 Matrix4f dhProjectionMatrix = DistantHorizonsCompat.instance().getProjectionMatrix();
-                RenderSystem.bindTexture(depthId.get());
+                RenderHelper.bindTexture(depthId.get());
                 res.coverageShader().uDhPMatrix.setMat4(dhProjectionMatrix);
             } else {
-                RenderSystem.bindTexture(0);
+                RenderHelper.bindTexture(0);
                 res.coverageShader().uDhPMatrix.setMat4(DistantHorizonsCompat.NOOP_MATRIX);
             }
         }
 
-        RenderSystem.activeTexture(GL_TEXTURE5);
-        client.getTextureManager().getTexture(Resources.NOISE_TEXTURE).bindTexture();
+        GlStateManager._activeTexture(GL_TEXTURE5);
+        RenderHelper.bindTexture(client.getTextureManager().getTexture(Resources.NOISE_TEXTURE));
 
         res.generator().bind();
         if (glCompat.useBaseInstanceFallback()) {
@@ -345,7 +372,7 @@ public class Renderer implements AutoCloseable {
         Debug.clearFrustumCulledBoxed();
 
         if (!res.generator().canRender()) {
-            RenderSystem.enableCull();
+            GlStateManager._enableCull();
             return;
         }
 
@@ -361,7 +388,7 @@ public class Renderer implements AutoCloseable {
             drawCloudsWithoutFrustumCulling();
 
         glDisable(GL_DEPTH_CLAMP);
-        RenderSystem.enableCull();
+        GlStateManager._enableCull();
     }
 
     private void drawCloudsWithFrustumCulling(Frustum frustumAtOrigin, Config config) {
@@ -412,36 +439,36 @@ public class Renderer implements AutoCloseable {
 
     private void drawShading(float tickDelta, RenderSystemWrapper.Fog fog) {
         Config config = Main.getConfig();
-        RenderSystem.depthFunc(GL_LEQUAL);
+        GlStateManager._depthFunc(GL_LEQUAL);
 
         if (!glCompat.useDepthWriteFallback()) {
-            RenderSystem.depthMask(true);
-            RenderSystem.enableDepthTest();
+            GlStateManager._depthMask(true);
+            GlStateManager._enableDepthTest();
         } else {
-            RenderSystem.disableDepthTest();
+            GlStateManager._disableDepthTest();
         }
 
-        RenderSystem.enableBlend();
-        RenderSystem.blendEquation(GL_FUNC_ADD);
-        RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA);
-        RenderSystem.colorMask(false, false, false, false);
+        GlStateManager._enableBlend();
+        glBlendEquation(GL_FUNC_ADD);
+        GlStateManager._blendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+        GlStateManager._colorMask(false, false, false, false);
         glColorMaski(0, true, true, true, true);
         if (!glCompat.useStencilTextureFallback()) {
             glDisable(GL_STENCIL_TEST);
         }
 
-        RenderSystem.activeTexture(GL_TEXTURE1);
+        GlStateManager._activeTexture(GL_TEXTURE1);
         if (glCompat.useDepthWriteFallback()) {
-            RenderSystem.bindTexture(0);
+            RenderHelper.bindTexture(0);
         } else {
-            RenderSystem.bindTexture(res.oitCoverageDepthTexture());
+            RenderHelper.bindTexture(res.oitCoverageDepthTexture());
         }
-        RenderSystem.activeTexture(GL_TEXTURE2);
-        RenderSystem.bindTexture(res.oitDataTexture());
-        RenderSystem.activeTexture(GL_TEXTURE3);
-        RenderSystem.bindTexture(res.oitCoverageTexture());
-        RenderSystem.activeTexture(GL_TEXTURE4);
-        client.getTextureManager().getTexture(Resources.LIGHTING_TEXTURE).bindTexture();
+        GlStateManager._activeTexture(GL_TEXTURE2);
+        RenderHelper.bindTexture(res.oitDataTexture());
+        GlStateManager._activeTexture(GL_TEXTURE3);
+        RenderHelper.bindTexture(res.oitCoverageTexture());
+        GlStateManager._activeTexture(GL_TEXTURE4);
+        RenderHelper.bindTexture(client.getTextureManager().getTexture(Resources.LIGHTING_TEXTURE));
 
         Vector3f effectTint = getEffectTint(tickDelta, fog);
         long skyTime = world.getLunarTime() % 24000;
@@ -468,8 +495,8 @@ public class Renderer implements AutoCloseable {
         glDrawArrays(GL_TRIANGLES, 0, Mesh.CUBE_MESH_VERTEX_COUNT);
 
         if (glCompat.useDepthWriteFallback()) {
-            RenderSystem.activeTexture(GL_TEXTURE6);
-            RenderSystem.bindTexture(res.oitCoverageDepthTexture());
+            GlStateManager._activeTexture(GL_TEXTURE6);
+            RenderHelper.bindTexture(res.oitCoverageDepthTexture());
             glTexParameteri(GL_TEXTURE_2D, glCompat.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_DEPTH_COMPONENT);
             res.depthShader().bind();
             glDrawArrays(GL_TRIANGLES, 0, Mesh.QUAD_MESH_VERTEX_COUNT);

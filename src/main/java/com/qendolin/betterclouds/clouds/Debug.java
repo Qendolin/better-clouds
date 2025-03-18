@@ -2,11 +2,16 @@ package com.qendolin.betterclouds.clouds;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.compat.RenderSystemWrapper;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.ShaderProgram;
 import net.minecraft.client.render.*;
+import net.minecraft.client.util.BufferAllocator;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.Box;
 import org.joml.Vector3d;
+
+//? if >1.21.4
+/*import com.mojang.blaze3d.vertex.VertexFormat;*/
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +25,8 @@ public class Debug {
     public static boolean generatorForceUpdate = false;
 
     public static final List<Pair<Box, Boolean>> frustumCulledBoxes = new ArrayList<>();
+
+    private final VertexConsumerProvider.Immediate vertexConsumer = VertexConsumerProvider.immediate(new BufferAllocator(1536));
 
     public static void clearFrustumCulledBoxed() {
         if (frustumCulling) {
@@ -37,6 +44,7 @@ public class Debug {
     public static void drawFrustumCulledBoxes(Vector3d cam) {
         if (!frustumCulling) return;
         if (frustumCulledBoxes.isEmpty()) return;
+
 
         //? if >=1.21 {
         BufferBuilder vertices = Tessellator.getInstance().begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);

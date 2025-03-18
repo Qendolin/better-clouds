@@ -31,6 +31,10 @@ import net.minecraft.util.math.MathHelper;
 /*import net.minecraft.client.util.math.MatrixStack;
 *///?}
 
+//? if >1.21.4 {
+/*import com.mojang.blaze3d.systems.RenderSystem;
+*///?}
+
 import static com.qendolin.betterclouds.Main.glCompat;
 import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
 
@@ -101,9 +105,16 @@ public abstract class WorldRendererMixin {
         *///?}
     }
 
-    //? if >=1.21.3 {
+    //? if >1.21.4 {
+    /*@Inject(at = @At("HEAD"), method = "renderClouds", cancellable = true)
+    private void renderClouds(FrameGraphBuilder frameGraphBuilder, CloudRenderMode _mode, Vec3d cameraPos, float _ticks, int _color, float _cloudHeight, CallbackInfo ci) {
+        double camX = cameraPos.x, camY = cameraPos.y, camZ = cameraPos.z;
+        float tickDelta = MathHelper.fractionalPart(_ticks);
+        Matrix4f viewMat = RenderSystem.getModelViewMatrix();
+        Matrix4f projMat = RenderSystem.getProjectionMatrix();
+    *///?} elif >=1.21.3 {
     @Inject(at = @At("HEAD"), method = "renderClouds", cancellable = true)
-    private void renderClouds(FrameGraphBuilder frameGraphBuilder, Matrix4f viewMat, Matrix4f projMat, CloudRenderMode renderMode, Vec3d cameraPos, float _ticks, int _color, float _cloudHeight, CallbackInfo ci) {
+    private void renderClouds(FrameGraphBuilder frameGraphBuilder, Matrix4f viewMat, Matrix4f projMat, CloudRenderMode _mode, Vec3d cameraPos, float _ticks, int _color, float _cloudHeight, CallbackInfo ci) {
         double camX = cameraPos.x, camY = cameraPos.y, camZ = cameraPos.z;
         float tickDelta = MathHelper.fractionalPart(_ticks);
     //?} elif >=1.20.6 {
@@ -150,7 +161,7 @@ public abstract class WorldRendererMixin {
                 ci.cancel();
 
                 //? if >=1.21.3 {
-                RenderPass renderPass = frameGraphBuilder.createPass("clouds");
+                var renderPass = frameGraphBuilder.createPass("clouds");
                 if (framebufferSet.cloudsFramebuffer != null) {
                     framebufferSet.cloudsFramebuffer = renderPass.transfer(framebufferSet.cloudsFramebuffer);
                 } else {

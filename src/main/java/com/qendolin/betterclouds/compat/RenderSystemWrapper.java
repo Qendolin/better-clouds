@@ -4,7 +4,8 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gl.ShaderProgram;
 import net.minecraft.client.render.FogShape;
 
-//? if >=1.21.3 {
+//? if >1.21.4 {
+//?} elif >=1.21.3 {
 import net.minecraft.client.gl.ShaderProgramKeys;
 //?} else {
 /*import net.minecraft.client.render.GameRenderer;
@@ -12,6 +13,7 @@ import net.minecraft.client.gl.ShaderProgramKeys;
 
 public class RenderSystemWrapper {
 
+    //? if <=1.21.4 {
     public static void setPositionColorShader() {
         //? if >=1.21.3 {
         RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
@@ -19,7 +21,9 @@ public class RenderSystemWrapper {
         /*RenderSystem.setShader(GameRenderer::getPositionColorProgram);
         *///?}
     }
+    //?}
 
+    //? if <=1.21.4 {
     public static void setShader(ShaderProgram program) {
         //? if >=1.21.3 {
         RenderSystem.setShader(program);
@@ -27,6 +31,7 @@ public class RenderSystemWrapper {
         /*RenderSystem.setShader(() -> program);
         *///?}
     }
+    //?}
 
     public static Fog getFog() {
         //? if >=1.21.3 {

@@ -1,19 +1,26 @@
 package com.qendolin.betterclouds.clouds;
 
-import com.mojang.blaze3d.platform.GlConst;
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.qendolin.betterclouds.Commands;
 import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.clouds.shaders.CoverageShader;
 import com.qendolin.betterclouds.clouds.shaders.DepthShader;
 import com.qendolin.betterclouds.clouds.shaders.ShaderParameters;
 import com.qendolin.betterclouds.clouds.shaders.ShadingShader;
+import com.qendolin.betterclouds.util.RenderHelper;
 import com.qendolin.betterclouds.compat.Telemetry;
-import com.qendolin.betterclouds.mixin.BufferRendererAccessor;
-import com.qendolin.betterclouds.mixin.VertexBufferAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
+
+//? if >1.21.4 {
+/*import com.mojang.blaze3d.opengl.GlStateManager;
+import net.minecraft.client.texture.GlTexture;
+*///?} else {
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.qendolin.betterclouds.mixin.BufferRendererAccessor;
+import com.qendolin.betterclouds.mixin.VertexBufferAccessor;
+ //?}
 
 //? if <1.21.3 {
 /*import com.qendolin.betterclouds.mixin.ShaderProgramAccessor;
@@ -159,14 +166,17 @@ public class Resources implements Closeable {
     }
 
     public static void unbindVao() {
+        //? if <=1.21.4 {
         VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
         if (buffer == null) return;
         int previousVaoId = buffer.getVertexArrayId();
         if (previousVaoId > 0)
             glBindVertexArray(previousVaoId);
+        //?}
     }
 
     public static void unbindVbo() {
+        //? if <=1.21.4 {
         VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
         if (buffer == null) return;
         //? if >=1.21.3 {
@@ -176,26 +186,28 @@ public class Resources implements Closeable {
         *///?}
         if (previousVboId > 0)
             glBindBuffer(GL_ARRAY_BUFFER, previousVboId);
+        //?}
     }
 
     public void reloadTextures(MinecraftClient client) {
-        int noiseTexture = client.getTextureManager().getTexture(NOISE_TEXTURE).getGlId();
-        RenderSystem.activeTexture(GL_TEXTURE0);
-        RenderSystem.bindTexture(noiseTexture);
+        RenderSystem.assertOnRenderThread();
+        int noiseTexture = RenderHelper.getTextureId(client.getTextureManager().getTexture(NOISE_TEXTURE));
+        GlStateManager._activeTexture(GL_TEXTURE0);
+        RenderHelper.bindTexture(noiseTexture);
         glCompat.objectLabelDev(GL_TEXTURE, noiseTexture, "noise");
-        RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_WRAP_S, GL_REPEAT);
-        RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_WRAP_T, GL_REPEAT);
-        RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_MIN_FILTER, GlConst.GL_LINEAR);
-        RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_MAG_FILTER, GlConst.GL_LINEAR);
-        int lightingTexture = client.getTextureManager().getTexture(LIGHTING_TEXTURE).getGlId();
-        RenderSystem.bindTexture(lightingTexture);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        int lightingTexture = RenderHelper.getTextureId(client.getTextureManager().getTexture(LIGHTING_TEXTURE));
+        GlStateManager._bindTexture(lightingTexture);
         glCompat.objectLabelDev(GL_TEXTURE, lightingTexture, "lighting");
-        RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_WRAP_T, GL_REPEAT);
-        RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_MIN_FILTER, GlConst.GL_LINEAR);
-        RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_MAG_FILTER, GlConst.GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-        RenderSystem.bindTexture(0);
+        GlStateManager._bindTexture(0);
     }
 
     public void reloadGenerator(boolean fancy) {
@@ -227,8 +239,8 @@ public class Resources implements Closeable {
         fboHeight = height;
 
         oitDataTexture = glGenTextures();
-        RenderSystem.activeTexture(GL_TEXTURE0);
-        RenderSystem.bindTexture(oitDataTexture);
+        GlStateManager._activeTexture(GL_TEXTURE0);
+        GlStateManager._bindTexture(oitDataTexture);
         glCompat.objectLabelDev(GL_TEXTURE, oitDataTexture, "coverage_color");
         glCompat.texStorage2DFallback(GL_TEXTURE_2D, 1, GL_RGB8, fboWidth, fboHeight, GL_RGB, GL_BYTE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -269,7 +281,7 @@ public class Resources implements Closeable {
     private void createFramebufferAttachments(boolean useStencilTextureFallback, boolean useDepthWriteFallback) {
         if (useStencilTextureFallback) {
             oitCoverageTexture = glGenTextures();
-            RenderSystem.bindTexture(oitCoverageTexture);
+            GlStateManager._bindTexture(oitCoverageTexture);
             glCompat.objectLabelDev(GL_TEXTURE, oitCoverageTexture, "coverage_color_fallback");
             glCompat.texStorage2DFallback(GL_TEXTURE_2D, 1, GL_R8, fboWidth, fboHeight, GL_RED, GL_UNSIGNED_BYTE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -286,7 +298,7 @@ public class Resources implements Closeable {
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, oitCoverageDepthTexture, 0);
         } else {
             oitCoverageTexture = glGenTextures();
-            RenderSystem.bindTexture(oitCoverageTexture);
+            GlStateManager._bindTexture(oitCoverageTexture);
             glCompat.objectLabelDev(GL_TEXTURE, oitCoverageTexture, "coverage_stencil");
             glCompat.texStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH24_STENCIL8, fboWidth, fboHeight);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -306,8 +318,7 @@ public class Resources implements Closeable {
                 glTexParameteri(GL_TEXTURE_2D, glCompat.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_DEPTH_COMPONENT);
             }
         }
-
-        RenderSystem.bindTexture(0);
+        GlStateManager._bindTexture(0);
     }
 
     public void deleteFramebuffer() {
@@ -317,9 +328,9 @@ public class Resources implements Closeable {
     }
 
     private void deleteFramebufferAttachments() {
-        if (oitDataTexture != 0) RenderSystem.deleteTexture(oitDataTexture);
-        if (oitCoverageTexture != 0) RenderSystem.deleteTexture(oitCoverageTexture);
-        if (oitCoverageDepthTexture != 0) RenderSystem.deleteTexture(oitCoverageDepthTexture);
+        if (oitDataTexture != 0) GlStateManager._deleteTexture(oitDataTexture);
+        if (oitCoverageTexture != 0) GlStateManager._deleteTexture(oitCoverageTexture);
+        if (oitCoverageDepthTexture != 0) GlStateManager._deleteTexture(oitCoverageDepthTexture);
         oitDataTexture = UNASSIGNED;
         oitCoverageTexture = UNASSIGNED;
         oitCoverageDepthTexture = UNASSIGNED;
@@ -329,7 +340,7 @@ public class Resources implements Closeable {
         try {
             reloadShadersInternal(manager, shaderParameters);
         } catch (Exception e) {
-            Main.sendGpuIncompatibleChatMessage();
+            Commands.sendGpuIncompatibleChatMessage();
             Main.LOGGER.error(e);
             Telemetry.INSTANCE.sendShaderCompileError(e.toString());
             deleteShaders();
