@@ -5,9 +5,12 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.Config;
 import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.clouds.shaders.ShaderParameters;
-import com.qendolin.betterclouds.compat.*;
+import com.qendolin.betterclouds.compat.DistantHorizonsCompat;
+import com.qendolin.betterclouds.compat.HeadInTheCloudsCompat;
+import com.qendolin.betterclouds.compat.IrisCompat;
+import com.qendolin.betterclouds.compat.WorldDuck;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.block.enums.CameraSubmersionType;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.CloudRenderMode;
 import net.minecraft.client.render.*;
@@ -17,18 +20,17 @@ import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import org.joml.*;
-
-//? if >=1.21
- import net.minecraft.block.enums.CameraSubmersionType;
 import org.lwjgl.opengl.GL43;
 import org.lwjgl.opengl.GL46;
 
 import java.lang.Math;
 import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
+import static com.qendolin.betterclouds.Main.getConfig;
 import static com.qendolin.betterclouds.Main.glCompat;
 import static org.lwjgl.opengl.GL32.*;
 
@@ -48,10 +50,11 @@ public class Renderer implements AutoCloseable {
     private final FrustumCuller frustumCuller = new FrustumCuller();
     private ShaderParameters shaderParameters = null;
 
-    private FloatBuffer cloudBuffer;
+    private ByteBuffer cloudBuffer;
     private int cloudBufferId;
     private int cloudBufferWriteOnceId = -1;
     private ChunkGenerator2 chunkGenerator2;
+    private int heightTextureArray;
 
     private final Resources res = new Resources();
 
@@ -64,22 +67,30 @@ public class Renderer implements AutoCloseable {
     }
 
     public void reload(ResourceManager manager) {
-        float spacing = 8;
-        float blockDistance = 256 * 16; // radius
+//        float spacing = 8;
+        float spacing = getConfig().spacing;
+//        float blockDistance = 256 * 16; // radius
+        float blockDistance = Main.getConfig().renderDistance * 16; // radius
         int size = ChunkGenerator2.calculateSize(blockDistance, spacing);
 //        int size = 1;
         int clouds = MathHelper.square(size * ChunkGenerator2.GEN_CHUNK_SIZE);
-        int bufSize = clouds * 4 * Float.BYTES;
+        int bufSize = clouds * 4 * ChunkGenerator2.BYTES_PER_COORD;
         int flags = GL_MAP_WRITE_BIT | glCompat.GL_MAP_PERSISTENT_BIT | glCompat.GL_MAP_COHERENT_BIT;
         cloudBufferId = glGenBuffers();
         glBindBuffer(GL43.GL_ARRAY_BUFFER, cloudBufferId);
         glCompat.bufferStorage(GL43.GL_ARRAY_BUFFER, bufSize, flags);
         ByteBuffer buffer = glMapBufferRange(GL43.GL_ARRAY_BUFFER, 0, bufSize, flags);
         if (buffer == null) throw new IllegalStateException("glMapBufferRange returned null");
-        cloudBuffer = buffer.asFloatBuffer();
+        cloudBuffer = buffer; //.asFloatBuffer();
         glCompat.objectLabelDev(glCompat.GL_BUFFER, cloudBufferId, "cloud_buffer_2");
 
         chunkGenerator2 = new ChunkGenerator2(cloudBuffer, size, spacing);
+
+        heightTextureArray = glGenTextures();
+        glBindTexture(GL_TEXTURE_2D_ARRAY, heightTextureArray);
+        GL43.glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_R8, ChunkGenerator2.GEN_CHUNK_SIZE, ChunkGenerator2.GEN_CHUNK_SIZE, chunkGenerator2.index.length);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
         Main.LOGGER.info("Reloading cloud renderer...");
         Main.LOGGER.debug("[1/6] Reloading shaders");
@@ -117,7 +128,8 @@ public class Renderer implements AutoCloseable {
             config.fadeEdge, config.sizeXZ, config.sizeY, config.celestialBodyHalo,
             glCompat.useDepthWriteFallback(), glCompat.useStencilTextureFallback(),
             DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled(),
-            config.preset().worldCurvatureSize
+            config.preset().worldCurvatureSize,
+            chunkGenerator2.size
         );
     }
 
@@ -140,24 +152,44 @@ public class Renderer implements AutoCloseable {
             return PrepareResult.NO_RENDER;
         }
 
-        if(!Debug.generatorPause) {
+        if (!Debug.generatorPause) {
             boolean updated = chunkGenerator2.update(cam.x, cam.z);
-            if(updated) {
+            if (updated) {
                 glFlush();
                 GL43.glMemoryBarrier(GL43.GL_BUFFER_UPDATE_BARRIER_BIT | GL46.GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
                 glFlush();
-                if(cloudBufferWriteOnceId != -1) {
+                if (cloudBufferWriteOnceId != -1) {
                     glDeleteBuffers(cloudBufferWriteOnceId);
                 }
                 cloudBufferWriteOnceId = glGenBuffers();
                 glBindBuffer(GL_ARRAY_BUFFER, cloudBufferWriteOnceId);
                 glCompat.objectLabelDev(glCompat.GL_BUFFER, cloudBufferWriteOnceId, "cloud_buffer_write_once");
-                long size = (long) cloudBuffer.capacity() * Float.BYTES;
+                long size = (long) cloudBuffer.capacity() * ChunkGenerator2.BYTES_PER_COORD;
                 glCompat.bufferStorage(GL43.GL_ARRAY_BUFFER, size, 0);
 
 //                glBindBuffer(GL_COPY_READ_BUFFER, cloudBufferId);
-                GL46.glCopyNamedBufferSubData(cloudBufferId, cloudBufferWriteOnceId, 0 ,0, size);
+                GL46.glCopyNamedBufferSubData(cloudBufferId, cloudBufferWriteOnceId, 0, 0, size);
 //                glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_ARRAY_BUFFER, 0, 0, size);
+
+//                RenderDoc.triggerCapture();
+                glBindTexture(GL_TEXTURE_2D_ARRAY, heightTextureArray);
+                for (int region = 0; region < chunkGenerator2.index.length; region++) {
+                    int offset = chunkGenerator2.startOf(region, 0, 0, 0);
+                    int length = chunkGenerator2.countOf(0);
+                    glTexSubImage3D(
+                        GL_TEXTURE_2D_ARRAY,
+                        0,
+                        0,
+                        0,
+                        region,
+                        ChunkGenerator2.GEN_CHUNK_SIZE,
+                        ChunkGenerator2.GEN_CHUNK_SIZE,
+                        1,
+                        GL_RED,
+                        GL_UNSIGNED_BYTE,
+                        chunkGenerator2.buffer.slice(offset, length));
+
+                }
             }
         }
 
@@ -183,22 +215,22 @@ public class Renderer implements AutoCloseable {
             client.getProfiler().swap("render_setup");
         }
 
-        if (res.generator().canSwap()) {
-            client.getProfiler().swap("swap");
-            res.generator().swap();
-            ByteBuffer cullingBuffer = res.generator().buffer().cullingBuffer;
-            cullingBuffer.clear();
-            for (ChunkedGenerator.ChunkIndex chunk : res.generator().chunks()) {
-                Box bounds = chunk.bounds(cloudsHeight, config.sizeXZ, config.sizeY);
-                cullingBuffer.putFloat((float)bounds.minX);
-                cullingBuffer.putFloat((float)bounds.minZ);
-                cullingBuffer.putFloat((float)bounds.maxX);
-                cullingBuffer.putFloat((float)bounds.maxZ);
-                cullingBuffer.putInt(chunk.start());
-                cullingBuffer.putInt(chunk.count());
-            }
-            client.getProfiler().swap("render_setup");
-        }
+//        if (res.generator().canSwap()) {
+//            client.getProfiler().swap("swap");
+//            res.generator().swap();
+//            ByteBuffer cullingBuffer = res.generator().buffer().cullingBuffer;
+//            cullingBuffer.clear();
+//            for (ChunkedGenerator.ChunkIndex chunk : res.generator().chunks()) {
+//                Box bounds = chunk.bounds(cloudsHeight, config.sizeXZ, config.sizeY);
+//                cullingBuffer.putFloat((float) bounds.minX);
+//                cullingBuffer.putFloat((float) bounds.minZ);
+//                cullingBuffer.putFloat((float) bounds.maxX);
+//                cullingBuffer.putFloat((float) bounds.maxZ);
+//                cullingBuffer.putInt(chunk.start());
+//                cullingBuffer.putInt(chunk.count());
+//            }
+//            client.getProfiler().swap("render_setup");
+//        }
 
         float cloudsCullingHeightMin = cloudsHeight - config.sizeY;
         float cloudsCullingHeightMax = cloudsHeight + config.yRange + config.sizeY;
@@ -283,7 +315,7 @@ public class Renderer implements AutoCloseable {
         RenderSystem.activeTexture(GL_TEXTURE0);
         RenderSystem.colorMask(true, true, true, true);
 
-        if(renderPhase != null) {
+        if (renderPhase != null) {
             renderPhase.endDrawing();
         }
 
@@ -415,12 +447,12 @@ public class Renderer implements AutoCloseable {
 
 
         boolean frustumCulling = config.useFrustumCulling;
-        if(IrisCompat.instance().isFrustumCullingDisabled() || config.preset().worldCurvatureSize != 0) {
+        if (IrisCompat.instance().isFrustumCullingDisabled() || config.preset().worldCurvatureSize != 0) {
             frustumCulling = false;
         }
 
-        if(frustumCulling) {
-            drawCloudsWithFrustumCulling(frustumAtOrigin, config);
+        if (frustumCulling) {
+            drawCloudsWithFrustumCulling(frustumAtOrigin, config, cam);
         } else {
             drawCloudsWithoutFrustumCulling();
         }
@@ -430,25 +462,112 @@ public class Renderer implements AutoCloseable {
     }
 
     static class StackEntry {
-        int lvl; int x; int z;
+        int lvl;
+        int x;
+        int z;
+
         void set(int lvl, int x, int z) {
-            this.lvl = lvl; this.x = x; this.z = z;
+            this.lvl = lvl;
+            this.x = x;
+            this.z = z;
         }
     }
+
     StackEntry[] cullingStack = new StackEntry[ChunkGenerator2.MAX_SUB_LVL * 4];
+
     {
         for (int i = 0; i < cullingStack.length; i++) {
             cullingStack[i] = new StackEntry();
         }
     }
+
     IntBuffer mdiBuffer;
     int mdiBufferId;
 
-    private void drawCloudsWithFrustumCulling(Frustum frustumAtOrigin, Config config) {
+    private static class DrawCommand {
+        public int start, count;
+        public final float[] bounds = new float[4];
+    }
+
+    private static class DrawCommands {
+        private final DrawCommand[] commands;
+        private int size = 0;
+
+        public DrawCommands(int capacity) {
+            commands = new DrawCommand[capacity];
+            for (int i = 0; i < commands.length; i++) {
+                commands[i] = new DrawCommand();
+            }
+        }
+
+        public void reset(int size) {
+            this.size = size;
+        }
+
+        public int size() {
+            return size;
+        }
+
+        public void add(int start, int count, float[] bounds) {
+            var cmd = commands[size++];
+            cmd.start = start;
+            cmd.count = count;
+            cmd.bounds[0] = bounds[0];
+            cmd.bounds[1] = bounds[1];
+            cmd.bounds[2] = bounds[2];
+            cmd.bounds[3] = bounds[3];
+        }
+
+        public DrawCommand get(int i) {
+            return commands[i];
+        }
+    }
+
+    private boolean generateCulledDrawCommands(DrawCommands draws, int region, int lvl, int x, int z) {
+        final float[] bounds = new float[4];
+        chunkGenerator2.bounds(region, lvl, x, z, bounds);
+        float maxDist = getConfig().blockDistance();
+
+        int visible = frustumCuller.test2(bounds[0], bounds[1], bounds[2], bounds[3]);
+        int inRange = frustumCuller.testDist(bounds[0], bounds[1], bounds[2], bounds[3], maxDist);
+        if (visible == 0 || inRange == 0) {
+            return false;
+        } else if ((visible == 4 && inRange == 4) || lvl == ChunkGenerator2.MAX_SUB_LVL) {
+            int start = chunkGenerator2.startOf(region, lvl, x, z);
+            int count = chunkGenerator2.countOf(lvl);
+            draws.add(start, count, bounds);
+            return true;
+        }
+
+        int marker = draws.size();
+
+        boolean sub11 = generateCulledDrawCommands(draws, region, lvl + 1, x * 2 + 1, z * 2 + 1);
+        boolean sub01 = generateCulledDrawCommands(draws, region, lvl + 1, x * 2, z * 2 + 1);
+        boolean sub10 = generateCulledDrawCommands(draws, region, lvl + 1, x * 2 + 1, z * 2);
+        boolean sub00 = generateCulledDrawCommands(draws, region, lvl + 1, x * 2, z * 2);
+
+        // if it turns out that all subsections were actually not culled
+        if (sub11 && sub01 && sub10 && sub00) {
+            draws.reset(marker);
+            int start = chunkGenerator2.startOf(region, lvl, x, z);
+            int count = chunkGenerator2.countOf(lvl);
+            draws.add(start, count, bounds);
+            return true;
+        }
+
+        return false;
+    }
+
+    DrawCommands commands;
+
+    private void drawCloudsWithFrustumCulling(Frustum frustumAtOrigin, Config config, Vector3d cam) {
 //        glBindBuffer(GL_ARRAY_BUFFER, cloudBufferId);
-        glBindBuffer(GL_ARRAY_BUFFER, cloudBufferWriteOnceId);
+//        glBindBuffer(GL_ARRAY_BUFFER, cloudBufferWriteOnceId);
+
+
         // bind to vao, usually happens elsewhere, but rn I need tis
-        glVertexAttribPointer(0, 4, GL_FLOAT, false, Float.BYTES * 4, 0);
+//        glVertexAttribPointer(0, 4, GL_FLOAT, false, Float.BYTES * 4, 0);
+//        glVertexAttribPointer(0, 1, GL_UNSIGNED_BYTE, true, 1, 0);
 
 //        glEnableVertexAttribArray(0);
 //        glEnableVertexAttribArray(1);
@@ -465,12 +584,47 @@ public class Renderer implements AutoCloseable {
 
 //        glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), chunkGenerator2.clouds());
 
+        glActiveTexture(GL_TEXTURE6);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, heightTextureArray);
+
+        if (commands == null) {
+            commands = new DrawCommands((int) Math.pow(4, ChunkGenerator2.MAX_SUB_LVL) * 2);
+        }
+
+        glUniform2iv(res.coverageShader().uRegionOffsets.location(), chunkGenerator2.regionOffsets);
+        res.coverageShader().uCameraPos.setVec3((float) cam.x, (float) cam.y - cloudsHeight, (float) cam.z);
+        res.coverageShader().uSpacing.setFloat(getConfig().spacing);
+
+        // FIXME: some chunks are drawn at a higher sub level than needed
+        // When the larger chunk is split, but all the children are drawn anyways, because they are at the lowest sub level
+        // In that case the subdiv was correct, but should be joined again.
+
+        // Possible optimization:
+        // Culling this many faces is quite slow, so any regions that are not the center regions can
+        // not draw faces that always point away
+
+        for (int region = 0; region < chunkGenerator2.index.length; region++) {
+            commands.reset(0);
+            generateCulledDrawCommands(commands, region, 0, 0, 0);
+
+            for (int i = 0; i < commands.size(); i++) {
+                DrawCommand cmd = commands.get(i);
+                if (Debug.frustumCulling)
+                    Debug.addFrustumCulledBox(new Box(cmd.bounds[0], cloudsHeight, cmd.bounds[1], cmd.bounds[2], cloudsHeight + 64, cmd.bounds[3]), 0, 0, true);
+//                GL43.glDrawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, 0, Mesh.FANCY_MESH_VERTEX_COUNT, cmd.count, cmd.start);
+                GL43.glDrawArraysInstancedBaseInstance(GL_TRIANGLE_FAN, 0, 8, cmd.count, cmd.start);
+            }
+        }
+
+
+        if (1 == 1) return;
+
         // Issue: Too many draw calls
         // Fixes:
         // - reduce max sub level
         // - use MDI (doesn't matter apparently)
 
-        if(mdiBuffer == null) {
+        if (mdiBuffer == null) {
             mdiBufferId = glGenBuffers();
             glBindBuffer(GL43.GL_DRAW_INDIRECT_BUFFER, mdiBufferId);
             int size = chunkGenerator2.index.length * 8 * ChunkGenerator2.MAX_SUB_LVL * 4 * Integer.BYTES;
@@ -479,28 +633,27 @@ public class Renderer implements AutoCloseable {
                 .asIntBuffer();
         }
         mdiBuffer.clear();
+        glBindBuffer(GL43.GL_DRAW_INDIRECT_BUFFER, mdiBufferId);
 
-        float[] bounds = new float[4];
-
-        // FIXME: some chunks are drawn at a higher sub level than needed
-        // When the larger chunk is split, but all the children are drawn anyways, because they are at the lowest sub level
-        // In that case the subdiv was correct, but should be joined again.
-
+        final float[] bounds = new float[4];
         for (int i = 0; i < chunkGenerator2.index.length; i++) {
             int stackTop = 0;
             cullingStack[stackTop++].set(0, 0, 0);
+
+            //*
             while (stackTop > 0) {
                 StackEntry entry = cullingStack[--stackTop];
                 int lvl = entry.lvl;
                 int x = entry.x;
                 int z = entry.z;
-                int submax = 1<<lvl;
+                int submax = 1 << lvl;
 //                int sub = entry.x + submax * entry.z;
 //                float[] bounds = chunkGenerator2.bounds(i, entry.lvl, sub);
                 chunkGenerator2.bounds(i, lvl, x, z, bounds);
                 int visible = frustumCuller.test2(bounds[0], bounds[1], bounds[2], bounds[3]);
+//                if(visible > 0) visible = 4;
                 if (visible == 0) {
-                    if(Debug.frustumCulling)
+                    if (Debug.frustumCulling)
                         Debug.addFrustumCulledBox(new Box(bounds[0], cloudsHeight, bounds[1], bounds[2], cloudsHeight + 64, bounds[3]), 0, 0, false);
                 } else if (visible == 4 || lvl == ChunkGenerator2.MAX_SUB_LVL) {
 //                    int start = chunkGenerator2.startOf(i, entry.lvl, sub);
@@ -514,23 +667,36 @@ public class Renderer implements AutoCloseable {
                     mdiBuffer.put(0);
                     mdiBuffer.put(start);
 //                    mdiBuffer.put(start/4);
-                    if(Debug.frustumCulling)
+                    if (Debug.frustumCulling)
                         Debug.addFrustumCulledBox(new Box(bounds[0], cloudsHeight, bounds[1], bounds[2], cloudsHeight + 64, bounds[3]), 0, 0, true);
                 } else {
-                    cullingStack[stackTop++].set(lvl+1, x*2+1, z*2+1);
-                    cullingStack[stackTop++].set(lvl+1, x*2, z*2+1);
-                    cullingStack[stackTop++].set(lvl+1, x*2+1, z*2);
-                    cullingStack[stackTop++].set(lvl+1, x*2, z*2);
+                    cullingStack[stackTop++].set(lvl + 1, x * 2 + 1, z * 2 + 1);
+                    cullingStack[stackTop++].set(lvl + 1, x * 2, z * 2 + 1);
+                    cullingStack[stackTop++].set(lvl + 1, x * 2 + 1, z * 2);
+                    cullingStack[stackTop++].set(lvl + 1, x * 2, z * 2);
                 }
             }
+            /*/
+            mdiBuffer.put(Mesh.FANCY_MESH_VERTEX_COUNT);
+            mdiBuffer.put(ChunkGenerator2.GEN_CHUNK_SIZE_2);
+            mdiBuffer.put(0);
+            mdiBuffer.put(i * ChunkGenerator2.GEN_CHUNK_SIZE_2);
+            //*/
+
+//            chunkGenerator2.bounds(i, bounds);
+//            res.coverageShader().uMiscellaneous.setVec3(bounds[0], 0, bounds[1]);
+//            res.coverageShader().uDeleteMe.setInt(i * ChunkGenerator2.GEN_CHUNK_SIZE_2);
+//            mdiBuffer.flip();
+//            GL43.glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, mdiBuffer.limit() / 4, 0);
+//            mdiBuffer.clear();
+
         }
 
         mdiBuffer.flip();
-        glBindBuffer(GL43.GL_DRAW_INDIRECT_BUFFER, mdiBufferId);
         GL43.glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, 0, mdiBuffer.limit() / 4, 0);
 //        GL43.glMultiDrawArraysIndirect(GL_TRIANGLES, 0, mdiBuffer.limit() / 4, 0);
 
-        if(1==1) return;
+        if (1 == 1) return;
 
 
 ////        int groups = MathHelper.ceilDiv(res.generator().cloudCount(), 64);
@@ -596,9 +762,9 @@ public class Renderer implements AutoCloseable {
 
     private void drawCloudsWithoutFrustumCulling() {
         List<ChunkedGenerator.ChunkIndex> chunks = res.generator().chunks();
-        if(chunks.isEmpty()) return;
+        if (chunks.isEmpty()) return;
         ChunkedGenerator.ChunkIndex first = chunks.get(0);
-        ChunkedGenerator.ChunkIndex last = chunks.get(chunks.size()-1);
+        ChunkedGenerator.ChunkIndex last = chunks.get(chunks.size() - 1);
         int start = first.start();
         int count = last.start() + last.count();
         if (glCompat.useBaseInstanceFallback()) {

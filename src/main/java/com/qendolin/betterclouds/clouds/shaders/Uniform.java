@@ -22,6 +22,10 @@ public abstract class Uniform {
         this.location = location;
     }
 
+    public int location() {
+        return location;
+    }
+
     public abstract void setMat4(Matrix4f mat);
 
     public abstract void setMat4(float[] mat, boolean transpose);

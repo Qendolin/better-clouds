@@ -1,17 +1,24 @@
 package com.qendolin.betterclouds.clouds;
 
+import com.qendolin.betterclouds.Config;
+import net.minecraft.block.Block;
 import net.minecraft.util.math.MathHelper;
+import org.joml.Vector2f;
 
-import java.nio.FloatBuffer;
+import java.nio.ByteBuffer;
 
 public class ChunkGenerator2 {
 
     public static int GEN_CHUNK_SIZE = 128;
     public static int MAX_SUB_LVL = 4;
     public static int GEN_CHUNK_SIZE_2 = GEN_CHUNK_SIZE * GEN_CHUNK_SIZE;
+    public static int BYTES_PER_COORD = 1;
+
+    private final Sampler sampler = new Sampler();
 
     // inverse coordinate to index table, contains packed x,z positions
     long[] index;
+    int[] regionOffsets;
 //    final short[] generationOrder;
     final short[][] generationOrder;
     final short[] generationOrderInverse;
@@ -23,25 +30,64 @@ public class ChunkGenerator2 {
     int minz;
     int maxz;
     boolean initialized = false;
-    FloatBuffer buffer;
+    ByteBuffer buffer;
 
     int cx = 0;
     int cz = 0;
 
     float spacing;
 
-    public ChunkGenerator2(FloatBuffer buffer, int size, float spacing) {
+    public ChunkGenerator2(ByteBuffer buffer, int size, float spacing) {
         this.buffer = buffer;
         this.size = size;
         this.spacing = spacing;
         this.index = new long[size * size];
+        this.regionOffsets = new int[size * size * 2];
         this.generationOrder = new short[GEN_CHUNK_SIZE_2][];
         this.generationOrderInverse = new short[GEN_CHUNK_SIZE_2];
         initGenerationOrder();
     }
 
+
+    private static int interleaveBits(int x)
+    {
+        x = (x | (x << 8)) & 0x00FF00FF;
+        x = (x | (x << 4)) & 0x0F0F0F0F;
+        x = (x | (x << 2)) & 0x33333333;
+        x = (x | (x << 1)) & 0x55555555;
+        return x;
+    }
+
+    private static int encodeMorton(int x, int y)
+    {
+        return (interleaveBits(y) << 1) | interleaveBits(x);
+    }
+
+    private static int deinterleaveBits(int x) {
+        x &= 0x55555555;
+        x = (x | (x >> 1)) & 0x33333333;
+        x = (x | (x >> 2)) & 0x0F0F0F0F;
+        x = (x | (x >> 4)) & 0x00FF00FF;
+        x = (x | (x >> 8)) & 0x0000FFFF;
+        return x;
+    }
+
+    private static int[] decodeMorton(int index) {
+        int x = deinterleaveBits(index);
+        int y = deinterleaveBits(index >> 1);
+        return new int[]{x,y};
+    }
+
+
     private void initGenerationOrder() {
-        initGenerationOrderRecursive(0, 0, 0, 0, GEN_CHUNK_SIZE);
+//        initGenerationOrderRecursive(0, 0, 0, 0, GEN_CHUNK_SIZE);
+
+        for (int i = 0; i < GEN_CHUNK_SIZE_2; i++) {
+            var xy = decodeMorton(i);
+            generationOrder[i] = new short[] {(short) xy[0], (short) xy[1]};
+            generationOrderInverse[xy[0] + xy[1] * GEN_CHUNK_SIZE] = (short) i;
+        }
+
 //        for (int i = 0; i < GEN_CHUNK_SIZE_2; i++) {
 //            int[] coords = Hilbert.hilbertIndexToCoords(GEN_CHUNK_SIZE, i);
 ////            generationOrder[i] = (short) ((coords[1]) << 8 | (coords[0] & 0xffL));
@@ -188,14 +234,14 @@ public class ChunkGenerator2 {
         int dsize = GEN_CHUNK_SIZE >> lvl;
         x *= dsize;
         z *= dsize;
-        int index = this.generationOrderInverse[x + GEN_CHUNK_SIZE * z];
-        int dx = this.generationOrder[index][0];
-        int dz = this.generationOrder[index][1];
+//        int index = this.generationOrderInverse[x + GEN_CHUNK_SIZE * z];
+//        int dx = this.generationOrder[index][0];
+//        int dz = this.generationOrder[index][1];
 
-        out[0] = (bx + dx) * spacing;
-        out[1] = (bz + dz) * spacing;
-        out[2] = (bx + dx + dsize) * spacing;
-        out[3] = (bz + dz + dsize) * spacing;
+        out[0] = (bx + x) * spacing;
+        out[1] = (bz + z) * spacing;
+        out[2] = (bx + x + dsize) * spacing;
+        out[3] = (bz + z + dsize) * spacing;
     }
 
     public int startOf(int i, int lvl, int sub) {
@@ -256,7 +302,7 @@ public class ChunkGenerator2 {
         int maxx = cx + size / 2;
         int maxz = cz + size / 2;
 
-        int sliceLength = GEN_CHUNK_SIZE_2 * 4;
+        int sliceLength = GEN_CHUNK_SIZE_2 * BYTES_PER_COORD;
         if (initialized) {
             for (int i = 0; i < this.index.length; i++) {
                 int xx = (int) this.index[i];
@@ -276,20 +322,27 @@ public class ChunkGenerator2 {
                 long packed = (((long) rz) << 32) | (rx & 0xffffffffL);
                 this.index[i] = packed;
 
-                FloatBuffer slice = buffer.slice(i * sliceLength, sliceLength);
+                ByteBuffer slice = buffer.slice(i * sliceLength, sliceLength);
                 generate(slice, rx, rz);
             }
         } else {
             initialized = true;
             int i = 0;
-            for (int xx = minx; xx <= maxx; xx++) {
                 for (int zz = minz; zz <= maxz; zz++) {
-                    FloatBuffer slice = buffer.slice(i * sliceLength, sliceLength);
+            for (int xx = minx; xx <= maxx; xx++) {
+                    ByteBuffer slice = buffer.slice(i * sliceLength, sliceLength);
                     generate(slice, xx, zz);
                     long packed = (((long) zz) << 32) | (xx & 0xffffffffL);
                     this.index[i++] = packed;
                 }
             }
+        }
+
+        for (int i = 0; i < this.index.length; i++) {
+            int xx = (int) this.index[i];
+            int zz = (int) (this.index[i] >> 32);
+            this.regionOffsets[i*2] = xx;
+            this.regionOffsets[i*2+1] = zz;
         }
 
         this.minx = minx;
@@ -301,7 +354,7 @@ public class ChunkGenerator2 {
         return true;
     }
 
-    public void generate(FloatBuffer slice, int chunkx, int chunkz) {
+    public void generate(ByteBuffer slice, int chunkx, int chunkz) {
         slice.clear();
         int index = 0;
         int length = GEN_CHUNK_SIZE_2;
@@ -312,6 +365,8 @@ public class ChunkGenerator2 {
 //            int lz = packed >> 8;
             int lx = generationOrder[i][0];
             int lz = generationOrder[i][1];
+            lx = i % GEN_CHUNK_SIZE;
+            lz = i / GEN_CHUNK_SIZE;
 //        }
 //        for (int lz = 0; lz < GEN_CHUNK_SIZE; lz++) {
 //            for (int lx = 0; lx < GEN_CHUNK_SIZE; lx++) {
@@ -324,12 +379,19 @@ public class ChunkGenerator2 {
             float z = gz * spacing;
 
             float value = (float) index++ / length;
-            float y = value * 64;
+//            value = (float) Math.random();
+//            value = 0;
+            value = sampler.sample(MathHelper.floor(x), MathHelper.floor(z), 0.5f, 0f, 1f);
+            if(value <= 0) value = 0;
+            value = value * value;
+//            value = new Vector2f(lx, lz).div(128).length();
 
-            slice.put(x);
-            slice.put(y);
-            slice.put(z);
-            slice.put(0); // vec3 padding
+//            slice.put(x);
+            value = MathHelper.clamp(value, 0, 1);
+//            slice.put((byte) MathHelper.ceil(value * 255 + Byte.MIN_VALUE));
+            slice.put((byte) (MathHelper.ceil(value * 255) & 0xff));
+//            slice.put(z);
+//            slice.put(0); // vec3 padding
 //            }
         }
     }

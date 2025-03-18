@@ -347,7 +347,8 @@ public class Resources implements Closeable {
             edgeFade,
             shaderParameters.useStencilTextureFallback(),
             shaderParameters.useDistantHorizonsCompat(),
-            shaderParameters.worldCurvatureSize());
+            shaderParameters.worldCurvatureSize(),
+            shaderParameters.regions());
         coverageShader.bind();
         coverageShader.uDepthTexture.setInt(0);
         coverageShader.uNoiseTexture.setInt(5);

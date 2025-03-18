@@ -193,6 +193,14 @@ jar {
 	}
 }
 
+afterEvaluate {
+	loom.runs.configureEach {
+		vmArg "-javaagent:${configurations.compileClasspath.find { it.name.contains("sponge-mixin") }}"
+		// disable this if you're not using the JetBrains Runtime
+		vmArg "-XX:+AllowEnhancedClassRedefinition"
+	}
+}
+
 modrinth  { // Make sure it runs after build!
 	var loaderName = loom.platform.get().displayName
 	var releaseName = property('mod.release').toString().capitalize()

@@ -425,6 +425,23 @@ public class FrustumCuller {
             && (x * left.x + z * left.y - left.z > 0);
     }
 
+    public int testDist(float minX, float minZ, float maxX, float maxZ, float maxDist) {
+        int count = 0;
+        float maxDistSq = maxDist*maxDist;
+        if(testBoxPointInDistance(minX, minZ, maxDistSq)) count++;
+        if(testBoxPointInDistance(maxX, minZ, maxDistSq)) count++;
+        if(testBoxPointInDistance(minX, maxZ, maxDistSq)) count++;
+        if(testBoxPointInDistance(maxX, maxZ, maxDistSq)) count++;
+        return count;
+    }
+
+    private boolean testBoxPointInDistance(double x, double z, float maxDistSq) {
+        x -= origin.x;
+        z -= origin.z;
+        double distSq = x * x + z * z;
+        return distSq < maxDistSq;
+    }
+
 
     public boolean test(Box box) {
 
