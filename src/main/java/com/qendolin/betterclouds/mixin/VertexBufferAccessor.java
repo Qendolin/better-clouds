@@ -1,5 +1,6 @@
 package com.qendolin.betterclouds.mixin;
 
+import com.qendolin.betterclouds.util.DisableMixin;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
 
@@ -9,12 +10,12 @@ import net.minecraft.client.gl.GpuBuffer;
 
 //? if <=1.21.4 {
 import org.spongepowered.asm.mixin.gen.Accessor;
-//?} else {
-/*import com.qendolin.betterclouds.util.DisableMixin;
- *///?}
+//?}
 
-//? if >1.21.4
-/*@DisableMixin*/
+
+@DisableMixin(
+    /*? if >1.21.4 >>*/ /*true*/
+)
 @Pseudo
 @Mixin(targets = "net.minecraft.client.gl.VertexBuffer")
 public interface VertexBufferAccessor {

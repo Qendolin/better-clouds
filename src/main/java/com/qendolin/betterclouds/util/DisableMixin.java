@@ -5,5 +5,5 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.TYPE)
 public @interface DisableMixin {
-    boolean value() default true;
+    boolean value() default false;
 }

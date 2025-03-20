@@ -9,6 +9,7 @@ import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 import org.spongepowered.asm.service.MixinService;
+import org.spongepowered.asm.util.Annotations;
 
 import java.io.IOException;
 import java.util.List;
@@ -40,7 +41,9 @@ public class MixinPlugin implements IMixinConfigPlugin {
             var annotation = classNode.invisibleAnnotations.stream()
                 .filter(n -> DISABLE_ANNOTATION_DESC.equals(n.desc))
                 .findFirst();
-            return annotation.isPresent();
+            if(annotation.isEmpty())
+                return false;
+            return Annotations.<Boolean>getValue(annotation.get(), "value", DisableMixin.class);
         } catch (ClassNotFoundException | IOException e) {
             throw new RuntimeException(e);
         }
