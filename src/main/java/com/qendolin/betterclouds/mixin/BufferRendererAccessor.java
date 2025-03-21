@@ -5,18 +5,18 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
 
 //? if <=1.21.4 {
-import net.minecraft.client.gl.VertexBuffer;
+/*import net.minecraft.client.gl.VertexBuffer;
 import org.spongepowered.asm.mixin.gen.Accessor;
-//?}
+*///?}
 
 @DisableMixin(
-    /*? if >1.21.4 >>*/ /*true*/
+    /*? if >1.21.4 >>*/ true
 )
 @Pseudo
 @Mixin(targets = "net.minecraft.client.render.BufferRenderer")
 public interface BufferRendererAccessor {
     //? if <=1.21.4 {
-    @Accessor("currentVertexBuffer")
+    /*@Accessor("currentVertexBuffer")
     static VertexBuffer getCurrentVertexBuffer() {
         return null; // During hot reload this may get called
     }
@@ -24,5 +24,5 @@ public interface BufferRendererAccessor {
     @Accessor("currentVertexBuffer")
     static void setCurrentVertexBuffer(VertexBuffer buffer) {
     }
-    //?}
+    *///?}
 }

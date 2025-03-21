@@ -4,6 +4,7 @@ import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.clouds.Debug;
 import com.qendolin.betterclouds.clouds.Renderer;
 import com.qendolin.betterclouds.compat.Telemetry;
+import com.qendolin.betterclouds.duck.WorldRendererDuck;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
@@ -14,7 +15,6 @@ import net.minecraft.resource.ResourceManager;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector3d;
-import org.lwjgl.opengl.GL32;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -32,14 +32,14 @@ import net.minecraft.util.math.MathHelper;
 *///?}
 
 //? if >1.21.4 {
-/*import com.mojang.blaze3d.systems.RenderSystem;
-*///?}
+import com.mojang.blaze3d.systems.RenderSystem;
+//?}
 
 import static com.qendolin.betterclouds.Main.glCompat;
 import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
 
 @Mixin(value = WorldRenderer.class, priority = 900)
-public abstract class WorldRendererMixin {
+public abstract class WorldRendererMixin implements WorldRendererDuck {
 
     @Unique
     private final Vector3d tempVector = new Vector3d();
@@ -48,11 +48,6 @@ public abstract class WorldRendererMixin {
     private Renderer cloudRenderer;
     @Shadow
     private Frustum frustum;
-
-    @Unique
-    private double profTimeAcc;
-    @Unique
-    private int profFrames;
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void init(MinecraftClient client, EntityRenderDispatcher entityRenderDispatcher, BlockEntityRenderDispatcher blockEntityRenderDispatcher, BufferBuilderStorage bufferBuilders, CallbackInfo ci) {
@@ -78,6 +73,12 @@ public abstract class WorldRendererMixin {
     @Final
     private Vector3d capturedFrustumPosition;
     *///?}
+
+
+    @Override
+    public Renderer betterclouds$getRenderer() {
+        return cloudRenderer;
+    }
 
     @Inject(at = @At("TAIL"), method = "reload(Lnet/minecraft/resource/ResourceManager;)V")
     private void onReload(ResourceManager manager, CallbackInfo ci) {
@@ -106,18 +107,18 @@ public abstract class WorldRendererMixin {
     }
 
     //? if >1.21.4 {
-    /*@Inject(at = @At("HEAD"), method = "renderClouds", cancellable = true)
+    @Inject(at = @At("HEAD"), method = "renderClouds", cancellable = true)
     private void renderClouds(FrameGraphBuilder frameGraphBuilder, CloudRenderMode _mode, Vec3d cameraPos, float _ticks, int _color, float _cloudHeight, CallbackInfo ci) {
         double camX = cameraPos.x, camY = cameraPos.y, camZ = cameraPos.z;
         float tickDelta = MathHelper.fractionalPart(_ticks);
         Matrix4f viewMat = RenderSystem.getModelViewMatrix();
         Matrix4f projMat = RenderSystem.getProjectionMatrix();
-    *///?} elif >=1.21.3 {
-    @Inject(at = @At("HEAD"), method = "renderClouds", cancellable = true)
+    //?} elif >=1.21.3 {
+    /*@Inject(at = @At("HEAD"), method = "renderClouds", cancellable = true)
     private void renderClouds(FrameGraphBuilder frameGraphBuilder, Matrix4f viewMat, Matrix4f projMat, CloudRenderMode _mode, Vec3d cameraPos, float _ticks, int _color, float _cloudHeight, CallbackInfo ci) {
         double camX = cameraPos.x, camY = cameraPos.y, camZ = cameraPos.z;
         float tickDelta = MathHelper.fractionalPart(_ticks);
-    //?} elif >=1.20.6 {
+    *///?} elif >=1.20.6 {
     /*@Inject(at = @At("HEAD"), method = "renderClouds(Lnet/minecraft/client/util/math/MatrixStack;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;FDDD)V", cancellable = true)
     private void renderClouds(MatrixStack matrices, Matrix4f viewMat, Matrix4f projMat, float tickDelta, double camX, double camY, double camZ, CallbackInfo ci) {
     *///?} else {
@@ -143,9 +144,6 @@ public abstract class WorldRendererMixin {
             frustum.setPosition(frustumPos.x, frustumPos.y, frustumPos.z);
         }
 
-        if (Main.isProfilingEnabled()) GL32.glFinish();
-        long startTime = System.nanoTime();
-
         int ticks = this.ticks;
         if (Debug.animationPause >= 0) {
             if (Debug.animationPause == 0) Debug.animationPause = ticks;
@@ -157,9 +155,12 @@ public abstract class WorldRendererMixin {
             Renderer.PrepareResult prepareResult = cloudRenderer.prepare(viewMat, projMat, ticks, tickDelta, cam);
             if (RenderDoc.isFrameCapturing())
                 glCompat.debugMessage("renderer prepare returned " + prepareResult.name());
-            if (prepareResult == Renderer.PrepareResult.RENDER) {
+
+            if (prepareResult != Renderer.PrepareResult.FALLBACK)
                 ci.cancel();
 
+            // Note to self: do not use return
+            if (prepareResult == Renderer.PrepareResult.RENDER) {
                 //? if >=1.21.3 {
                 var renderPass = frameGraphBuilder.createPass("clouds");
                 if (framebufferSet.cloudsFramebuffer != null) {
@@ -180,25 +181,11 @@ public abstract class WorldRendererMixin {
                 });
                 //?} else {
                 /*cloudRenderer.render(ticks, tickDelta, cam, frustumPos, frustum);
-                *///?}
-
-            } else if (prepareResult == Renderer.PrepareResult.NO_RENDER) {
-                ci.cancel();
+                 *///?}
             }
         } catch (Exception e) {
             Telemetry.INSTANCE.sendUnhandledException(e);
             throw e;
-        }
-
-        if (Main.isProfilingEnabled()) {
-            GL32.glFinish();
-            profTimeAcc += (System.nanoTime() - startTime) / 1e6;
-            profFrames++;
-            if (profFrames >= Debug.profileInterval) {
-                Main.debugChatMessage("profiling.cpuTimes", profTimeAcc / profFrames);
-                profFrames = 0;
-                profTimeAcc = 0;
-            }
         }
 
         getProfiler().pop();

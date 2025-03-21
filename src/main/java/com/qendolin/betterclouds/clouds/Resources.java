@@ -3,10 +3,7 @@ package com.qendolin.betterclouds.clouds;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.Commands;
 import com.qendolin.betterclouds.Main;
-import com.qendolin.betterclouds.clouds.shaders.CoverageShader;
-import com.qendolin.betterclouds.clouds.shaders.DepthShader;
-import com.qendolin.betterclouds.clouds.shaders.ShaderParameters;
-import com.qendolin.betterclouds.clouds.shaders.ShadingShader;
+import com.qendolin.betterclouds.clouds.shaders.*;
 import com.qendolin.betterclouds.util.RenderHelper;
 import com.qendolin.betterclouds.compat.Telemetry;
 import net.minecraft.client.MinecraftClient;
@@ -14,13 +11,12 @@ import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 
 //? if >1.21.4 {
-/*import com.mojang.blaze3d.opengl.GlStateManager;
-import net.minecraft.client.texture.GlTexture;
-*///?} else {
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.opengl.GlStateManager;
+//?} else {
+/*import com.mojang.blaze3d.platform.GlStateManager;
 import com.qendolin.betterclouds.mixin.BufferRendererAccessor;
 import com.qendolin.betterclouds.mixin.VertexBufferAccessor;
- //?}
+ *///?}
 
 //? if <1.21.3 {
 /*import com.qendolin.betterclouds.mixin.ShaderProgramAccessor;
@@ -45,6 +41,7 @@ public class Resources implements Closeable {
     private DepthShader depthShader = null;
     private CoverageShader coverageShader = null;
     private ShadingShader shadingShader = null;
+    private DebugShader debugShader = null;
 
     // Generator
     private ChunkedGenerator generator = null;
@@ -64,12 +61,11 @@ public class Resources implements Closeable {
     private int fboWidth;
     private int fboHeight;
 
-    private GlTimer timer;
+    private PerfTimer timer;
 
     public ChunkedGenerator generator() {
         return generator;
     }
-
 
     public DepthShader depthShader() {
         return depthShader;
@@ -81,6 +77,10 @@ public class Resources implements Closeable {
 
     public ShadingShader shadingShader() {
         return shadingShader;
+    }
+
+    public DebugShader debugShader() {
+        return debugShader;
     }
 
     public int cubeVao() {
@@ -103,7 +103,7 @@ public class Resources implements Closeable {
         return oitCoverageTexture;
     }
 
-    public GlTimer timer() {
+    public PerfTimer timer() {
         return timer;
     }
 
@@ -117,7 +117,7 @@ public class Resources implements Closeable {
 
     public boolean failedToLoadCritical() {
         if (depthShader == null || coverageShader == null || shadingShader == null) return true;
-        if (depthShader.isIncomplete() || coverageShader.isIncomplete() || shadingShader.isIncomplete()) return true;
+        if (depthShader.isIncomplete() || coverageShader.isIncomplete() || shadingShader.isIncomplete() || debugShader.isIncomplete()) return true;
         if (generator == null) return true;
         if (oitFbo == UNASSIGNED) return true;
         if (oitDataTexture == UNASSIGNED || oitCoverageTexture == UNASSIGNED)
@@ -129,9 +129,9 @@ public class Resources implements Closeable {
 
     public void reloadTimer() {
         deleteTimer();
-        if (!Main.isProfilingEnabled()) return;
+        if (!Debug.isProfilingEnabled()) return;
 
-        timer = new GlTimer();
+        timer = new PerfTimer();
     }
 
     public void deleteTimer() {
@@ -167,26 +167,26 @@ public class Resources implements Closeable {
 
     public static void unbindVao() {
         //? if <=1.21.4 {
-        VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
+        /*VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
         if (buffer == null) return;
         int previousVaoId = buffer.getVertexArrayId();
         if (previousVaoId > 0)
             glBindVertexArray(previousVaoId);
-        //?}
+        *///?}
     }
 
     public static void unbindVbo() {
         //? if <=1.21.4 {
-        VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
+        /*VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
         if (buffer == null) return;
         //? if >=1.21.3 {
         int previousVboId = buffer.getVertexBuffer().handle;
         //?} else {
-        /*int previousVboId = buffer.getVertexBufferId();
-        *///?}
+        /^int previousVboId = buffer.getVertexBufferId();
+        ^///?}
         if (previousVboId > 0)
             glBindBuffer(GL_ARRAY_BUFFER, previousVboId);
-        //?}
+        *///?}
     }
 
     public void reloadTextures(MinecraftClient client) {
@@ -378,6 +378,11 @@ public class Resources implements Closeable {
         shadingShader.uCoverageTexture.setInt(3);
         shadingShader.uLightTexture.setInt(4);
         glCompat.objectLabelDev(glCompat.GL_PROGRAM, shadingShader.glId(), "shading");
+
+        debugShader = new DebugShader(manager);
+        debugShader.bind();
+        debugShader.uColorModulator.setVec4(1.0f, 1.0f, 1.0f, 1.0f);
+        glCompat.objectLabelDev(glCompat.GL_PROGRAM, debugShader.glId(), "debug");
     }
 
     public void deleteShaders() {

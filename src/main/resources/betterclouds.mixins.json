@@ -12,6 +12,7 @@
     "BufferRendererAccessor",
     "CloudSettingMixin",
     "DimensionEffectsMixin",
+    "RenderPhaseAccessor",
     "RenderSystemMixin",
     "ShaderProgramAccessor",
     "TabButtonWidgetMixin",

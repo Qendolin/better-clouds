@@ -249,7 +249,7 @@ public class ChunkedGenerator implements AutoCloseable {
         completedTask.buffer.swap();
         swappedTask = completedTask;
 
-        if (Main.isProfilingEnabled()) {
+        if (Debug.isProfilingEnabled()) {
             long elapsed = swappedTask.elapsedMs(Util.getMeasuringTimeMs());
             Main.debugChatMessage("profiling.genTimes", elapsed, 1000f / elapsed);
         }

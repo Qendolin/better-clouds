@@ -1,12 +1,13 @@
 package com.qendolin.betterclouds;
 
 import com.google.gson.FieldNamingPolicy;
-import com.qendolin.betterclouds.clouds.Debug;
 import com.qendolin.betterclouds.clouds.RandomPath;
+import com.qendolin.betterclouds.clouds.Renderer;
 import com.qendolin.betterclouds.compat.*;
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ShaderPresetConfig;
 import com.qendolin.betterclouds.config.ShaderPresetLoader;
+import com.qendolin.betterclouds.duck.WorldRendererDuck;
 import com.qendolin.betterclouds.platform.EventHooks;
 import com.qendolin.betterclouds.platform.ModLoader;
 import com.qendolin.betterclouds.platform.ModVersion;
@@ -20,6 +21,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL32;
 
 import java.io.File;
@@ -76,10 +78,6 @@ public class Main {
         return config.instance();
     }
 
-    public static boolean isProfilingEnabled() {
-        return Debug.profileInterval > 0;
-    }
-
     public static void debugChatMessage(String id, Object... args) {
         debugChatMessage(Text.translatable(debugChatMessageKey(id), args));
     }
@@ -122,6 +120,16 @@ public class Main {
         });
         EventHooks.instance.onClientResourcesReload(() -> ShaderPresetLoader.INSTANCE);
         EventHooks.instance.onClientCommandRegistration(Commands::register);
+    }
+
+    @Nullable
+    public static Renderer getCloudsRenderer() {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if(client == null) return null;
+        if(client.worldRenderer instanceof WorldRendererDuck duck) {
+            return duck.betterclouds$getRenderer();
+        }
+        return null;
     }
 
     public static void initializeClient() {
