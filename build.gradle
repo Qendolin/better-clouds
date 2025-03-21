@@ -54,8 +54,6 @@ architectury {
 	compileOnly()
 	minecraft = mcVersion
 
-	compileOnly();
-
 	platformSetupLoomIde()
 	if (isFabric)
 		fabric()

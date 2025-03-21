@@ -26,7 +26,8 @@ public class ConfigGUI {
     public final DimensionsGUI dimensionsGUI;
 
     public final Option<Integer> chunkSize;
-    public final Option<Float> distance;
+    public final Option<Integer> renderDistance;
+    public final Option<Boolean> enableExtendedRenderDistance;
     public final Option<Float> fuzziness;
     public final Option<Float> spacing;
     public final Option<Float> sparsity;
@@ -81,9 +82,13 @@ public class ConfigGUI {
             .binding(defaults.chunkSize, () -> config.chunkSize, val -> config.chunkSize = val)
             .customController(opt -> new IntegerSliderController(opt, 16, 128, 8))
             .build();
-        this.distance = createOption(float.class, "distance")
-            .binding(defaults.distance, () -> config.distance, val -> config.distance = val)
-            .customController(opt -> new FloatSliderController(opt, 1, 4, 0.05f, ConfigGUI::formatAsTimes))
+        this.renderDistance = createOption(int.class, "renderDistance")
+            .binding(defaults.renderDistance, () -> config.renderDistance, val -> config.renderDistance = val)
+            .customController(opt -> new IntegerSliderController(opt, 16, 256, 4))
+            .build();
+        this.enableExtendedRenderDistance = createOption(boolean.class, "enableExtendedRenderDistance")
+            .binding(defaults.enableExtendedRenderDistance, () -> config.enableExtendedRenderDistance, val -> config.enableExtendedRenderDistance = val)
+            .customController(TickBoxController::new)
             .build();
         this.fuzziness = createOption(float.class, "fuzziness")
             .binding(defaults.fuzziness, () -> config.fuzziness, val -> config.fuzziness = val)
@@ -194,7 +199,8 @@ public class ConfigGUI {
             sizeY,
             spacing,
             samplingScale,
-            distance
+            renderDistance,
+            enableExtendedRenderDistance
         ));
 
         commonCategory.add(new Pair<>(OptionGroup.createBuilder()
@@ -219,7 +225,8 @@ public class ConfigGUI {
         generationCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("generation.performance")), generationPerformanceGroup));
         generationPerformanceGroup.addAll(List.of(
-            distance,
+            renderDistance,
+            enableExtendedRenderDistance,
             chunkSize
         ));
 
@@ -270,7 +277,8 @@ public class ConfigGUI {
         performanceGenerationGroup.addAll(List.of(
             spacing,
             chunkSize,
-            distance,
+            renderDistance,
+            enableExtendedRenderDistance,
             sparsity,
             fuzziness,
             shuffle

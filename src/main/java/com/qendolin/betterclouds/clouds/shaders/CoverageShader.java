@@ -31,7 +31,6 @@ public class CoverageShader extends Shader {
     public final Uniform uTime;
     public final Uniform uMiscellaneous;
     public final Uniform uFogRange;
-    public final Uniform uDepthRange;
     public final Uniform uRegionOffsets;
     public final Uniform uCameraPos;
     public final Uniform uSpacing;
@@ -57,7 +56,7 @@ public class CoverageShader extends Shader {
         uSpacing = getUniform("u_spacing", true);
     }
 
-    public static CoverageShader create(ResourceManager manager, float sizeXZ, float sizeY, int edgeFade, boolean stencilFallback, boolean dhCompat, int worldCurvatureSize, int regions) throws IOException {
+    public static CoverageShader create(ResourceManager manager, float sizeXZ, float sizeY, boolean stencilFallback, boolean dhCompat, int worldCurvatureSize, int regions) throws IOException {
         Map<String, String> defs = ImmutableMap.ofEntries(
             Map.entry(CoverageShader.DEF_SIZE_XZ_KEY, Float.toString(sizeXZ)),
             Map.entry(CoverageShader.DEF_SIZE_Y_KEY, Float.toString(sizeY)),

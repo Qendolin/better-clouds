@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds.clouds;
 
-import com.qendolin.betterclouds.Config;
+import com.qendolin.betterclouds.config.Config;
 import net.minecraft.block.Block;
 import net.minecraft.util.math.MathHelper;
 import org.joml.Vector2f;
