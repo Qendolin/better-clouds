@@ -62,7 +62,11 @@ public class ConfigScreen extends YACLScreen {
     //? if >=1.20.6 {
         if (client == null || client.world == null) {
             this.renderPanoramaBackground(context, delta);
-            this.applyBlur(delta);
+            //? if >=1.21.3 {
+            this.applyBlur();
+            //?} else {
+            /*this.applyBlur(delta);
+            *///?}
         }
     //?} else {
         /*if (client == null || client.world == null) {
@@ -96,6 +100,7 @@ public class ConfigScreen extends YACLScreen {
     //? if >=1.20.6
     @Override
     protected void renderDarkening(DrawContext context) {
+        if(tabArea == null) return;
         context.fill(width / 3 * 2 + 1, tabArea.getTop(), width, tabArea.getBottom(), 0x6b000000);
     }
 

@@ -3,7 +3,8 @@ package com.qendolin.betterclouds.platform.neoforge;
 import com.qendolin.betterclouds.platform.EventHooks;
 
 //? if neoforge {
-/*import com.mojang.brigadier.CommandDispatcher;
+/*import com.qendolin.betterclouds.config.ShaderPresetLoader;
+import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.resource.ResourceReloader;
 import net.minecraft.server.command.ServerCommandSource;
@@ -11,9 +12,13 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
-import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.AddReloadListenerEvent;
+
+//? if >=1.21.4 {
+/^import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;
+^///?} else {
+import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
+//?}
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -44,9 +49,15 @@ public class EventHooksImpl extends EventHooks {
 
     @Override
     public void onClientResourcesReload(Supplier<ResourceReloader> supplier) {
+        //? if >=1.21.4 {
+        /^modEventBus.addListener(AddClientReloadListenersEvent.class, event -> {
+            event.addListener(ShaderPresetLoader.ID, supplier.get());
+        });
+        ^///?} else {
         modEventBus.addListener(RegisterClientReloadListenersEvent.class, event -> {
             event.registerReloadListener(supplier.get());
         });
+        //?}
     }
 
     @Override
@@ -58,6 +69,7 @@ public class EventHooksImpl extends EventHooks {
 
 }
 *///?} else {
+@SuppressWarnings("unused")
 public abstract class EventHooksImpl extends EventHooks {
 }
 //?}

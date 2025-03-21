@@ -31,6 +31,9 @@ public class CustomOptionListWidget extends OptionListWidget {
         super.refreshOptions();
         addEntry(new PaddingEntry());
         for (dev.isxander.yacl3.gui.OptionListWidget.Entry child : children()) {
+            if(child instanceof ListGroupSeparatorEntry)
+                continue;
+
             if (child instanceof OptionEntry optionEntry && optionEntry.option.controller() instanceof LabelController) {
                 addEntryBelow(optionEntry, new ProxyEntry<>(optionEntry)
                     .onBeforeRender((delegate, context, index, y, x, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta) -> {
@@ -50,7 +53,11 @@ public class CustomOptionListWidget extends OptionListWidget {
         }
 
         recacheViewableChildren();
-        setScrollAmount(0);
+        //? if >=1.21.4 {
+        setScrollY(0);
+        //?} else {
+        /*setScrollAmount(0);
+        *///?}
         resetSmoothScrolling();
     }
 
@@ -86,7 +93,11 @@ public class CustomOptionListWidget extends OptionListWidget {
             }
         }
 
-        this.setScrollAmount(this.getScrollAmount() - (verticalAmount) * 20);
+        //? if >=1.21.4 {
+        this.setScrollY(this.getScrollY() - (verticalAmount) * 20);
+        //?} else {
+        /*this.setScrollAmount(this.getScrollAmount() - (verticalAmount) * 20);
+        *///?}
         return true;
     }
 

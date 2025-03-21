@@ -2,7 +2,10 @@ plugins {
 	id "dev.architectury.loom" version "1.7-SNAPSHOT"
 	id "architectury-plugin" version "3.4-SNAPSHOT"
 	id "com.modrinth.minotaur"
+	id "com.github.johnrengelman.shadow"
 }
+
+apply from: rootProject.file('common.gradle').path
 
 base {
 	archivesName = project.archives_base_name
@@ -22,6 +25,11 @@ stonecutter.const("fabric", isFabric)
 stonecutter.const("neoforge", isNeoForge)
 stonecutter.const("forge", isForge)
 
+stonecutter {
+	dependency("yacl", property('deps.yacl'))
+}
+
+
 static def buildVersionString(String modVersion, String releaseType, String mcVersion, String loader) {
 	var semver = modVersion
 	var isPrerelease = releaseType != "release"
@@ -31,10 +39,19 @@ static def buildVersionString(String modVersion, String releaseType, String mcVe
 	return semver
 }
 
+static def trimSuffix(String original, String suffix) {
+	if (original.endsWith(suffix)) {
+		return original.substring(0, original.length() - suffix.length())
+	}
+	return original
+}
+
 version = buildVersionString(property('mod.version').toString(), property('mod.release').toString().toLowerCase(), mcVersion, loader)
 group = project.maven_group
 
 architectury {
+	// arch runtime, enables hot reloading
+	compileOnly()
 	minecraft = mcVersion
 
 	compileOnly();
@@ -69,10 +86,11 @@ repositories {
 		url = 'https://maven.neoforged.net/releases'
 	}
 	maven { url "https://maven.quiltmc.org/repository/release" }
+	maven { url = "https://maven.bawnorton.com/releases" }
 }
 
 loom {
-	accessWidenerPath = project.rootProject.file("src/main/resources/betterclouds.accesswidener")
+	accessWidenerPath.set(project.rootProject.file("src/main/resources/betterclouds.accesswidener"))
 
 	runConfigs.configureEach {
 		ideConfigGenerated true
@@ -80,11 +98,19 @@ loom {
 	}
 
 	if (isForge) forge {
-		convertAccessWideners.set(true)
 		mixinConfigs(
-			"betterclouds.mixins.json",
-			"betterclouds.optional.mixins.json",
+				"betterclouds.mixins.json",
+				"betterclouds.optional.mixins.json",
 		)
+	}
+}
+
+afterEvaluate {
+	if (isFabric) {
+		loom.runs.configureEach {
+			vmArg "-javaagent:${configurations.compileClasspath.find { it.name.contains("sponge-mixin") }}"
+			vmArg "-XX:+AllowEnhancedClassRedefinition"
+		}
 	}
 }
 
@@ -107,7 +133,11 @@ dependencies {
 
 		modCompileOnly "maven.modrinth:sodium-extra:${property('deps.sodium_extra')}"
 		modCompileOnly "maven.modrinth:iris:${property('deps.iris')}"
-        modCompileOnly "maven.modrinth:voxy:0.1.5-alpha"
+		modCompileOnly "maven.modrinth:fabric-seasons:${property('deps.fabric_seasons')}"
+        // FIXME: voxy
+		modCompileOnly "maven.modrinth:voxy:0.1.5-alpha"
+
+		include(implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.2.0")))
 	}
 
 	if (isNeoForge || isForge) {
@@ -116,41 +146,72 @@ dependencies {
 		if (isForge)
 			forge "net.minecraftforge:forge:${property('loader.forge')}"
 
-		modImplementation("dev.isxander:yet-another-config-lib:${property('deps.yacl')}-neoforge") {
+		modImplementation("dev.isxander:yet-another-config-lib:${property('deps.yacl')}-${loader}") {
 			transitive = false
+		}
+
+		compileOnly(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-common:0.2.0"))
+		implementation(include("com.github.bawnorton.mixinsquared:mixinsquared-${loader}:0.2.0"))
+
+		// neoforge includes mixinextras
+		if (isForge) {
+			compileOnly(implementation("io.github.llamalad7:mixinextras-common:${property("deps.mixin_extras")}"))
+			include(implementation("io.github.llamalad7:mixinextras-forge:${property("deps.mixin_extras")}"))
 		}
 
 		// These should be included with yacl, but it doesn't work correctly, so adding them here
 		forgeRuntimeLibrary(runtimeOnly("org.quiltmc.parsers:json:0.2.1"))
 		forgeRuntimeLibrary(runtimeOnly("org.quiltmc.parsers:gson:0.2.1"))
 
-		modCompileOnly "maven.modrinth:rubidium-extra:0.5.7e+mc1.21-build.129"
-		modCompileOnly "maven.modrinth:oculus:1.20.1-1.7.0"
+		if (stonecutter.eval(mcVersion, ">=1.21")) {
+			modCompileOnly "maven.modrinth:iris:${property('deps.iris')}"
+			modCompileOnly "maven.modrinth:sodium-extra:${property('deps.sodium_extra')}"
+		} else {
+			modCompileOnly "maven.modrinth:oculus:1.20.1-1.7.0"
+			modCompileOnly "maven.modrinth:rubidium-extra:0.5.7e+mc1.21-build.129"
+		}
 
 		// Because yarn mappings are used the mods can't be loaded from the 'mods' directory at runtime.
 		// It causes NoClassDefFoundErrors due to the different mappings.
 		// This is a workaround that uses 'modLocalRuntime' to remap the mods found in the 'mods-forge' directory.
 		// It requires a project reload when the mods change.
-		def localModsDir = project.rootProject.file('./run/mods-forge/')
-		if (localModsDir.exists() && localModsDir.isDirectory()) {
-			def localMods = localModsDir
-					.listFiles({ file -> file.isFile() && file.name.endsWith('.jar') } as FileFilter)
-			localMods.each { mod ->
-				dependencies {
-					modLocalRuntime files(mod)
+		if (stonecutter.current.isActive) {
+			def localModsDir = project.rootProject.file('./run/mods-forge/')
+			if (localModsDir.exists() && localModsDir.isDirectory()) {
+				def localMods = localModsDir
+						.listFiles({ file -> file.isFile() && file.name.endsWith('.jar') } as FileFilter)
+				localMods.each { mod ->
+					println "Added Forge Mod: " + mod.name
+					dependencies {
+						modLocalRuntime files(mod)
+					}
 				}
 			}
 		}
 	}
 
-	compileOnly project.rootProject.files("libraries/DistantHorizonsApi-3.0.0-nightly-377f7d23.jar")
+	compileOnly "maven.modrinth:distanthorizonsapi:3.0.0"
+	modCompileOnly "maven.modrinth:serene-seasons:${property('deps.serene_seasons')}"
+	modCompileOnly "maven.modrinth:enhanced-celestials:${property('deps.enhanced_celestials')}"
 }
 
 processResources {
 	var props = [
-		version: project.version,
-		mc_version: findProperty("deps.minecraft.range")
+			version: project.version,
+			loader : loader,
 	]
+	if (isFabric) {
+		props["mc_version_range"] = findProperty("deps.minecraft").toString().split(",").collect {
+			"\"=$it\""
+		}.join(", ")
+	} else {
+		props["mc_version_range"] = findProperty("deps.minecraft").toString().split(",").collect {
+			"[$it]"
+		}.join(",")
+	}
+	if (isNeoForge) {
+		props["neoforge_version_range"] = findProperty("deps.neoforge").toString()
+	}
 
 	props.forEach(inputs::property)
 
@@ -158,19 +219,39 @@ processResources {
 		expand props
 	}
 
-	if(isNeoForge || isForge)
+	// other targets use the AW
+	if (!isForge)
+		exclude("META-INF/accesstransformer.cfg")
+	if (isNeoForge || isForge)
 		exclude("fabric.mod.json")
-	if(isFabric)
+	if (isForge)
+		exclude("META-INF/neoforge.mods.toml")
+	if (isFabric)
 		exclude("META-INF/mods.toml", "META-INF/neoforge.mods.toml")
 
 	exclude("assets/**/*.ase")
 	exclude("assets/**/*.xcf")
 }
 
+configurations {
+	shadowBundle {
+		canBeResolved = true
+		canBeConsumed = false
+	}
+}
+
+shadowJar {
+	configurations = [project.configurations.shadow]
+	archiveClassifier = "dev-shadow"
+}
+
 remapJar {
 	if (isNeoForge) {
 		atAccessWideners.add("betterclouds.accesswidener")
 	}
+	input = tasks.shadowJar.archiveFile
+	archiveClassifier = null
+	dependsOn(tasks.shadowJar)
 }
 
 stonecutter {
@@ -187,9 +268,34 @@ stonecutter {
 	}
 }
 
+if (stonecutter.current.isActive) {
+	rootProject.tasks.register("activeBuild") {
+		group = "project"
+		dependsOn(tasks.named("build"))
+	}
+	rootProject.tasks.register("activeRemapJar") {
+		group = "project"
+		dependsOn(tasks.named("remapJar"))
+	}
+	rootProject.tasks.register("activeModrinth") {
+		group = "project"
+		dependsOn(tasks.named("modrinth"))
+	}
+	rootProject.tasks.named("activeModrinth") {
+		doLast {
+			new File(rootProject.relativePath("changelog.txt")).delete()
+		}
+	}
+	// Register task to run genSources for the active version only
+	rootProject.tasks.register("activeGenSources") {
+		group = "project"
+		dependsOn(tasks.named("genSources"))
+	}
+}
+
 jar {
 	from(project.rootProject.file("LICENSE").path) {
-		rename { "${it}_${project.archives_base_name}"}
+		rename { "${it}_${project.archives_base_name}" }
 	}
 }
 
@@ -201,7 +307,7 @@ afterEvaluate {
 	}
 }
 
-modrinth  { // Make sure it runs after build!
+modrinth { // Make sure it runs after build!
 	var loaderName = loom.platform.get().displayName
 	var releaseName = property('mod.release').toString().capitalize()
 	var releaseLetter = property('mod.release').toString().toLowerCase().substring(0, 1)
@@ -212,14 +318,41 @@ modrinth  { // Make sure it runs after build!
 		stream -> secrets.load(stream)
 	}
 
+	//noinspection GroovyAssignabilityCheck
+	changelog = project.provider {
+		def file = rootProject.file("changelog.txt")
+		def lock = rootProject.file("changelog.txt.lock")
+		if (lock.createNewFile()) {
+			println("Opening changelog in notepad")
+			file.createNewFile()
+			def process = new ProcessBuilder("notepad", file.absolutePath)
+					.start()
+			process.waitFor()
+			lock.delete()
+		} else {
+			println("Waiting changelog lock")
+			while (lock.exists()) {
+				sleep(100)
+			}
+		}
+
+		def changelog = file.getText('UTF-8')
+		if (changelog.isBlank()) {
+			file.delete()
+			throw new GradleException("Changelog was blank")
+		}
+
+		return changelog
+	}
+
 	token.set(secrets.MODRINTH as String)
 	projectId = '5srFLIaK'
-	// Will fail if Modrinth has this version already
+	// Will fail if Modrinth has this version alread
 	versionNumber = "${property('mod.version')}+${mcVersion}-${loader}-${releaseLetter}"
 	versionName = "${releaseName} ${property('mod.version')} for ${mcVersion} ${loaderName}"
 	versionType = "${property('mod.release')}"
 	uploadFile = remapJar
-	gameVersions.add(mcVersion)
+	gameVersions = findProperty("deps.minecraft").toString().split(",").collect { trimSuffix(it, ".0") }
 	loaders.add(loader)
 	dependencies {
 		// A special DSL for creating dependencies
@@ -228,13 +361,14 @@ modrinth  { // Make sure it runs after build!
 		// The type can either be `project` or `version`
 		required.version "yacl", "${property('deps.yacl')}-${loader}"
 
-		if(isFabric) {
+		if (isFabric) {
 			required.project "fabric-api"
 			optional.project "modmenu"
 			incompatible.project "vulkanmod"
+			incompatible.project "immersiveportals"
 		}
 
-		if(isFabric || stonecutter.eval(mcVersion, ">=1.21")) {
+		if (isFabric || stonecutter.eval(mcVersion, ">=1.21")) {
 			optional.project "sodium"
 			optional.project "iris"
 		} else {

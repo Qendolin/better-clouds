@@ -12,11 +12,18 @@ import com.qendolin.betterclouds.platform.fabric.EventHooksImpl;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 //?}
 
-//? if neoforge {
-/*import com.qendolin.betterclouds.platform.neoforge.EventHooksImpl;
-import net.minecraft.command.CommandSource;
+//? if neoforge
+/*import com.qendolin.betterclouds.platform.neoforge.EventHooksImpl;*/
+
+//? if forge
+/*import com.qendolin.betterclouds.platform.forge.EventHooksImpl;*/
+
+//? if neoforge || forge {
+/*import net.minecraft.command.CommandSource;
 import net.minecraft.server.command.ServerCommandSource;
 *///?}
+
+
 
 public abstract class EventHooks {
 

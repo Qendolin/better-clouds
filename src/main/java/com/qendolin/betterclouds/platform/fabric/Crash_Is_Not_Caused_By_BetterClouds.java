@@ -1,7 +1,7 @@
 package com.qendolin.betterclouds.platform.fabric;
 
 //? if fabric {
-import com.qendolin.betterclouds.NamedLogger;
+import com.qendolin.betterclouds.util.NamedLogger;
 import com.qendolin.betterclouds.renderdoc.CaptureManager;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import com.qendolin.betterclouds.renderdoc.RenderDocLoader;
@@ -12,10 +12,15 @@ import org.apache.logging.log4j.LogManager;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class PreLaunchHandler implements PreLaunchEntrypoint {
+public class Crash_Is_Not_Caused_By_BetterClouds implements PreLaunchEntrypoint {
     @Override
     public void onPreLaunch() {
-        NamedLogger logger = new NamedLogger(LogManager.getLogger("BetterClouds PreLaunch"), !FabricLoader.getInstance().isDevelopmentEnvironment());
+        NamedLogger logger;
+        try {
+            logger = new NamedLogger(LogManager.getLogger("BetterClouds PreLaunch"), !FabricLoader.getInstance().isDevelopmentEnvironment());
+        } catch (Throwable ignored) {
+            return;
+        }
         try {
             CaptureManager.LaunchConfig config = CaptureManager.readLaunchConfig();
             if (config.isExpired()) {
@@ -48,12 +53,12 @@ public class PreLaunchHandler implements PreLaunchEntrypoint {
                 } catch (Exception ignored) {
                 }
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             logger.error("RenderDoc could not be loaded: {}", e);
         }
     }
 }
 //?} else {
-/*public abstract class PreLaunchHandler {
+/*public abstract class Crash_Is_Not_Caused_By_BetterClouds {
 }
 *///?}

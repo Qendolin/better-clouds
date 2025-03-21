@@ -1,6 +1,7 @@
 package com.qendolin.betterclouds;
 
 //? if fabric {
+import com.qendolin.betterclouds.config.ConfigGUI;
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
 

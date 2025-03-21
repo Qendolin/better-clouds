@@ -1,5 +1,6 @@
 package com.qendolin.betterclouds.compat;
 
+import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.platform.ModLoader;
 import com.seibel.distanthorizons.api.DhApi;
 import org.joml.Matrix4f;
@@ -21,24 +22,30 @@ public abstract class DistantHorizonsCompat {
 
     public static void initialize() {
         if (instance != null) return;
+        Main.LOGGER.info("Initializing DistantHorizons compat");
 
         boolean isLoaded = ModLoader.isModLoaded("distanthorizons");
-        boolean isVersion2 = false;
-        boolean isVersion3 = false;
+        int apiVersion = 0;
         try {
             Class.forName("com.seibel.distanthorizons.api.DhApi");
-            isVersion2 = DhApi.getModVersion().startsWith("2.");
-            isVersion3 = DhApi.getModVersion().startsWith("3.");
+            apiVersion = DhApi.getApiMajorVersion();
+            Main.LOGGER.info("DistantHorizons API version is {}.{}.{}", DhApi.getApiMajorVersion(), DhApi.getApiMinorVersion(), DhApi.getApiPatchVersion());
         } catch (ClassNotFoundException e) {
             isLoaded = false;
         }
 
-        if (isLoaded && isVersion3) {
+        if (isLoaded && apiVersion == 4) {
+            Main.LOGGER.warn("Using EXPERIMENTAL DistantHorizons 4 compat. The game might crash!");
+            instance = new DistantHorizons4CompatImpl();
+        } else if (isLoaded && apiVersion == 3) {
+            Main.LOGGER.info("Using DistantHorizons 3 compat");
             instance = new DistantHorizons3CompatImpl();
-        } else if (isLoaded && isVersion2) {
+        } else if (isLoaded && apiVersion == 2) {
+            Main.LOGGER.info("Using DistantHorizons 2 compat");
             instance = new DistantHorizons2CompatImpl();
         } else {
-            instance = new DistantHorizonsCompatStub();
+            Main.LOGGER.info("No DistantHorizons compat");
+            instance = new Stub();
         }
     }
 
@@ -56,4 +63,31 @@ public abstract class DistantHorizonsCompat {
     public abstract Optional<Integer> getDepthTextureId();
 
     public abstract void disableLodClouds();
+
+    private static class Stub extends DistantHorizonsCompat {
+        @Override
+        public boolean isReady() {
+            return false;
+        }
+
+        @Override
+        public boolean isEnabled() {
+            return false;
+        }
+
+        @Override
+        public Matrix4f getProjectionMatrix() {
+            return NOOP_MATRIX;
+        }
+
+        @Override
+        public Optional<Integer> getDepthTextureId() {
+            return Optional.empty();
+        }
+
+        @Override
+        public void disableLodClouds() {
+
+        }
+    }
 }

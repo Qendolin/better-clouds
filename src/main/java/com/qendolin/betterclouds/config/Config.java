@@ -1,6 +1,5 @@
-package com.qendolin.betterclouds;
+package com.qendolin.betterclouds.config;
 
-import com.google.common.base.Objects;
 import com.google.gson.*;
 
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
@@ -13,7 +12,6 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.dimension.DimensionTypes;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.loader.api.FabricLoader;
 import me.cortex.voxy.client.config.*;
@@ -50,7 +48,7 @@ public class Config {
         this.chunkSize = other.chunkSize;
         this.samplingScale = other.samplingScale;
         this.scaleFalloffMin = other.scaleFalloffMin;
-        this.fadeEdge = other.fadeEdge;
+        this.fogRangeFactor = other.fogRangeFactor;
         this.usePersistentBuffers = other.usePersistentBuffers;
         this.irisSupport = other.irisSupport;
         this.enabled = other.enabled;
@@ -63,12 +61,16 @@ public class Config {
             //noinspection IncompleteCopyConstructor
             this.presets = new ArrayList<>();
         }
-        this.presets.replaceAll(ShaderConfigPreset::new);
+        this.presets.replaceAll(ShaderPresetConfig::new);
         this.lastTelemetryVersion = other.lastTelemetryVersion;
         this.gpuIncompatibleMessageEnabled = other.gpuIncompatibleMessageEnabled;
         this.enabledDimensions = other.enabledDimensions;
         this.celestialBodyHalo = other.celestialBodyHalo;
         this.useFrustumCulling = other.useFrustumCulling;
+        //noinspection IncompleteCopyConstructor
+        this.sereneSeasonsConfig = new SereneSeasonsConfig(other.sereneSeasonsConfig);
+        //noinspection IncompleteCopyConstructor
+        this.fabricSeasonsConfig = new FabricSeasonsConfig(other.fabricSeasonsConfig);
     }
 
     @SerialEntry
@@ -100,9 +102,9 @@ public class Config {
     @SerialEntry
     public float windEffectFactor = 1.0f;
     @SerialEntry
-    public float windSpeedFactor = 1.0f;
+    public float windSpeedFactor = 0.8f;
     @SerialEntry
-    public float colorVariationFactor = 1.0f;
+    public float colorVariationFactor = 0.8f;
     @SerialEntry
     public boolean celestialBodyHalo = true;
     @SerialEntry
@@ -112,7 +114,7 @@ public class Config {
     @SerialEntry
     public float scaleFalloffMin = 0.25f;
     @SerialEntry
-    public float fadeEdge = 0.15f;
+    public float fogRangeFactor = 1f;
     @SerialEntry
     public boolean usePersistentBuffers = true;
     @SerialEntry
@@ -126,18 +128,22 @@ public class Config {
     @SerialEntry
     public int selectedPreset = 0;
     @SerialEntry
-    public List<ShaderConfigPreset> presets = new ArrayList<>();
+    public List<ShaderPresetConfig> presets = new ArrayList<>();
     @SerialEntry
     public int lastTelemetryVersion = 0;
     @SerialEntry
     public boolean gpuIncompatibleMessageEnabled = true;
     @SerialEntry
     public List<RegistryKey<DimensionType>> enabledDimensions = new ArrayList<>(List.of(DimensionTypes.OVERWORLD));
+    @SerialEntry
+    public SereneSeasonsConfig sereneSeasonsConfig = new SereneSeasonsConfig();
+    @SerialEntry
+    public FabricSeasonsConfig fabricSeasonsConfig = new FabricSeasonsConfig();
 
     public void loadDefaultPresets() {
         // Remember which default preset was selected, if any
         String selectedDefaultPreset = preset().key;
-        Map<String, ShaderConfigPreset> defaults = new HashMap<>(ShaderPresetLoader.INSTANCE.presets());
+        Map<String, ShaderPresetConfig> defaults = new HashMap<>(ShaderPresetLoader.INSTANCE.presets());
         boolean missingDefault = presets.stream().noneMatch(preset -> DEFAULT_PRESET_KEY.equals(preset.key));
         presets.removeIf(preset -> preset.key != null && !preset.editable && defaults.containsKey(preset.key));
         presets.addAll(defaults.values());
@@ -153,9 +159,9 @@ public class Config {
             // No preset with the key 'default' was present,
             // so it is assumed that the presets are not initialized
             presets.removeIf(Config::isPresetEqualToEmpty);
-            ShaderConfigPreset defaultPreset = defaults.get(DEFAULT_PRESET_KEY);
+            ShaderPresetConfig defaultPreset = defaults.get(DEFAULT_PRESET_KEY);
             if (defaultPreset != null) {
-                ShaderConfigPreset defaultCopy = new ShaderConfigPreset(defaultPreset);
+                ShaderPresetConfig defaultCopy = new ShaderPresetConfig(defaultPreset);
                 defaultCopy.markAsCopy();
                 presets.add(defaultCopy);
                 selectedPreset = presets.indexOf(defaultCopy);
@@ -165,7 +171,7 @@ public class Config {
     }
 
     @NotNull
-    public ShaderConfigPreset preset() {
+    public ShaderPresetConfig preset() {
         if (presets == null || presets.isEmpty()) {
             addFirstPreset();
         }
@@ -173,20 +179,20 @@ public class Config {
         return presets.get(selectedPreset);
     }
 
-    private static boolean isPresetEqualToEmpty(ShaderConfigPreset preset) {
+    private static boolean isPresetEqualToEmpty(ShaderPresetConfig preset) {
         if (preset == null) return true;
         String title = preset.title;
         // The title does not matter
-        preset.title = ShaderConfigPreset.EMPTY_PRESET.title;
-        boolean equal = preset.isEqualTo(ShaderConfigPreset.EMPTY_PRESET);
+        preset.title = ShaderPresetConfig.EMPTY_PRESET.title;
+        boolean equal = preset.isEqualTo(ShaderPresetConfig.EMPTY_PRESET);
         preset.title = title;
         return equal;
     }
 
     public void sortPresets() {
-        ShaderConfigPreset selected = preset();
-        Comparator<ShaderConfigPreset> comparator = Comparator.
-            <ShaderConfigPreset, Boolean>comparing(preset -> !preset.editable)
+        ShaderPresetConfig selected = preset();
+        Comparator<ShaderPresetConfig> comparator = Comparator.
+            <ShaderPresetConfig, Boolean>comparing(preset -> !preset.editable)
             .thenComparing(preset -> !DEFAULT_PRESET_KEY.equals(preset.key))
             .thenComparing(preset -> preset.title);
         presets.sort(comparator);
@@ -196,7 +202,7 @@ public class Config {
     public void addFirstPreset() {
         if (presets == null) presets = new ArrayList<>();
         if (!presets.isEmpty()) return;
-        presets.add(new ShaderConfigPreset());
+        presets.add(new ShaderPresetConfig());
     }
 
     public int blockDistance() {
@@ -204,127 +210,6 @@ public class Config {
         int distance = renderDistance; // Math.min(renderDistance, mcDistance * 4);
 
         return distance * 16;
-    }
-
-    public static class ShaderConfigPreset {
-
-        public static final InstanceCreator<ShaderConfigPreset> INSTANCE_CREATOR = type -> new ShaderConfigPreset();
-        protected static final ShaderConfigPreset EMPTY_PRESET = new ShaderConfigPreset();
-
-        public ShaderConfigPreset() {
-            this("");
-        }
-
-        public ShaderConfigPreset(String title) {
-            this.title = title;
-        }
-
-        public ShaderConfigPreset(ShaderConfigPreset other) {
-            this.title = other.title;
-            this.key = other.key;
-            this.editable = other.editable;
-            this.upscaleResolutionFactor = other.upscaleResolutionFactor;
-            this.gamma = other.gamma;
-            this.sunPathAngle = other.sunPathAngle;
-            this.dayBrightness = other.dayBrightness;
-            this.nightBrightness = other.nightBrightness;
-            this.sunriseStartTime = other.sunriseStartTime;
-            this.sunriseEndTime = other.sunriseEndTime;
-            this.sunsetStartTime = other.sunsetStartTime;
-            this.sunsetEndTime = other.sunsetEndTime;
-            this.saturation = other.saturation;
-            this.opacity = other.opacity;
-            this.opacityFactor = other.opacityFactor;
-            this.opacityExponent = other.opacityExponent;
-            this.tintRed = other.tintRed;
-            this.tintGreen = other.tintGreen;
-            this.tintBlue = other.tintBlue;
-            this.worldCurvatureSize = other.worldCurvatureSize;
-
-            //!! NOTE: Don't forget to update `isEqualTo` when adding fields
-        }
-
-        @SerialEntry
-        public String title;
-        @SerialEntry
-        @Nullable
-        public String key;
-        @SerialEntry
-        public boolean editable = true;
-        @SerialEntry
-        public float upscaleResolutionFactor = 1f;
-        @SerialEntry
-        public float gamma = 1f;
-        @SerialEntry
-        public float sunPathAngle = 0f;
-        @SerialEntry
-        public int sunriseStartTime = -785;
-        @SerialEntry
-        public int sunriseEndTime = 1163;
-        @SerialEntry
-        public int sunsetStartTime = 10837;
-        @SerialEntry
-        public int sunsetEndTime = 12785;
-        @SerialEntry
-        public float dayBrightness = 1f;
-        @SerialEntry
-        public float nightBrightness = 1f;
-        @SerialEntry
-        public float saturation = 1f;
-        @SerialEntry
-        public float opacity = 0.2f;
-        @SerialEntry
-        public float opacityFactor = 1f;
-        @SerialEntry
-        public float opacityExponent = 1.5f;
-        @SerialEntry
-        public float tintRed = 1f;
-        @SerialEntry
-        public float tintGreen = 1f;
-        @SerialEntry
-        public float tintBlue = 1f;
-        @SerialEntry
-        public int worldCurvatureSize = 0;
-
-
-        public float gamma() {
-            if (gamma > 0) {
-                return gamma;
-            } else {
-                return -1 / gamma;
-            }
-        }
-
-        public void markAsCopy() {
-            editable = true;
-            key = null;
-        }
-
-        // Can't override the Object#equals method since it causes an issue with indexOf in the GUI
-        public boolean isEqualTo(ShaderConfigPreset other) {
-            if (this == other) return true;
-            if (other == null) return false;
-            return editable == other.editable &&
-                Float.compare(other.upscaleResolutionFactor, upscaleResolutionFactor) == 0 &&
-                Float.compare(other.gamma, gamma) == 0 &&
-                Float.compare(other.sunPathAngle, sunPathAngle) == 0 &&
-                sunriseStartTime == other.sunriseStartTime &&
-                sunriseEndTime == other.sunriseEndTime &&
-                sunsetStartTime == other.sunsetStartTime &&
-                sunsetEndTime == other.sunsetEndTime &&
-                Float.compare(other.dayBrightness, dayBrightness) == 0 &&
-                Float.compare(other.nightBrightness, nightBrightness) == 0 &&
-                Float.compare(other.saturation, saturation) == 0 &&
-                Float.compare(other.opacity, opacity) == 0 &&
-                Float.compare(other.opacityFactor, opacityFactor) == 0 &&
-                Float.compare(other.opacityExponent, opacityExponent) == 0 &&
-                Float.compare(other.tintRed, tintRed) == 0 &&
-                Float.compare(other.tintGreen, tintGreen) == 0 &&
-                Float.compare(other.tintBlue, tintBlue) == 0 &&
-                Objects.equal(title, other.title) &&
-                Objects.equal(key, other.key) &&
-                worldCurvatureSize == other.worldCurvatureSize;
-        }
     }
 
     public static class RegistryKeySerializer implements JsonSerializer<RegistryKey<DimensionType>>, JsonDeserializer<RegistryKey<DimensionType>> {
@@ -338,8 +223,10 @@ public class Config {
             try {
                 //? if >=1.21 {
                 Identifier id = Identifier.of(json.getAsString());
-                //?} else
-                /*Identifier id = new Identifier(json.getAsString());*/
+                //?} else {
+                /*@SuppressWarnings("removal")
+                Identifier id = new Identifier(json.getAsString());
+                *///?}
                 return RegistryKey.of(RegistryKeys.DIMENSION_TYPE, id);
             } catch (InvalidIdentifierException e) {
                 throw new JsonParseException("Invalid RegistryKey: " + e.getMessage());
@@ -351,4 +238,5 @@ public class Config {
             return new JsonPrimitive(src.getValue().toString());
         }
     }
+
 }

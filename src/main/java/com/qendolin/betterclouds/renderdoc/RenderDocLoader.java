@@ -1,9 +1,7 @@
 package com.qendolin.betterclouds.renderdoc;
 
-import com.qendolin.betterclouds.Main;
 import com.sun.jna.Library;
 import com.sun.jna.Native;
-import net.minecraft.util.Util;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -14,6 +12,7 @@ import java.io.*;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipFile;
@@ -22,16 +21,45 @@ public class RenderDocLoader {
     public static final Path LIB_LINUX_PATH = Path.of("./better-clouds/librenderdoc.so");
     public static final Path LIB_WINDOWS_PATH = Path.of("./better-clouds/renderdoc.dll");
 
+    private enum OperatingSystem {
+        UNKNOWN,
+        LINUX,
+        SOLARIS,
+        WINDOWS,
+        OSX;
+    }
+
+    private static String getOperatingSystemName() {
+        return System.getProperty("os.name").toLowerCase(Locale.ROOT);
+    }
+
+    private static OperatingSystem getOperatingSystem() {
+        String name = getOperatingSystemName();
+        if (name.contains("win")) {
+            return OperatingSystem.WINDOWS;
+        } else if (name.contains("mac")) {
+            return OperatingSystem.OSX;
+        } else if (name.contains("solaris")) {
+            return OperatingSystem.SOLARIS;
+        } else if (name.contains("sunos")) {
+            return OperatingSystem.SOLARIS;
+        } else if (name.contains("linux")) {
+            return OperatingSystem.LINUX;
+        } else {
+            return name.contains("unix") ? OperatingSystem.LINUX : OperatingSystem.UNKNOWN;
+        }
+    }
+
     public static void install() {
-        Util.OperatingSystem os = Util.getOperatingSystem();
+        OperatingSystem os = getOperatingSystem();
 
         try {
-            if (os == Util.OperatingSystem.WINDOWS) {
+            if (os == OperatingSystem.WINDOWS) {
                 downloadWindows();
-            } else if (os == Util.OperatingSystem.LINUX) {
+            } else if (os == OperatingSystem.LINUX) {
                 downloadLinux();
             } else {
-                throw new RuntimeException("Unsupported OS: " + os.getName());
+                throw new RuntimeException("Unsupported OS: " + getOperatingSystemName());
             }
         } catch (IOException exception) {
             throw new RuntimeException(exception);
@@ -54,11 +82,11 @@ public class RenderDocLoader {
 
 
     public static boolean isAvailable() {
-        var os = Util.getOperatingSystem();
+        OperatingSystem os = getOperatingSystem();
 
-        if (os == Util.OperatingSystem.WINDOWS) {
+        if (os == OperatingSystem.WINDOWS) {
             return isAvailable("renderdoc.dll", "913a2f5b87981169f40207ab81be3e88");
-        } else if (os == Util.OperatingSystem.LINUX) {
+        } else if (os == OperatingSystem.LINUX) {
             return isAvailable("librenderdoc.so", "3d134559f0128b2e079eab0bd5395588");
         }
 
@@ -74,7 +102,7 @@ public class RenderDocLoader {
             if (sum.equalsIgnoreCase(md5sum)) {
                 return true;
             } else {
-                Main.LOGGER.warn("renderdoc library present but md5 checksum wrong: {}, expected {}", sum, md5sum);
+                RenderDoc.LOGGER.warn("renderdoc library present but md5 checksum wrong: {}, expected {}", sum, md5sum);
             }
         } catch (IOException ignored) {
         }
@@ -125,13 +153,13 @@ public class RenderDocLoader {
     public static void load() {
         if (RenderDoc.isAvailable()) return;
 
-        Util.OperatingSystem os = Util.getOperatingSystem();
+        OperatingSystem os = getOperatingSystem();
 
-        if (os == Util.OperatingSystem.WINDOWS || os == Util.OperatingSystem.LINUX) {
+        if (os == OperatingSystem.WINDOWS || os == OperatingSystem.LINUX) {
             try {
                 RenderDocLibrary renderdocLibrary;
                 String libPath = libPath().toAbsolutePath().toString();
-                if (os == Util.OperatingSystem.WINDOWS) {
+                if (os == OperatingSystem.WINDOWS) {
                     renderdocLibrary = Native.load(libPath, RenderDocLibrary.class);
                 } else {
                     int flags = DynamicLinkLoader.RTLD_NOW | DynamicLinkLoader.RTLD_NOLOAD;
@@ -148,13 +176,13 @@ public class RenderDocLoader {
     }
 
     public static Path libPath() {
-        Util.OperatingSystem os = Util.getOperatingSystem();
-        if (os == Util.OperatingSystem.WINDOWS) {
+        OperatingSystem os = getOperatingSystem();
+        if (os == OperatingSystem.WINDOWS) {
             return LIB_WINDOWS_PATH;
-        } else if (os == Util.OperatingSystem.LINUX) {
+        } else if (os == OperatingSystem.LINUX) {
             return LIB_LINUX_PATH;
         } else {
-            throw new RuntimeException("Unsupported OS: " + os.getName());
+            throw new RuntimeException("Unsupported OS: " + getOperatingSystemName());
         }
     }
 }

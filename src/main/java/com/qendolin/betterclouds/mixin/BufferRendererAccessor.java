@@ -1,21 +1,28 @@
 package com.qendolin.betterclouds.mixin;
 
-import net.minecraft.client.gl.VertexBuffer;
-import net.minecraft.client.render.BufferRenderer;
+import com.qendolin.betterclouds.util.DisableMixin;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.gen.Accessor;
+import org.spongepowered.asm.mixin.Pseudo;
 
-@Mixin(BufferRenderer.class)
+//? if <=1.21.4 {
+import net.minecraft.client.gl.VertexBuffer;
+import org.spongepowered.asm.mixin.gen.Accessor;
+//?}
+
+@DisableMixin(
+    /*? if >1.21.4 >>*/ /*true*/
+)
+@Pseudo
+@Mixin(targets = "net.minecraft.client.render.BufferRenderer")
 public interface BufferRendererAccessor {
+    //? if <=1.21.4 {
     @Accessor("currentVertexBuffer")
     static VertexBuffer getCurrentVertexBuffer() {
-        // can be called when hor reloading
-        return null;
+        return null; // During hot reload this may get called
     }
 
     @Accessor("currentVertexBuffer")
     static void setCurrentVertexBuffer(VertexBuffer buffer) {
-        throw new AssertionError();
     }
-
+    //?}
 }

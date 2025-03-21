@@ -1,6 +1,5 @@
 package com.qendolin.betterclouds;
 
-import com.qendolin.betterclouds.gui.ConfigScreen;
 import com.qendolin.betterclouds.platform.EventHooks;
 
 //? if fabric {
@@ -18,6 +17,7 @@ public final class Entrypoint implements ClientModInitializer {
 }
 //?} elif neoforge {
 /*import com.qendolin.betterclouds.platform.neoforge.EventHooksImpl;
+import com.qendolin.betterclouds.config.ConfigGUI;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.neoforged.bus.api.IEventBus;
@@ -45,6 +45,37 @@ public final class Entrypoint {
             /^ModLoadingContext.get().registerExtensionPoint(net.neoforged.neoforge.client.gui.IConfigScreenFactory.class,
                 () -> (modContainer, parent) -> ConfigGUI.create(parent));
             ^///?}
+        });
+    }
+}
+*///?} elif forge {
+/*import com.qendolin.betterclouds.platform.forge.EventHooksImpl;
+import com.qendolin.betterclouds.config.ConfigGUI;
+import net.minecraft.client.MinecraftClient;
+import net.minecraftforge.client.ConfigScreenHandler;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+
+@Mod(Main.MODID)
+public final class Entrypoint {
+    @Deprecated
+    @SuppressWarnings("removal")
+    public Entrypoint() {
+        this(FMLJavaModLoadingContext.get());
+    }
+
+    public Entrypoint(FMLJavaModLoadingContext context) {
+        EventHooks.instance = new EventHooksImpl(context.getModEventBus());
+
+        Main.initializeClientEvents();
+
+        context.getModEventBus().<FMLClientSetupEvent>addListener(event -> {
+            MinecraftClient.getInstance().execute(Main::initializeClient);
+
+            context.registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class,
+                () -> new ConfigScreenHandler.ConfigScreenFactory(
+                    (client, parent) -> ConfigGUI.create(parent)));
         });
     }
 }

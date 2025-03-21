@@ -23,7 +23,7 @@
     ],
     "modmenu": [ "com.qendolin.betterclouds.ModMenuIntegration" ],
     "preLaunch": [
-      "com.qendolin.betterclouds.platform.fabric.PreLaunchHandler"
+      "com.qendolin.betterclouds.platform.fabric.Crash_Is_Not_Caused_By_BetterClouds"
     ]
   },
   "mixins": [
@@ -34,10 +34,10 @@
 
   "depends": {
     "fabricloader": ">=0.14.0",
-    "minecraft": "${mc_version}",
+    "minecraft": [$mc_version_range],
     "java": ">=17",
     "fabric": "*",
-    "yet_another_config_lib_v3": "^3.5.0"
+    "yet_another_config_lib_v3": "^3.4.0"
   },
   "recommends": {
     "modmenu": "*",
@@ -46,6 +46,6 @@
   "breaks": {
     "vulkanmod": "*",
     "iris": "<1.7.0",
-    "yet_another_config_lib_v3": "<3.4.0"
+    "immersive_portals": "*"
   }
 }

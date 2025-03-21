@@ -18,6 +18,8 @@
    - Provide korean translation – [#91](https://github.com/Qendolin/better-clouds/pull/91)
  - yichifauzi
    - Provide traditional chinese translation – [#115](https://github.com/Qendolin/better-clouds/pull/115)
+ - Tarteroycc
+   - Provide ukrainian translation – [#132](https://github.com/Qendolin/better-clouds/pull/132)
 
 ... got a PR accepted
  

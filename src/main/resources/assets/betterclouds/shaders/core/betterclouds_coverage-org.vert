@@ -2,28 +2,10 @@
 
 #extension GL_ARB_separate_shader_objects : enable
 
-vec3 vertex_positions[14] = vec3[](
-vec3(-.5f, -.5f, -.5f),
-vec3(+.5f, -.5f, -.5f),
-vec3(-.5f, -.5f, +.5f),
-vec3(+.5f, -.5f, +.5f),
-vec3(+.5f, +.5f, +.5f),
-vec3(+.5f, -.5f, -.5f),
-vec3(+.5f, +.5f, -.5f),
-vec3(-.5f, -.5f, -.5f),
-vec3(-.5f, +.5f, -.5f),
-vec3(-.5f, -.5f, +.5f),
-vec3(-.5f, +.5f, +.5f),
-vec3(+.5f, +.5f, +.5f),
-vec3(-.5f, +.5f, -.5f),
-vec3(+.5f, +.5f, -.5f)
-);
-
 // Geometry attributes
 #define SIZE vec3(_SIZE_XZ_, _SIZE_Y_, _SIZE_XZ_)
 #define NEAR_VISIBILITY_START 10.0 + _SIZE_XZ_
 #define NEAR_VISIBILITY_END 20.0 + _SIZE_XZ_
-#define FAR_VISIBILITY_EDGE _VISIBILITY_EDGE_
 
 #define POSITIONAL_COLORING _POSITIONAL_COLORING_
 #define WORLD_CURVATURE _WORLD_CURVATURE_
@@ -31,8 +13,8 @@ vec3(+.5f, +.5f, -.5f)
 #define DISTANT_HORIZONS _DISTANT_HORIZONS_
 
 layout(location = 0) in vec3 in_pos; // instanced per cloud cube
-//layout(location = 1) in vec3 in_vert;
-//layout(location = 2) in vec3 in_normal;
+layout(location = 1) in vec3 in_vert;
+layout(location = 2) in vec3 in_normal;
 
 uniform sampler2D u_noise_texture;
 #if DISTANT_HORIZONS
@@ -53,37 +35,27 @@ uniform vec3 u_miscellaneous;
 uniform float u_time;
 // start, end
 uniform vec2 u_fog_range;
-// near, far, configured view distance
-uniform vec3 u_depth_range;
 
 flat out float pass_opacity;
 out vec3 pass_color;
 
+float linearFogFade(float distance, float fog_start, float fog_end) {
+    if (distance <= fog_start) {
+        return 1.0;
+    } else if (distance >= fog_end) {
+        return 0.0;
+    }
 
-float linear_fog(float distance, float fogStart, float fogEnd) {
-    if(distance <= fogStart) return 0.0;
-    if(distance > fogEnd) return 1.0;
-
-    return smoothstep(fogStart, fogEnd, distance);
+    return smoothstep(fog_end, fog_start, distance);
 }
 
 void main() {
-    vec3 in_vert = vertex_positions[gl_VertexID];
-
     vec3 localWorldPosition = in_pos - u_origin_offset; // in world space but anchored to the camera
     float scaleFalloff = mix(1.0, u_miscellaneous.x, pow(length(localWorldPosition.xz), 2.0) / pow(u_bounding_box.z, 2.0));
     vec3 cloudPos = in_pos; // in world space but anchored to the chunk grid
     cloudPos.y *= scaleFalloff;
 
-    pass_opacity = 1.0;
-    //    pass_opacity =
-    //        smoothstep(NEAR_VISIBILITY_START, NEAR_VISIBILITY_END, length(localWorldPosition))
-    //        * smoothstep(u_bounding_box.z, u_bounding_box.z-FAR_VISIBILITY_EDGE,
-    //            length(vec3(localWorldPosition.x, 0, localWorldPosition.z)));
-    //
-    //    if(u_fog_range.y * 4.0 < u_bounding_box.z-FAR_VISIBILITY_EDGE) {
-    //        pass_opacity *= 1.0 - linear_fog(length(localWorldPosition.xyz), u_fog_range.x, u_fog_range.y);
-    //    }
+    pass_opacity = smoothstep(NEAR_VISIBILITY_START, NEAR_VISIBILITY_END, length(localWorldPosition));
 
     vec3 worldDirection = normalize(localWorldPosition);
 
@@ -94,26 +66,31 @@ void main() {
     float dynScale = mix(1.0, waveScale, fDynScale * u_miscellaneous.y);
     vec3 scale = SIZE * dynScale * scaleFalloff;
 
-    #if POSITIONAL_COLORING
-    pass_color.g = (scale.y * 0.625 * (in_vert.y+0.375) + in_pos.y) / (u_bounding_box.w);
-    #else
-    pass_color.g = 1.0;
-    #endif
-    pass_color.b = texture(u_noise_texture, localWorldPosition.xz / 1024.0).g;
-
     vec3 vertexPos = scale * in_vert + cloudPos;
     vec3 localWorldVertexPos = vertexPos - u_origin_offset;
 
-    #if WORLD_CURVATURE != 0
-    vertexPos.y -= dot(localWorldVertexPos, localWorldVertexPos) / WORLD_CURVATURE;
-    #endif
+    // Due to the limited max depth this can sometimes result in issues but they're barely visible
+    pass_color.r = linearFogFade(length(localWorldVertexPos.xz), u_fog_range.x, u_fog_range.y);
+    pass_color.r *= linearFogFade(abs(localWorldVertexPos.y), u_fog_range.y-16, u_fog_range.y);
 
-    #if DISTANT_HORIZONS
+#if POSITIONAL_COLORING
+    pass_color.g = (scale.y * 0.625 * (in_vert.y+0.375) + in_pos.y) / (u_bounding_box.w);
+#else
+    pass_color.g = 1.0;
+#endif
+    pass_color.b = texture(u_noise_texture, localWorldPosition.xz / 1024.0).g;
+
+
+#if WORLD_CURVATURE != 0
+    vertexPos.y -= dot(localWorldVertexPos, localWorldVertexPos) / WORLD_CURVATURE;
+#endif
+
+#if DISTANT_HORIZONS
     vec4 localPos = u_mv_matrix * vec4(vertexPos, 1.0);
     gl_Position = u_mc_p_matrix * localPos;
     vec4 dhPos = u_dh_p_matrix * localPos;
     pass_dh_depth = (dhPos.z/dhPos.w) * 0.5 + 0.5;
-    #else
+#else
     gl_Position = u_mvp_matrix * vec4(vertexPos, 1.0);
-    #endif
+#endif
 }

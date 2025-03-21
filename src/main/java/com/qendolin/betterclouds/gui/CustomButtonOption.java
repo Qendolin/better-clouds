@@ -19,6 +19,8 @@ public class CustomButtonOption implements ButtonOption {
     private final Controller<BiConsumer<YACLScreen, ButtonOption>> controller;
     private final Binding<BiConsumer<YACLScreen, ButtonOption>> binding;
 
+    private final StateManager<BiConsumer<YACLScreen, ButtonOption>> stateManager;
+
     public CustomButtonOption(
         @NotNull Supplier<Text> name,
         @NotNull OptionDescription description,
@@ -31,10 +33,28 @@ public class CustomButtonOption implements ButtonOption {
         this.available = available;
         this.controller = new CustomActionController(this);
         this.binding = new EmptyBinderImpl();
+
+        boolean hasStateManager = false;
+        try {
+            Class.forName("dev.isxander.yacl3.api.StateManager");
+            hasStateManager = true;
+        } catch (ClassNotFoundException ignored) {}
+        if(hasStateManager) this.stateManager = StateManager.createImmutable(action);
+        else this.stateManager = null;
     }
 
     public static com.qendolin.betterclouds.gui.CustomButtonOption.Builder createBuilder() {
         return new com.qendolin.betterclouds.gui.CustomButtonOption.Builder();
+    }
+
+    @Override
+    public @NotNull StateManager<BiConsumer<YACLScreen, ButtonOption>> stateManager() {
+        return this.stateManager;
+    }
+
+    @Override
+    public void addEventListener(OptionEventListener<BiConsumer<YACLScreen, ButtonOption>> listener) {
+
     }
 
     @Override

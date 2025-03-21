@@ -201,12 +201,22 @@ public class GLCompat {
         //noinspection UnnecessaryLocalVariable
         boolean canReadStencil = supportsStencilTexturing;
 
+        String reason = null;
         if (hasContext) {
-            compatible = openGl32 &&
-                (openGl33 || (glVertexAttribDivisor || arbInstancedArrays)) &&
-                (supportsStencilTexturing || (openGl40 || (glBlendFunci && glBlendEquationi) || arbDrawBuffersBlend));
+            if(!openGl32) {
+                reason = "OpenGL 3.2 is required";
+            } else if(!(openGl33 || (glVertexAttribDivisor || arbInstancedArrays))) {
+                reason = "OpenGL 3.3, glVertexAttribDivisor, or arbInstancedArrays is required";
+            } else if(!(supportsStencilTexturing || (openGl40 || (glBlendFunci && glBlendEquationi) || arbDrawBuffersBlend))) {
+                reason = "OpenGL 4.0, arbStencilTexturing, glBlendFunci and glBlendEquationi, or arbDrawBuffersBlend is required";
+            }
         } else {
-            compatible = false;
+            reason = "No OpenGL Context";
+        }
+
+        compatible = reason == null;
+        if(reason != null) {
+            Main.LOGGER.warn("OpenGL compatibility check failed: " + reason);
         }
 
         useBaseInstanceFallback = !supportsBaseInstance;
@@ -505,5 +515,21 @@ public class GLCompat {
         if (useTexStorageFallback) usedFallbacks.add("texture_storage");
         if (useDepthWriteFallback) usedFallbacks.add("depth_view_write");
         return ImmutableList.copyOf(usedFallbacks);
+    }
+
+    public static String getVendor() {
+        return GL32.glGetString(GL32.GL_VENDOR);
+    }
+
+    public static String getCpuInfo() {
+        return GLX._getCpuInfo();
+    }
+
+    public static String getRenderer() {
+        return GL32.glGetString(GL32.GL_RENDERER);
+    }
+
+    public static String getVersion() {
+        return GL32.glGetString(GL32.GL_VERSION);
     }
 }

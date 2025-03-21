@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds.gui;
 
-import com.qendolin.betterclouds.ConfigGUI;
+import com.qendolin.betterclouds.config.ConfigGUI;
 import dev.isxander.yacl3.api.ConfigCategory;
 import dev.isxander.yacl3.api.utils.Dimension;
 import dev.isxander.yacl3.api.utils.MutableDimension;

@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds.clouds;
 
-import com.qendolin.betterclouds.Config;
+import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.compat.Telemetry;
 import net.minecraft.util.Util;
@@ -18,7 +18,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ChunkedGenerator implements AutoCloseable {
     private double originX;
     private double originZ;
-    private float prevTime = Float.POSITIVE_INFINITY;
 
     private Buffer buffer;
     private final Sampler sampler = new Sampler();
@@ -144,13 +143,10 @@ public class ChunkedGenerator implements AutoCloseable {
         clear();
     }
 
-    public synchronized void update(Vector3d camera, float time, Config options, float cloudiness) {
-        // This isn't quite right but whatever
-        float timeDelta = MathHelper.clamp(time - prevTime, 0, 200);
-        prevTime = time;
+    public synchronized void update(Vector3d camera, int ticks, float tickDelta, Config options, float cloudiness) {
+        originX = RandomPath.getPathX(ticks + tickDelta, options.travelSpeed);
+        originZ = RandomPath.getPathZ(ticks + tickDelta, options.travelSpeed);
 
-        originX -= timeDelta * options.travelSpeed;
-        originZ = 0;
         double worldOriginX = camera.x - this.originX;
         double worldOriginZ = camera.z - this.originZ;
 
@@ -253,7 +249,7 @@ public class ChunkedGenerator implements AutoCloseable {
         completedTask.buffer.swap();
         swappedTask = completedTask;
 
-        if (Main.isProfilingEnabled()) {
+        if (Debug.isProfilingEnabled()) {
             long elapsed = swappedTask.elapsedMs(Util.getMeasuringTimeMs());
             Main.debugChatMessage("profiling.genTimes", elapsed, 1000f / elapsed);
         }

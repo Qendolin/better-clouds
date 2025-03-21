@@ -1,23 +1,27 @@
 package com.qendolin.betterclouds;
 
 import com.google.gson.FieldNamingPolicy;
-import com.mojang.blaze3d.platform.GlDebugInfo;
-import com.qendolin.betterclouds.clouds.Debug;
+import com.qendolin.betterclouds.clouds.RandomPath;
+import com.qendolin.betterclouds.clouds.Renderer;
 import com.qendolin.betterclouds.compat.*;
+import com.qendolin.betterclouds.config.Config;
+import com.qendolin.betterclouds.config.ShaderPresetConfig;
+import com.qendolin.betterclouds.config.ShaderPresetLoader;
+import com.qendolin.betterclouds.duck.WorldRendererDuck;
 import com.qendolin.betterclouds.platform.EventHooks;
 import com.qendolin.betterclouds.platform.ModLoader;
 import com.qendolin.betterclouds.platform.ModVersion;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
+import com.qendolin.betterclouds.util.NamedLogger;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.registry.RegistryKey;
-import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL32;
 
 import java.io.File;
@@ -36,14 +40,15 @@ public class Main {
     public static final boolean IS_CLIENT = ModLoader.isClientEnvironment();
     public static final NamedLogger LOGGER = new NamedLogger(LogManager.getLogger(MODID), !IS_DEV);
 
-    public static GLCompat glCompat;
-    public static ModVersion version;
+    public static GLCompat glCompat = null;
+    public static ModVersion version = null;
 
     private static final Path CONFIG_PATH = ModLoader.getConfigDir().resolve("betterclouds-v1.json");
     private static ConfigClassHandler<Config> config;
     private static boolean isInitialized = false;
 
     public static void initGlCompat() {
+        LOGGER.info("Initializing OpenGL compat");
         try {
             glCompat = new GLCompat(IS_DEV);
         } catch (Exception e) {
@@ -65,14 +70,12 @@ public class Main {
                 LOGGER.info("- Using {} fallback", fallback);
             }
         }
+
+        sendSystemDetailsTelemetry();
     }
 
     public static Config getConfig() {
         return config.instance();
-    }
-
-    public static boolean isProfilingEnabled() {
-        return Debug.profileInterval > 0;
     }
 
     public static void debugChatMessage(String id, Object... args) {
@@ -102,14 +105,14 @@ public class Main {
         EventHooks.instance.onWorldJoin(client -> {
             if (glCompat.isIncompatible()) {
                 CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
-                    .execute(() -> client.execute(Main::sendGpuIncompatibleChatMessage));
+                    .execute(() -> client.execute(Commands::sendGpuIncompatibleChatMessage));
             } else if (glCompat.isPartiallyIncompatible()) {
                 CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
-                    .execute(() -> client.execute(Main::sendGpuPartiallyIncompatibleChatMessage));
+                    .execute(() -> client.execute(Commands::sendGpuPartiallyIncompatibleChatMessage));
             }
             if (HardwareCompat.isMaybeIncompatible()) {
                 CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
-                    .execute(() -> client.execute(Main::sendHardwareMaybeIncompatibleChatMessage));
+                    .execute(() -> client.execute(Commands::sendHardwareMaybeIncompatibleChatMessage));
             }
             if (RenderDoc.isAvailable()) {
                 Main.debugChatMessage("renderdoc.load.ready", RenderDoc.getAPIVersion());
@@ -119,22 +122,36 @@ public class Main {
         EventHooks.instance.onClientCommandRegistration(Commands::register);
     }
 
+    @Nullable
+    public static Renderer getCloudsRenderer() {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if(client == null) return null;
+        if(client.worldRenderer instanceof WorldRendererDuck duck) {
+            return duck.betterclouds$getRenderer();
+        }
+        return null;
+    }
+
     public static void initializeClient() {
         if (!IS_CLIENT)
             throw new IllegalStateException("Minecraft environment is not 'client' but the client initializer was called");
         if(isInitialized) return;
+        isInitialized = true;
 
         initConfig();
         loadConfig();
-
-        sendSystemDetailsTelemetry();
 
         version = ModLoader.getModVersion(MODID);
 
         DistantHorizonsCompat.initialize();
         IrisCompat.initialize();
+        SereneSeasonsCompat.initialize();
+        FabricSeasonsCompat.initialize();
+        EnhancedCelestialsCompat.initialize();
 
-        isInitialized = true;
+        sendSystemDetailsTelemetry();
+
+        RandomPath.init();
 
         if (!IS_DEV) return;
         LOGGER.info("Initialized in dev mode, performance might vary");
@@ -156,7 +173,7 @@ public class Main {
                     .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                     .setPrettyPrinting()
                     .registerTypeAdapter(Config.class, Config.INSTANCE_CREATOR)
-                    .registerTypeAdapter(Config.ShaderConfigPreset.class, Config.ShaderConfigPreset.INSTANCE_CREATOR)
+                    .registerTypeAdapter(ShaderPresetConfig.class, ShaderPresetConfig.INSTANCE_CREATOR)
                     .registerTypeAdapter(RegistryKey.class, Config.REGISTRY_KEY_SERIALIZER))
                 .setPath(CONFIG_PATH)
                 .setJson5(false)
@@ -202,6 +219,8 @@ public class Main {
     }
 
     private static void sendSystemDetailsTelemetry() {
+        if(!isInitialized || glCompat == null) return;
+
         if (getConfig().lastTelemetryVersion >= Telemetry.VERSION) return;
         Telemetry.INSTANCE.sendSystemInfo()
             .whenComplete((success, throwable) -> {
@@ -213,38 +232,5 @@ public class Main {
                     });
                 }
             });
-    }
-
-    public static void sendGpuIncompatibleChatMessage() {
-        if (!getConfig().gpuIncompatibleMessageEnabled) return;
-        debugChatMessage(
-            Text.translatable(debugChatMessageKey("gpuIncompatible"))
-                .append(Text.literal("\n - "))
-                .append(Text.translatable(debugChatMessageKey("generic.disable"))
-                    .styled(style -> style.withItalic(true).withUnderline(true).withColor(Formatting.GRAY)
-                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
-                            "/betterclouds:config gpuIncompatibleMessage false")))));
-    }
-
-    public static void sendGpuPartiallyIncompatibleChatMessage() {
-        if (!getConfig().gpuIncompatibleMessageEnabled) return;
-        debugChatMessage(
-            Text.translatable(debugChatMessageKey("gpuPartiallyIncompatible"))
-                .append(Text.literal("\n - "))
-                .append(Text.translatable(debugChatMessageKey("generic.disable"))
-                    .styled(style -> style.withItalic(true).withUnderline(true).withColor(Formatting.GRAY)
-                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
-                            "/betterclouds:config gpuIncompatibleMessage false")))));
-    }
-
-    public static void sendHardwareMaybeIncompatibleChatMessage() {
-        if (!getConfig().gpuIncompatibleMessageEnabled) return;
-        debugChatMessage(
-            Text.translatable(debugChatMessageKey("hwMaybeIncompatible"), GlDebugInfo.getCpuInfo(), GlDebugInfo.getRenderer())
-                .append(Text.literal("\n - "))
-                .append(Text.translatable(debugChatMessageKey("generic.disable"))
-                    .styled(style -> style.withItalic(true).withUnderline(true).withColor(Formatting.GRAY)
-                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
-                            "/betterclouds:config gpuIncompatibleMessage false")))));
     }
 }

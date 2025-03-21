@@ -2,6 +2,7 @@
   "required": true,
   "minVersion": "0.8",
   "package": "com.qendolin.betterclouds.mixin",
+  "plugin": "com.qendolin.betterclouds.MixinPlugin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "WorldMixin"
@@ -10,7 +11,8 @@
     "AbstractWidgetMixin",
     "BufferRendererAccessor",
     "CloudSettingMixin",
-    "DimensionalEffectsMixin",
+    "DimensionEffectsMixin",
+    "RenderPhaseAccessor",
     "RenderSystemMixin",
     "ShaderProgramAccessor",
     "TabButtonWidgetMixin",

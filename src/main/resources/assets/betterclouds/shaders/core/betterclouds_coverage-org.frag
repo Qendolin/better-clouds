@@ -52,7 +52,6 @@ void main() {
         discard;
     }
 
-    out_color.r = 1.0;
-    out_color.gb = pass_color.gb;
+    out_color.rgb = pass_color.rgb;
     out_one = 1.0 / 255.0;
 }

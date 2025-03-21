@@ -1,37 +1,41 @@
 package com.qendolin.betterclouds.clouds;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.qendolin.betterclouds.Config;
+import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.clouds.shaders.ShaderParameters;
-import com.qendolin.betterclouds.compat.DistantHorizonsCompat;
-import com.qendolin.betterclouds.compat.HeadInTheCloudsCompat;
-import com.qendolin.betterclouds.compat.IrisCompat;
-import com.qendolin.betterclouds.compat.WorldDuck;
+import com.qendolin.betterclouds.compat.*;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
-import net.minecraft.block.enums.CameraSubmersionType;
+import com.qendolin.betterclouds.util.MathUtil;
+import com.qendolin.betterclouds.util.RenderHelper;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.option.CloudRenderMode;
 import net.minecraft.client.render.*;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
 import org.joml.*;
 import org.lwjgl.opengl.GL43;
 import org.lwjgl.opengl.GL46;
 
+//? if >=1.21
+import net.minecraft.block.enums.CameraSubmersionType;
+
+//? if >1.21.4 {
+/*import com.mojang.blaze3d.opengl.GlStateManager;
+*///?} else {
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.qendolin.betterclouds.mixin.RenderPhaseAccessor;
+//?}
+
 import java.lang.Math;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import static com.qendolin.betterclouds.Main.getConfig;
 import static com.qendolin.betterclouds.Main.glCompat;
+import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
 import static org.lwjgl.opengl.GL32.*;
 
 public class Renderer implements AutoCloseable {
@@ -97,7 +101,7 @@ public class Renderer implements AutoCloseable {
         shaderParameters = createShaderParameters(Main.getConfig());
         res.reloadShaders(manager, shaderParameters);
         Main.LOGGER.debug("[2/6] Reloading generator");
-        res.reloadGenerator(isFancyMode());
+        res.reloadGenerator(useCubeClouds());
         Main.LOGGER.debug("[3/6] Reloading textures");
         res.reloadTextures(client);
         Main.LOGGER.debug("[4/6] Reloading primitive meshes");
@@ -109,8 +113,13 @@ public class Renderer implements AutoCloseable {
         Main.LOGGER.info("Cloud renderer initialized");
     }
 
-    private boolean isFancyMode() {
-        return client.options.getCloudRenderModeValue() == CloudRenderMode.FANCY;
+    public Resources resources() {
+        return res;
+    }
+
+    // Used to be called isFancyMode
+    private boolean useCubeClouds() {
+        return Main.getConfig().sizeY > 0;
     }
 
     private int scaledFramebufferWidth() {
@@ -124,8 +133,7 @@ public class Renderer implements AutoCloseable {
     private ShaderParameters createShaderParameters(Config config) {
         return new ShaderParameters(
             client.options.getCloudRenderModeValue(),
-            config.blockDistance(),
-            config.fadeEdge, config.sizeXZ, config.sizeY, config.celestialBodyHalo,
+            config.blockDistance(), config.sizeXZ, config.sizeY, config.celestialBodyHalo,
             glCompat.useDepthWriteFallback(), glCompat.useStencilTextureFallback(),
             DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled(),
             config.preset().worldCurvatureSize,
@@ -135,7 +143,7 @@ public class Renderer implements AutoCloseable {
 
     public PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, int ticks, float tickDelta, Vector3d cam) {
         assert RenderSystem.isOnRenderThread();
-        client.getProfiler().swap("render_setup");
+        getProfiler().swap("render_setup");
         Config config = Main.getConfig();
 
         if (res.failedToLoadCritical()) {
@@ -203,20 +211,18 @@ public class Renderer implements AutoCloseable {
             shaderParameters = currentShaderParameters;
             res.reloadShaders(client.getResourceManager(), shaderParameters);
         }
-        res.generator().reallocateIfStale(config, isFancyMode());
+        res.generator().reallocateIfStale(config, useCubeClouds());
 
-        float raininess = Math.max(0.6f * getTrueRainGradient(tickDelta), getTrueThunderGradient(tickDelta));
-        float cloudiness = raininess * 0.3f + 0.5f;
-
-        res.generator().update(cam, ticks + tickDelta, Main.getConfig(), cloudiness);
+        float cloudiness = CloudinessProvider.getCloudiness(client.world, tickDelta);
+        res.generator().update(cam, ticks, tickDelta, Main.getConfig(), cloudiness);
         if (res.generator().canGenerate() && !res.generator().generating() && !Debug.generatorPause) {
-            client.getProfiler().swap("generate_clouds");
+            getProfiler().swap("generate_clouds");
             res.generator().generate();
-            client.getProfiler().swap("render_setup");
+            getProfiler().swap("render_setup");
         }
 
 //        if (res.generator().canSwap()) {
-//            client.getProfiler().swap("swap");
+//            getProfiler().swap("swap");
 //            res.generator().swap();
 //            ByteBuffer cullingBuffer = res.generator().buffer().cullingBuffer;
 //            cullingBuffer.clear();
@@ -229,7 +235,7 @@ public class Renderer implements AutoCloseable {
 //                cullingBuffer.putInt(chunk.start());
 //                cullingBuffer.putInt(chunk.count());
 //            }
-//            client.getProfiler().swap("render_setup");
+//            getProfiler().swap("render_setup");
 //        }
 
         float cloudsCullingHeightMin = cloudsHeight - config.sizeY;
@@ -239,17 +245,19 @@ public class Renderer implements AutoCloseable {
         frustumCuller.update(viewMat, frustumOrigin, projMat, cloudsCullingHeightMin, cloudsCullingHeightMax);
 
 
-        tempMatrix.set(viewMat);
-
-        rotationProjectionMatrix.set(projMat);
         // This is fixes issue #14, not entirely sure why, but it forces the matrix to be homogenous
+        tempMatrix.set(viewMat);
         tempMatrix.m30(0);
         tempMatrix.m31(0);
         tempMatrix.m32(0);
+        // If this isn't 0 then https://github.com/Qendolin/better-clouds/issues/165 occurs, but idk why.
+        // If it is 0 then the matrix is not invertible
         tempMatrix.m33(0);
         tempMatrix.m23(0);
         tempMatrix.m13(0);
         tempMatrix.m03(0);
+
+        rotationProjectionMatrix.set(projMat);
         rotationProjectionMatrix.mul(tempMatrix);
 
 //        tempMatrix.translate((float) res.generator().renderOriginX(cam.x), (float) (cloudsHeight - cam.y), (float) res.generator().renderOriginZ(cam.z));
@@ -270,54 +278,55 @@ public class Renderer implements AutoCloseable {
     // Don't forget to push / pop matrix stack outside
     // Note: render must not return early, this will cause corruption because prepare binds stuff
     public void render(int ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
-        client.getProfiler().swap("render_setup");
-        if (Main.isProfilingEnabled()) {
-            if (res.timer() == null) res.reloadTimer();
-            res.timer().start();
+        // In 1.21.3 render is called some time after prepare, so this may be false by now
+        if(res.failedToLoadCritical()) return;
+
+        getProfiler().swap("render_setup");
+        if (Debug.isProfilingEnabled()) {
+            if (res.timer() == null)
+                res.reloadTimer();
+            if(res.timer() != null)
+                res.timer().start();
         }
 
         Config config = Main.getConfig();
-
         if (isFramebufferStale()) {
             res.reloadFramebuffer(scaledFramebufferWidth(), scaledFramebufferHeight());
         }
 
-        RenderSystem.viewport(0, 0, res.fboWidth(), res.fboHeight());
+        RenderHelper.Fog fog = FogProvider.getFog(client, config, tickDelta);
+
+        // Render clouds to our framebuffer
+        getProfiler().swap("draw_coverage");
+        GlStateManager._viewport(0, 0, res.fboWidth(), res.fboHeight());
         GlStateManager._glBindFramebuffer(GL_DRAW_FRAMEBUFFER, res.oitFbo());
-        RenderSystem.clearColor(0, 0, 0, 0);
-        RenderSystem.clearDepth(1);
+        glClearColor(0, 0, 0, 0);
+        glClearDepth(1);
+        drawCoverage(ticks + tickDelta, cam, frustumPos, frustum, fog);
 
-        client.getProfiler().swap("draw_coverage");
-        drawCoverage(ticks + tickDelta, cam, frustumPos, frustum);
+        // Draw to game framebuffer
+        VanillaRenderTarget rt = new VanillaRenderTarget(client, config);
+        rt.begin();
 
+        // Render debug stuff
+        getProfiler().swap("draw_debug");
+        Debug.render(res, cam);
 
-        client.getProfiler().swap("draw_shading");
+        // Resolve and shade clouds
+        getProfiler().swap("draw_shading");
+        drawShading(tickDelta, fog);
 
-        RenderPhase renderPhase = null;
-        if (IrisCompat.instance().isShadersEnabled() && config.useIrisFBO) {
-            IrisCompat.instance().bindFramebuffer();
-        } else {
-            client.getFramebuffer().beginWrite(false);
-            renderPhase = RenderPhase.CLOUDS_TARGET;
-            renderPhase.startDrawing();
-        }
-
-        drawShading(cam, tickDelta);
-
-
-        client.getProfiler().swap("render_cleanup");
+        // Restore state
+        getProfiler().swap("render_cleanup");
+        rt.end();
         res.generator().unbind();
         Resources.unbindShader();
-        RenderSystem.disableBlend();
-        RenderSystem.enableDepthTest();
-        RenderSystem.depthMask(true);
-        RenderSystem.depthFunc(GL_LEQUAL);
-        RenderSystem.activeTexture(GL_TEXTURE0);
-        RenderSystem.colorMask(true, true, true, true);
-
-        if (renderPhase != null) {
-            renderPhase.endDrawing();
-        }
+        GlStateManager._disableBlend();
+        GlStateManager._enableDepthTest();
+        GlStateManager._depthMask(true);
+        GlStateManager._depthFunc(GL_LEQUAL);
+        GlStateManager._activeTexture(GL_TEXTURE0);
+        GlStateManager._colorMask(true, true, true, true);
 
         if (!glCompat.useStencilTextureFallback()) {
             glDisable(GL_STENCIL_TEST);
@@ -325,25 +334,16 @@ public class Renderer implements AutoCloseable {
             glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
         }
 
-        if (Debug.frustumCulling) {
-            glCompat.pushDebugGroupDev("Frustum Culling Debug Draw");
-            Debug.drawFrustumCulledBoxes(cam);
-            glCompat.popDebugGroupDev();
-        }
-
-        if (Main.isProfilingEnabled() && res.timer() != null) {
+        if (Debug.isProfilingEnabled() && res.timer() != null) {
             res.timer().stop();
 
             if (res.timer().frames() >= Debug.profileInterval) {
-                List<Double> times = res.timer().get();
-                times.sort(Double::compare);
-                double median = times.get(times.size() / 2);
-                double p25 = times.get((int) Math.ceil(times.size() * 0.25));
-                double p75 = times.get((int) Math.ceil(times.size() * 0.75));
-                double min = times.get(0);
-                double max = times.get(times.size() - 1);
-                double average = times.stream().mapToDouble(d -> d).average().orElse(0);
-                Main.debugChatMessage("profiling.gpuTimes", min, average, max, p25, median, p75);
+                PerfTimer.Stats gpu = PerfTimer.Stats.of(res.timer().gpu());
+                PerfTimer.Stats cpu = PerfTimer.Stats.of(res.timer().cpu());
+                Main.LOGGER.info("GPU Times (msec):\n" + gpu);
+                Main.LOGGER.info("CPU Times (msec):\n" + cpu);
+                Main.debugChatMessage("profiling.gpuTimes", gpu.formatted());
+                Main.debugChatMessage("profiling.cpuTimes", cpu.formatted());
                 res.timer().reset();
             }
         }
@@ -353,24 +353,23 @@ public class Renderer implements AutoCloseable {
         return res.fboWidth() != scaledFramebufferWidth() || res.fboHeight() != scaledFramebufferHeight();
     }
 
-    private void drawCoverage(float ticks, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
-
-        RenderSystem.enableDepthTest();
-        RenderSystem.colorMask(true, true, true, true);
-        RenderSystem.depthMask(true);
+    private void drawCoverage(float ticks, Vector3d cam, Vector3d frustumPos, Frustum frustum, RenderHelper.Fog fog) {
+        GlStateManager._enableDepthTest();
+        GlStateManager._colorMask(true, true, true, true);
+        GlStateManager._depthMask(true);
         glEnable(GL_DEPTH_CLAMP);
 
         if (glCompat.useStencilTextureFallback()) {
-            RenderSystem.depthFunc(GL_ALWAYS);
-            RenderSystem.enableBlend();
-            RenderSystem.blendEquation(GL_FUNC_ADD);
+            GlStateManager._depthFunc(GL_ALWAYS);
+            GlStateManager._enableBlend();
+            glBlendEquation(GL_FUNC_ADD);
             // FIXME: buf0 needs depth sorting
             glCompat.blendFunci(0, GL_ONE, GL_ZERO);
             glCompat.blendFunci(1, GL_ONE, GL_ONE);
             glDisable(GL_STENCIL_TEST);
         } else {
-            RenderSystem.depthFunc(GL_LEQUAL);
-            RenderSystem.disableBlend();
+            GlStateManager._depthFunc(GL_LEQUAL);
+            GlStateManager._disableBlend();
             glEnable(GL_STENCIL_TEST);
             glStencilMask(0xff);
             glClearStencil(0);
@@ -378,9 +377,9 @@ public class Renderer implements AutoCloseable {
             glStencilFunc(GL_ALWAYS, 0xff, 0xff);
         }
 
-        if (isFancyMode()) RenderSystem.enableCull();
-        else RenderSystem.disableCull();
-//        RenderSystem.disableCull();
+        if (useCubeClouds()) GlStateManager._enableCull();
+        else GlStateManager._disableCull();
+//        GlStateManager._disableCull();
         glClear(GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         Config generatorConfig = getGeneratorConfig();
@@ -392,23 +391,14 @@ public class Renderer implements AutoCloseable {
         res.coverageShader().uBoundingBox.setVec4((float) cam.x, (float) cam.z, generatorConfig.blockDistance() - generatorConfig.chunkSize / 2f, generatorConfig.yRange + config.sizeY);
         res.coverageShader().uTime.setFloat(ticks / 20);
         res.coverageShader().uMiscellaneous.setVec3(config.scaleFalloffMin, config.windEffectFactor, config.windSpeedFactor);
-        FogShape shape = RenderSystem.getShaderFogShape();
-        if (shape == FogShape.CYLINDER) {
-            res.coverageShader().uFogRange.setVec2(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
+        if(fog == null) { // Fog off
+            res.coverageShader().uFogRange.setVec2(config.blockDistance()-8, config.blockDistance());
         } else {
-            res.coverageShader().uFogRange.setVec2(RenderSystem.getShaderFogStart(), RenderSystem.getShaderFogEnd());
+            res.coverageShader().uFogRange.setVec2(fog.start(), fog.end());
         }
 
-        // "Fast" computation of the near and far plane doesn't work because of nausea and view bobbing.
-        // This is slightly slower but should always give the correct results.
-        Vector4d farPlane = new Vector4d(0, 0, 1, 1);
-        Vector4d nearPlane = new Vector4d(0, 0, -1, 1);
-        pInverseMatrix.transform(farPlane);
-        pInverseMatrix.transform(nearPlane);
-        res.coverageShader().uDepthRange.setVec3((float) (-nearPlane.z / nearPlane.w), (float) (-farPlane.z / farPlane.w), config.blockDistance());
-
-        RenderSystem.activeTexture(GL_TEXTURE0);
-        RenderSystem.bindTexture(client.getFramebuffer().getDepthAttachment());
+        GlStateManager._activeTexture(GL_TEXTURE0);
+        RenderHelper.bindTexture(client.getFramebuffer().getDepthAttachment());
 
         // Distant Horizons compat
         if (DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled()) {
@@ -416,19 +406,19 @@ public class Renderer implements AutoCloseable {
             res.coverageShader().uMcPMatrix.setMat4(pMatrix);
 
             Optional<Integer> depthId = DistantHorizonsCompat.instance().getDepthTextureId();
-            RenderSystem.activeTexture(GL_TEXTURE6);
+            GlStateManager._activeTexture(GL_TEXTURE6);
             if (depthId.isPresent()) {
                 Matrix4f dhProjectionMatrix = DistantHorizonsCompat.instance().getProjectionMatrix();
-                RenderSystem.bindTexture(depthId.get());
+                RenderHelper.bindTexture(depthId.get());
                 res.coverageShader().uDhPMatrix.setMat4(dhProjectionMatrix);
             } else {
-                RenderSystem.bindTexture(0);
+                RenderHelper.bindTexture(0);
                 res.coverageShader().uDhPMatrix.setMat4(DistantHorizonsCompat.NOOP_MATRIX);
             }
         }
 
-        RenderSystem.activeTexture(GL_TEXTURE5);
-        client.getTextureManager().getTexture(Resources.NOISE_TEXTURE).bindTexture();
+        GlStateManager._activeTexture(GL_TEXTURE5);
+        RenderHelper.bindTexture(client.getTextureManager().getTexture(Resources.NOISE_TEXTURE));
 
         res.generator().bind();
         if (glCompat.useBaseInstanceFallback()) {
@@ -438,10 +428,9 @@ public class Renderer implements AutoCloseable {
         setFrustumTo(tempFrustum, frustum);
         Frustum frustumAtOrigin = tempFrustum;
         frustumAtOrigin.setPosition(frustumPos.x - res.generator().originX(), frustumPos.y, frustumPos.z - res.generator().originZ());
-        Debug.clearFrustumCulledBoxes();
 
         if (!res.generator().canRender()) {
-            RenderSystem.enableCull();
+            GlStateManager._enableCull();
             return;
         }
 
@@ -458,7 +447,7 @@ public class Renderer implements AutoCloseable {
         }
 
         glDisable(GL_DEPTH_CLAMP);
-        RenderSystem.enableCull();
+        GlStateManager._enableCull();
     }
 
     static class StackEntry {
@@ -773,65 +762,66 @@ public class Renderer implements AutoCloseable {
         glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), count, start);
     }
 
-    private void drawShading(Vector3d cam, float tickDelta) {
+    private void drawShading(float tickDelta, RenderHelper.Fog fog) {
         Config config = Main.getConfig();
-        RenderSystem.depthFunc(GL_LEQUAL);
+        GlStateManager._depthFunc(GL_LEQUAL);
 
         if (!glCompat.useDepthWriteFallback()) {
-            RenderSystem.depthMask(true);
-            RenderSystem.enableDepthTest();
+            GlStateManager._depthMask(true);
+            GlStateManager._enableDepthTest();
         } else {
-            RenderSystem.disableDepthTest();
+            GlStateManager._disableDepthTest();
         }
 
-        RenderSystem.enableBlend();
-        RenderSystem.blendEquation(GL_FUNC_ADD);
-        RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA);
-        RenderSystem.colorMask(false, false, false, false);
+        GlStateManager._enableBlend();
+        glBlendEquation(GL_FUNC_ADD);
+        GlStateManager._blendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+        GlStateManager._colorMask(false, false, false, false);
         glColorMaski(0, true, true, true, true);
         if (!glCompat.useStencilTextureFallback()) {
             glDisable(GL_STENCIL_TEST);
         }
 
-        RenderSystem.activeTexture(GL_TEXTURE1);
+        GlStateManager._activeTexture(GL_TEXTURE1);
         if (glCompat.useDepthWriteFallback()) {
-            RenderSystem.bindTexture(0);
+            RenderHelper.bindTexture(0);
         } else {
-            RenderSystem.bindTexture(res.oitCoverageDepthTexture());
+            RenderHelper.bindTexture(res.oitCoverageDepthTexture());
         }
-        RenderSystem.activeTexture(GL_TEXTURE2);
-        RenderSystem.bindTexture(res.oitDataTexture());
-        RenderSystem.activeTexture(GL_TEXTURE3);
-        RenderSystem.bindTexture(res.oitCoverageTexture());
-        RenderSystem.activeTexture(GL_TEXTURE4);
-        client.getTextureManager().getTexture(Resources.LIGHTING_TEXTURE).bindTexture();
+        GlStateManager._activeTexture(GL_TEXTURE2);
+        RenderHelper.bindTexture(res.oitDataTexture());
+        GlStateManager._activeTexture(GL_TEXTURE3);
+        RenderHelper.bindTexture(res.oitCoverageTexture());
+        GlStateManager._activeTexture(GL_TEXTURE4);
+        RenderHelper.bindTexture(client.getTextureManager().getTexture(Resources.LIGHTING_TEXTURE));
 
-        float effectLuma = getEffectLuminance(cam, tickDelta);
+        Vector3f effectTint = EffectTintProvider.getEffectTint(client, fog, tickDelta);
         long skyTime = world.getLunarTime() % 24000;
         float skyAngleRad = world.getSkyAngleRadians(tickDelta);
         float sunPathAngleRad = (float) Math.toRadians(config.preset().sunPathAngle);
-        float dayNightFactor = interpolateDayNightFactor(skyTime, config.preset().sunriseStartTime, config.preset().sunriseEndTime, config.preset().sunsetStartTime, config.preset().sunsetEndTime);
+        float dayNightFactor = MathUtil.interpolateDayNightFactor(skyTime, config.preset().sunriseStartTime, config.preset().sunriseEndTime, config.preset().sunsetStartTime, config.preset().sunsetEndTime);
         float brightness = (1 - dayNightFactor) * config.preset().nightBrightness + dayNightFactor * config.preset().dayBrightness;
         float sunAxisY = MathHelper.sin(sunPathAngleRad);
         float sunAxisZ = MathHelper.cos(sunPathAngleRad);
         Vector3f sunDir = tempVector.set(1, 0, 0).rotateAxis(skyAngleRad + MathHelper.HALF_PI, 0, sunAxisY, sunAxisZ);
+        float dayTime = world.getTimeOfDay() % 24000;
+        float mappedTime = MathUtil.mapTimeOfDay(dayTime, config.preset().sunriseStartTime, config.preset().sunriseEndTime, config.preset().sunsetStartTime, config.preset().sunsetEndTime);
 
-        // TODO: fit light gradient rotation to configured sunset / sunrise values. Solas shader looks weird at sunset
         res.shadingShader().bind();
         res.shadingShader().uVPMatrix.setMat4(rotationProjectionMatrix);
-        res.shadingShader().uSunDirection.setVec4(sunDir.x, sunDir.y, sunDir.z, (world.getTimeOfDay() % 24000) / 24000f);
+        res.shadingShader().uSunDirection.setVec4(sunDir.x, sunDir.y, sunDir.z, mappedTime / 24000f);
         res.shadingShader().uSunAxis.setVec3(0, sunAxisY, sunAxisZ);
         res.shadingShader().uOpacity.setVec3(config.preset().opacity, config.preset().opacityFactor, config.preset().opacityExponent);
-        res.shadingShader().uColorGrading.setVec4(brightness, 1f / config.preset().gamma(), effectLuma, config.preset().saturation);
-        res.shadingShader().uTint.setVec3(config.preset().tintRed, config.preset().tintGreen, config.preset().tintBlue);
+        res.shadingShader().uColorGrading.setVec4(brightness, 1f / config.preset().gamma(), 0.0f, config.preset().saturation);
+        res.shadingShader().uTint.setVec3(config.preset().tintRed * effectTint.x, config.preset().tintGreen * effectTint.y, config.preset().tintBlue * effectTint.z);
         res.shadingShader().uNoiseFactor.setFloat(config.colorVariationFactor);
 
         glBindVertexArray(res.cubeVao());
         glDrawArrays(GL_TRIANGLES, 0, Mesh.CUBE_MESH_VERTEX_COUNT);
 
         if (glCompat.useDepthWriteFallback()) {
-            RenderSystem.activeTexture(GL_TEXTURE6);
-            RenderSystem.bindTexture(res.oitCoverageDepthTexture());
+            GlStateManager._activeTexture(GL_TEXTURE6);
+            RenderHelper.bindTexture(res.oitCoverageDepthTexture());
             glTexParameteri(GL_TEXTURE_2D, glCompat.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_DEPTH_COMPONENT);
             res.depthShader().bind();
             glDrawArrays(GL_TRIANGLES, 0, Mesh.QUAD_MESH_VERTEX_COUNT);
@@ -845,63 +835,13 @@ public class Renderer implements AutoCloseable {
         return Main.getConfig();
     }
 
-    private void setFrustumTo(Frustum dst, Frustum src) {
+    private static void setFrustumTo(Frustum dst, Frustum src) {
         dst.frustumIntersection = src.frustumIntersection;
         dst.positionProjectionMatrix.set(src.positionProjectionMatrix);
         dst.x = src.x;
         dst.y = src.y;
         dst.z = src.z;
         dst.recession = src.recession;
-    }
-
-    private float getEffectLuminance(Vector3d cam, float tickDelta) {
-        //? if >1.20.1 {
-        BackgroundRenderer.applyFogColor();
-        //?} else
-        /*BackgroundRenderer.setFogBlack();*/
-
-        float[] fogRgb = RenderSystem.getShaderFogColor();
-        Vec3d fogColor = new Vec3d(fogRgb[0], fogRgb[1], fogRgb[2]);
-        Vec3d skyColor = world.getSkyColor(new Vec3d(cam.x, cam.y, cam.z), tickDelta);
-        Vec3d cloudsColor = world.getCloudsColor(tickDelta);
-
-        Vec3d color = new Vec3d(
-            (cloudsColor.x * 2 + skyColor.x * 1.5786 + fogColor.x * 1.2458) / (2 + 1 + 1),
-            (cloudsColor.y * 2 + skyColor.y * 1.5786 + fogColor.y * 1.2458) / (2 + 1 + 1),
-            (cloudsColor.z * 2 + skyColor.z * 1.5786 + fogColor.z * 1.2458) / (2 + 1 + 1)
-        );
-        double luma = color.x * 0.299 + color.y * 0.587 + color.z * 0.114;
-        return (float) MathHelper.clamp(luma * 0.95 + 0.05, 0.0, 1.0);
-    }
-
-    private float getTrueRainGradient(float tickDelta) {
-        if (HeadInTheCloudsCompat.IS_LOADED) {
-            return ((WorldDuck) world).betterclouds$getOriginalRainGradient(tickDelta);
-        }
-        return world.getRainGradient(tickDelta);
-    }
-
-    private float getTrueThunderGradient(float tickDelta) {
-        if (HeadInTheCloudsCompat.IS_LOADED) {
-            return ((WorldDuck) world).betterclouds$getOriginalThunderGradient(tickDelta);
-        }
-        return world.getThunderGradient(tickDelta);
-    }
-
-    private float interpolateDayNightFactor(float time, float riseStart, float riseEnd, float setStart, float setEnd) {
-        if (time <= 6000 || time > 18000) {
-            // sunrise time
-            if (time > 18000) time -= 24000;
-            return smoothstep(time, riseStart, riseEnd);
-        } else {
-            // sunset time
-            return 1 - smoothstep(time, setStart, setEnd);
-        }
-    }
-
-    private float smoothstep(float x, float e0, float e1) {
-        x = MathHelper.clamp((x - e0) / (e1 - e0), 0, 1);
-        return x * x * (3 - 2 * x);
     }
 
     public void close() {
