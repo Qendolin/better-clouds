@@ -1,13 +1,17 @@
 package com.qendolin.betterclouds.clouds;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.render.*;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.Box;
 import org.joml.Vector3d;
 import org.lwjgl.opengl.GL32;
 
+//? if >1.21.4 {
+/*import com.mojang.blaze3d.vertex.VertexFormat;
+*///?}
+
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,14 +54,29 @@ public class Debug {
         }
 
         glCompat.pushDebugGroupDev("Debug Draw");
+        //? if >=1.21 {
         BufferBuilder vertices = Tessellator.getInstance().begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
+        //?} else {
+        /*BufferBuilder vertices = Tessellator.getInstance().getBuffer();
+        vertices.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
+        *///?}
         drawFrustumCulledBoxes(vertices, cam);
 
         res.debugShader().bind();
         res.debugShader().uModelViewMatrix.setMat4(RenderSystem.getModelViewMatrix());
         res.debugShader().uProjectionMatrix.setMat4(RenderSystem.getProjectionMatrix());
 
-        renderer.render(vertices.endNullable());
+        var built = vertices.endNullable();
+        if(built != null) {
+            //? if >=1.21 {
+            var vertexBuffer = built.getBuffer();
+            //?} else {
+            /*var vertexBuffer = built.getVertexBuffer();
+            *///?}
+            renderer.render(vertexBuffer);
+            //? if >=1.21
+            built.close();
+        }
 
         clearFrustumCulledBoxes();
         glCompat.popDebugGroup();
@@ -150,29 +169,27 @@ public class Debug {
             GL32.glBindVertexArray(prevVao);
         }
 
-        public void render(BuiltBuffer buffer) {
-            if(buffer == null || buffer.getBuffer().remaining() == 0) return;
+        public void render(ByteBuffer buffer) {
+            if(buffer.remaining() == 0) return;
 
             int prevVao = GL32.glGetInteger(GL32.GL_VERTEX_ARRAY_BINDING);
 
             GL32.glBindVertexArray(vaoId);
             GL32.glBindBuffer(GL32.GL_ARRAY_BUFFER, vboId);
 
-            if(buffer.getBuffer().remaining() > vboSize) {
-                vboSize = buffer.getBuffer().remaining();
-                GL32.glBufferData(GL32.GL_ARRAY_BUFFER, buffer.getBuffer(), GL32.GL_STREAM_DRAW);
+            if(buffer.remaining() > vboSize) {
+                vboSize = buffer.remaining();
+                GL32.glBufferData(GL32.GL_ARRAY_BUFFER, buffer, GL32.GL_STREAM_DRAW);
                 int stride = 3 * Float.BYTES + 4;
                 // Position
                 GL32.glVertexAttribPointer(0, 3, GL32.GL_FLOAT, false, stride, 0);
                 // Color
                 GL32.glVertexAttribPointer(1, 4, GL32.GL_UNSIGNED_BYTE, true, stride, 3 * Float.BYTES);
             } else {
-                GL32.glBufferSubData(GL32.GL_ARRAY_BUFFER, 0, buffer.getBuffer());
+                GL32.glBufferSubData(GL32.GL_ARRAY_BUFFER, 0, buffer);
             }
 
-            GL32.glDrawArrays(GL32.GL_LINES, 0, buffer.getBuffer().remaining());
-
-            buffer.close();
+            GL32.glDrawArrays(GL32.GL_LINES, 0, buffer.remaining());
             GL32.glBindVertexArray(prevVao);
         }
     }

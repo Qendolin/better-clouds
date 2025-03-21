@@ -25,7 +25,7 @@ stonecutter.const("fabric", isFabric)
 stonecutter.const("neoforge", isNeoForge)
 stonecutter.const("forge", isForge)
 
-stonecutter  {
+stonecutter {
 	dependency("yacl", property('deps.yacl'))
 }
 
@@ -40,7 +40,7 @@ static def buildVersionString(String modVersion, String releaseType, String mcVe
 }
 
 static def trimSuffix(String original, String suffix) {
-	if(original.endsWith(suffix)) {
+	if (original.endsWith(suffix)) {
 		return original.substring(0, original.length() - suffix.length())
 	}
 	return original
@@ -97,9 +97,18 @@ loom {
 
 	if (isForge) forge {
 		mixinConfigs(
-			"betterclouds.mixins.json",
-			"betterclouds.optional.mixins.json",
+				"betterclouds.mixins.json",
+				"betterclouds.optional.mixins.json",
 		)
+	}
+}
+
+afterEvaluate {
+	if (isFabric) {
+		loom.runs.configureEach {
+			vmArg "-javaagent:${configurations.compileClasspath.find { it.name.contains("sponge-mixin") }}"
+			vmArg "-XX:+AllowEnhancedClassRedefinition"
+		}
 	}
 }
 
@@ -150,7 +159,7 @@ dependencies {
 		forgeRuntimeLibrary(runtimeOnly("org.quiltmc.parsers:json:0.2.1"))
 		forgeRuntimeLibrary(runtimeOnly("org.quiltmc.parsers:gson:0.2.1"))
 
-		if(stonecutter.eval(mcVersion, ">=1.21")) {
+		if (stonecutter.eval(mcVersion, ">=1.21")) {
 			modCompileOnly "maven.modrinth:iris:${property('deps.iris')}"
 			modCompileOnly "maven.modrinth:sodium-extra:${property('deps.sodium_extra')}"
 		} else {
@@ -162,7 +171,7 @@ dependencies {
 		// It causes NoClassDefFoundErrors due to the different mappings.
 		// This is a workaround that uses 'modLocalRuntime' to remap the mods found in the 'mods-forge' directory.
 		// It requires a project reload when the mods change.
-		if(stonecutter.current.isActive) {
+		if (stonecutter.current.isActive) {
 			def localModsDir = project.rootProject.file('./run/mods-forge/')
 			if (localModsDir.exists() && localModsDir.isDirectory()) {
 				def localMods = localModsDir
@@ -184,8 +193,8 @@ dependencies {
 
 processResources {
 	var props = [
-		version: project.version,
-		loader: loader,
+			version: project.version,
+			loader : loader,
 	]
 	if (isFabric) {
 		props["mc_version_range"] = findProperty("deps.minecraft").toString().split(",").collect {
@@ -196,7 +205,7 @@ processResources {
 			"[$it]"
 		}.join(",")
 	}
-	if(isNeoForge) {
+	if (isNeoForge) {
 		props["neoforge_version_range"] = findProperty("deps.neoforge").toString()
 	}
 
@@ -207,13 +216,13 @@ processResources {
 	}
 
 	// other targets use the AW
-	if(!isForge)
+	if (!isForge)
 		exclude("META-INF/accesstransformer.cfg")
-	if(isNeoForge || isForge)
+	if (isNeoForge || isForge)
 		exclude("fabric.mod.json")
-	if(isForge)
+	if (isForge)
 		exclude("META-INF/neoforge.mods.toml")
-	if(isFabric)
+	if (isFabric)
 		exclude("META-INF/mods.toml", "META-INF/neoforge.mods.toml")
 
 	exclude("assets/**/*.ase")
@@ -282,7 +291,7 @@ if (stonecutter.current.isActive) {
 
 jar {
 	from(project.rootProject.file("LICENSE").path) {
-		rename { "${it}_${project.archives_base_name}"}
+		rename { "${it}_${project.archives_base_name}" }
 	}
 }
 
@@ -297,11 +306,11 @@ modrinth { // Make sure it runs after build!
 		stream -> secrets.load(stream)
 	}
 
-    //noinspection GroovyAssignabilityCheck
-    changelog = project.provider {
+	//noinspection GroovyAssignabilityCheck
+	changelog = project.provider {
 		def file = rootProject.file("changelog.txt")
 		def lock = rootProject.file("changelog.txt.lock")
-		if(lock.createNewFile()) {
+		if (lock.createNewFile()) {
 			println("Opening changelog in notepad")
 			file.createNewFile()
 			def process = new ProcessBuilder("notepad", file.absolutePath)
@@ -310,7 +319,7 @@ modrinth { // Make sure it runs after build!
 			lock.delete()
 		} else {
 			println("Waiting changelog lock")
-			while(lock.exists()) {
+			while (lock.exists()) {
 				sleep(100)
 			}
 		}
@@ -331,7 +340,7 @@ modrinth { // Make sure it runs after build!
 	versionName = "${releaseName} ${property('mod.version')} for ${mcVersion} ${loaderName}"
 	versionType = "${property('mod.release')}"
 	uploadFile = remapJar
-	gameVersions = findProperty("deps.minecraft").toString().split(",").collect { trimSuffix(it, ".0")}
+	gameVersions = findProperty("deps.minecraft").toString().split(",").collect { trimSuffix(it, ".0") }
 	loaders.add(loader)
 	dependencies {
 		// A special DSL for creating dependencies
@@ -340,14 +349,14 @@ modrinth { // Make sure it runs after build!
 		// The type can either be `project` or `version`
 		required.version "yacl", "${property('deps.yacl')}-${loader}"
 
-		if(isFabric) {
+		if (isFabric) {
 			required.project "fabric-api"
 			optional.project "modmenu"
 			incompatible.project "vulkanmod"
 			incompatible.project "immersiveportals"
 		}
 
-		if(isFabric || stonecutter.eval(mcVersion, ">=1.21")) {
+		if (isFabric || stonecutter.eval(mcVersion, ">=1.21")) {
 			optional.project "sodium"
 			optional.project "iris"
 		} else {

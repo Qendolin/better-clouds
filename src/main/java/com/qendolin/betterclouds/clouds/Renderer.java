@@ -20,11 +20,11 @@ import org.joml.*;
 import net.minecraft.block.enums.CameraSubmersionType;
 
 //? if >1.21.4 {
-import com.mojang.blaze3d.opengl.GlStateManager;
-//?} else {
-/*import com.mojang.blaze3d.platform.GlStateManager;
+/*import com.mojang.blaze3d.opengl.GlStateManager;
+*///?} else {
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.qendolin.betterclouds.mixin.RenderPhaseAccessor;
-*///?}
+//?}
 
 import java.lang.Math;
 import java.util.*;

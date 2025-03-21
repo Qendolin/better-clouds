@@ -13,6 +13,10 @@ import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector4f;
 
+//? if <1.21.3 {
+/*import com.mojang.blaze3d.systems.RenderSystem;
+*///?}
+
 public abstract class FogProvider {
 
     @Nullable
@@ -35,9 +39,8 @@ public abstract class FogProvider {
         float start = adjusted.start();
         float end = adjusted.end();
         FogShape shape = adjusted.shape();
-
         //?} else {
-        /*BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_TERRAIN, cloudDistance, shouldUseThickFog(world, camera.getPos()), tickDelta);
+        /*BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_TERRAIN, cloudDistance, shouldUseThickFog(client.world, camera.getPos()), tickDelta);
         float start = RenderSystem.getShaderFogStart();
         float end = RenderSystem.getShaderFogEnd();
         FogShape shape = RenderSystem.getShaderFogShape();

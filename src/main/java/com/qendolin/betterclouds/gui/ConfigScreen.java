@@ -71,10 +71,10 @@ public class ConfigScreen extends YACLScreen {
     //?} else {
         /*if (client == null || client.world == null) {
             //? if >1.20.1 {
-            /^super.renderBackground(context, mouseX, mouseY, delta);
-            ^///?} else {
-            super.renderBackground(context);
-            //?}
+            super.renderBackground(context, mouseX, mouseY, delta);
+            //?} else {
+            /^super.renderBackground(context);
+            ^///?}
         }
     *///?}
         this.renderDarkening(context);
@@ -87,7 +87,7 @@ public class ConfigScreen extends YACLScreen {
             super.renderBackgroundTexture(context);
         }
         //? if <1.20.2
-        renderDarkening(context);
+        /^renderDarkening(context);^/
     }
     *///?}
 
