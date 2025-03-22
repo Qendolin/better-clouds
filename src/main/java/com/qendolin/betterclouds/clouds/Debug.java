@@ -71,11 +71,13 @@ public class Debug {
         var built = vertices.endNullable();
         if(built != null) {
             //? if >=1.21 {
-            var vertexBuffer = built.getBuffer();
+            ByteBuffer vertexBuffer = built.getBuffer();
+            int vertexCount = built.getDrawParameters().vertexCount();
             //?} else {
-            /*var vertexBuffer = built.getVertexBuffer();
+            /*ByteBuffer vertexBuffer = built.getVertexBuffer();
+            int vertexCount = built.getParameters().vertexCount();
             *///?}
-            renderer.render(vertexBuffer);
+            renderer.render(vertexBuffer, vertexCount);
             //? if >=1.21
             built.close();
         }
@@ -171,7 +173,7 @@ public class Debug {
             GL32.glBindVertexArray(prevVao);
         }
 
-        public void render(ByteBuffer buffer) {
+        public void render(ByteBuffer buffer, int vertexCount) {
             if(buffer.remaining() == 0) return;
 
             int prevVao = GL32.glGetInteger(GL32.GL_VERTEX_ARRAY_BINDING);
@@ -191,7 +193,7 @@ public class Debug {
                 GL32.glBufferSubData(GL32.GL_ARRAY_BUFFER, 0, buffer);
             }
 
-            GL32.glDrawArrays(GL32.GL_LINES, 0, buffer.remaining());
+            GL32.glDrawArrays(GL32.GL_LINES, 0, vertexCount);
             GL32.glBindVertexArray(prevVao);
         }
     }
