@@ -69,8 +69,8 @@ public class CullingShader implements Closeable {
             throw fileEx;
         }
         int id = GlStateManager.glCreateShader(type);
-        GlStateManager.glShaderSource(id, Collections.singletonList(shaderSrc));
-        GlStateManager.glCompileShader(id);
+        glShaderSource(id, shaderSrc);
+        glCompileShader(id);
         if (GlStateManager.glGetShaderi(id, GL_COMPILE_STATUS) == 0) {
             String log = StringUtils.trim(GlStateManager.glGetShaderInfoLog(id, 32768));
             InvalidHierarchicalFileException parseEx = new InvalidHierarchicalFileException("Couldn't compile shader program (" + resource + "): \n" + log + "\n\nShader Source: \n" + shaderSrc);

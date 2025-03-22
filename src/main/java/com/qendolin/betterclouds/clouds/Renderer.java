@@ -311,6 +311,7 @@ public class Renderer implements AutoCloseable {
         // Render debug stuff
         getProfiler().swap("draw_debug");
         Debug.render(res, cam);
+        frustumCuller.debugDraw();
 
         // Resolve and shade clouds
         getProfiler().swap("draw_shading");

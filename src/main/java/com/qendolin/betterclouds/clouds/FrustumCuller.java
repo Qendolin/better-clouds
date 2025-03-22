@@ -1,10 +1,16 @@
 package com.qendolin.betterclouds.clouds;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.gl.GlUsage;
+import net.minecraft.client.gl.VertexBuffer;
 import net.minecraft.client.render.*;
 import net.minecraft.util.math.Box;
 import org.joml.*;
 import org.lwjgl.opengl.GL32;
+
+//? if >=1.21.3 {
+import net.minecraft.client.gl.ShaderProgramKeys;
+//?}
 
 import java.lang.Math;
 
@@ -25,6 +31,10 @@ public class FrustumCuller {
     private final Vector4d tr = new Vector4d();
     private final Vector4d bl = new Vector4d();
     private final Vector4d br = new Vector4d();
+
+    // debug draw
+    private final VertexBuffer linesVertexBuffer = new VertexBuffer(GlUsage.STATIC_WRITE);
+    private final VertexBuffer facesVertexBuffer = new VertexBuffer(GlUsage.STATIC_WRITE);
 
     public Vector3d top() {
         return top;
@@ -333,7 +343,8 @@ public class FrustumCuller {
         lines.vertex(mat, (float) 0, (float) 1, 0)
             .color(0f, 0f, 0f,1f);
 
-        BuiltBuffer linesBuiltBuffer = lines.end();
+        linesVertexBuffer.bind();
+        linesVertexBuffer.upload(lines.end());
 
         var faces = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
 
@@ -386,14 +397,28 @@ public class FrustumCuller {
             .vertex(mat, 0,0,0)
             .color(0.0f,0.5f,0.5f, 0.25f);
 
-        RenderSystem.applyModelViewMatrix();
+        facesVertexBuffer.bind();
+        facesVertexBuffer.upload(faces.end());
+    }
+
+    public void debugDraw() {
+        if(!DEBUG_LOCK) return;
+
+        //? if <1.21.3 {
+        /*RenderSystem.applyModelViewMatrix();
         RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+        *///?} else {
+        RenderSystem.getModelViewMatrix();
+        RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
+        //?}
         RenderSystem.enableBlend();
         RenderSystem.disableCull();
         RenderSystem.depthMask(false);
         GL32.glEnable(GL32.GL_DEPTH_CLAMP);
-        BufferRenderer.drawWithGlobalProgram(linesBuiltBuffer);
-        BufferRenderer.drawWithGlobalProgram(faces.end());
+        linesVertexBuffer.bind();
+        linesVertexBuffer.draw(RenderSystem.getModelViewMatrix(), RenderSystem.getProjectionMatrix(), RenderSystem.getShader());
+        facesVertexBuffer.bind();
+        facesVertexBuffer.draw(RenderSystem.getModelViewMatrix(), RenderSystem.getProjectionMatrix(), RenderSystem.getShader());
         GL32.glDisable(GL32.GL_DEPTH_CLAMP);
         RenderSystem.depthMask(true);
         RenderSystem.disableBlend();
