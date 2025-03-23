@@ -40,6 +40,7 @@ public class Resources implements Closeable {
     // Shaders
     private DepthShader depthShader = null;
     private CoverageShader coverageShader = null;
+    private CoverageFarShader coverageFarShader = null;
     private ShadingShader shadingShader = null;
     private DebugShader debugShader = null;
     private CullingShader cullingShader = null;
@@ -74,6 +75,10 @@ public class Resources implements Closeable {
 
     public CoverageShader coverageShader() {
         return coverageShader;
+    }
+
+    public CoverageFarShader coverageFarShader() {
+        return coverageFarShader;
     }
 
     public ShadingShader shadingShader() {
@@ -374,6 +379,12 @@ public class Resources implements Closeable {
         coverageShader.uDhDepthTexture.setInt(6);
         glCompat.objectLabelDev(glCompat.GL_PROGRAM, coverageShader.glId(), "coverage");
 
+        coverageFarShader = CoverageFarShader.create(manager,
+            shaderParameters.regions());
+        coverageFarShader.bind();
+        coverageFarShader.uDepthTexture.setInt(0);
+        glCompat.objectLabelDev(glCompat.GL_PROGRAM, coverageFarShader.glId(), "far");
+
         shadingShader = ShadingShader.create(manager,
             shaderParameters.useDepthWriteFallback(),
             shaderParameters.useStencilTextureFallback(),
@@ -396,10 +407,15 @@ public class Resources implements Closeable {
     public void deleteShaders() {
         if (depthShader != null) depthShader.close();
         if (coverageShader != null) coverageShader.close();
+        if (coverageFarShader != null) coverageFarShader.close();
         if (shadingShader != null) shadingShader.close();
+        if (debugShader != null) debugShader.close();
+        if (cullingShader != null) cullingShader.close();
         depthShader = null;
         coverageShader = null;
         shadingShader = null;
+        debugShader = null;
+        cullingShader = null;
     }
 
     public static void unbindShader() {

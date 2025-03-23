@@ -14,6 +14,7 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
+import org.apache.commons.lang3.ArrayUtils;
 import org.joml.*;
 import org.lwjgl.opengl.GL43;
 import org.lwjgl.opengl.GL46;
@@ -59,6 +60,7 @@ public class Renderer implements AutoCloseable {
     private int cloudBufferWriteOnceId = -1;
     private ChunkGenerator2 chunkGenerator2;
     private int heightTextureArray;
+    private int regionOffsetsSsbo;
 
     private final Resources res = new Resources();
 
@@ -95,6 +97,9 @@ public class Renderer implements AutoCloseable {
         GL43.glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_R8, ChunkGenerator2.GEN_CHUNK_SIZE, ChunkGenerator2.GEN_CHUNK_SIZE, chunkGenerator2.index.length);
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+        regionOffsetsSsbo = glGenBuffers();
+        glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER, regionOffsetsSsbo);
 
         Main.LOGGER.info("Reloading cloud renderer...");
         Main.LOGGER.debug("[1/6] Reloading shaders");
@@ -182,8 +187,15 @@ public class Renderer implements AutoCloseable {
 //                RenderDoc.triggerCapture();
                 glBindTexture(GL_TEXTURE_2D_ARRAY, heightTextureArray);
                 for (int region = 0; region < chunkGenerator2.index.length; region++) {
-                    int offset = chunkGenerator2.startOf(region, 0, 0, 0);
-                    int length = chunkGenerator2.countOf(0);
+                    int length = ChunkGenerator2.GEN_CHUNK_SIZE_2 * ChunkGenerator2.BYTES_PER_COORD;
+                    int offset = length * region;
+                    var slice = chunkGenerator2.buffer.slice(offset, length);
+                    GlStateManager._pixelStore(GL_UNPACK_ALIGNMENT, 4);
+                    GlStateManager._pixelStore(GL_UNPACK_ROW_LENGTH, 0);
+                    GlStateManager._pixelStore(GL_UNPACK_IMAGE_HEIGHT, 0);
+                    GlStateManager._pixelStore(GL_UNPACK_SKIP_PIXELS, 0);
+                    GlStateManager._pixelStore(GL_UNPACK_SKIP_ROWS, 0);
+                    GlStateManager._pixelStore(GL_UNPACK_SKIP_IMAGES, 0);
                     glTexSubImage3D(
                         GL_TEXTURE_2D_ARRAY,
                         0,
@@ -195,9 +207,12 @@ public class Renderer implements AutoCloseable {
                         1,
                         GL_RED,
                         GL_UNSIGNED_BYTE,
-                        chunkGenerator2.buffer.slice(offset, length));
-
+                        slice);
                 }
+
+                glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER, regionOffsetsSsbo);
+                int[] data = ArrayUtils.addAll(chunkGenerator2.regionOffsets, chunkGenerator2.regionMap.values());
+                glBufferData(GL43.GL_SHADER_STORAGE_BUFFER, data, GL_STATIC_DRAW);
             }
         }
 
@@ -577,11 +592,12 @@ public class Renderer implements AutoCloseable {
         glActiveTexture(GL_TEXTURE6);
         glBindTexture(GL_TEXTURE_2D_ARRAY, heightTextureArray);
 
+        glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER, 0, regionOffsetsSsbo);
+
         if (commands == null) {
             commands = new DrawCommands((int) Math.pow(4, ChunkGenerator2.MAX_SUB_LVL) * 2);
         }
 
-        glUniform2iv(res.coverageShader().uRegionOffsets.location(), chunkGenerator2.regionOffsets);
         res.coverageShader().uCameraPos.setVec3((float) cam.x, (float) cam.y - cloudsHeight, (float) cam.z);
         res.coverageShader().uSpacing.setFloat(getConfig().spacing);
 
@@ -592,6 +608,7 @@ public class Renderer implements AutoCloseable {
         // Possible optimization:
         // Culling this many faces is quite slow, so any regions that are not the center regions can
         // not draw faces that always point away
+
 
         for (int region = 0; region < chunkGenerator2.index.length; region++) {
             commands.reset(0);
@@ -606,6 +623,15 @@ public class Renderer implements AutoCloseable {
             }
         }
 
+
+        GlStateManager._disableCull();
+        res.coverageFarShader().bind();
+        res.coverageFarShader().uMVPMatrix.setMat4(mvpMatrix);
+        res.coverageFarShader().uSpacing.setFloat(config.spacing);
+
+        for (int i = 0; i < 2; i++) {
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        }
 
         if (1 == 1) return;
 

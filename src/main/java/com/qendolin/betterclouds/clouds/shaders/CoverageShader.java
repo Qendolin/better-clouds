@@ -31,7 +31,6 @@ public class CoverageShader extends Shader {
     public final Uniform uTime;
     public final Uniform uMiscellaneous;
     public final Uniform uFogRange;
-    public final Uniform uRegionOffsets;
     public final Uniform uCameraPos;
     public final Uniform uSpacing;
 
@@ -51,7 +50,6 @@ public class CoverageShader extends Shader {
         uBoundingBox = getUniform("u_bounding_box", false);
         uMiscellaneous = getUniform("u_miscellaneous", true);
         uFogRange = getUniform("u_fog_range", true);
-        uRegionOffsets = getUniform("u_region_offsets", false);
         uCameraPos = getUniform("u_camera_pos", false);
         uSpacing = getUniform("u_spacing", true);
     }

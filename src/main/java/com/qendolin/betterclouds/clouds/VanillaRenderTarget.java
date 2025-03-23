@@ -48,7 +48,8 @@ public class VanillaRenderTarget {
         *///?} else {
         framebuffer.beginWrite(false);
         renderPhase = RenderPhaseAccessor.getCloudsTarget();
-        renderPhase.startDrawing();
+        if(renderPhase != null)
+            renderPhase.startDrawing();
         //?}
     }
 

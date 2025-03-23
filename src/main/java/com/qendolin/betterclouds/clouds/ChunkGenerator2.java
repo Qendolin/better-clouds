@@ -1,11 +1,9 @@
 package com.qendolin.betterclouds.clouds;
 
-import com.qendolin.betterclouds.config.Config;
-import net.minecraft.block.Block;
 import net.minecraft.util.math.MathHelper;
-import org.joml.Vector2f;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 public class ChunkGenerator2 {
 
@@ -19,7 +17,7 @@ public class ChunkGenerator2 {
     // inverse coordinate to index table, contains packed x,z positions
     long[] index;
     int[] regionOffsets;
-//    final short[] generationOrder;
+    //    final short[] generationOrder;
     final short[][] generationOrder;
     final short[] generationOrderInverse;
     // number of chunks along one axis
@@ -37,20 +35,22 @@ public class ChunkGenerator2 {
 
     float spacing;
 
+    RegionMap regionMap;
+
     public ChunkGenerator2(ByteBuffer buffer, int size, float spacing) {
         this.buffer = buffer;
         this.size = size;
         this.spacing = spacing;
         this.index = new long[size * size];
         this.regionOffsets = new int[size * size * 2];
+        this.regionMap = new RegionMap(size);
         this.generationOrder = new short[GEN_CHUNK_SIZE_2][];
         this.generationOrderInverse = new short[GEN_CHUNK_SIZE_2];
         initGenerationOrder();
     }
 
 
-    private static int interleaveBits(int x)
-    {
+    private static int interleaveBits(int x) {
         x = (x | (x << 8)) & 0x00FF00FF;
         x = (x | (x << 4)) & 0x0F0F0F0F;
         x = (x | (x << 2)) & 0x33333333;
@@ -58,8 +58,7 @@ public class ChunkGenerator2 {
         return x;
     }
 
-    private static int encodeMorton(int x, int y)
-    {
+    private static int encodeMorton(int x, int y) {
         return (interleaveBits(y) << 1) | interleaveBits(x);
     }
 
@@ -75,7 +74,7 @@ public class ChunkGenerator2 {
     private static int[] decodeMorton(int index) {
         int x = deinterleaveBits(index);
         int y = deinterleaveBits(index >> 1);
-        return new int[]{x,y};
+        return new int[]{x, y};
     }
 
 
@@ -84,7 +83,7 @@ public class ChunkGenerator2 {
 
         for (int i = 0; i < GEN_CHUNK_SIZE_2; i++) {
             var xy = decodeMorton(i);
-            generationOrder[i] = new short[] {(short) xy[0], (short) xy[1]};
+            generationOrder[i] = new short[]{(short) xy[0], (short) xy[1]};
             generationOrderInverse[xy[0] + xy[1] * GEN_CHUNK_SIZE] = (short) i;
         }
 
@@ -108,26 +107,26 @@ public class ChunkGenerator2 {
 //        }
     }
 
-    private void initGenerationOrderRecursive(int bi, int bx, int bz, int lvl, int size) {
-        int ci = 0;
-        if(lvl == MAX_SUB_LVL) {
-            for(int dz = 0; dz < size; dz++) {
-                for(int dx = 0; dx < size; dx++) {
-                    generationOrder[bi + ci] = new short[] {(short) (bx + dx), (short) (bz + dz)};
-                    generationOrderInverse[bx + dx + GEN_CHUNK_SIZE * (bz + dz)] = (short) (bi + ci);
-                    ci++;
-                }
-            }
-            return;
-        }
-        int di = countOf(lvl+1);
-        for (int dz = 0; dz < size; dz += size / 2) {
-            for (int dx = 0; dx < size; dx += size / 2) {
-                initGenerationOrderRecursive(bi + di * ci, bx + dx, bz + dz, lvl+1, size/2);
-                ci++;
-            }
-        }
-    }
+//    private void initGenerationOrderRecursive(int bi, int bx, int bz, int lvl, int size) {
+//        int ci = 0;
+//        if(lvl == MAX_SUB_LVL) {
+//            for(int dz = 0; dz < size; dz++) {
+//                for(int dx = 0; dx < size; dx++) {
+//                    generationOrder[bi + ci] = new short[] {(short) (bx + dx), (short) (bz + dz)};
+//                    generationOrderInverse[bx + dx + GEN_CHUNK_SIZE * (bz + dz)] = (short) (bi + ci);
+//                    ci++;
+//                }
+//            }
+//            return;
+//        }
+//        int di = countOf(lvl+1);
+//        for (int dz = 0; dz < size; dz += size / 2) {
+//            for (int dx = 0; dx < size; dx += size / 2) {
+//                initGenerationOrderRecursive(bi + di * ci, bx + dx, bz + dz, lvl+1, size/2);
+//                ci++;
+//            }
+//        }
+//    }
 
     // result is always odd
     public static int calculateSize(float blockDistance, float spacing) {
@@ -140,17 +139,17 @@ public class ChunkGenerator2 {
         return MathHelper.square(size * GEN_CHUNK_SIZE);
     }
 
-    public float[] bounds(int i) {
-        int x = (int) this.index[i];
-        int z = (int) (this.index[i] >> 32);
-
-        return new float[]{
-            x * spacing * GEN_CHUNK_SIZE,
-            z * spacing * GEN_CHUNK_SIZE,
-            (x + 1) * spacing * GEN_CHUNK_SIZE,
-            (z + 1) * spacing * GEN_CHUNK_SIZE
-        };
-    }
+//    public float[] bounds(int i) {
+//        int x = (int) this.index[i];
+//        int z = (int) (this.index[i] >> 32);
+//
+//        return new float[]{
+//            x * spacing * GEN_CHUNK_SIZE,
+//            z * spacing * GEN_CHUNK_SIZE,
+//            (x + 1) * spacing * GEN_CHUNK_SIZE,
+//            (z + 1) * spacing * GEN_CHUNK_SIZE
+//        };
+//    }
 
     public void bounds(int i, float[] out) {
         int x = (int) this.index[i];
@@ -182,45 +181,45 @@ public class ChunkGenerator2 {
 //        };
 //    }
 
-    public float[] bounds(int i, int lvl, int sub) {
-        if (lvl == 0) return bounds(i);
-        // base
-        int bx = GEN_CHUNK_SIZE * (int) this.index[i];
-        int bz = GEN_CHUNK_SIZE * (int) (this.index[i] >> 32);
+//    public float[] bounds(int i, int lvl, int sub) {
+//        if (lvl == 0) return bounds(i);
+//        // base
+//        int bx = GEN_CHUNK_SIZE * (int) this.index[i];
+//        int bz = GEN_CHUNK_SIZE * (int) (this.index[i] >> 32);
+//
+//        int dsize = GEN_CHUNK_SIZE >> lvl;
+//        int index = sub * dsize * dsize;
+//        int dx = this.generationOrder[index][0];
+//        int dz = this.generationOrder[index][1];
+//
+//        return new float[]{
+//            (bx + dx) * spacing,
+//            (bz + dz) * spacing,
+//            (bx + dx + dsize) * spacing,
+//            (bz + dz + dsize) * spacing
+//        };
+//    }
 
-        int dsize = GEN_CHUNK_SIZE >> lvl;
-        int index = sub * dsize * dsize;
-        int dx = this.generationOrder[index][0];
-        int dz = this.generationOrder[index][1];
-
-        return new float[]{
-            (bx + dx) * spacing,
-            (bz + dz) * spacing,
-            (bx + dx + dsize) * spacing,
-            (bz + dz + dsize) * spacing
-        };
-    }
-
-    public float[] bounds(int i, int lvl, int x, int z) {
-        if (lvl == 0) return bounds(i);
-        // base
-        int bx = GEN_CHUNK_SIZE * (int) this.index[i];
-        int bz = GEN_CHUNK_SIZE * (int) (this.index[i] >> 32);
-
-        int dsize = GEN_CHUNK_SIZE >> lvl;
-        x *= dsize;
-        z *= dsize;
-        int index = this.generationOrderInverse[x + GEN_CHUNK_SIZE * z];
-        int dx = this.generationOrder[index][0];
-        int dz = this.generationOrder[index][1];
-
-        return new float[]{
-            (bx + dx) * spacing,
-            (bz + dz) * spacing,
-            (bx + dx + dsize) * spacing,
-            (bz + dz + dsize) * spacing
-        };
-    }
+//    public float[] bounds(int i, int lvl, int x, int z) {
+//        if (lvl == 0) return bounds(i);
+//        // base
+//        int bx = GEN_CHUNK_SIZE * (int) this.index[i];
+//        int bz = GEN_CHUNK_SIZE * (int) (this.index[i] >> 32);
+//
+//        int dsize = GEN_CHUNK_SIZE >> lvl;
+//        x *= dsize;
+//        z *= dsize;
+//        int index = this.generationOrderInverse[x + GEN_CHUNK_SIZE * z];
+//        int dx = this.generationOrder[index][0];
+//        int dz = this.generationOrder[index][1];
+//
+//        return new float[]{
+//            (bx + dx) * spacing,
+//            (bz + dz) * spacing,
+//            (bx + dx + dsize) * spacing,
+//            (bz + dz + dsize) * spacing
+//        };
+//    }
 
     public void bounds(int i, int lvl, int x, int z, float[] out) {
         if (lvl == 0) {
@@ -323,15 +322,19 @@ public class ChunkGenerator2 {
                 this.index[i] = packed;
 
                 ByteBuffer slice = buffer.slice(i * sliceLength, sliceLength);
-                generate(slice, rx, rz);
+                generate(slice, rx, rz, rx - minx, rz - minz);
             }
+
+            int dx = cx - this.cx;
+            int dz = cz - this.cz;
+            regionMap.shift(dx, dz);
         } else {
             initialized = true;
             int i = 0;
-                for (int zz = minz; zz <= maxz; zz++) {
-            for (int xx = minx; xx <= maxx; xx++) {
+            for (int zz = minz; zz <= maxz; zz++) {
+                for (int xx = minx; xx <= maxx; xx++) {
                     ByteBuffer slice = buffer.slice(i * sliceLength, sliceLength);
-                    generate(slice, xx, zz);
+                    generate(slice, xx, zz, xx - minx, zz - minz);
                     long packed = (((long) zz) << 32) | (xx & 0xffffffffL);
                     this.index[i++] = packed;
                 }
@@ -341,8 +344,8 @@ public class ChunkGenerator2 {
         for (int i = 0; i < this.index.length; i++) {
             int xx = (int) this.index[i];
             int zz = (int) (this.index[i] >> 32);
-            this.regionOffsets[i*2] = xx;
-            this.regionOffsets[i*2+1] = zz;
+            this.regionOffsets[i * 2] = xx;
+            this.regionOffsets[i * 2 + 1] = zz;
         }
 
         this.minx = minx;
@@ -354,7 +357,7 @@ public class ChunkGenerator2 {
         return true;
     }
 
-    public void generate(ByteBuffer slice, int chunkx, int chunkz) {
+    public void generate(ByteBuffer slice, int chunkx, int chunkz, int rx, int rz) {
         slice.clear();
         int index = 0;
         int length = GEN_CHUNK_SIZE_2;
@@ -382,7 +385,8 @@ public class ChunkGenerator2 {
 //            value = (float) Math.random();
 //            value = 0;
             value = sampler.sample(MathHelper.floor(x), MathHelper.floor(z), 0.5f, 0f, 1f);
-            if(value <= 0) value = 0;
+//            value = (rx + size * rz) / 255f;
+            if (value <= 0) value = 0;
             value = value * value;
 //            value = new Vector2f(lx, lz).div(128).length();
 
@@ -396,5 +400,41 @@ public class ChunkGenerator2 {
         }
     }
 
+
+    public static class RegionMap {
+
+        final int size;
+        final int[] map;
+
+        public RegionMap(int size) {
+            this.size = size;
+            this.map = new int[size * size];
+            for (int i = 0; i < this.map.length; i++) {
+                this.map[i] = i;
+            }
+        }
+
+        public void shift(int dx, int dz) {
+            int[] old = Arrays.copyOf(map, map.length);
+            // make d [0, size)
+            dx = ((dx % size) + size) % size;
+            dz = ((dz % size) + size) % size;
+            for (int row = 0; row < size; row++) {
+                for (int col = 0; col < size; col++) {
+                    int rowFrom = (row + size - dz) % size;
+                    int colFrom = (col + size - dx) % size;
+                    int from = rowFrom * size + colFrom;
+                    int to = row * size + col;
+                    int value = old[from];
+                    map[to] = value;
+                }
+            }
+        }
+
+        public int[] values() {
+            return map;
+        }
+
+    }
 
 }

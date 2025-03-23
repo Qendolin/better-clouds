@@ -2,6 +2,7 @@
 
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shader_draw_parameters : require
+#extension GL_ARB_shading_language_420pack : enable
 
 // tri-strip
 vec3 vertex_positions[14] = vec3[](
@@ -224,9 +225,13 @@ layout(binding = 6) uniform sampler2DArray u_height;
 uniform mat4 u_mvp_matrix;
 uniform vec3 u_miscellaneous;
 uniform vec3 u_camera_pos;
-// FIXME: too large
-uniform ivec2 u_region_offsets[REGIONS * REGIONS];
 uniform float u_spacing;
+
+layout(std430, binding = 0) buffer RegionOffsets
+{
+    ivec2 ssbo_region_offsets[REGIONS * REGIONS];
+    int ssbo_region_map[REGIONS * REGIONS];
+};
 
 /*
 layout(location = 0) in float in_pos[4]; // instanced per cloud cube
@@ -258,23 +263,27 @@ void main() {
     //    vec3 p = vec3(instance % 128, in_pos, int(instance / 128)) * vec3(u_spacing, 64, u_spacing) + u_miscellaneous;
     //    vec3 region_origin = u_miscellaneous;
     vec3 region_offset = vec3(0.0);
+    // FIXME: This is wrong I think
     int region = int(instance / (128u * 128u));
+
     //    int region = u_regions[int(instance / (128u * 128u))];
     //    int region = u_region;
     //    region_origin.x = region / REGIONS - REGIONS/2;
-    region_offset.xz = vec2(u_region_offsets[region].xy);
+    region_offset.xz = vec2(ssbo_region_offsets[region].xy);
     region_offset.y = 0;
     //    region_origin.z = region % REGIONS - REGIONS/2;
     region_offset *= u_spacing * 128;
     //    float y = in_pos;
-            float y = float(morton_index) / (128. * 128.);
+//            float y = float(morton_index) / (128. * 128.);
 
-//        float y = texelFetch(u_height, ivec3(int(morton_pos.x), int(morton_pos.y), region), 0).r;
+//    region = ssbo_region_map[region];
+
+    float y = texelFetch(u_height, ivec3(int(morton_pos.x), int(morton_pos.y), region), 0).r;
     //    float y = texture(u_height, vec3((float(morton_pos.x) + 0.5) / 128.0, (float(morton_pos.y) + 0.5) / 128.0, region), 0).r;
 //    y += 0.01;
 //    float y = 0.5;
     vec3 p = vec3(morton_pos.x, y, morton_pos.y) * vec3(u_spacing, 64, u_spacing) + region_offset;
-    //    p += r;
+//    p += r;
 
     vec3 d = u_camera_pos - p;
     ivec3 corner = ivec3(d.x <= 0.0 ? -1:1, d.y <= 0.0 ? -1:1, d.z <= 0.0 ? -1:1);

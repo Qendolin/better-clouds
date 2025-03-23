@@ -9,8 +9,8 @@ import java.util.Map;
 
 public class DebugShader extends Shader {
 
-    public static final Identifier VERTEX_SHADER_ID = Identifier.of(Main.MODID, "shaders/core/debug.vsh");
-    public static final Identifier FRAGMENT_SHADER_ID = Identifier.of(Main.MODID, "shaders/core/debug.fsh");
+    public static final Identifier VERTEX_SHADER_ID = Identifier.of(Main.MODID, "shaders/core/debug.vert");
+    public static final Identifier FRAGMENT_SHADER_ID = Identifier.of(Main.MODID, "shaders/core/debug.frag");
 
     public final Uniform uModelViewMatrix;
     public final Uniform uProjectionMatrix;
