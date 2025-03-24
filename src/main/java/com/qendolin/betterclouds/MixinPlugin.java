@@ -26,7 +26,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
             return SodiumExtraCompat.IS_LOADED;
         }
         if (mixinClassName.endsWith("ExtendedShaderAccessor") || mixinClassName.endsWith("FallbackShaderAccessor")) {
-            return IrisCompat.IS_LOADED;
+            return IrisCompat.isLoaded();
         }
         return !isDisabledByAnnotation(mixinClassName);
     }

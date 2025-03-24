@@ -19,35 +19,52 @@ public abstract class DistantHorizonsCompat {
     );
 
     private static DistantHorizonsCompat instance;
+    private static boolean isLoaded = false;
 
     public static void initialize() {
         if (instance != null) return;
+
         Main.LOGGER.info("Initializing DistantHorizons compat");
 
-        boolean isLoaded = ModLoader.isModLoaded("distanthorizons");
-        int apiVersion = 0;
-        try {
-            Class.forName("com.seibel.distanthorizons.api.DhApi");
-            apiVersion = DhApi.getApiMajorVersion();
-            Main.LOGGER.info("DistantHorizons API version is {}.{}.{}", DhApi.getApiMajorVersion(), DhApi.getApiMinorVersion(), DhApi.getApiPatchVersion());
-        } catch (ClassNotFoundException e) {
-            isLoaded = false;
+        final boolean isLoaded = ModLoader.isModLoaded("distanthorizons");
+
+        if(!isLoaded) {
+            Main.LOGGER.info("DistantHorizons not loaded");
         }
 
-        if (isLoaded && apiVersion == 4) {
+        int apiVersion = 0;
+        if(isLoaded) {
+            try {
+                Class.forName("com.seibel.distanthorizons.api.DhApi");
+                apiVersion = DhApi.getApiMajorVersion();
+                Main.LOGGER.info("DistantHorizons API version is {}.{}.{}", DhApi.getApiMajorVersion(), DhApi.getApiMinorVersion(), DhApi.getApiPatchVersion());
+            } catch (ClassNotFoundException e) {
+                Main.LOGGER.error("DistantHorizons version not compatible");
+            }
+        }
+
+        if (apiVersion == 4) {
             Main.LOGGER.warn("Using EXPERIMENTAL DistantHorizons 4 compat. The game might crash!");
             instance = new DistantHorizons4CompatImpl();
-        } else if (isLoaded && apiVersion == 3) {
+        } else if (apiVersion == 3) {
             Main.LOGGER.info("Using DistantHorizons 3 compat");
             instance = new DistantHorizons3CompatImpl();
-        } else if (isLoaded && apiVersion == 2) {
+        } else if (apiVersion == 2) {
             Main.LOGGER.info("Using DistantHorizons 2 compat");
             instance = new DistantHorizons2CompatImpl();
         } else {
-            Main.LOGGER.info("No DistantHorizons compat");
+            if(isLoaded)
+                Main.LOGGER.error("DistantHorizons version not compatible");
+
             instance = new Stub();
         }
+        DistantHorizonsCompat.isLoaded = !(instance instanceof Stub);
     }
+
+    public static boolean isLoaded() {
+        return isLoaded;
+    }
+
 
     public static DistantHorizonsCompat instance() {
         return instance;

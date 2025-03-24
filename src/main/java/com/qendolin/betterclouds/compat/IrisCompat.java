@@ -5,23 +5,34 @@ import com.qendolin.betterclouds.platform.ModLoader;
 
 public abstract class IrisCompat {
 
-    public static final boolean IS_LOADED = ModLoader.isModLoaded("iris");
-
     private static IrisCompat instance;
+    private static boolean isLoaded = false;
 
     public static void initialize() {
         if (instance != null) return;
 
         Main.LOGGER.info("Initializing Iris compat");
 
-        boolean isLoaded = IS_LOADED;
-        try {
-            Class.forName("net.irisshaders.iris.Iris");
-        } catch (ClassNotFoundException e) {
-            isLoaded = false;
+        boolean isLoaded = ModLoader.isModLoaded("iris");
+        if(!isLoaded) {
+            Main.LOGGER.info("Iris not loaded");
+        }
+
+        if(isLoaded) {
+            try {
+                Class.forName("net.irisshaders.iris.Iris");
+            } catch (ClassNotFoundException e) {
+                isLoaded = false;
+                Main.LOGGER.error("Iris version not compatible");
+            }
         }
 
         instance = isLoaded ? new IrisCompatImpl() : new Stub();
+        IrisCompat.isLoaded = isLoaded;
+    }
+
+    public static boolean isLoaded() {
+        return isLoaded;
     }
 
     public static IrisCompat instance() {

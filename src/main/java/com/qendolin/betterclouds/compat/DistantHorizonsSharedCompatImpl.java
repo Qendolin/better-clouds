@@ -15,7 +15,7 @@ import org.joml.Matrix4f;
 import java.lang.reflect.Field;
 import java.util.Optional;
 
-abstract class DistantHorizonsSharedCompatImpl extends DistantHorizonsCompat {
+public abstract class DistantHorizonsSharedCompatImpl extends DistantHorizonsCompat {
     private boolean isDhInitialized = false;
     private DhApiRenderParam lastRenderParam = null;
 

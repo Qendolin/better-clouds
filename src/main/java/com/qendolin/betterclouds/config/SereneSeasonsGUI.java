@@ -107,7 +107,7 @@ public class SereneSeasonsGUI {
         );
         compatSereneSeasonsGroup.addAll(options);
         for (var opt : options) {
-            opt.setAvailable(SereneSeasonsCompat.IS_LOADED);
+            opt.setAvailable(SereneSeasonsCompat.isLoaded());
         }
 
 

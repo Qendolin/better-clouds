@@ -9,8 +9,6 @@ import java.util.Map;
 import java.util.function.Function;
 
 public abstract class SereneSeasonsCompat {
-    public static final boolean IS_LOADED = ModLoader.isModLoaded("sereneseasons");
-
     public static final Map<String, Function<SereneSeasonsConfig, Float>> SUB_SEASON_CLOUDINESS_LOOKUP = Map.ofEntries(
         Map.entry("early_spring", config -> config.earlySpringCloudiness),
         Map.entry("mid_spring", config -> config.midSpringCloudiness),
@@ -27,20 +25,34 @@ public abstract class SereneSeasonsCompat {
     );
 
     private static SereneSeasonsCompat instance;
+    private static boolean isLoaded = false;
+
 
     public static void initialize() {
         if (instance != null) return;
 
         Main.LOGGER.info("Initializing SereneSeasons compat");
 
-        boolean isLoaded = IS_LOADED;
-        try {
-            Class.forName("sereneseasons.api.season.SeasonHelper");
-        } catch (ClassNotFoundException e) {
-            isLoaded = false;
+        boolean isLoaded =  ModLoader.isModLoaded("sereneseasons");
+        if(!isLoaded) {
+            Main.LOGGER.info("SereneSeasons not loaded");
+        }
+
+        if(isLoaded) {
+            try {
+                Class.forName("sereneseasons.api.season.SeasonHelper");
+            } catch (ClassNotFoundException e) {
+                isLoaded = false;
+                Main.LOGGER.error("SereneSeasons version not compatible");
+            }
         }
 
         instance = isLoaded ? new SereneSeasonsCompatImpl() : new Stub();
+        SereneSeasonsCompat.isLoaded = isLoaded;
+    }
+
+    public static boolean isLoaded() {
+        return isLoaded;
     }
 
     public static SereneSeasonsCompat instance() {
