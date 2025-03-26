@@ -8,13 +8,13 @@ import net.minecraft.client.render.RenderPhase;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
 @DisableMixin(
-    /*? if >1.21.4 >>*/ true
+    /*? if >=1.21.5 >>*/ true
 )
 @Pseudo
 @Mixin(RenderPhase.class)
 public interface RenderPhaseAccessor {
 
-    //? if <=1.21.4 {
+    //? if <1.21.5 {
     /*@Accessor("CLOUDS_TARGET")
     static RenderPhase.Target getCloudsTarget() {
         return null;

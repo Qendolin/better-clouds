@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.client.util.tracy.TracyFrameCapturer;
 //?}
 
-//? if >1.21.4 {
+//? if >=1.21.5 {
 import com.mojang.blaze3d.shaders.ShaderType;
 import net.minecraft.util.Identifier;
 
@@ -23,7 +23,7 @@ import java.util.function.BiFunction;
 public abstract class RenderSystemMixin {
 
     @Inject(method = "initRenderer", at = @At("TAIL"))
-    //? if >1.21.4 {
+    //? if >=1.21.5 {
     private static void afterInitRenderer(long windowHandle, int debugVerbosity, boolean sync, BiFunction<Identifier, ShaderType, String> shaderSourceGetter, boolean renderDebugLabels, CallbackInfo ci) {
     //?} else {
     /*private static void afterInitRenderer(int debugVerbosity, boolean debugSync, CallbackInfo ci) {

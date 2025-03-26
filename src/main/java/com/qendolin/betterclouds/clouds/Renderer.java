@@ -19,7 +19,7 @@ import org.joml.*;
 //? if >=1.21
 import net.minecraft.block.enums.CameraSubmersionType;
 
-//? if >1.21.4 {
+//? if >=1.21.5 {
 import com.mojang.blaze3d.opengl.GlStateManager;
 //?} else {
 /*import com.mojang.blaze3d.platform.GlStateManager;

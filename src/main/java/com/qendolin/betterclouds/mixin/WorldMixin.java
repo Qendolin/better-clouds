@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.Unique;
 public abstract class WorldMixin implements WorldDuck {
 
     @Shadow
-    //? if >1.21.4 {
+    //? if >=1.21.5 {
     protected float lastRainGradient;
     //?} else {
     /*protected float rainGradientPrev;
@@ -21,7 +21,7 @@ public abstract class WorldMixin implements WorldDuck {
     protected float rainGradient;
 
     @Shadow
-    //? if >1.21.4 {
+    //? if >=1.21.5 {
     protected float lastThunderGradient;
     //?} else {
     /*protected float thunderGradientPrev;
@@ -32,7 +32,7 @@ public abstract class WorldMixin implements WorldDuck {
     @Unique
     public float betterclouds$getOriginalRainGradient(float delta) {
         float prev;
-        //? if >1.21.4 {
+        //? if >=1.21.5 {
         prev = lastThunderGradient;
         //?} else {
         /*prev = thunderGradientPrev;
@@ -43,7 +43,7 @@ public abstract class WorldMixin implements WorldDuck {
     @Unique
     public float betterclouds$getOriginalThunderGradient(float delta) {
         float prev;
-        //? if >1.21.4 {
+        //? if >=1.21.5 {
         prev = lastRainGradient;
         //?} else {
         /*prev = rainGradientPrev;

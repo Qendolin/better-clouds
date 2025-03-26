@@ -31,7 +31,7 @@ import net.minecraft.util.math.MathHelper;
 /*import net.minecraft.client.util.math.MatrixStack;
 *///?}
 
-//? if >1.21.4 {
+//? if >=1.21.5 {
 import com.mojang.blaze3d.systems.RenderSystem;
 //?}
 
@@ -106,7 +106,7 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
         *///?}
     }
 
-    //? if >1.21.4 {
+    //? if >=1.21.5 {
     @Inject(at = @At("HEAD"), method = "renderClouds", cancellable = true)
     private void renderClouds(FrameGraphBuilder frameGraphBuilder, CloudRenderMode _mode, Vec3d cameraPos, float _ticks, int _color, float _cloudHeight, CallbackInfo ci) {
         double camX = cameraPos.x, camY = cameraPos.y, camZ = cameraPos.z;

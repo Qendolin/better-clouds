@@ -15,10 +15,10 @@ import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
 import net.neoforged.neoforge.common.NeoForge;
 
 //? if >=1.21.4 {
-/^import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;
-^///?} else {
-import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
-//?}
+import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;
+//?} else {
+/^import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
+^///?}
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -50,14 +50,14 @@ public class EventHooksImpl extends EventHooks {
     @Override
     public void onClientResourcesReload(Supplier<ResourceReloader> supplier) {
         //? if >=1.21.4 {
-        /^modEventBus.addListener(AddClientReloadListenersEvent.class, event -> {
+        modEventBus.addListener(AddClientReloadListenersEvent.class, event -> {
             event.addListener(ShaderPresetLoader.ID, supplier.get());
         });
-        ^///?} else {
-        modEventBus.addListener(RegisterClientReloadListenersEvent.class, event -> {
+        //?} else {
+        /^modEventBus.addListener(RegisterClientReloadListenersEvent.class, event -> {
             event.registerReloadListener(supplier.get());
         });
-        //?}
+        ^///?}
     }
 
     @Override

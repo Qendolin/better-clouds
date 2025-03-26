@@ -5,7 +5,7 @@ import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.config.Config;
 import net.minecraft.client.MinecraftClient;
 
-//? if >1.21.4 {
+//? if >=1.21.5 {
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import java.util.OptionalDouble;
@@ -20,7 +20,7 @@ public class VanillaRenderTarget {
     private final MinecraftClient client;
 
     private final boolean useIris;
-    //? if >1.21.4 {
+    //? if >=1.21.5 {
     private RenderPass renderPass = null;
     //?} else {
     /*private RenderPhase renderPhase = null;
@@ -41,7 +41,7 @@ public class VanillaRenderTarget {
         if (framebuffer == null)
             framebuffer = client.getFramebuffer();
 
-        //? if >1.21.4 {
+        //? if >=1.21.5 {
         renderPass = RenderSystem.getDevice()
             .createCommandEncoder()
             .createRenderPass(framebuffer.getColorAttachment(), OptionalInt.empty(), framebuffer.getDepthAttachment(), OptionalDouble.empty());
@@ -58,7 +58,7 @@ public class VanillaRenderTarget {
             return;
         }
 
-        //? if >1.21.4 {
+        //? if >=1.21.5 {
         if (renderPass != null) {
             renderPass.close();
         }

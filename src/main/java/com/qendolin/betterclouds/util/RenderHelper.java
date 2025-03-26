@@ -4,7 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.render.FogShape;
 import net.minecraft.client.texture.AbstractTexture;
 
-//? if >1.21.4 {
+//? if >=1.21.5 {
 import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.textures.GpuTexture;
 import net.minecraft.client.texture.GlTexture;
@@ -16,9 +16,10 @@ import net.minecraft.client.texture.GlTexture;
 public interface RenderHelper {
 
     static int getTextureId(AbstractTexture texture) {
-        //? if >1.21.4 {
+        //? if >=1.21.5 {
         if(texture.getGlTexture() instanceof GlTexture glTexture) {
-            return glTexture.getGlId();
+            // yarn name is getGlId, but there is a conflict with iris
+            return glTexture.glId();
         } else {
             throw new IllegalStateException("Texture is not a GlTexture");
         }
@@ -27,10 +28,10 @@ public interface RenderHelper {
         *///?}
     }
 
-    //? if >1.21.4 {
+    //? if >=1.21.5 {
     static int getTextureId(GpuTexture texture) {
         if(texture instanceof GlTexture glTexture) {
-            return glTexture.getGlId();
+            return glTexture.glId();
         } else {
             throw new IllegalStateException("Texture is not a GlTexture");
         }
@@ -41,7 +42,7 @@ public interface RenderHelper {
         bindTexture(getTextureId(texture));
     }
 
-    //? if >1.21.4 {
+    //? if >=1.21.5 {
     static void bindTexture(GpuTexture texture) {
         bindTexture(getTextureId(texture));
     }

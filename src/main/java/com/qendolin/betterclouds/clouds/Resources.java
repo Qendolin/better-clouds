@@ -10,7 +10,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 
-//? if >1.21.4 {
+//? if >=1.21.5 {
 import com.mojang.blaze3d.opengl.GlStateManager;
 //?} else {
 /*import com.mojang.blaze3d.platform.GlStateManager;
@@ -166,7 +166,7 @@ public class Resources implements Closeable {
     }
 
     public static void unbindVao() {
-        //? if <=1.21.4 {
+        //? if <1.21.5 {
         /*VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
         if (buffer == null) return;
         int previousVaoId = buffer.getVertexArrayId();
@@ -176,7 +176,7 @@ public class Resources implements Closeable {
     }
 
     public static void unbindVbo() {
-        //? if <=1.21.4 {
+        //? if <1.21.5 {
         /*VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
         if (buffer == null) return;
         //? if >=1.21.3 {

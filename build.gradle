@@ -121,6 +121,11 @@ dependencies {
 		if (property('loom.yarn_patch_neoforge') != "") {
 			it.mappings("dev.architectury:yarn-mappings-patch-neoforge:${property('loom.yarn_patch_neoforge')}")
 		}
+		def override = project.file("override.tiny")
+		if (override.exists()) {
+			println("Using mapping overrides: ${override}")
+			it.mappings(override)
+		}
 	}
 
 	if (isFabric) {

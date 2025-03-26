@@ -390,7 +390,7 @@ public class Commands {
     }
 
     private static ClickEvent createCommandClickEvent(String command) {
-        //? if >1.21.4 {
+        //? if >=1.21.5 {
         return new ClickEvent.RunCommand(command);
         //?} else {
         /*return new ClickEvent(ClickEvent.Action.RUN_COMMAND, command);
@@ -398,7 +398,7 @@ public class Commands {
     }
 
     private static ClickEvent createOpenFileClickEvent(String path) {
-        //? if >1.21.4 {
+        //? if >=1.21.5 {
         return new ClickEvent.OpenFile(path);
         //?} else {
         /*return new ClickEvent(ClickEvent.Action.OPEN_FILE, path);

@@ -7,7 +7,7 @@ import net.minecraft.util.math.Box;
 import org.joml.Vector3d;
 import org.lwjgl.opengl.GL32;
 
-//? if >1.21.4 {
+//? if >=1.21.5 {
 import com.mojang.blaze3d.vertex.VertexFormat;
 //?}
 

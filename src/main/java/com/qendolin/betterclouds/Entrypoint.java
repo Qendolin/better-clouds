@@ -38,13 +38,13 @@ public final class Entrypoint {
             MinecraftClient.getInstance().execute(Main::initializeClient);
 
             //? if <1.20.6 {
-            ModLoadingContext.get().registerExtensionPoint(net.neoforged.neoforge.client.ConfigScreenHandler.ConfigScreenFactory.class,
+            /^ModLoadingContext.get().registerExtensionPoint(net.neoforged.neoforge.client.ConfigScreenHandler.ConfigScreenFactory.class,
                 () -> new net.neoforged.neoforge.client.ConfigScreenHandler.ConfigScreenFactory(
                     (client, parent) -> ConfigGUI.create(parent)));
-            //?} else {
-            /^ModLoadingContext.get().registerExtensionPoint(net.neoforged.neoforge.client.gui.IConfigScreenFactory.class,
+            ^///?} else {
+            ModLoadingContext.get().registerExtensionPoint(net.neoforged.neoforge.client.gui.IConfigScreenFactory.class,
                 () -> (modContainer, parent) -> ConfigGUI.create(parent));
-            ^///?}
+            //?}
         });
     }
 }
