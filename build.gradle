@@ -1,5 +1,5 @@
 plugins {
-	id "dev.architectury.loom" version "1.7-SNAPSHOT"
+	id "dev.architectury.loom" version "1.10-SNAPSHOT"
 	id "architectury-plugin" version "3.4-SNAPSHOT"
 	id "com.modrinth.minotaur"
 	id "com.github.johnrengelman.shadow"
@@ -107,7 +107,8 @@ afterEvaluate {
 	if (isFabric) {
 		loom.runs.configureEach {
 			vmArg "-javaagent:${configurations.compileClasspath.find { it.name.contains("sponge-mixin") }}"
-			vmArg "-XX:+AllowEnhancedClassRedefinition"
+			// Only for JetBrains Runtime
+			// vmArg "-XX:+AllowEnhancedClassRedefinition"
 		}
 	}
 }

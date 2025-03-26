@@ -13,19 +13,19 @@ public abstract class WorldMixin implements WorldDuck {
 
     @Shadow
     //? if >1.21.4 {
-    /*protected float lastRainGradient;
-    *///?} else {
-    protected float rainGradientPrev;
-    //?}
+    protected float lastRainGradient;
+    //?} else {
+    /*protected float rainGradientPrev;
+    *///?}
     @Shadow
     protected float rainGradient;
 
     @Shadow
     //? if >1.21.4 {
-    /*protected float lastThunderGradient;
-    *///?} else {
-    protected float thunderGradientPrev;
-    //?}
+    protected float lastThunderGradient;
+    //?} else {
+    /*protected float thunderGradientPrev;
+    *///?}
     @Shadow
     protected float thunderGradient;
 
@@ -33,10 +33,10 @@ public abstract class WorldMixin implements WorldDuck {
     public float betterclouds$getOriginalRainGradient(float delta) {
         float prev;
         //? if >1.21.4 {
-        /*prev = lastThunderGradient;
-        *///?} else {
-        prev = thunderGradientPrev;
-         //?}
+        prev = lastThunderGradient;
+        //?} else {
+        /*prev = thunderGradientPrev;
+         *///?}
         return MathHelper.lerp(delta, prev, this.thunderGradient) * this.betterclouds$getOriginalThunderGradient(delta);
     }
 
@@ -44,10 +44,10 @@ public abstract class WorldMixin implements WorldDuck {
     public float betterclouds$getOriginalThunderGradient(float delta) {
         float prev;
         //? if >1.21.4 {
-        /*prev = lastRainGradient;
-        *///?} else {
-        prev = rainGradientPrev;
-         //?}
+        prev = lastRainGradient;
+        //?} else {
+        /*prev = rainGradientPrev;
+         *///?}
         return MathHelper.lerp(delta, prev, this.rainGradient);
     }
 }

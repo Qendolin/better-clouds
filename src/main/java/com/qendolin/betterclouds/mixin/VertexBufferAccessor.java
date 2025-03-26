@@ -5,23 +5,23 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
 
 //? if =1.21.3 || =1.21.4 {
-import net.minecraft.client.gl.GpuBuffer;
-//?}
+/*import net.minecraft.client.gl.GpuBuffer;
+*///?}
 
 //? if <=1.21.4 {
-import org.spongepowered.asm.mixin.gen.Accessor;
-//?}
+/*import org.spongepowered.asm.mixin.gen.Accessor;
+*///?}
 
 
 @DisableMixin(
-    /*? if >1.21.4 >>*/ /*true*/
+    /*? if >1.21.4 >>*/ true
 )
 @Pseudo
 @Mixin(targets = "net.minecraft.client.gl.VertexBuffer")
 public interface VertexBufferAccessor {
     //? if >1.21.4 {
     //?} elif >=1.21.3 {
-    @Accessor("vertexBuffer")
+    /*@Accessor("vertexBuffer")
     GpuBuffer getVertexBuffer();
 
     @Accessor("indexBuffer")
@@ -29,7 +29,7 @@ public interface VertexBufferAccessor {
 
     @Accessor("vertexArrayId")
     int getVertexArrayId();
-    //?} else {
+    *///?} else {
     /*@Accessor("vertexBufferId")
     int getVertexBufferId();
 
