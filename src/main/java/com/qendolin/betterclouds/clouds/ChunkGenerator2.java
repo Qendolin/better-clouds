@@ -327,7 +327,7 @@ public class ChunkGenerator2 {
 
             int dx = cx - this.cx;
             int dz = cz - this.cz;
-            regionMap.shift(dx, dz);
+            regionMap.shift(-dx, -dz);
         } else {
             initialized = true;
             int i = 0;

@@ -33,6 +33,7 @@ public class CoverageShader extends Shader {
     public final Uniform uFogRange;
     public final Uniform uCameraPos;
     public final Uniform uSpacing;
+    public final Uniform uCircle;
 
 
     public CoverageShader(ResourceManager resMan, Map<String, String> defs) throws IOException {
@@ -52,6 +53,7 @@ public class CoverageShader extends Shader {
         uFogRange = getUniform("u_fog_range", true);
         uCameraPos = getUniform("u_camera_pos", false);
         uSpacing = getUniform("u_spacing", true);
+        uCircle = getUniform("u_circle", true);
     }
 
     public static CoverageShader create(ResourceManager manager, float sizeXZ, float sizeY, boolean stencilFallback, boolean dhCompat, int worldCurvatureSize, int regions) throws IOException {

@@ -450,17 +450,43 @@ public class FrustumCuller {
             && (x * left.x + z * left.y - left.z > 0);
     }
 
-    public int testDist(float minX, float minZ, float maxX, float maxZ, float maxDist) {
-        int count = 0;
-        float maxDistSq = maxDist*maxDist;
-        if(testBoxPointInDistance(minX, minZ, maxDistSq)) count++;
-        if(testBoxPointInDistance(maxX, minZ, maxDistSq)) count++;
-        if(testBoxPointInDistance(minX, maxZ, maxDistSq)) count++;
-        if(testBoxPointInDistance(maxX, maxZ, maxDistSq)) count++;
-        return count;
+//    public int testDist(float minX, float minZ, float maxX, float maxZ, float maxDist) {
+//        int count = 0;
+//        float maxDistSq = maxDist*maxDist;
+//        if(testBoxPointInDistance(minX, minZ, maxDistSq)) count++;
+//        if(testBoxPointInDistance(maxX, minZ, maxDistSq)) count++;
+//        if(testBoxPointInDistance(minX, maxZ, maxDistSq)) count++;
+//        if(testBoxPointInDistance(maxX, maxZ, maxDistSq)) count++;
+//        return count;
+//    }
+
+    // Circle Circle-Rectangle intersection
+    public int testDist2(float minX, float minZ, float maxX, float maxZ, float maxDist) {
+        // Clamp point x,z to the rectangle
+        double closestX = Math.max(minX, Math.min(origin.x, maxX));
+        double closestZ = Math.max(minZ, Math.min(origin.z, maxZ));
+
+        // Compute squared distance from closest point to circle center
+        double dx = closestX - origin.x;
+        double dz = closestZ - origin.z;
+        double distSq = dx * dx + dz * dz;
+        double maxDistSq = maxDist*maxDist;
+
+        if(distSq > maxDistSq)
+            return 0;
+
+        if(!testBoxPointInDistance(minX, minZ, maxDistSq))
+            return 1;
+        if(!testBoxPointInDistance(maxX, minZ, maxDistSq))
+            return 1;
+        if(!testBoxPointInDistance(minX, maxZ, maxDistSq))
+            return 1;
+        if(!testBoxPointInDistance(maxX, maxZ, maxDistSq))
+            return 1;
+        return 4;
     }
 
-    private boolean testBoxPointInDistance(double x, double z, float maxDistSq) {
+    private boolean testBoxPointInDistance(double x, double z, double maxDistSq) {
         x -= origin.x;
         z -= origin.z;
         double distSq = x * x + z * z;

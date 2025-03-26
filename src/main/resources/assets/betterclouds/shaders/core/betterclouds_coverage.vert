@@ -226,6 +226,7 @@ uniform mat4 u_mvp_matrix;
 uniform vec3 u_miscellaneous;
 uniform vec3 u_camera_pos;
 uniform float u_spacing;
+uniform vec3 u_circle;
 
 layout(std430, binding = 0) buffer RegionOffsets
 {
@@ -265,6 +266,7 @@ void main() {
     vec3 region_offset = vec3(0.0);
     // FIXME: This is wrong I think
     int region = int(instance / (128u * 128u));
+//    region = ssbo_region_map[region];
 
     //    int region = u_regions[int(instance / (128u * 128u))];
     //    int region = u_region;
@@ -283,7 +285,7 @@ void main() {
 //    y += 0.01;
 //    float y = 0.5;
     vec3 p = vec3(morton_pos.x, y, morton_pos.y) * vec3(u_spacing, 64, u_spacing) + region_offset;
-//    p += r;
+    p += r;
 
     vec3 d = u_camera_pos - p;
     ivec3 corner = ivec3(d.x <= 0.0 ? -1:1, d.y <= 0.0 ? -1:1, d.z <= 0.0 ? -1:1);
@@ -303,7 +305,7 @@ void main() {
     vec3 vertexPos = SIZE * v + p;
     gl_Position = u_mvp_matrix * vec4(vertexPos, 1.0);
 
-    if (y == 0.0) {
+    if (y == 0.0 || length(u_camera_pos.xz - p.xz) > u_circle.z) {
         gl_Position = vec4(0.0, 0.0, 0.0, -1.0);
     }
 }

@@ -107,7 +107,8 @@ afterEvaluate {
 	if (isFabric) {
 		loom.runs.configureEach {
 			vmArg "-javaagent:${configurations.compileClasspath.find { it.name.contains("sponge-mixin") }}"
-			vmArg "-XX:+AllowEnhancedClassRedefinition"
+			// Only for JetBrains Runtime
+			// vmArg "-XX:+AllowEnhancedClassRedefinition"
 		}
 	}
 }
@@ -294,14 +295,6 @@ if (stonecutter.current.isActive) {
 jar {
 	from(project.rootProject.file("LICENSE").path) {
 		rename { "${it}_${project.archives_base_name}" }
-	}
-}
-
-afterEvaluate {
-	loom.runs.configureEach {
-		vmArg "-javaagent:${configurations.compileClasspath.find { it.name.contains("sponge-mixin") }}"
-		// disable this if you're not using the JetBrains Runtime
-		vmArg "-XX:+AllowEnhancedClassRedefinition"
 	}
 }
 

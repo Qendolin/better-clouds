@@ -175,9 +175,11 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
                 final var ffrustumPos = frustumPos;
                 final var ffrustum = frustum;
                 renderPass.setRenderer(() -> {
+                    getProfiler().push(Main.MODID);
                     glCompat.pushDebugGroupDev("Better Clouds");
                     cloudRenderer.render(fticks, ftickDelta, fcam, ffrustumPos, ffrustum);
                     glCompat.popDebugGroupDev();
+                    getProfiler().pop();
                 });
                 //?} else {
                 /*cloudRenderer.render(ticks, tickDelta, cam, frustumPos, frustum);

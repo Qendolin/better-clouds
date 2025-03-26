@@ -97,6 +97,9 @@ public class Renderer implements AutoCloseable {
         GL43.glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_R8, ChunkGenerator2.GEN_CHUNK_SIZE, ChunkGenerator2.GEN_CHUNK_SIZE, chunkGenerator2.index.length);
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         regionOffsetsSsbo = glGenBuffers();
         glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER, regionOffsetsSsbo);
@@ -528,14 +531,23 @@ public class Renderer implements AutoCloseable {
         }
     }
 
+    DrawCommands commands;
+
+    // FIXME: spyglass
+
+    // TODO: culling boxes should be based on their world size, not some arbitrary, fixed number
+    // For spacing 2 and 256 distance the biggest level is still too small
     private boolean generateCulledDrawCommands(DrawCommands draws, int region, int lvl, int x, int z) {
         final float[] bounds = new float[4];
         chunkGenerator2.bounds(region, lvl, x, z, bounds);
-        float maxDist = getConfig().blockDistance();
+        float maxDist = getConfig().blockDistance() / 2f; // half is far
 
         int visible = frustumCuller.test2(bounds[0], bounds[1], bounds[2], bounds[3]);
-        int inRange = frustumCuller.testDist(bounds[0], bounds[1], bounds[2], bounds[3], maxDist);
+        int inRange = frustumCuller.testDist2(bounds[0], bounds[1], bounds[2], bounds[3], maxDist);
+
         if (visible == 0 || inRange == 0) {
+            if(Debug.frustumCulling)
+                Debug.addFrustumCulledBox(new Box(bounds[0], cloudsHeight, bounds[1], bounds[2], cloudsHeight + 64, bounds[3]), 0, 0, false);
             return false;
         } else if ((visible == 4 && inRange == 4) || lvl == ChunkGenerator2.MAX_SUB_LVL) {
             int start = chunkGenerator2.startOf(region, lvl, x, z);
@@ -560,10 +572,10 @@ public class Renderer implements AutoCloseable {
             return true;
         }
 
+        if(Debug.frustumCulling)
+            Debug.addFrustumCulledBox(new Box(bounds[0], cloudsHeight, bounds[1], bounds[2], cloudsHeight + 64, bounds[3]), 0, 0, false);
         return false;
     }
-
-    DrawCommands commands;
 
     private void drawCloudsWithFrustumCulling(Frustum frustumAtOrigin, Config config, Vector3d cam) {
 //        glBindBuffer(GL_ARRAY_BUFFER, cloudBufferId);
@@ -600,6 +612,8 @@ public class Renderer implements AutoCloseable {
 
         res.coverageShader().uCameraPos.setVec3((float) cam.x, (float) cam.y - cloudsHeight, (float) cam.z);
         res.coverageShader().uSpacing.setFloat(getConfig().spacing);
+        res.coverageShader().uCircle.setVec3((float) cam.x, (float) cam.z, config.blockDistance() * 0.5f);
+
 
         // FIXME: some chunks are drawn at a higher sub level than needed
         // When the larger chunk is split, but all the children are drawn anyways, because they are at the lowest sub level
@@ -608,7 +622,6 @@ public class Renderer implements AutoCloseable {
         // Possible optimization:
         // Culling this many faces is quite slow, so any regions that are not the center regions can
         // not draw faces that always point away
-
 
         for (int region = 0; region < chunkGenerator2.index.length; region++) {
             commands.reset(0);
@@ -624,14 +637,19 @@ public class Renderer implements AutoCloseable {
         }
 
 
+        // FIXME: render flat first
+        // There are some issues with ordering
         GlStateManager._disableCull();
         res.coverageFarShader().bind();
         res.coverageFarShader().uMVPMatrix.setMat4(mvpMatrix);
         res.coverageFarShader().uSpacing.setFloat(config.spacing);
+        res.coverageFarShader().uCircle.setVec3((float) cam.x, (float) cam.z, config.blockDistance() * 0.5f);
 
-        for (int i = 0; i < 2; i++) {
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-        }
+        int coverage = MathHelper.ceil((config.sizeXZ*config.sizeXZ)/(config.spacing*config.spacing)) * 2;
+        glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
+        glStencilFunc(GL_ALWAYS, Math.min(coverage, 64), 0xff);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+//        glDrawArrays(GL_TRIANGLE_STRIP, 0, 18);
 
         if (1 == 1) return;
 

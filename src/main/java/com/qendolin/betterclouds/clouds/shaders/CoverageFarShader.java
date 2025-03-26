@@ -17,6 +17,7 @@ public class CoverageFarShader extends Shader {
     public final Uniform uDepthTexture;
     public final Uniform uMVPMatrix;
     public final Uniform uSpacing;
+    public final Uniform uCircle;
 
     public CoverageFarShader(ResourceManager resMan, Map<String, String> defs) throws IOException {
         super(resMan, VERTEX_SHADER_ID, FRAGMENT_SHADER_ID, defs);
@@ -24,6 +25,7 @@ public class CoverageFarShader extends Shader {
         uDepthTexture = getUniform("u_depth_texture", false);
         uMVPMatrix = getUniform("u_mvp_matrix", false);
         uSpacing = getUniform("u_spacing", true);
+        uCircle = getUniform("u_circle", true);
     }
 
     public static CoverageFarShader create(ResourceManager manager, int regions) throws IOException {
