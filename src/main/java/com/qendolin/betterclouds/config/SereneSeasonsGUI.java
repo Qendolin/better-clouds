@@ -5,7 +5,6 @@ import dev.isxander.yacl3.api.LabelOption;
 import dev.isxander.yacl3.api.Option;
 import dev.isxander.yacl3.gui.controllers.slider.FloatSliderController;
 import dev.isxander.yacl3.gui.controllers.string.number.FloatFieldController;
-import net.minecraft.text.Text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -107,7 +106,7 @@ public class SereneSeasonsGUI {
         );
         compatSereneSeasonsGroup.addAll(options);
         for (var opt : options) {
-            opt.setAvailable(SereneSeasonsCompat.isLoaded());
+            opt.setAvailable(SereneSeasonsCompat.isActive());
         }
 
 

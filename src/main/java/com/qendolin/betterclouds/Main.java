@@ -12,6 +12,8 @@ import com.qendolin.betterclouds.platform.EventHooks;
 import com.qendolin.betterclouds.platform.ModLoader;
 import com.qendolin.betterclouds.platform.ModVersion;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
+import com.qendolin.betterclouds.test.GameTest;
+import com.qendolin.betterclouds.test.GameTestEnabled;
 import com.qendolin.betterclouds.util.NamedLogger;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
@@ -101,7 +103,16 @@ public class Main {
     }
 
     public static void initializeClientEvents() {
-        EventHooks.instance.onClientStarted(client -> glCompat.enableDebugOutputSynchronousDev());
+        EventHooks.instance.onClientStarted(client -> {
+            if(glCompat == null) {
+                throw new IllegalStateException("OpenGL compat not initialized yet. This should not happen!");
+            }
+            glCompat.enableDebugOutputSynchronousDev();
+
+            if(GameTestEnabled.ENABLED) {
+                GameTest.run(client);
+            }
+        });
         EventHooks.instance.onWorldJoin(client -> {
             if (glCompat.isIncompatible()) {
                 CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)

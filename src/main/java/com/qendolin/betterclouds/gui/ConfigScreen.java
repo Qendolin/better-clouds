@@ -87,7 +87,7 @@ public class ConfigScreen extends YACLScreen {
             super.renderBackgroundTexture(context);
         }
         //? if <1.20.2
-        renderDarkening(context);
+        /^renderDarkening(context);^/
     }
     *///?}
 

@@ -10,10 +10,16 @@ apply from: 'common.gradle'
 
 stonecutter.active "1.21.5-fabric" /* [SC] DO NOT EDIT */
 
-// Chiseled tasks run for every version in their own "instance", in the respective versions/ subdirs
+// Chiseled tasks run for every version in their own "instance", in the respective versions/subdirs
 stonecutter.registerChiseled tasks.register("chiseledBuild", stonecutter.chiseled) {
     setGroup "project"
     ofTask "build"
+}
+
+stonecutter.registerChiseled tasks.register("chiseledProdClientTest", stonecutter.chiseled) {
+    versions { _, vers -> vers.project.endsWith("-fabric") }
+    setGroup "project"
+    ofTask "prodClientTest"
 }
 
 stonecutter.registerChiseled tasks.register("chiseledModrinth", stonecutter.chiseled) {

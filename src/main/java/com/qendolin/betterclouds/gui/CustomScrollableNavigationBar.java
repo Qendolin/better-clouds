@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds.gui;
 
-import com.qendolin.betterclouds.mixin.TabNavigationWidgetAccessor;
+import com.qendolin.betterclouds.mixin.required.TabNavigationWidgetAccessor;
 import dev.isxander.yacl3.gui.tab.ScrollableNavigationBar;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;

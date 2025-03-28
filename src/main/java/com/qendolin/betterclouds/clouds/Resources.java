@@ -14,12 +14,12 @@ import net.minecraft.util.Identifier;
 import com.mojang.blaze3d.opengl.GlStateManager;
 //?} else {
 /*import com.mojang.blaze3d.platform.GlStateManager;
-import com.qendolin.betterclouds.mixin.BufferRendererAccessor;
-import com.qendolin.betterclouds.mixin.VertexBufferAccessor;
+import com.qendolin.betterclouds.mixin.runtime.BufferRendererAccessor;
+import com.qendolin.betterclouds.mixin.runtime.VertexBufferAccessor;
  *///?}
 
 //? if <1.21.3 {
-/*import com.qendolin.betterclouds.mixin.ShaderProgramAccessor;
+/*import com.qendolin.betterclouds.mixin.required.ShaderProgramAccessor;
 *///?}
 
 import java.io.Closeable;

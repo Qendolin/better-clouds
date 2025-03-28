@@ -1,38 +1,37 @@
 package com.qendolin.betterclouds.compat;
 
 import com.qendolin.betterclouds.Main;
-import com.qendolin.betterclouds.platform.ModLoader;
 
 public abstract class IrisCompat {
 
     private static IrisCompat instance;
-    private static boolean isLoaded = false;
+    private static boolean isActive = false;
 
     public static void initialize() {
         if (instance != null) return;
 
         Main.LOGGER.info("Initializing Iris compat");
 
-        boolean isLoaded = ModLoader.isModLoaded("iris");
-        if(!isLoaded) {
+        boolean active = ModLoaded.IRIS;
+        if(!active) {
             Main.LOGGER.info("Iris not loaded");
         }
 
-        if(isLoaded) {
+        if(active) {
             try {
                 Class.forName("net.irisshaders.iris.Iris");
             } catch (ClassNotFoundException e) {
-                isLoaded = false;
+                active = false;
                 Main.LOGGER.error("Iris version not compatible");
             }
         }
 
-        instance = isLoaded ? new IrisCompatImpl() : new Stub();
-        IrisCompat.isLoaded = isLoaded;
+        instance = active ? new IrisCompatImpl() : new Stub();
+        IrisCompat.isActive = active;
     }
 
-    public static boolean isLoaded() {
-        return isLoaded;
+    public static boolean isActive() {
+        return isActive;
     }
 
     public static IrisCompat instance() {

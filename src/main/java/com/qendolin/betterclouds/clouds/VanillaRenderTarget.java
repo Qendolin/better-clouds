@@ -12,7 +12,7 @@ import java.util.OptionalDouble;
 import java.util.OptionalInt;
 //?} else {
 /*import net.minecraft.client.render.RenderPhase;
-import com.qendolin.betterclouds.mixin.RenderPhaseAccessor;
+import com.qendolin.betterclouds.mixin.runtime.RenderPhaseAccessor;
 *///?}
 
 public class VanillaRenderTarget {

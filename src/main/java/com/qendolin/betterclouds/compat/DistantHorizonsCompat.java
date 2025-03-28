@@ -1,7 +1,6 @@
 package com.qendolin.betterclouds.compat;
 
 import com.qendolin.betterclouds.Main;
-import com.qendolin.betterclouds.platform.ModLoader;
 import com.seibel.distanthorizons.api.DhApi;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
@@ -19,21 +18,19 @@ public abstract class DistantHorizonsCompat {
     );
 
     private static DistantHorizonsCompat instance;
-    private static boolean isLoaded = false;
+    private static boolean isActive = false;
 
     public static void initialize() {
         if (instance != null) return;
 
         Main.LOGGER.info("Initializing DistantHorizons compat");
 
-        final boolean isLoaded = ModLoader.isModLoaded("distanthorizons");
-
-        if(!isLoaded) {
+        if(!ModLoaded.DISTANT_HORIZONS) {
             Main.LOGGER.info("DistantHorizons not loaded");
         }
 
         int apiVersion = 0;
-        if(isLoaded) {
+        if(ModLoaded.DISTANT_HORIZONS) {
             try {
                 Class.forName("com.seibel.distanthorizons.api.DhApi");
                 apiVersion = DhApi.getApiMajorVersion();
@@ -53,16 +50,16 @@ public abstract class DistantHorizonsCompat {
             Main.LOGGER.info("Using DistantHorizons 2 compat");
             instance = new DistantHorizons2CompatImpl();
         } else {
-            if(isLoaded)
+            if(ModLoaded.DISTANT_HORIZONS)
                 Main.LOGGER.error("DistantHorizons version not compatible");
 
             instance = new Stub();
         }
-        DistantHorizonsCompat.isLoaded = !(instance instanceof Stub);
+        DistantHorizonsCompat.isActive = !(instance instanceof Stub);
     }
 
-    public static boolean isLoaded() {
-        return isLoaded;
+    public static boolean isActive() {
+        return isActive;
     }
 
 

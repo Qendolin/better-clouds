@@ -59,7 +59,7 @@ public class FabricSeasonsGUI {
         );
         compatFabricSeasonsGroup.addAll(options);
         for (var opt : options) {
-            opt.setAvailable(FabricSeasonsCompat.isLoaded());
+            opt.setAvailable(FabricSeasonsCompat.isActive());
         }
 
 

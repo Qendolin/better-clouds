@@ -1,4 +1,4 @@
-package com.qendolin.betterclouds.mixin;
+package com.qendolin.betterclouds.mixin.required;
 
 import com.qendolin.betterclouds.compat.WorldDuck;
 import net.minecraft.util.math.MathHelper;

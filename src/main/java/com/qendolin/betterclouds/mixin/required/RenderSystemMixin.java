@@ -1,4 +1,4 @@
-package com.qendolin.betterclouds.mixin;
+package com.qendolin.betterclouds.mixin.required;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.Main;

@@ -1,29 +1,26 @@
 package com.qendolin.betterclouds.compat;
 
 import com.qendolin.betterclouds.Main;
-import com.qendolin.betterclouds.platform.ModLoader;
-import dev.corgitaco.enhancedcelestials.EnhancedCelestials;
 import net.minecraft.world.World;
 import org.joml.Vector3f;
 
 public abstract class EnhancedCelestialsCompat {
 
     private static EnhancedCelestialsCompat instance;
-    private static boolean isLoaded = false;
+    private static boolean isActive = false;
 
     public static void initialize() {
         if (instance != null) return;
 
         Main.LOGGER.info("Initializing EnhancedCelestials compat");
 
-        final boolean isLoaded = ModLoader.isModLoaded("enhancedcelestials");;
-        if(!isLoaded) {
+        if(!ModLoaded.ENHANCED_CELESTIALS) {
             Main.LOGGER.info("EnhancedCelestials not loaded");
         }
 
         int version = 0;
         boolean v1devPackage = true;
-        if(isLoaded) {
+        if(ModLoaded.ENHANCED_CELESTIALS) {
             try {
                 Class.forName("dev.corgitaco.enhancedcelestials.lunarevent.EnhancedCelestialsLunarForecastWorldData");
                 version = 2;
@@ -52,17 +49,17 @@ public abstract class EnhancedCelestialsCompat {
             Main.LOGGER.info("Using EnhancedCelestials 2 compat");
             instance = new EnhancedCelestials2CompatImpl();
         } else {
-            if(isLoaded)
+            if(ModLoaded.ENHANCED_CELESTIALS)
                 Main.LOGGER.error("EnhancedCelestials version not compatible");
 
             instance = new Stub();
         }
-        EnhancedCelestialsCompat.isLoaded = !(instance instanceof Stub);
+        EnhancedCelestialsCompat.isActive = !(instance instanceof Stub);
 
     }
 
-    public static boolean isLoaded() {
-        return isLoaded;
+    public static boolean isActive() {
+        return isActive;
     }
 
     public static EnhancedCelestialsCompat instance() {

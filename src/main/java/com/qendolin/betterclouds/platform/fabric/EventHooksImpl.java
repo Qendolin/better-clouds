@@ -7,14 +7,13 @@ import com.mojang.brigadier.CommandDispatcher;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.command.CommandSource;
 import net.minecraft.resource.ResourceReloader;
 import net.minecraft.resource.ResourceType;
-import com.mojang.brigadier.CommandDispatcher;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -34,6 +33,11 @@ public class EventHooksImpl extends EventHooks {
     public void onClientResourcesReload(Supplier<ResourceReloader> supplier) {
         ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES)
             .registerReloadListener((IdentifiableResourceReloadListener) supplier.get());
+    }
+
+    @Override
+    public void onClientTick(Consumer<MinecraftClient> callback) {
+        ClientTickEvents.END_CLIENT_TICK.register(callback::accept);
     }
 
     @Override

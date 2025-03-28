@@ -1,4 +1,4 @@
-package com.qendolin.betterclouds.mixin;
+package com.qendolin.betterclouds.mixin.required;
 
 import com.google.common.collect.ImmutableList;
 import net.minecraft.client.gui.widget.TabButtonWidget;

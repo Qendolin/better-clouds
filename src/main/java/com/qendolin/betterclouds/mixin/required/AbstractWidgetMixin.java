@@ -1,4 +1,4 @@
-package com.qendolin.betterclouds.mixin;
+package com.qendolin.betterclouds.mixin.required;
 
 import com.qendolin.betterclouds.gui.ConfigScreen;
 import dev.isxander.yacl3.gui.AbstractWidget;

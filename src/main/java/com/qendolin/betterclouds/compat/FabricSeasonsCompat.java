@@ -2,7 +2,6 @@ package com.qendolin.betterclouds.compat;
 
 import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.config.FabricSeasonsConfig;
-import com.qendolin.betterclouds.platform.ModLoader;
 import net.minecraft.world.World;
 
 import java.util.Map;
@@ -17,7 +16,7 @@ public abstract class FabricSeasonsCompat {
     );
 
     private static FabricSeasonsCompat instance;
-    private static boolean isLoaded = false;
+    private static boolean isActive = false;
 
 
     public static void initialize() {
@@ -25,26 +24,26 @@ public abstract class FabricSeasonsCompat {
 
         Main.LOGGER.info("Initializing FabricSeasons compat");
 
-        boolean isLoaded = ModLoader.isModLoaded("seasons");
-        if(!isLoaded) {
+        boolean active = ModLoaded.FABRIC_SEASONS;
+        if(!active) {
             Main.LOGGER.info("FabricSeasons not loaded");
         }
 
-        if(isLoaded) {
+        if(active) {
             try {
                 Class.forName("io.github.lucaargolo.seasons.FabricSeasons");
             } catch (ClassNotFoundException e) {
-                isLoaded = false;
+                active = false;
                 Main.LOGGER.error("FabricSeasons version not compatible");
             }
         }
 
-        instance = isLoaded ? new FabricSeasonsCompatImpl() : new FabricSeasonsCompat.Stub();
-        FabricSeasonsCompat.isLoaded = isLoaded;
+        instance = active ? new FabricSeasonsCompatImpl() : new FabricSeasonsCompat.Stub();
+        FabricSeasonsCompat.isActive = active;
     }
 
-    public static boolean isLoaded() {
-        return isLoaded;
+    public static boolean isActive() {
+        return isActive;
     }
 
     public static FabricSeasonsCompat instance() {

@@ -38,7 +38,10 @@ ordering = "NONE"
 side = "CLIENT"
 
 [[mixins]]
-config = "betterclouds.mixins.json"
+config = "betterclouds.required.mixins.json"
 
 [[mixins]]
 config = "betterclouds.optional.mixins.json"
+
+[[mixins]]
+config = "betterclouds.runtime.mixins.json"

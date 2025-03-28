@@ -1,4 +1,4 @@
-package com.qendolin.betterclouds.mixin;
+package com.qendolin.betterclouds.mixin.required;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.qendolin.betterclouds.Main;

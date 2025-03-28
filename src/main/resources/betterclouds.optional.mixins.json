@@ -1,8 +1,9 @@
 {
   "required": false,
-  "parent": "betterclouds.mixins.json",
+  "minVersion": "0.8",
   "package": "com.qendolin.betterclouds.mixin.optional",
-  "plugin": "com.qendolin.betterclouds.MixinPlugin",
+  "plugin": "com.qendolin.betterclouds.mixin.OptionalMixinPlugin",
+  "compatibilityLevel": "JAVA_17",
   "client": [
     "DimensionEffectsOverworldMixin",
     "ExtendedShaderAccessor",

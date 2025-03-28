@@ -2,7 +2,6 @@ package com.qendolin.betterclouds.compat;
 
 import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.config.SereneSeasonsConfig;
-import com.qendolin.betterclouds.platform.ModLoader;
 import net.minecraft.world.World;
 
 import java.util.Map;
@@ -25,7 +24,7 @@ public abstract class SereneSeasonsCompat {
     );
 
     private static SereneSeasonsCompat instance;
-    private static boolean isLoaded = false;
+    private static boolean isActive = false;
 
 
     public static void initialize() {
@@ -33,26 +32,26 @@ public abstract class SereneSeasonsCompat {
 
         Main.LOGGER.info("Initializing SereneSeasons compat");
 
-        boolean isLoaded =  ModLoader.isModLoaded("sereneseasons");
-        if(!isLoaded) {
+        boolean active = ModLoaded.SERENE_SEASONS;
+        if(!active) {
             Main.LOGGER.info("SereneSeasons not loaded");
         }
 
-        if(isLoaded) {
+        if(active) {
             try {
                 Class.forName("sereneseasons.api.season.SeasonHelper");
             } catch (ClassNotFoundException e) {
-                isLoaded = false;
+                active = false;
                 Main.LOGGER.error("SereneSeasons version not compatible");
             }
         }
 
-        instance = isLoaded ? new SereneSeasonsCompatImpl() : new Stub();
-        SereneSeasonsCompat.isLoaded = isLoaded;
+        instance = active ? new SereneSeasonsCompatImpl() : new Stub();
+        SereneSeasonsCompat.isActive = active;
     }
 
-    public static boolean isLoaded() {
-        return isLoaded;
+    public static boolean isActive() {
+        return isActive;
     }
 
     public static SereneSeasonsCompat instance() {
