@@ -4,7 +4,6 @@ plugins {
 	id "dev.architectury.loom" version "1.10-SNAPSHOT"
 	id "architectury-plugin" version "3.4-SNAPSHOT"
 	id "com.modrinth.minotaur"
-	id "com.github.johnrengelman.shadow"
 }
 
 apply from: rootProject.file('common.gradle').path
@@ -250,25 +249,10 @@ processResources {
 	exclude("assets/**/*.xcf")
 }
 
-configurations {
-	shadowBundle {
-		canBeResolved = true
-		canBeConsumed = false
-	}
-}
-
-shadowJar {
-	configurations = [project.configurations.shadow]
-	archiveClassifier = "dev-shadow"
-}
-
 remapJar {
 	if (isNeoForge) {
 		atAccessWideners.add("betterclouds.accesswidener")
 	}
-	input = tasks.shadowJar.archiveFile
-	archiveClassifier = null
-	dependsOn(tasks.shadowJar)
 }
 
 stonecutter {
