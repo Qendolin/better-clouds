@@ -287,6 +287,19 @@ if(isFabric) {
 	project.tasks.register("prodClientTest", ClientProductionRunTask) {
 		configureProdClientRunTask(it)
 		jvmArgs.add("-Dbetterclouds.client.gametest")
+		// I'm not sure about this:
+		// it.outputs.upToDateWhen { false }
+	}
+
+	afterEvaluate {
+		// Run in order from oldest to newest
+		project.tasks.named("prodClientTest").configure {
+			stonecutter.versions.each { vers ->
+				if (vers.project.endsWith("-fabric") && stonecutter.eval(vers.version, "<${stonecutter.current.version}")) {
+					it.mustRunAfter(":${vers.project}:prodClientTest")
+				}
+			}
+		}
 	}
 }
 
