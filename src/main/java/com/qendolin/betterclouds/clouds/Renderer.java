@@ -407,7 +407,10 @@ public class Renderer implements AutoCloseable {
 
         GlStateManager._enableBlend();
         glBlendEquation(GL_FUNC_ADD);
+        // sync up state manager state, can be desynced by use of blendFunci
         GlStateManager._blendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
         GlStateManager._colorMask(false, false, false, false);
         glColorMaski(0, true, true, true, true);
         if (!glCompat.useStencilTextureFallback()) {
