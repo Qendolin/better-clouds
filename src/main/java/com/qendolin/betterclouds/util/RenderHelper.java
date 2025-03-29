@@ -17,7 +17,7 @@ public interface RenderHelper {
 
     static int getTextureId(AbstractTexture texture) {
         //? if >=1.21.5 {
-        if(texture.getGlTexture() instanceof GlTexture glTexture) {
+        if (texture.getGlTexture() instanceof GlTexture glTexture) {
             // yarn name is getGlId, but there is a conflict with iris
             return glTexture.glId();
         } else {
@@ -30,7 +30,7 @@ public interface RenderHelper {
 
     //? if >=1.21.5 {
     static int getTextureId(GpuTexture texture) {
-        if(texture instanceof GlTexture glTexture) {
+        if (texture instanceof GlTexture glTexture) {
             return glTexture.glId();
         } else {
             throw new IllegalStateException("Texture is not a GlTexture");
@@ -74,6 +74,7 @@ public interface RenderHelper {
             RenderSystem.setShaderFogColor(red, green, blue, alpha);
             *///?}
         }
+
         //? if >=1.21.3 {
         public Fog(net.minecraft.client.render.Fog fog) {
             this(fog.start(), fog.end(), fog.shape(), fog.red(), fog.green(), fog.blue(), fog.alpha());

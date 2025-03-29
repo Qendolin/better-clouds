@@ -52,7 +52,7 @@ public class Config {
         this.useIrisFBO = other.useIrisFBO;
         this.selectedPreset = other.selectedPreset;
         this.presets = other.presets;
-        if(this.presets == null) {
+        if (this.presets == null) {
             //noinspection IncompleteCopyConstructor
             this.presets = new ArrayList<>();
         }

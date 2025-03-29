@@ -8,7 +8,6 @@ import net.minecraft.client.MinecraftClient;
 import com.qendolin.betterclouds.platform.EventHooks;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.gui.screen.MessageScreen;
-import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.option.CloudRenderMode;
 import net.minecraft.text.Text;
 
@@ -27,12 +26,12 @@ public class GameTest {
     private static final AtomicBoolean finished = new AtomicBoolean();
 
     public static void onClientExit() {
-        if(!GameTestEnabled.ENABLED) return;
-        if(caught.get() != null || !finished.get()) {
+        if (!GameTestEnabled.ENABLED) return;
+        if (caught.get() != null || !finished.get()) {
             Main.LOGGER.error("\n========================\n    GameTest failed!    \n========================");
-            if(caught.get() != null)
+            if (caught.get() != null)
                 throw new RuntimeException(caught.get());
-            if(!finished.get())
+            if (!finished.get())
                 throw new RuntimeException("Test did not finish!");
         } else {
             Main.LOGGER.info("\n========================\n    GameTest passed!    \n========================");
@@ -40,7 +39,7 @@ public class GameTest {
     }
 
     public static void run(MinecraftClient client) {
-        if(!GameTestEnabled.ENABLED) return;
+        if (!GameTestEnabled.ENABLED) return;
 
         // This is very scuffed, don't @ me
 
@@ -48,8 +47,8 @@ public class GameTest {
         TestContext ctx = new TestContext(client);
 
         EventHooks.instance.onClientTick(c -> {
-            if(stop.get()) {
-                if(c.isRunning()) {
+            if (stop.get()) {
+                if (c.isRunning()) {
                     c.scheduleStop();
                 }
                 return;
@@ -102,7 +101,7 @@ public class GameTest {
                 }
             });
             semaphore.acquireUninterruptibly();
-            if(caught.get() != null) {
+            if (caught.get() != null) {
                 throw new RuntimeException(caught.get());
             }
         }
@@ -111,7 +110,7 @@ public class GameTest {
             while (!consumer.test(client)) {
                 waitTick();
                 timeout--;
-                if(timeout <= 0) {
+                if (timeout <= 0) {
                     throw new AssertionError("Timed out waiting for predicate");
                 }
             }
@@ -148,13 +147,14 @@ public class GameTest {
             });
             //?} else {
             /*client.createIntegratedServerLoader().start(null,"Game Test");
-            *///?}
+             *///?}
         });
         test.waitFor(client -> client.world != null && client.getServer() != null && client.getServer().isRunning(), SharedConstants.TICKS_PER_MINUTE);
 
         test.waitFor(client -> client.currentScreen == null, SharedConstants.TICKS_PER_MINUTE);
         test.waitTicks(20);
         test.runOnClient(client -> {
+            assert client.world != null;
             client.world.disconnect();
             client.disconnect(new MessageScreen(Text.translatable("menu.savingLevel")));
         });

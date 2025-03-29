@@ -21,7 +21,7 @@ public abstract class DimensionEffectsOverworldMixin extends DimensionEffects {
         remap = false,
         at = @At("RETURN"), expect = 0, require = 0)
     private float addCloudsYOffset(float value) {
-        if(!Main.getConfig().enabled) return value;
+        if (!Main.getConfig().enabled) return value;
         return value + Main.getConfig().yOffset;
     }
 }

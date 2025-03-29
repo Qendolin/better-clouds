@@ -38,8 +38,9 @@ public class CustomButtonOption implements ButtonOption {
         try {
             Class.forName("dev.isxander.yacl3.api.StateManager");
             hasStateManager = true;
-        } catch (ClassNotFoundException ignored) {}
-        if(hasStateManager) this.stateManager = StateManager.createImmutable(action);
+        } catch (ClassNotFoundException ignored) {
+        }
+        if (hasStateManager) this.stateManager = StateManager.createImmutable(action);
         else this.stateManager = null;
     }
 

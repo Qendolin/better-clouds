@@ -32,7 +32,7 @@ public final class ModLoader {
 
     public static ModVersion getModVersion(String modId) {
         Optional<ModContainer> mod = FabricLoader.getInstance().getModContainer(modId);
-        if(mod.isEmpty()) return ModVersion.NONE;
+        if (mod.isEmpty()) return ModVersion.NONE;
         return new ModVersionImpl(mod.get().getMetadata().getVersion());
     }
 }

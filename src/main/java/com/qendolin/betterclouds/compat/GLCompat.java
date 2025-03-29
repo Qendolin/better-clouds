@@ -203,11 +203,11 @@ public class GLCompat {
 
         String reason = null;
         if (hasContext) {
-            if(!openGl32) {
+            if (!openGl32) {
                 reason = "OpenGL 3.2 is required";
-            } else if(!(openGl33 || (glVertexAttribDivisor || arbInstancedArrays))) {
+            } else if (!(openGl33 || (glVertexAttribDivisor || arbInstancedArrays))) {
                 reason = "OpenGL 3.3, glVertexAttribDivisor, or arbInstancedArrays is required";
-            } else if(!(supportsStencilTexturing || (openGl40 || (glBlendFunci && glBlendEquationi) || arbDrawBuffersBlend))) {
+            } else if (!(supportsStencilTexturing || (openGl40 || (glBlendFunci && glBlendEquationi) || arbDrawBuffersBlend))) {
                 reason = "OpenGL 4.0, arbStencilTexturing, glBlendFunci and glBlendEquationi, or arbDrawBuffersBlend is required";
             }
         } else {
@@ -215,7 +215,7 @@ public class GLCompat {
         }
 
         compatible = reason == null;
-        if(reason != null) {
+        if (reason != null) {
             Main.LOGGER.warn("OpenGL compatibility check failed: " + reason);
         }
 

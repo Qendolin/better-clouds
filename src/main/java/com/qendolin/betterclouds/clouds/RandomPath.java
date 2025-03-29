@@ -12,7 +12,7 @@ public class RandomPath {
         int index = MathHelper.floor(x);
         double fractionalPart = MathHelper.fractionalPart(x);
 
-        double p0 = getPointCoordinate(index + 0, coordinateIndex);
+        double p0 = getPointCoordinate(index, coordinateIndex);
         double p1 = getPointCoordinate(index + 1, coordinateIndex);
 
         return p0 + (p1 - p0) * fractionalPart;
@@ -23,7 +23,7 @@ public class RandomPath {
         int index = MathHelper.floor(x);
         double fractionalPart = MathHelper.fractionalPart(x);
 
-        double p0 = getPointCoordinate(index + 0, coordinateIndex);
+        double p0 = getPointCoordinate(index, coordinateIndex);
         double p1 = getPointCoordinate(index + 1, coordinateIndex);
         double p2 = getPointCoordinate(index + 2, coordinateIndex);
         double p3 = getPointCoordinate(index + 3, coordinateIndex);
@@ -35,7 +35,7 @@ public class RandomPath {
         int wraps = index / POINTS;
         index -= wraps * POINTS;
         int value = PATH[index * 2 + coordinate];
-        if(coordinate == 0) value += PATH_WRAP * wraps;
+        if (coordinate == 0) value += PATH_WRAP * wraps;
         return value;
     }
 
@@ -46,9 +46,9 @@ public class RandomPath {
         // Catmull-Rom spline formula
         return 0.5 * (
             (2 * p1) +
-            (-p0 + p2) * t +
-            (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 +
-            (-p0 + 3 * p1 - 3 * p2 + p3) * t3
+                (-p0 + p2) * t +
+                (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 +
+                (-p0 + 3 * p1 - 3 * p2 + p3) * t3
         );
     }
 
@@ -67,7 +67,7 @@ public class RandomPath {
         int[] path = null;
         String name = "/static/path.bin";
         try (var res = RandomPath.class.getResourceAsStream(name)) {
-            if(res == null) {
+            if (res == null) {
                 Main.LOGGER.error("Failed to open cloud path resource. name={}", name);
             } else {
                 byte[] bytes = res.readAllBytes();
@@ -80,12 +80,12 @@ public class RandomPath {
         } catch (Exception e) {
             Main.LOGGER.error("Failed to load cloud path: ", e);
         }
-        if(path == null) {
+        if (path == null) {
             // use fallback path that just moves in -x direction
             path = new int[16];
-            for (int i = 0; i < path.length; i+=2) {
+            for (int i = 0; i < path.length; i += 2) {
                 path[i] = -i * TICKS_PER_POINT;
-                path[i+1] = 0;
+                path[i + 1] = 0;
             }
         }
         PATH = path;

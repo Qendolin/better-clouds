@@ -7,7 +7,7 @@ import net.minecraft.util.math.MathHelper;
 public abstract class CloudinessProvider {
 
     public static float getCloudiness(ClientWorld world, float tickDelta) {
-        if(world == null)
+        if (world == null)
             return 1.0f;
         float weather = Math.max(0.6f * getTrueRainGradient(world, tickDelta), getTrueThunderGradient(world, tickDelta));
         float cloudiness = weather * 0.3f + 0.5f;

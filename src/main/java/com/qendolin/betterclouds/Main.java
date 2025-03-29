@@ -104,12 +104,12 @@ public class Main {
 
     public static void initializeClientEvents() {
         EventHooks.instance.onClientStarted(client -> {
-            if(glCompat == null) {
+            if (glCompat == null) {
                 throw new IllegalStateException("OpenGL compat not initialized yet. This should not happen!");
             }
             glCompat.enableDebugOutputSynchronousDev();
 
-            if(GameTestEnabled.ENABLED) {
+            if (GameTestEnabled.ENABLED) {
                 GameTest.run(client);
             }
         });
@@ -136,8 +136,8 @@ public class Main {
     @Nullable
     public static Renderer getCloudsRenderer() {
         MinecraftClient client = MinecraftClient.getInstance();
-        if(client == null) return null;
-        if(client.worldRenderer instanceof WorldRendererDuck duck) {
+        if (client == null) return null;
+        if (client.worldRenderer instanceof WorldRendererDuck duck) {
             return duck.betterclouds$getRenderer();
         }
         return null;
@@ -146,7 +146,7 @@ public class Main {
     public static void initializeClient() {
         if (!IS_CLIENT)
             throw new IllegalStateException("Minecraft environment is not 'client' but the client initializer was called");
-        if(isInitialized) return;
+        if (isInitialized) return;
         isInitialized = true;
 
         initConfig();
@@ -230,7 +230,7 @@ public class Main {
     }
 
     private static void sendSystemDetailsTelemetry() {
-        if(!isInitialized || glCompat == null) return;
+        if (!isInitialized || glCompat == null) return;
 
         if (getConfig().lastTelemetryVersion >= Telemetry.VERSION) return;
         Telemetry.INSTANCE.sendSystemInfo()

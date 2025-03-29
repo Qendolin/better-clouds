@@ -19,10 +19,10 @@ public interface YACLOptionBuilder<T> {
         ModVersion version = ModLoader.getModVersion("yet_another_config_lib_v3");
         ModVersion.SemVer semver = version.asSemVer()
             .orElseThrow(() -> new RuntimeException("Could not parse YACL version: " + version.getFriendlyString()));
-        if(semver.major != 3)
+        if (semver.major != 3)
             throw new RuntimeException("Unsupported YACL major version, must be 3: " + semver.major);
 
-        if(semver.minor < 6) {
+        if (semver.minor < 6) {
             return new YACL35OptionBuilderImpl<>(delegate);
         }
 
@@ -91,7 +91,7 @@ public interface YACLOptionBuilder<T> {
      * @see Binding
      */
     YACLOptionBuilder<T> binding(@NotNull Binding<T> binding);
-    
+
     /**
      * Adds a listener to the option. Invoked upon changing the pending value.
      *

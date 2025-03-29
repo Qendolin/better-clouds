@@ -65,9 +65,12 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
     private int ticks;
 
     //? if >=1.21.3 {
-    @Shadow public abstract Frustum getCapturedFrustum();
+    @Shadow
+    public abstract Frustum getCapturedFrustum();
 
-    @Shadow @Final private DefaultFramebufferSet framebufferSet;
+    @Shadow
+    @Final
+    private DefaultFramebufferSet framebufferSet;
     //?} else {
     /*@Shadow
     @Final

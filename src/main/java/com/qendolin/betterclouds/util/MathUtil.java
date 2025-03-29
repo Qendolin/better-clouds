@@ -22,7 +22,7 @@ public class MathUtil {
         if (time <= 6000 || time > 18000) {
             // sunrise time
             if (time > 18000) time -= 24000;
-            if(time < riseStart) {
+            if (time < riseStart) {
                 time = map(time, -6000, riseStart, -6000, -785);
             } else if (time > riseEnd) {
                 time = map(time, riseEnd, 6000, 1163, 6000);
@@ -31,7 +31,7 @@ public class MathUtil {
             }
         } else {
             // sunset time
-            if(time < setStart) {
+            if (time < setStart) {
                 time = map(time, 6000, setStart, 6000, 10837);
             } else if (time > setEnd) {
                 time = map(time, setEnd, 18000, 12785, 18000);

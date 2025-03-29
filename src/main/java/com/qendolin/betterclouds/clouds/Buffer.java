@@ -54,7 +54,7 @@ public class Buffer implements AutoCloseable {
 
         writeBufferId = glGenBuffers();
         drawBufferId = glGenBuffers();
-        if(size <= 0) {
+        if (size <= 0) {
             // There is no way for the size to be zero or less, but I've reports of it happening regardless.
             Main.LOGGER.error("Impossible, invalid buffer size of {}, forcing it to 1", size);
             size = 1;

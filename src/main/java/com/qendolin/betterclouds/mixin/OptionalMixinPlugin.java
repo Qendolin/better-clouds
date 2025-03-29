@@ -16,4 +16,5 @@ public class OptionalMixinPlugin extends MixinPlugin {
             return ModLoaded.IRIS;
         }
         return true;
-    }}
+    }
+}

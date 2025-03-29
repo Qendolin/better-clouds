@@ -117,14 +117,13 @@ public class Resources implements Closeable {
 
     public boolean failedToLoadCritical() {
         if (depthShader == null || coverageShader == null || shadingShader == null) return true;
-        if (depthShader.isIncomplete() || coverageShader.isIncomplete() || shadingShader.isIncomplete() || debugShader.isIncomplete()) return true;
+        if (depthShader.isIncomplete() || coverageShader.isIncomplete() || shadingShader.isIncomplete() || debugShader.isIncomplete())
+            return true;
         if (generator == null) return true;
         if (oitFbo == UNASSIGNED) return true;
         if (oitDataTexture == UNASSIGNED || oitCoverageTexture == UNASSIGNED)
             return true;
-        if (cubeVao == UNASSIGNED || cubeVbo == UNASSIGNED) return true;
-
-        return false;
+        return cubeVao == UNASSIGNED || cubeVbo == UNASSIGNED;
     }
 
     public void reloadTimer() {
@@ -258,7 +257,7 @@ public class Resources implements Closeable {
             int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
             if (status == GL_FRAMEBUFFER_COMPLETE) {
                 Main.LOGGER.info("Framebuffer complete. useStencilTextureFallback={}, useDepthWriteFallback={}", useStencilTextureFallback, useDepthWriteFallback);
-                if(configurationIndex != -1) {
+                if (configurationIndex != -1) {
                     glCompat.setUseStencilTextureFallback(useStencilTextureFallback);
                     glCompat.setUseDepthWriteFallback(useDepthWriteFallback);
                 }
@@ -268,7 +267,7 @@ public class Resources implements Closeable {
             deleteFramebufferAttachments();
 
             configurationIndex++;
-            if(configurationIndex >= configurations.length) {
+            if (configurationIndex >= configurations.length) {
                 throw new RuntimeException("Better Clouds framebuffer incomplete, exhausted all options, your GPU is likely incompatible, status: " + status);
             }
 

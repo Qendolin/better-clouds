@@ -26,7 +26,7 @@ public class RenderDocLoader {
         LINUX,
         SOLARIS,
         WINDOWS,
-        OSX;
+        OSX
     }
 
     private static String getOperatingSystemName() {

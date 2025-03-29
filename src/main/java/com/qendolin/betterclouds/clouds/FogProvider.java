@@ -24,7 +24,7 @@ public abstract class FogProvider {
         if (client.world == null) return null;
 
         Camera camera = client.gameRenderer.getCamera();
-        float cloudDistance =  config.blockDistance();
+        float cloudDistance = config.blockDistance();
 
         SodiumExtraCompat.PREVENT_FOG_MODIFICATION.set(true);
         RenderHelper.Fog original = RenderHelper.getFog();

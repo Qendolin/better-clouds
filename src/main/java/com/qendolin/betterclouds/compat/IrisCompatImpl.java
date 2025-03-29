@@ -21,7 +21,7 @@ public class IrisCompatImpl extends IrisCompat {
     @Override
     public boolean isFrustumCullingDisabled() {
         WorldRenderingPipeline pipeline = Iris.getPipelineManager().getPipelineNullable();
-        if(pipeline == null) return false;
+        if (pipeline == null) return false;
         return pipeline.shouldDisableFrustumCulling();
     }
 
@@ -32,7 +32,7 @@ public class IrisCompatImpl extends IrisCompat {
         }
 
         ShaderProgram program = corePipeline.getShaderMap().getShader(ShaderKey.CLOUDS);
-        GlFramebuffer before = null, after = null;
+        GlFramebuffer before, after;
         if (program instanceof ExtendedShader extended) {
             ExtendedShaderAccessor access = (ExtendedShaderAccessor) extended;
             before = access.getWritingToBeforeTranslucent();

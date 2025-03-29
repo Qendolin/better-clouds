@@ -42,7 +42,7 @@ public class YACL36OptionBuilderImpl<T> implements YACLOptionBuilder<T> {
 
     @Override
     public Option<T> build() {
-        if(instant) {
+        if (instant) {
             if (binding == null) {
                 throw new IllegalStateException("Cannot build option with instant when binding is not set");
             }

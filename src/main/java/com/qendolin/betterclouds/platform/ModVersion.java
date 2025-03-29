@@ -55,7 +55,7 @@ public abstract class ModVersion {
 
     public Optional<SemVer> asSemVer() {
         Matcher matcher = SEMVER_PATTERN.matcher(getFriendlyString());
-        if(!matcher.find()) return Optional.empty();
+        if (!matcher.find()) return Optional.empty();
         try {
             int major = Integer.parseInt(matcher.group(1));
             int minor = Integer.parseInt(matcher.group(2));

@@ -1,6 +1,7 @@
 package com.qendolin.betterclouds.compat;
 
 //? if fabric {
+
 import com.qendolin.betterclouds.Main;
 import io.github.lucaargolo.seasons.FabricSeasons;
 import io.github.lucaargolo.seasons.utils.Season;
@@ -18,14 +19,14 @@ public class FabricSeasonsCompatImpl extends FabricSeasonsCompat {
     @Override
     public float getCloudinessFactor(World world) {
         var season = FabricSeasons.getCurrentSeason(world);
-        if(season == null)
+        if (season == null)
             return 1.0f;
 
 
         long duration = season.getSeasonLength();
         long transitionTicks = (long) (Main.getConfig().fabricSeasonsConfig.transitionDays * 24000);
         transitionTicks = Math.min(transitionTicks, duration);
-        if(transitionTicks <= 0) {
+        if (transitionTicks <= 0) {
             return getSeasonCloudiness(season);
         }
 

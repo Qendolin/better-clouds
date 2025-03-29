@@ -12,7 +12,6 @@ import com.seibel.distanthorizons.api.methods.events.sharedParameterObjects.DhAp
 import com.seibel.distanthorizons.api.objects.DhApiResult;
 import org.joml.Matrix4f;
 
-import java.lang.reflect.Field;
 import java.util.Optional;
 
 public abstract class DistantHorizonsSharedCompatImpl extends DistantHorizonsCompat {
@@ -31,13 +30,13 @@ public abstract class DistantHorizonsSharedCompatImpl extends DistantHorizonsCom
         DhApiEventRegister.on(DhApiBeforeRenderEvent.class, new DhApiBeforeRenderEvent() {
             @Override
             public void beforeRender(DhApiCancelableEventParam<DhApiRenderParam> dhApiEventParam) {
-                if(dhApiEventParam.value.renderPass == EDhApiRenderPass.OPAQUE || dhApiEventParam.value.renderPass == EDhApiRenderPass.OPAQUE_AND_TRANSPARENT) {
+                if (dhApiEventParam.value.renderPass == EDhApiRenderPass.OPAQUE || dhApiEventParam.value.renderPass == EDhApiRenderPass.OPAQUE_AND_TRANSPARENT) {
                     lastRenderParam = dhApiEventParam.value;
                 }
                 // With shaders the transparent rendering pass might be deferred and doesn't have a 'valid' dhProjectionMatrix
                 // Don't know if that's how it's supposed to be, but I can't use it.
 
-                if(Main.getConfig().enabled) {
+                if (Main.getConfig().enabled) {
                     disableLodClouds();
                 }
             }

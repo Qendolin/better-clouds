@@ -48,7 +48,7 @@ public class BackgroundRendererMixinMixin {
 
     @Unique
     private static void preventFogModificationCommon(CallbackInfo ci) {
-        if(SodiumExtraCompat.PREVENT_FOG_MODIFICATION.get()) {
+        if (SodiumExtraCompat.PREVENT_FOG_MODIFICATION.get()) {
             ci.cancel();
         }
     }

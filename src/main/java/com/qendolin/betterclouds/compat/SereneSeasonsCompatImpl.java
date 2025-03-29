@@ -10,7 +10,7 @@ import sereneseasons.api.season.SeasonHelper;
 public class SereneSeasonsCompatImpl extends SereneSeasonsCompat {
 
     private Season.SubSeason getRelativeSeason(Season.SubSeason season, int d) {
-        if(d == 0)
+        if (d == 0)
             return season;
 
         int index = season.ordinal();
@@ -34,9 +34,9 @@ public class SereneSeasonsCompatImpl extends SereneSeasonsCompat {
     @Override
     public float getCloudinessFactor(World world) {
         var state = SeasonHelper.getSeasonState(world);
-        if(state == null) return 1.0f;
+        if (state == null) return 1.0f;
         var season = state.getSubSeason();
-        if(season == null) return 1.0f;
+        if (season == null) return 1.0f;
 
         int seasonTicks = getSubSeasonTicks(state);
         int seasonDuration = state.getSubSeasonDuration();
@@ -45,7 +45,7 @@ public class SereneSeasonsCompatImpl extends SereneSeasonsCompat {
         int transitionTicks = (int) (Main.getConfig().sereneSeasonsConfig.transitionDays * state.getDayDuration());
         transitionTicks = Math.min(transitionTicks, seasonDuration);
 
-        if(transitionTicks <= 0) {
+        if (transitionTicks <= 0) {
             return getSeasonCloudiness(season);
         }
 
@@ -53,7 +53,7 @@ public class SereneSeasonsCompatImpl extends SereneSeasonsCompat {
         float end = getSeasonCloudiness(getRelativeSeason(season, half));
 
         float blend;
-        if(half == 0) {
+        if (half == 0) {
             blend = (float) seasonTicks / transitionTicks + 0.5f;
         } else {
             blend = (float) (seasonDuration - seasonTicks) / transitionTicks + 0.5f;

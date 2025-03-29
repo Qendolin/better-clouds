@@ -13,8 +13,11 @@ public abstract class EnhancedCelestialsSharedCompatImpl extends EnhancedCelesti
         }
 
         public abstract LunarEventAccess lastLunarEvent();
+
         public abstract LunarEventAccess currentLunarEvent();
+
         public abstract float getBlend();
+
         public abstract boolean switchingEvents();
 
     }
@@ -28,6 +31,7 @@ public abstract class EnhancedCelestialsSharedCompatImpl extends EnhancedCelesti
 
         public abstract float getMoonSize();
 
+        @SuppressWarnings("BooleanMethodIsAlwaysInverted")
         protected abstract boolean matches(Identifier id);
 
     }
@@ -40,7 +44,7 @@ public abstract class EnhancedCelestialsSharedCompatImpl extends EnhancedCelesti
     @Override
     public Vector3f getEventTint(World world) {
         var forecast = getLunarForecast(world);
-        if(forecast == null)
+        if (forecast == null)
             return null;
 
         var lastEvent = forecast.lastLunarEvent();
@@ -58,7 +62,7 @@ public abstract class EnhancedCelestialsSharedCompatImpl extends EnhancedCelesti
     @Override
     public boolean isEventActive(World world) {
         var forecast = getLunarForecast(world);
-        if(forecast == null)
+        if (forecast == null)
             return false;
 
         var lastKey = forecast.lastLunarEvent();
@@ -75,7 +79,7 @@ public abstract class EnhancedCelestialsSharedCompatImpl extends EnhancedCelesti
     @Override
     public float getMoonSize(World world) {
         var forecast = getLunarForecast(world);
-        if(forecast == null)
+        if (forecast == null)
             return 1.0f;
 
         var lastEvent = forecast.lastLunarEvent();

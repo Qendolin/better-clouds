@@ -13,7 +13,7 @@ class ReflectAccess {
     @SuppressWarnings("unchecked")
     protected <T> T invoke(Object instance, Method m, Object... args) {
         try {
-            return (T) m.invoke(instance,args);
+            return (T) m.invoke(instance, args);
         } catch (IllegalAccessException | InvocationTargetException | ClassCastException e) {
             throw IncompatibleModDependencyException.of(name, e);
         }

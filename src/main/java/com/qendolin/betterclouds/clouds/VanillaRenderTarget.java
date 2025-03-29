@@ -8,6 +8,7 @@ import net.minecraft.client.MinecraftClient;
 //? if >=1.21.5 {
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
+
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 //?} else {

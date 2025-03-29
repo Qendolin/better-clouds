@@ -10,7 +10,7 @@ public class RuntimeMixinPlugin extends MixinPlugin {
 
     @Override
     public List<String> getMixins() {
-        if(!ModLoader.isClientEnvironment()) return null;
+        if (!ModLoader.isClientEnvironment()) return null;
 
         //noinspection MismatchedQueryAndUpdateOfCollection
         List<String> classes = new ArrayList<>();
@@ -21,12 +21,12 @@ public class RuntimeMixinPlugin extends MixinPlugin {
         classes.add("VertexBufferAccessor");
         *///?}
 
-        if(GameTestEnabled.ENABLED) {
+        if (GameTestEnabled.ENABLED) {
             classes.add("GameTestClientMixin");
             classes.add("GameTestLevelSummaryMixin");
         }
 
-        if(classes.isEmpty())
+        if (classes.isEmpty())
             return null;
 
         return classes;
