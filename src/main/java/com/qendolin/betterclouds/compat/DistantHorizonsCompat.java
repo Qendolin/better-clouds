@@ -23,50 +23,53 @@ public abstract class DistantHorizonsCompat {
     public static void initialize() {
         if (instance != null) return;
 
-        Main.LOGGER.info("Initializing DistantHorizons compat");
-
-        if(!ModLoaded.DISTANT_HORIZONS) {
-            Main.LOGGER.info("DistantHorizons not loaded");
+        if (!ModLoaded.DISTANT_HORIZONS) {
+            Main.LOGGER.info("DistantHorizons: not loaded");
+            instance = new Stub();
+            return;
         }
+
+        Main.LOGGER.info("DistantHorizons: initializing compat");
 
         int apiVersion = 0;
-        if(ModLoaded.DISTANT_HORIZONS) {
-            try {
-                Class.forName("com.seibel.distanthorizons.api.DhApi");
-                apiVersion = DhApi.getApiMajorVersion();
-                Main.LOGGER.info("DistantHorizons API version is {}.{}.{}", DhApi.getApiMajorVersion(), DhApi.getApiMinorVersion(), DhApi.getApiPatchVersion());
-            } catch (ClassNotFoundException e) {
+        try {
+            Class.forName("com.seibel.distanthorizons.api.DhApi");
+            apiVersion = DhApi.getApiMajorVersion();
+            Main.LOGGER.info("DistantHorizons API version is {}.{}.{}", DhApi.getApiMajorVersion(), DhApi.getApiMinorVersion(), DhApi.getApiPatchVersion());
+        } catch (ClassNotFoundException ignored) {
+        }
+
+        try {
+            if (apiVersion == 4) {
+                Main.LOGGER.warn("Using EXPERIMENTAL DistantHorizons 4 compat. The game might crash!");
+                instance = new DistantHorizons4CompatImpl();
+            } else if (apiVersion == 3) {
+                Main.LOGGER.info("Using DistantHorizons 3 compat");
+                instance = new DistantHorizons3CompatImpl();
+            } else if (apiVersion == 2) {
+                Main.LOGGER.info("Using DistantHorizons 2 compat");
+                instance = new DistantHorizons2CompatImpl();
+            } else {
                 Main.LOGGER.error("DistantHorizons version not compatible");
             }
+        } catch (Throwable e) {
+            Main.LOGGER.error("DistantHorizons version not compatible", e);
         }
 
-        if (apiVersion == 4) {
-            Main.LOGGER.warn("Using EXPERIMENTAL DistantHorizons 4 compat. The game might crash!");
-            instance = new DistantHorizons4CompatImpl();
-        } else if (apiVersion == 3) {
-            Main.LOGGER.info("Using DistantHorizons 3 compat");
-            instance = new DistantHorizons3CompatImpl();
-        } else if (apiVersion == 2) {
-            Main.LOGGER.info("Using DistantHorizons 2 compat");
-            instance = new DistantHorizons2CompatImpl();
-        } else {
-            if(ModLoaded.DISTANT_HORIZONS)
-                Main.LOGGER.error("DistantHorizons version not compatible");
-
+        if (instance == null) {
             instance = new Stub();
+        } else {
+            DistantHorizonsCompat.isActive = true;
         }
-        DistantHorizonsCompat.isActive = !(instance instanceof Stub);
     }
 
     public static boolean isActive() {
         return isActive;
     }
 
-
     public static DistantHorizonsCompat instance() {
         return instance;
     }
-
 
     public abstract boolean isReady();
 

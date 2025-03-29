@@ -10,24 +10,26 @@ public abstract class IrisCompat {
     public static void initialize() {
         if (instance != null) return;
 
-        Main.LOGGER.info("Initializing Iris compat");
-
-        boolean active = ModLoaded.IRIS;
-        if(!active) {
-            Main.LOGGER.info("Iris not loaded");
+        if (!ModLoaded.IRIS) {
+            Main.LOGGER.info("Iris: not loaded");
+            instance = new Stub();
+            return;
         }
 
-        if(active) {
-            try {
-                Class.forName("net.irisshaders.iris.Iris");
-            } catch (ClassNotFoundException e) {
-                active = false;
-                Main.LOGGER.error("Iris version not compatible");
-            }
+        Main.LOGGER.info("Iris: initializing compat");
+
+
+        try {
+            instance = new IrisCompatImpl();
+        } catch (Throwable e) {
+            Main.LOGGER.error("Iris version not compatible", e);
         }
 
-        instance = active ? new IrisCompatImpl() : new Stub();
-        IrisCompat.isActive = active;
+        if (instance == null) {
+            instance = new Stub();
+        } else {
+            IrisCompat.isActive = true;
+        }
     }
 
     public static boolean isActive() {

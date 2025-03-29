@@ -30,24 +30,26 @@ public abstract class SereneSeasonsCompat {
     public static void initialize() {
         if (instance != null) return;
 
-        Main.LOGGER.info("Initializing SereneSeasons compat");
-
-        boolean active = ModLoaded.SERENE_SEASONS;
-        if(!active) {
-            Main.LOGGER.info("SereneSeasons not loaded");
+        if (!ModLoaded.SERENE_SEASONS) {
+            Main.LOGGER.info("SereneSeasons: not loaded");
+            instance = new Stub();
+            return;
         }
 
-        if(active) {
-            try {
-                Class.forName("sereneseasons.api.season.SeasonHelper");
-            } catch (ClassNotFoundException e) {
-                active = false;
-                Main.LOGGER.error("SereneSeasons version not compatible");
-            }
+        Main.LOGGER.info("SereneSeasons: initializing compat");
+
+
+        try {
+            instance = new SereneSeasonsCompatImpl();
+        } catch (Throwable e) {
+            Main.LOGGER.error("SereneSeasons version not compatible", e);
         }
 
-        instance = active ? new SereneSeasonsCompatImpl() : new Stub();
-        SereneSeasonsCompat.isActive = active;
+        if (instance == null) {
+            instance = new Stub();
+        } else {
+            SereneSeasonsCompat.isActive = true;
+        }
     }
 
     public static boolean isActive() {

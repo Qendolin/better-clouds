@@ -63,7 +63,7 @@ public class EnhancedCelestials1CompatImpl extends EnhancedCelestialsSharedCompa
                 classClientSettings.getMethod("moonSize")
             );
         } catch (NoSuchFieldException | NoSuchMethodException | ClassNotFoundException | IllegalAccessException e) {
-            throw ReflectAccess.IncompatibleModDependencyException.of("EnhancedCelestials", e);
+            throw new RuntimeException(e);
         }
     }
 

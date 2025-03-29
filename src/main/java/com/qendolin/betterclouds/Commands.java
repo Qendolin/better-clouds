@@ -26,6 +26,7 @@ import java.util.function.Function;
 
 //? if fabric {
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
+
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.argument;
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
 //?} else {
@@ -34,6 +35,7 @@ import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 *///?}
+
 public class Commands {
 
     //? if !fabric {
@@ -56,18 +58,18 @@ public class Commands {
 
     //? if fabric {
     static void register(CommandDispatcher<FabricClientCommandSource> dispatcher) {
-    //?} else {
-    /*static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-    *///?}
+        //?} else {
+        /*static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
+         *///?}
         final MinecraftClient client = MinecraftClient.getInstance();
         dispatcher.register(literal(Main.MODID + ":profile")
-                .then(argument("interval", IntegerArgumentType.integer(30))
-                    .executes(context -> {
-                        int interval = IntegerArgumentType.getInteger(context, "interval");
-                        Main.debugChatMessage("profiling.enabled", interval);
-                        Debug.profileInterval = interval;
-                        return 1;
-                    })));
+            .then(argument("interval", IntegerArgumentType.integer(30))
+                .executes(context -> {
+                    int interval = IntegerArgumentType.getInteger(context, "interval");
+                    Main.debugChatMessage("profiling.enabled", interval);
+                    Debug.profileInterval = interval;
+                    return 1;
+                })));
 
         dispatcher.register(literal(Main.MODID + ":profile")
             .then(argument("interval", IntegerArgumentType.integer(30))
@@ -82,9 +84,9 @@ public class Commands {
                     Main.debugChatMessage("profiling.disabled");
                     Debug.profileInterval = 0;
                     var renderer = Main.getCloudsRenderer();
-                    if(renderer != null) {
+                    if (renderer != null) {
                         var timer = renderer.resources().timer();
-                        if(timer != null)
+                        if (timer != null)
                             timer.reset();
                     }
                     return 1;
@@ -157,26 +159,29 @@ public class Commands {
                 Main.debugChatMessage("configReloaded");
                 return 1;
             }))
-            .then(literal("gpuIncompatibleMessage")
-                .then(argument("enable", BoolArgumentType.bool())
-                    .executes(context -> {
-                        boolean enable = BoolArgumentType.getBool(context, "enable");
-                        if (Main.getConfig().gpuIncompatibleMessageEnabled == enable) return 1;
-                        Main.getConfig().gpuIncompatibleMessageEnabled = enable;
-                        Main.getConfigHandler().serializer().save();
-                        Main.debugChatMessage("updatedPreferences");
-                        return 1;
-                    }))));
+            .then(literal("set")
+                .then(literal("gpuIncompatibleMessage")
+                    .then(argument("enable", BoolArgumentType.bool())
+                        .executes(context -> {
+                            boolean enable = BoolArgumentType.getBool(context, "enable");
+                            if (Main.getConfig().gpuIncompatibleMessageEnabled == enable) return 1;
+                            Main.getConfig().gpuIncompatibleMessageEnabled = enable;
+                            Main.getConfigHandler().serializer().save();
+                            Main.debugChatMessage("updatedPreferences");
+                            return 1;
+                        })))
+            )
+        );
         dispatcher.register(literal(Main.MODID + ":dimension")
             .then(literal("enable")
                 .executes(context -> {
-                    if(client.world == null)
+                    if (client.world == null)
                         return 0;
                     var entry = client.world.getDimensionEntry();
                     var key = entry.getKey().orElse(null);
-                    if(key == null)
+                    if (key == null)
                         return 0;
-                    if(!Main.getConfig().enabledDimensions.contains(key)) {
+                    if (!Main.getConfig().enabledDimensions.contains(key)) {
                         Main.getConfig().enabledDimensions.add(key);
                     }
                     Main.getConfigHandler().serializer().save();
@@ -185,7 +190,7 @@ public class Commands {
                 }))
             .then(literal("disable")
                 .executes(context -> {
-                    if(client.world == null)
+                    if (client.world == null)
                         return 0;
                     var entry = client.world.getDimensionEntry();
                     var key = entry.getKey().orElse(null);
@@ -364,7 +369,7 @@ public class Commands {
                 .append(Text.translatable(Main.debugChatMessageKey("generic.disable"))
                     .styled(style -> style.withItalic(true).withUnderline(true).withColor(Formatting.GRAY)
                         .withClickEvent(createCommandClickEvent(
-                            "/betterclouds:config gpuIncompatibleMessage false")))));
+                            "/betterclouds:config set gpuIncompatibleMessage false")))));
     }
 
     public static void sendGpuPartiallyIncompatibleChatMessage() {
@@ -375,7 +380,7 @@ public class Commands {
                 .append(Text.translatable(Main.debugChatMessageKey("generic.disable"))
                     .styled(style -> style.withItalic(true).withUnderline(true).withColor(Formatting.GRAY)
                         .withClickEvent(createCommandClickEvent(
-                            "/betterclouds:config gpuIncompatibleMessage false")))));
+                            "/betterclouds:config set gpuIncompatibleMessage false")))));
     }
 
     public static void sendHardwareMaybeIncompatibleChatMessage() {
@@ -386,7 +391,7 @@ public class Commands {
                 .append(Text.translatable(Main.debugChatMessageKey("generic.disable"))
                     .styled(style -> style.withItalic(true).withUnderline(true).withColor(Formatting.GRAY)
                         .withClickEvent(createCommandClickEvent(
-                            "/betterclouds:config gpuIncompatibleMessage false")))));
+                            "/betterclouds:config set gpuIncompatibleMessage false")))));
     }
 
     private static ClickEvent createCommandClickEvent(String command) {
@@ -394,7 +399,7 @@ public class Commands {
         return new ClickEvent.RunCommand(command);
         //?} else {
         /*return new ClickEvent(ClickEvent.Action.RUN_COMMAND, command);
-        *///?}
+         *///?}
     }
 
     private static ClickEvent createOpenFileClickEvent(String path) {
@@ -402,6 +407,6 @@ public class Commands {
         return new ClickEvent.OpenFile(path);
         //?} else {
         /*return new ClickEvent(ClickEvent.Action.OPEN_FILE, path);
-        *///?}
+         *///?}
     }
 }

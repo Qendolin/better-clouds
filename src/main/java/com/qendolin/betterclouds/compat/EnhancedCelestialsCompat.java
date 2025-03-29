@@ -12,50 +12,58 @@ public abstract class EnhancedCelestialsCompat {
     public static void initialize() {
         if (instance != null) return;
 
-        Main.LOGGER.info("Initializing EnhancedCelestials compat");
-
-        if(!ModLoaded.ENHANCED_CELESTIALS) {
-            Main.LOGGER.info("EnhancedCelestials not loaded");
+        if (!ModLoaded.ENHANCED_CELESTIALS) {
+            Main.LOGGER.info("EnhancedCelestials: not loaded");
+            instance = new Stub();
+            return;
         }
+
+        Main.LOGGER.info("EnhancedCelestials: initializing compat");
 
         int version = 0;
         boolean v1devPackage = true;
-        if(ModLoaded.ENHANCED_CELESTIALS) {
+        try {
+            Class.forName("dev.corgitaco.enhancedcelestials.lunarevent.EnhancedCelestialsLunarForecastWorldData");
+            version = 2;
+        } catch (ClassNotFoundException ignored) {
+        }
+
+        if (version == 0) {
             try {
-                Class.forName("dev.corgitaco.enhancedcelestials.lunarevent.EnhancedCelestialsLunarForecastWorldData");
-                version = 2;
-            } catch (ClassNotFoundException ignored) {}
-
-            if(version == 0) {
-                try {
-                    Class.forName("corgitaco.enhancedcelestials.EnhancedCelestialsWorldData");
-                    version = 1;
-                    v1devPackage = false;
-                } catch (ClassNotFoundException ignored) {}
-            }
-
-            if(version == 0) {
-                try {
-                    Class.forName("dev.corgitaco.enhancedcelestials.EnhancedCelestialsWorldData");
-                    version = 1;
-                } catch (ClassNotFoundException ignored) {}
+                Class.forName("corgitaco.enhancedcelestials.EnhancedCelestialsWorldData");
+                version = 1;
+                v1devPackage = false;
+            } catch (ClassNotFoundException ignored) {
             }
         }
 
-        if(version == 1) {
-            Main.LOGGER.info("Using EnhancedCelestials 1 compat");
-            instance = new EnhancedCelestials1CompatImpl(v1devPackage);
-        } else if(version == 2) {
-            Main.LOGGER.info("Using EnhancedCelestials 2 compat");
-            instance = new EnhancedCelestials2CompatImpl();
-        } else {
-            if(ModLoaded.ENHANCED_CELESTIALS)
+        if (version == 0) {
+            try {
+                Class.forName("dev.corgitaco.enhancedcelestials.EnhancedCelestialsWorldData");
+                version = 1;
+            } catch (ClassNotFoundException ignored) {
+            }
+        }
+
+        try {
+            if (version == 1) {
+                Main.LOGGER.info("Using EnhancedCelestials 1 compat");
+                instance = new EnhancedCelestials1CompatImpl(v1devPackage);
+            } else if (version == 2) {
+                Main.LOGGER.info("Using EnhancedCelestials 2 compat");
+                instance = new EnhancedCelestials2CompatImpl();
+            } else {
                 Main.LOGGER.error("EnhancedCelestials version not compatible");
-
-            instance = new Stub();
+            }
+        } catch (Throwable e) {
+            Main.LOGGER.error("EnhancedCelestials version not compatible", e);
         }
-        EnhancedCelestialsCompat.isActive = !(instance instanceof Stub);
 
+        if (instance == null) {
+            instance = new Stub();
+        } else {
+            EnhancedCelestialsCompat.isActive = true;
+        }
     }
 
     public static boolean isActive() {

@@ -22,24 +22,26 @@ public abstract class FabricSeasonsCompat {
     public static void initialize() {
         if (instance != null) return;
 
-        Main.LOGGER.info("Initializing FabricSeasons compat");
-
-        boolean active = ModLoaded.FABRIC_SEASONS;
-        if(!active) {
-            Main.LOGGER.info("FabricSeasons not loaded");
+        if (!ModLoaded.FABRIC_SEASONS) {
+            Main.LOGGER.info("FabricSeasons: not loaded");
+            instance = new Stub();
+            return;
         }
 
-        if(active) {
-            try {
-                Class.forName("io.github.lucaargolo.seasons.FabricSeasons");
-            } catch (ClassNotFoundException e) {
-                active = false;
-                Main.LOGGER.error("FabricSeasons version not compatible");
-            }
+        Main.LOGGER.info("FabricSeasons: initializing compat");
+
+
+        try {
+            instance = new FabricSeasonsCompatImpl();
+        } catch (Throwable e) {
+            Main.LOGGER.error("FabricSeasons version not compatible", e);
         }
 
-        instance = active ? new FabricSeasonsCompatImpl() : new FabricSeasonsCompat.Stub();
-        FabricSeasonsCompat.isActive = active;
+        if (instance == null) {
+            instance = new Stub();
+        } else {
+            FabricSeasonsCompat.isActive = true;
+        }
     }
 
     public static boolean isActive() {

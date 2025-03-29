@@ -8,8 +8,8 @@ import java.lang.reflect.Method;
 
 class DistantHorizons2CompatImpl extends DistantHorizonsSharedCompatImpl {
 
-    private Field dhProjectionMatrixField;
-    private Method getValuesAsArrayMethod;
+    private final Field dhProjectionMatrixField;
+    private final Method getValuesAsArrayMethod;
 
     public DistantHorizons2CompatImpl() {
         super();
@@ -18,7 +18,7 @@ class DistantHorizons2CompatImpl extends DistantHorizonsSharedCompatImpl {
             dhProjectionMatrixField = DhApiRenderParam.class.getField("dhProjectionMatrix");
             getValuesAsArrayMethod = Class.forName("com.seibel.distanthorizons.coreapi.util.math.Mat4f").getMethod("getValuesAsArray");
         } catch (NoSuchFieldException | NoSuchMethodException | ClassNotFoundException e) {
-            throw new RuntimeException("Your versions of Better Clouds and Distant Horizons are not compatible!", e);
+            throw new RuntimeException(e);
         }
     }
 

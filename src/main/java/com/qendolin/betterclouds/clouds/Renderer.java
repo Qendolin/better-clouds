@@ -23,7 +23,7 @@ import net.minecraft.block.enums.CameraSubmersionType;
 import com.mojang.blaze3d.opengl.GlStateManager;
 //?} else {
 /*import com.mojang.blaze3d.platform.GlStateManager;
-*///?}
+ *///?}
 
 import java.lang.Math;
 import java.util.*;
@@ -179,13 +179,13 @@ public class Renderer implements AutoCloseable {
     // Note: render must not return early, this will cause corruption because prepare binds stuff
     public void render(int ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
         // In 1.21.3 render is called some time after prepare, so this may be false by now
-        if(res.failedToLoadCritical()) return;
+        if (res.failedToLoadCritical()) return;
 
         getProfiler().swap("render_setup");
         if (Debug.isProfilingEnabled()) {
             if (res.timer() == null)
                 res.reloadTimer();
-            if(res.timer() != null)
+            if (res.timer() != null)
                 res.timer().start();
         }
 
@@ -290,8 +290,8 @@ public class Renderer implements AutoCloseable {
         res.coverageShader().uBoundingBox.setVec4((float) cam.x, (float) cam.z, generatorConfig.blockDistance() - generatorConfig.chunkSize / 2f, generatorConfig.yRange + config.sizeY);
         res.coverageShader().uTime.setFloat(ticks / 20);
         res.coverageShader().uMiscellaneous.setVec3(config.scaleFalloffMin, config.windEffectFactor, config.windSpeedFactor);
-        if(fog == null) { // Fog off
-            res.coverageShader().uFogRange.setVec2(config.blockDistance()-8, config.blockDistance());
+        if (fog == null) { // Fog off
+            res.coverageShader().uFogRange.setVec2(config.blockDistance() - 8, config.blockDistance());
         } else {
             res.coverageShader().uFogRange.setVec2(fog.start(), fog.end());
         }
@@ -335,11 +335,11 @@ public class Renderer implements AutoCloseable {
 
 
         boolean frustumCulling = config.useFrustumCulling;
-        if(IrisCompat.instance().isFrustumCullingDisabled() || config.preset().worldCurvatureSize != 0) {
+        if (IrisCompat.instance().isFrustumCullingDisabled() || config.preset().worldCurvatureSize != 0) {
             frustumCulling = false;
         }
 
-        if(frustumCulling)
+        if (frustumCulling)
             drawCloudsWithFrustumCulling(frustumAtOrigin, config);
         else
             drawCloudsWithoutFrustumCulling();
@@ -383,9 +383,9 @@ public class Renderer implements AutoCloseable {
 
     private void drawCloudsWithoutFrustumCulling() {
         List<ChunkedGenerator.ChunkIndex> chunks = res.generator().chunks();
-        if(chunks.isEmpty()) return;
+        if (chunks.isEmpty()) return;
         ChunkedGenerator.ChunkIndex first = chunks.get(0);
-        ChunkedGenerator.ChunkIndex last = chunks.get(chunks.size()-1);
+        ChunkedGenerator.ChunkIndex last = chunks.get(chunks.size() - 1);
         int start = first.start();
         int count = last.start() + last.count();
         if (glCompat.useBaseInstanceFallback()) {
