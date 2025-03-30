@@ -1,7 +1,5 @@
 package com.qendolin.betterclouds.mixin.runtime;
 
-//? if fabric {
-
 import net.minecraft.world.level.storage.LevelSummary;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -10,7 +8,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @SuppressWarnings("UnusedMixin")
 @Mixin(LevelSummary.class)
-public class GameTestLevelSummaryMixin {
+public abstract class GameTestLevelSummaryMixin {
 
     //? if >1.20.1 {
     @Inject(method = "shouldPromptBackup", at = @At("HEAD"), cancellable = true)
@@ -30,5 +28,3 @@ public class GameTestLevelSummaryMixin {
         cir.setReturnValue(LevelSummary.ConversionWarning.NONE);
     }
 }
-
-//?}

@@ -1,9 +1,10 @@
 package com.qendolin.betterclouds.clouds;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.Commands;
-import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.clouds.shaders.*;
+import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.util.RenderHelper;
 import com.qendolin.betterclouds.compat.Telemetry;
 import net.minecraft.client.MinecraftClient;
@@ -25,15 +26,15 @@ import com.qendolin.betterclouds.mixin.runtime.VertexBufferAccessor;
 import java.io.Closeable;
 import java.io.IOException;
 
-import static com.qendolin.betterclouds.Main.LOGGER;
-import static com.qendolin.betterclouds.Main.glCompat;
+import static com.qendolin.betterclouds.BetterCloudsStatic.getLogger;
+import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
 import static org.lwjgl.opengl.GL32.*;
 
 public class Resources implements Closeable {
     // Texture Unit 5
-    public static final Identifier NOISE_TEXTURE = Identifier.of(Main.MODID, "textures/environment/cloud_noise_rgb.png");
+    public static final Identifier NOISE_TEXTURE = Identifier.of(BetterCloudsStatic.MODID, "textures/environment/cloud_noise_rgb.png");
     // Texture Unit 4
-    public static final Identifier LIGHTING_TEXTURE = Identifier.of(Main.MODID, "textures/environment/cloud_light_gradient.png");
+    public static final Identifier LIGHTING_TEXTURE = Identifier.of(BetterCloudsStatic.MODID, "textures/environment/cloud_light_gradient.png");
 
     private static final int UNASSIGNED = 0;
 
@@ -213,7 +214,7 @@ public class Resources implements Closeable {
         deleteGenerator();
 
         generator = new ChunkedGenerator();
-        generator.allocate(Main.getConfig(), fancy);
+        generator.allocate(ConfigManager.instance(), fancy);
         generator.clear();
         generator.unbind();
     }
@@ -225,7 +226,7 @@ public class Resources implements Closeable {
 
     public void reloadFramebuffer(int width, int height) {
         if (width == 0 || height == 0) {
-            LOGGER.warn("Cannot create framebuffer with size 0 ({}x{})! Skipping framebuffer creation to avoid an error.", width, height);
+            getLogger().warn("Cannot create framebuffer with size 0 ({}x{})! Skipping framebuffer creation to avoid an error.", width, height);
             return;
         }
         deleteFramebuffer();
@@ -256,7 +257,7 @@ public class Resources implements Closeable {
             createFramebufferAttachments(useStencilTextureFallback, useDepthWriteFallback);
             int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
             if (status == GL_FRAMEBUFFER_COMPLETE) {
-                Main.LOGGER.info("Framebuffer complete. useStencilTextureFallback={}, useDepthWriteFallback={}", useStencilTextureFallback, useDepthWriteFallback);
+                BetterCloudsStatic.getLogger().info("Framebuffer complete. useStencilTextureFallback={}, useDepthWriteFallback={}", useStencilTextureFallback, useDepthWriteFallback);
                 if (configurationIndex != -1) {
                     glCompat.setUseStencilTextureFallback(useStencilTextureFallback);
                     glCompat.setUseDepthWriteFallback(useDepthWriteFallback);
@@ -271,7 +272,7 @@ public class Resources implements Closeable {
                 throw new RuntimeException("Better Clouds framebuffer incomplete, exhausted all options, your GPU is likely incompatible, status: " + status);
             }
 
-            Main.LOGGER.warn("Framebuffer incomplete, trying different creation configuration. useStencilTextureFallback={}, useDepthWriteFallback={}, status={}", useStencilTextureFallback, useDepthWriteFallback, status);
+            BetterCloudsStatic.getLogger().warn("Framebuffer incomplete, trying different creation configuration. useStencilTextureFallback={}, useDepthWriteFallback={}, status={}", useStencilTextureFallback, useDepthWriteFallback, status);
             useStencilTextureFallback = configurations[configurationIndex][0];
             useDepthWriteFallback = configurations[configurationIndex][1];
         }
@@ -340,7 +341,7 @@ public class Resources implements Closeable {
             reloadShadersInternal(manager, shaderParameters);
         } catch (Exception e) {
             Commands.sendGpuIncompatibleChatMessage();
-            Main.LOGGER.error(e);
+            BetterCloudsStatic.getLogger().error(e);
             Telemetry.INSTANCE.sendShaderCompileError(e.toString());
             deleteShaders();
         }

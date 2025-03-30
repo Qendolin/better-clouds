@@ -23,7 +23,9 @@ public class RuntimeMixinPlugin extends MixinPlugin {
 
         if (GameTestEnabled.ENABLED) {
             classes.add("GameTestClientMixin");
+            classes.add("GameTestInputUtilMixin");
             classes.add("GameTestLevelSummaryMixin");
+            classes.add("GameTestWindowMixin");
         }
 
         if (classes.isEmpty())

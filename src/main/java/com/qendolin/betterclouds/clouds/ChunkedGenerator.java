@@ -1,8 +1,9 @@
 package com.qendolin.betterclouds.clouds;
 
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.Config;
-import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.compat.Telemetry;
+import com.qendolin.betterclouds.util.ChatUtil;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
@@ -197,7 +198,7 @@ public class ChunkedGenerator implements AutoCloseable {
 
     public synchronized void generate() {
         if (queuedTask == null) {
-            Main.LOGGER.warn("generate called with no queued task");
+            BetterCloudsStatic.getLogger().warn("generate called with no queued task");
             return;
         }
         if (runningTask != null) {
@@ -207,7 +208,7 @@ public class ChunkedGenerator implements AutoCloseable {
         queuedTask = null;
 
         if (runningTask.ran()) {
-            Main.LOGGER.warn("Queued generator task #{} already ran", runningTask.id());
+            BetterCloudsStatic.getLogger().warn("Queued generator task #{} already ran", runningTask.id());
         }
 
         final Task boundTask = runningTask;
@@ -215,20 +216,20 @@ public class ChunkedGenerator implements AutoCloseable {
             .whenComplete((unused, throwable) -> {
                 synchronized (this) {
                     if (throwable != null) {
-                        Main.LOGGER.error("Generator task #{} ran with error", runningTask.id(), throwable);
+                        BetterCloudsStatic.getLogger().error("Generator task #{} ran with error", runningTask.id(), throwable);
                     }
 
                     if (boundTask != runningTask) {
                         if (boundTask.completed()) {
-                            Main.LOGGER.warn("Generator task #{} completed but task #{} was expected", boundTask.id(), runningTask.id());
+                            BetterCloudsStatic.getLogger().warn("Generator task #{} completed but task #{} was expected", boundTask.id(), runningTask.id());
                         } else if (!boundTask.cancelled() && throwable == null) {
-                            Main.LOGGER.warn("Generator task #{} ran without error, completion or cancellation", boundTask.id());
+                            BetterCloudsStatic.getLogger().warn("Generator task #{} ran without error, completion or cancellation", boundTask.id());
                         }
                     } else {
                         if (boundTask.completed()) {
                             completedTask = runningTask;
                         } else if (!boundTask.cancelled() && throwable == null) {
-                            Main.LOGGER.warn("Generator task #{} ran without error, completion or cancellation", boundTask.id());
+                            BetterCloudsStatic.getLogger().warn("Generator task #{} ran without error, completion or cancellation", boundTask.id());
                         }
                         runningTask = null;
                     }
@@ -238,11 +239,11 @@ public class ChunkedGenerator implements AutoCloseable {
 
     public synchronized void swap() {
         if (completedTask == null) {
-            Main.LOGGER.warn("swap called with no completed task");
+            BetterCloudsStatic.getLogger().warn("swap called with no completed task");
             return;
         }
         if (swappedTask == completedTask) {
-            Main.LOGGER.warn("swap called with swapped task");
+            BetterCloudsStatic.getLogger().warn("swap called with swapped task");
             return;
         }
 
@@ -251,7 +252,7 @@ public class ChunkedGenerator implements AutoCloseable {
 
         if (Debug.isProfilingEnabled()) {
             long elapsed = swappedTask.elapsedMs(Util.getMeasuringTimeMs());
-            Main.debugChatMessage("profiling.genTimes", elapsed, 1000f / elapsed);
+            ChatUtil.debugChatMessage("profiling.genTimes", elapsed, 1000f / elapsed);
         }
     }
 
@@ -287,11 +288,11 @@ public class ChunkedGenerator implements AutoCloseable {
             synchronized (this) {
                 if (completed.get()) return;
                 if (cancelled.getAndSet(true)) return;
-                Main.LOGGER.debug("Generator task #{} cancelled", id);
+                BetterCloudsStatic.getLogger().debug("Generator task #{} cancelled", id);
                 try {
                     wait();
                 } catch (InterruptedException e) {
-                    Main.LOGGER.error("Generator task #{} interrupted after cancelled", id, e);
+                    BetterCloudsStatic.getLogger().error("Generator task #{} interrupted after cancelled", id, e);
                 }
             }
         }

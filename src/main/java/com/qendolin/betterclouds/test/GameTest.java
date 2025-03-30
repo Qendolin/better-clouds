@@ -1,12 +1,10 @@
 package com.qendolin.betterclouds.test;
 
 
-import com.qendolin.betterclouds.Main;
-import net.minecraft.client.MinecraftClient;
-
-//? if fabric {
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.platform.EventHooks;
 import net.minecraft.SharedConstants;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.MessageScreen;
 import net.minecraft.client.option.CloudRenderMode;
 import net.minecraft.text.Text;
@@ -28,13 +26,11 @@ public class GameTest {
     public static void onClientExit() {
         if (!GameTestEnabled.ENABLED) return;
         if (caught.get() != null || !finished.get()) {
-            Main.LOGGER.error("\n========================\n    GameTest failed!    \n========================");
-            if (caught.get() != null)
-                throw new RuntimeException(caught.get());
-            if (!finished.get())
-                throw new RuntimeException("Test did not finish!");
+            BetterCloudsStatic.getLogger().error("\n========================\n    GameTest failed!    \n========================");
+            if (caught.get() != null) throw new RuntimeException(caught.get());
+            if (!finished.get()) throw new RuntimeException("Test did not finish!");
         } else {
-            Main.LOGGER.info("\n========================\n    GameTest passed!    \n========================");
+            BetterCloudsStatic.getLogger().info("\n========================\n    GameTest passed!    \n========================");
         }
     }
 
@@ -162,11 +158,3 @@ public class GameTest {
         test.waitFor(client -> (client.getServer() == null || client.getServer().isRunning()) && client.world == null, SharedConstants.TICKS_PER_MINUTE);
     }
 }
-//?} else {
-/*public class GameTest {
-    public static final boolean ENABLED = false;
-
-    public static void run(MinecraftClient client) {
-    }
-}
-*///?}

@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds.compat;
 
-import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.BetterCloudsStatic;
 
 import java.net.URL;
 import java.util.concurrent.CompletableFuture;
@@ -13,7 +13,7 @@ public interface ITelemetry {
             URL url = new URL(Telemetry.ENDPOINT);
             return new Telemetry(url);
         } catch (Throwable e) {
-            Main.LOGGER.error("Failed to create telemetry service: ", e);
+            BetterCloudsStatic.getLogger().error("Failed to create telemetry service", e);
         }
         return new NoopTelemetry();
     }

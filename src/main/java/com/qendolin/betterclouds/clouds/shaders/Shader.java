@@ -1,8 +1,8 @@
 package com.qendolin.betterclouds.clouds.shaders;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.clouds.Resources;
+import com.qendolin.betterclouds.compat.GLCompat;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.InvalidHierarchicalFileException;
@@ -28,8 +28,8 @@ public class Shader implements AutoCloseable {
         int vsh = compileShader(GL_VERTEX_SHADER, vshId, resMan);
         int fsh = compileShader(GL_FRAGMENT_SHADER, fshId, resMan);
 
-        Main.glCompat.objectLabelDev(Main.glCompat.GL_SHADER, vsh, vshId.getPath());
-        Main.glCompat.objectLabelDev(Main.glCompat.GL_SHADER, fsh, fshId.getPath());
+        GLCompat.glCompat.objectLabelDev(GLCompat.glCompat.GL_SHADER, vsh, vshId.getPath());
+        GLCompat.glCompat.objectLabelDev(GLCompat.glCompat.GL_SHADER, fsh, fshId.getPath());
 
         programId = glCreateProgram();
         glAttachShader(programId, vsh);

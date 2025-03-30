@@ -1,12 +1,13 @@
 package com.qendolin.betterclouds.clouds;
 
-import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.BetterCloudsStatic;
+import com.qendolin.betterclouds.config.ConfigManager;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
-import static com.qendolin.betterclouds.Main.glCompat;
+import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
 import static org.lwjgl.opengl.GL32.*;
 
 public class Buffer implements AutoCloseable {
@@ -56,7 +57,7 @@ public class Buffer implements AutoCloseable {
         drawBufferId = glGenBuffers();
         if (size <= 0) {
             // There is no way for the size to be zero or less, but I've reports of it happening regardless.
-            Main.LOGGER.error("Impossible, invalid buffer size of {}, forcing it to 1", size);
+            BetterCloudsStatic.getLogger().error("Impossible, invalid buffer size of {}, forcing it to 1", size);
             size = 1;
         }
         long vboSize = (long) size * size * 3 * Float.BYTES;
@@ -64,10 +65,10 @@ public class Buffer implements AutoCloseable {
             try {
                 allocatePersistent(vboSize);
             } catch (IllegalStateException e) {
-                Main.getConfig().usePersistentBuffers = false;
-                Main.getConfigHandler().save();
+                ConfigManager.instance().usePersistentBuffers = false;
+                ConfigManager.handler().save();
                 usePersistent = false;
-                Main.LOGGER.error(e);
+                BetterCloudsStatic.getLogger().error(e);
             }
         }
 

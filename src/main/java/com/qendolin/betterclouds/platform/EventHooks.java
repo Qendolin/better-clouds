@@ -29,17 +29,11 @@ public abstract class EventHooks {
 
     public abstract void onClientResourcesReload(Supplier<ResourceReloader> supplier);
 
-
-    //? if fabric {
-
-    /**
-     * Fabric only!
-     */
     public abstract void onClientTick(Consumer<MinecraftClient> callback);
 
+    //? if fabric {
     public abstract void onClientCommandRegistration(Consumer<CommandDispatcher<FabricClientCommandSource>> callback);
-
     //?} else {
     /*public abstract void onClientCommandRegistration(Consumer<CommandDispatcher<ServerCommandSource>> callback);
-    *///?}
+     *///?}
 }

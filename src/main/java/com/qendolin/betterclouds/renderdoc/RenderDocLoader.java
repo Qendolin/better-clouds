@@ -1,5 +1,6 @@
 package com.qendolin.betterclouds.renderdoc;
 
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.sun.jna.Library;
 import com.sun.jna.Native;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -18,8 +19,8 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipFile;
 
 public class RenderDocLoader {
-    public static final Path LIB_LINUX_PATH = Path.of("./better-clouds/librenderdoc.so");
-    public static final Path LIB_WINDOWS_PATH = Path.of("./better-clouds/renderdoc.dll");
+    public static final Path LIB_LINUX_PATH = BetterCloudsStatic.getDataDirectory().resolve("librenderdoc.so");
+    public static final Path LIB_WINDOWS_PATH = BetterCloudsStatic.getDataDirectory().resolve("renderdoc.dll");
 
     private enum OperatingSystem {
         UNKNOWN,
@@ -50,8 +51,10 @@ public class RenderDocLoader {
         }
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public static void install() {
         OperatingSystem os = getOperatingSystem();
+        BetterCloudsStatic.getDataDirectory().toFile().mkdirs();
 
         try {
             if (os == OperatingSystem.WINDOWS) {
@@ -94,7 +97,7 @@ public class RenderDocLoader {
     }
 
     private static boolean isAvailable(String name, String md5sum) {
-        File dllFile = Path.of("./better-clouds/", name).toFile();
+        File dllFile = BetterCloudsStatic.getDataDirectory().resolve(name).toFile();
         if (!dllFile.exists() || dllFile.isDirectory()) return false;
 
         try (FileInputStream is = new FileInputStream(dllFile)) {
@@ -110,7 +113,7 @@ public class RenderDocLoader {
     }
 
     private static void downloadWindows() throws IOException {
-        File archive = Path.of("./better-clouds/RenderDoc_1.30_64.zip").toFile();
+        File archive = BetterCloudsStatic.getDataDirectory().resolve("RenderDoc_1.30_64.zip").toFile();
 
         FileUtils.copyURLToFile(new URL("https://renderdoc.org/stable/1.30/RenderDoc_1.30_64.zip"), archive);
 
@@ -125,7 +128,7 @@ public class RenderDocLoader {
     }
 
     private static void downloadLinux() throws IOException {
-        File archive = Path.of("./better-clouds/renderdoc_1.30.tar.gz").toFile();
+        File archive = BetterCloudsStatic.getDataDirectory().resolve("renderdoc_1.30.tar.gz").toFile();
 
         FileUtils.copyURLToFile(new URL("https://renderdoc.org/stable/1.30/renderdoc_1.30.tar.gz"), archive);
 

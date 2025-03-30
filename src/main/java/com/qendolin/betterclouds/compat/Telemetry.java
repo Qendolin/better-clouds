@@ -2,7 +2,8 @@ package com.qendolin.betterclouds.compat;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.BetterClouds;
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.platform.ModVersion;
 import net.minecraft.MinecraftVersion;
 import org.apache.commons.io.IOUtils;
@@ -43,11 +44,11 @@ public class Telemetry implements ITelemetry {
         this.url = url;
         if (LocalDateTime.now().isAfter(EXPIRATION_DATE)) {
             // To prevent errors if the telemetry server shuts down in the future
-            Main.LOGGER.info("Telemetry is expired, telemetry will not be sent");
+            BetterCloudsStatic.getLogger().info("Telemetry is expired, telemetry will not be sent");
             enabled = false;
         }
-        if (Main.IS_DEV) {
-            Main.LOGGER.info("Started in dev mode, telemetry will not be sent");
+        if (BetterCloudsStatic.IS_DEV) {
+            BetterCloudsStatic.getLogger().info("Started in dev mode, telemetry will not be sent");
             enabled = false;
         }
     }
@@ -59,12 +60,12 @@ public class Telemetry implements ITelemetry {
     protected CompletableFuture<Boolean> sendPayload(String payload, String... labels) {
         if (!enabled) return CompletableFuture.completedFuture(false);
         try {
-            RequestBody body = new RequestBody(new SystemDetails(), List.of(labels), payload, Main.getVersion(), VERSION);
+            RequestBody body = new RequestBody(new SystemDetails(), List.of(labels), payload, BetterClouds.getVersion(), VERSION);
             String json = gson.toJson(body);
             final byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
             return postAsync(bytes);
         } catch (Throwable e) {
-            Main.LOGGER.error("Failed to send system information: ", e);
+            BetterCloudsStatic.getLogger().error("Failed to send system information", e);
             return CompletableFuture.completedFuture(false);
         }
     }
@@ -83,18 +84,18 @@ public class Telemetry implements ITelemetry {
             conn.setRequestMethod("POST");
             conn.setDoOutput(true);
             outputStream = conn.getOutputStream();
-            Main.LOGGER.info("Sending telemetry, see https://github.com/Qendolin/better-clouds/blob/main/Telemetry.md for mor information");
+            BetterCloudsStatic.getLogger().info("Sending telemetry, see https://github.com/Qendolin/better-clouds/blob/main/Telemetry.md for mor information");
             IOUtils.write(body, outputStream);
 
             InputStreamReader is = new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8);
             String response = IOUtils.toString(is);
             if (response == null || !response.trim().equalsIgnoreCase("ok")) {
-                Main.LOGGER.warn("Failed to post: bad request");
+                BetterCloudsStatic.getLogger().warn("Failed to post: bad request");
                 return false;
             }
             return true;
         } catch (Throwable e) {
-            Main.LOGGER.error("Failed to post to telemetry endpoint: ", e);
+            BetterCloudsStatic.getLogger().error("Failed to post to telemetry endpoint: ", e);
             return false;
         } finally {
             IOUtils.closeQuietly(outputStream);
@@ -110,7 +111,7 @@ public class Telemetry implements ITelemetry {
             connection.setUseCaches(false);
             return connection;
         } catch (Throwable e) {
-            Main.LOGGER.error("Failed to connect to telemetry endpoint: ", e);
+            BetterCloudsStatic.getLogger().error("Failed to connect to telemetry endpoint: ", e);
             enabled = false;
         }
         return null;
@@ -141,7 +142,7 @@ public class Telemetry implements ITelemetry {
             try {
                 cache.open();
             } catch (IOException e) {
-                Main.LOGGER.warn("Failed to open telemetry cache: ", e);
+                BetterCloudsStatic.getLogger().warn("Failed to open telemetry cache: ", e);
             }
         }
         return cache.isAvailable();
@@ -209,19 +210,19 @@ public class Telemetry implements ITelemetry {
 
         public SystemDetails() {
             this.os = SystemUtils.OS_NAME;
-            this.vendor = Main.glCompat.getString(GL32.GL_VENDOR);
-            this.renderer = Main.glCompat.getString(GL32.GL_RENDERER);
-            this.glVersion = Main.glCompat.getString(GL32.GL_VERSION);
-            this.glVersionMajor = Main.glCompat.getInteger(GL32.GL_MAJOR_VERSION);
-            this.glVersionMinor = Main.glCompat.getInteger(GL32.GL_MINOR_VERSION);
+            this.vendor = GLCompat.glCompat.getString(GL32.GL_VENDOR);
+            this.renderer = GLCompat.glCompat.getString(GL32.GL_RENDERER);
+            this.glVersion = GLCompat.glCompat.getString(GL32.GL_VERSION);
+            this.glVersionMajor = GLCompat.glCompat.getInteger(GL32.GL_MAJOR_VERSION);
+            this.glVersionMinor = GLCompat.glCompat.getInteger(GL32.GL_MINOR_VERSION);
             this.glVersionCombined = String.format("%d%d", glVersionMajor, glVersionMinor);
-            this.glVersionLwjgl = Main.glCompat.openGlMax;
-            this.glslVersion = Main.glCompat.getString(GL32.GL_SHADING_LANGUAGE_VERSION);
-            this.extensions = Main.glCompat.supportedCheckedExtensions;
-            this.functions = Main.glCompat.supportedCheckedFunctions;
-            this.fallbacks = Main.glCompat.usedFallbacks();
-            this.compatible = !Main.glCompat.isIncompatible();
-            this.partiallyIncompatible = Main.glCompat.isPartiallyIncompatible();
+            this.glVersionLwjgl = GLCompat.glCompat.openGlMax;
+            this.glslVersion = GLCompat.glCompat.getString(GL32.GL_SHADING_LANGUAGE_VERSION);
+            this.extensions = GLCompat.glCompat.supportedCheckedExtensions;
+            this.functions = GLCompat.glCompat.supportedCheckedFunctions;
+            this.fallbacks = GLCompat.glCompat.usedFallbacks();
+            this.compatible = !GLCompat.glCompat.isIncompatible();
+            this.partiallyIncompatible = GLCompat.glCompat.isPartiallyIncompatible();
 
             String cpuName;
             try {

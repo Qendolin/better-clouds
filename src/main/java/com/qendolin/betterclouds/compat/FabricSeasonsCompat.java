@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds.compat;
 
-import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.FabricSeasonsConfig;
 import net.minecraft.world.World;
 
@@ -23,18 +23,18 @@ public abstract class FabricSeasonsCompat {
         if (instance != null) return;
 
         if (!ModLoaded.FABRIC_SEASONS) {
-            Main.LOGGER.info("FabricSeasons: not loaded");
+            BetterCloudsStatic.getLogger().info("FabricSeasons: not loaded");
             instance = new Stub();
             return;
         }
 
-        Main.LOGGER.info("FabricSeasons: initializing compat");
+        BetterCloudsStatic.getLogger().info("FabricSeasons: initializing compat");
 
 
         try {
             instance = new FabricSeasonsCompatImpl();
         } catch (Throwable e) {
-            Main.LOGGER.error("FabricSeasons version not compatible", e);
+            BetterCloudsStatic.getLogger().error("FabricSeasons version not compatible", e);
         }
 
         if (instance == null) {

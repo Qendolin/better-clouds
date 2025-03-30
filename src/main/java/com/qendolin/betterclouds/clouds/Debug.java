@@ -15,7 +15,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.qendolin.betterclouds.Main.glCompat;
+import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
 
 public class Debug {
     public static int profileInterval = 0;

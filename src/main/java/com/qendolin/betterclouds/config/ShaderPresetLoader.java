@@ -5,7 +5,7 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceReloader;
@@ -37,8 +37,8 @@ implements IdentifiableResourceReloadListener {
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
         .registerTypeAdapter(ShaderPresetConfig.class, ShaderPresetConfig.INSTANCE_CREATOR)
         .create();
-    public static final Identifier ID = Identifier.of(Main.MODID, "shader_presets");
-    public static final Identifier RESOURCE_ID = Identifier.of(Main.MODID, "betterclouds/shader_presets.json");
+    public static final Identifier ID = Identifier.of(BetterCloudsStatic.MODID, "shader_presets");
+    public static final Identifier RESOURCE_ID = Identifier.of(BetterCloudsStatic.MODID, "betterclouds/shader_presets.json");
     public static final ShaderPresetLoader INSTANCE = new ShaderPresetLoader();
 
     private Map<String, ShaderPresetConfig> presets = null;
@@ -74,9 +74,9 @@ implements IdentifiableResourceReloadListener {
                     mergedPresets.putAll(presets);
                 } catch (Exception exception) {
                     //? if >=1.20.6 {
-                    Main.LOGGER.warn("Failed to parse shader presets {} in pack '{}' ({})", RESOURCE_ID, resource.getPack().getInfo().title(), resource.getPack().getId(), exception);
+                    BetterCloudsStatic.getLogger().warn("Failed to parse shader presets {} in pack '{}' ({})", RESOURCE_ID, resource.getPack().getInfo().title(), resource.getPack().getId(), exception);
                     //?} else
-                    /*Main.LOGGER.warn("Failed to parse shader presets {} in pack '{}'", RESOURCE_ID, resource.getPack().getName(), exception);*/
+                    /*BetterCloudsStatic.getLogger().warn("Failed to parse shader presets {} in pack '{}'", RESOURCE_ID, resource.getPack().getName(), exception);*/
                 }
             }
 
@@ -93,8 +93,8 @@ implements IdentifiableResourceReloadListener {
 
     public CompletableFuture<Void> apply(Map<String, ShaderPresetConfig> data, ResourceManager manager, Executor executor) {
         presets = data;
-        if (Main.getConfig() != null) {
-            Main.getConfig().loadDefaultPresets();
+        if (ConfigManager.instance() != null) {
+            ConfigManager.instance().loadDefaultPresets();
         }
         return CompletableFuture.completedFuture(null);
     }

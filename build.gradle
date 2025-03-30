@@ -1,4 +1,6 @@
 import net.fabricmc.loom.task.prod.ClientProductionRunTask
+import net.fabricmc.loom.task.RunGameTask
+import net.fabricmc.loom.configuration.ide.RunConfigSettings
 
 plugins {
 	id "dev.architectury.loom" version "1.10-SNAPSHOT"
@@ -270,7 +272,7 @@ stonecutter {
 }
 
 // Testing
-if(isFabric) {
+if (isFabric) {
 	def configureProdClientRunTask = { it ->
 		// depend on all possible 'downloadAssets' tasks
 		// this is dumb but I couldn't figure out anything better
@@ -278,26 +280,45 @@ if(isFabric) {
 			it.mustRunAfter(":${vers.project}:downloadAssets")
 		}
 		// This runs the game as a normal client would, in a production env
-		it.runDir = rootProject.file("runProd")
+		it.runDir = rootProject.file("runTest")
 	}
-	project.tasks.register("prodClient", ClientProductionRunTask) {
+	project.tasks.register("runProdClient", ClientProductionRunTask) {
 		configureProdClientRunTask(it)
 		it.outputs.upToDateWhen { false }
 	}
-	project.tasks.register("prodClientTest", ClientProductionRunTask) {
+	project.tasks.register("runClientTest", ClientProductionRunTask) {
 		configureProdClientRunTask(it)
 		jvmArgs.add("-Dbetterclouds.client.gametest")
 		// I'm not sure about this:
 		// it.outputs.upToDateWhen { false }
 	}
-
+} else {
+	loom {
+		runs {
+			// Not actually prod
+			clientTest {
+				client()
+				ideConfigGenerated = false
+				runDir = "../../runTest"
+				vmArgs "-Dbetterclouds.client.gametest"
+			}
+		}
+	}
 	afterEvaluate {
-		// Run in order from oldest to newest
-		project.tasks.named("prodClientTest").configure {
+		project.tasks.named("runClientTest").configure {
 			stonecutter.versions.each { vers ->
-				if (vers.project.endsWith("-fabric") && stonecutter.eval(vers.version, "<${stonecutter.current.version}")) {
-					it.mustRunAfter(":${vers.project}:prodClientTest")
-				}
+				it.mustRunAfter(":${vers.project}:downloadAssets")
+			}
+		}
+	}
+}
+
+afterEvaluate {
+	// Run in order from oldest to newest
+	project.tasks.named("runClientTest").configure {
+		stonecutter.versions.each { vers ->
+			if (stonecutter.eval(vers.version, "<${stonecutter.current.version}")) {
+				it.mustRunAfter(":${vers.project}:runClientTest")
 			}
 		}
 	}
@@ -326,15 +347,15 @@ if (stonecutter.current.isActive) {
 		group = "project"
 		dependsOn(tasks.named("genSources"))
 	}
-	if(isFabric) {
-		rootProject.tasks.register("activeProdClient") {
+	if (isFabric) {
+		rootProject.tasks.register("activeRunProdClient") {
 			group = "project"
-			dependsOn(tasks.named("prodClient"))
+			dependsOn(tasks.named("runProdClient"))
 		}
-		rootProject.tasks.register("activeProdClientTest") {
-			group = "project"
-			dependsOn(tasks.named("prodClientTest"))
-		}
+	}
+	rootProject.tasks.register("activeRunClientTest") {
+		group = "project"
+		dependsOn(tasks.named("runClientTest"))
 	}
 }
 

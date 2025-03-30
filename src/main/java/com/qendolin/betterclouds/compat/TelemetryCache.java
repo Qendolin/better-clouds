@@ -2,7 +2,7 @@ package com.qendolin.betterclouds.compat;
 
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
-import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.BetterCloudsStatic;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -37,16 +37,15 @@ public class TelemetryCache {
         return opened;
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public void open() throws IOException {
         if (opened) return;
         opened = true;
         cache.clear();
 
         File dir = Paths.get(".cache").toFile();
-        //noinspection ResultOfMethodCallIgnored
-        dir.mkdir();
-        File file = Paths.get(".cache", Main.MODID + "-telemetry_cache-v" + Telemetry.VERSION + ".bin").toFile();
-        //noinspection ResultOfMethodCallIgnored
+        dir.mkdirs();
+        File file = Paths.get(".cache", BetterCloudsStatic.MODID + "-telemetry_cache-v" + Telemetry.VERSION + ".bin").toFile();
         file.createNewFile();
         int lineCount = 0;
         final int maxLines = 10000;

@@ -10,6 +10,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
+import net.minecraftforge.client.event.ClientTickEvent;
 import net.minecraftforge.client.event.RegisterClientCommandsEvent;
 import net.minecraftforge.client.event.RegisterClientReloadListenersEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -45,6 +46,14 @@ public class EventHooksImpl extends EventHooks {
     public void onClientResourcesReload(Supplier<ResourceReloader> supplier) {
         modEventBus.<RegisterClientReloadListenersEvent>addListener(event -> {
             event.registerReloadListener(supplier.get());
+        });
+    }
+
+    @Override
+    public void onClientTick(Consumer<MinecraftClient> callback) {
+        MinecraftForge.EVENT_BUS.<ClientTickEvent.Post>addListener(event -> {
+            MinecraftClient client = MinecraftClient.getInstance();
+            client.execute(() -> callback.accept(client));
         });
     }
 

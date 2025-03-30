@@ -14,6 +14,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class Crash_Is_Not_Caused_By_BetterClouds implements PreLaunchEntrypoint {
+
+    private static boolean hasRan = false;
+
+    public static boolean isPreLaunchComplete() {
+        return hasRan;
+    }
+
     @Override
     public void onPreLaunch() {
         NamedLogger logger;
@@ -56,6 +63,8 @@ public class Crash_Is_Not_Caused_By_BetterClouds implements PreLaunchEntrypoint 
             }
         } catch (Throwable e) {
             logger.error("RenderDoc could not be loaded: {}", e);
+        } finally {
+            hasRan = true;
         }
     }
 }

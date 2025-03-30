@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds.compat;
 
-import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import net.minecraft.world.World;
 import org.joml.Vector3f;
 
@@ -13,12 +13,12 @@ public abstract class EnhancedCelestialsCompat {
         if (instance != null) return;
 
         if (!ModLoaded.ENHANCED_CELESTIALS) {
-            Main.LOGGER.info("EnhancedCelestials: not loaded");
+            BetterCloudsStatic.getLogger().info("EnhancedCelestials: not loaded");
             instance = new Stub();
             return;
         }
 
-        Main.LOGGER.info("EnhancedCelestials: initializing compat");
+        BetterCloudsStatic.getLogger().info("EnhancedCelestials: initializing compat");
 
         int version = 0;
         boolean v1devPackage = true;
@@ -47,16 +47,16 @@ public abstract class EnhancedCelestialsCompat {
 
         try {
             if (version == 1) {
-                Main.LOGGER.info("Using EnhancedCelestials 1 compat");
+                BetterCloudsStatic.getLogger().info("Using EnhancedCelestials 1 compat");
                 instance = new EnhancedCelestials1CompatImpl(v1devPackage);
             } else if (version == 2) {
-                Main.LOGGER.info("Using EnhancedCelestials 2 compat");
+                BetterCloudsStatic.getLogger().info("Using EnhancedCelestials 2 compat");
                 instance = new EnhancedCelestials2CompatImpl();
             } else {
-                Main.LOGGER.error("EnhancedCelestials version not compatible");
+                BetterCloudsStatic.getLogger().error("EnhancedCelestials version not compatible");
             }
         } catch (Throwable e) {
-            Main.LOGGER.error("EnhancedCelestials version not compatible", e);
+            BetterCloudsStatic.getLogger().error("EnhancedCelestials version not compatible", e);
         }
 
         if (instance == null) {

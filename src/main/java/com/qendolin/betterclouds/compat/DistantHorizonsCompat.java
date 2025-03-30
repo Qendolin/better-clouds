@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds.compat;
 
-import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.seibel.distanthorizons.api.DhApi;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
@@ -24,36 +24,36 @@ public abstract class DistantHorizonsCompat {
         if (instance != null) return;
 
         if (!ModLoaded.DISTANT_HORIZONS) {
-            Main.LOGGER.info("DistantHorizons: not loaded");
+            BetterCloudsStatic.getLogger().info("DistantHorizons: not loaded");
             instance = new Stub();
             return;
         }
 
-        Main.LOGGER.info("DistantHorizons: initializing compat");
+        BetterCloudsStatic.getLogger().info("DistantHorizons: initializing compat");
 
         int apiVersion = 0;
         try {
             Class.forName("com.seibel.distanthorizons.api.DhApi");
             apiVersion = DhApi.getApiMajorVersion();
-            Main.LOGGER.info("DistantHorizons API version is {}.{}.{}", DhApi.getApiMajorVersion(), DhApi.getApiMinorVersion(), DhApi.getApiPatchVersion());
+            BetterCloudsStatic.getLogger().info("DistantHorizons API version is {}.{}.{}", DhApi.getApiMajorVersion(), DhApi.getApiMinorVersion(), DhApi.getApiPatchVersion());
         } catch (ClassNotFoundException ignored) {
         }
 
         try {
             if (apiVersion == 4) {
-                Main.LOGGER.warn("Using EXPERIMENTAL DistantHorizons 4 compat. The game might crash!");
+                BetterCloudsStatic.getLogger().warn("Using EXPERIMENTAL DistantHorizons 4 compat. The game might crash!");
                 instance = new DistantHorizons4CompatImpl();
             } else if (apiVersion == 3) {
-                Main.LOGGER.info("Using DistantHorizons 3 compat");
+                BetterCloudsStatic.getLogger().info("Using DistantHorizons 3 compat");
                 instance = new DistantHorizons3CompatImpl();
             } else if (apiVersion == 2) {
-                Main.LOGGER.info("Using DistantHorizons 2 compat");
+                BetterCloudsStatic.getLogger().info("Using DistantHorizons 2 compat");
                 instance = new DistantHorizons2CompatImpl();
             } else {
-                Main.LOGGER.error("DistantHorizons version not compatible");
+                BetterCloudsStatic.getLogger().error("DistantHorizons version not compatible");
             }
         } catch (Throwable e) {
-            Main.LOGGER.error("DistantHorizons version not compatible", e);
+            BetterCloudsStatic.getLogger().error("DistantHorizons version not compatible", e);
         }
 
         if (instance == null) {

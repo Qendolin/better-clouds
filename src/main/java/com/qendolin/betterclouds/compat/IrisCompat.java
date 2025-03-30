@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds.compat;
 
-import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.BetterCloudsStatic;
 
 public abstract class IrisCompat {
 
@@ -11,18 +11,18 @@ public abstract class IrisCompat {
         if (instance != null) return;
 
         if (!ModLoaded.IRIS) {
-            Main.LOGGER.info("Iris: not loaded");
+            BetterCloudsStatic.getLogger().info("Iris: not loaded");
             instance = new Stub();
             return;
         }
 
-        Main.LOGGER.info("Iris: initializing compat");
+        BetterCloudsStatic.getLogger().info("Iris: initializing compat");
 
 
         try {
             instance = new IrisCompatImpl();
         } catch (Throwable e) {
-            Main.LOGGER.error("Iris version not compatible", e);
+            BetterCloudsStatic.getLogger().error("Iris version not compatible", e);
         }
 
         if (instance == null) {

@@ -21,10 +21,10 @@ stonecutter.registerChiseled tasks.register("chiseledRemapJar", stonecutter.chis
     ofTask "remapJar"
 }
 
-stonecutter.registerChiseled tasks.register("chiseledProdClientTest", stonecutter.chiseled) {
-    versions { _, vers -> vers.project.endsWith("-fabric") }
+stonecutter.registerChiseled tasks.register("chiseledRunClientTest", stonecutter.chiseled) {
+//    versions { _, vers -> vers.project.endsWith("-fabric") }
     setGroup "project"
-    ofTask "prodClientTest"
+    ofTask "runClientTest"
 }
 
 stonecutter.registerChiseled tasks.register("chiseledModrinth", stonecutter.chiseled) {

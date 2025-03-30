@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds.compat;
 
-import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.SereneSeasonsConfig;
 import net.minecraft.world.World;
 
@@ -31,18 +31,18 @@ public abstract class SereneSeasonsCompat {
         if (instance != null) return;
 
         if (!ModLoaded.SERENE_SEASONS) {
-            Main.LOGGER.info("SereneSeasons: not loaded");
+            BetterCloudsStatic.getLogger().info("SereneSeasons: not loaded");
             instance = new Stub();
             return;
         }
 
-        Main.LOGGER.info("SereneSeasons: initializing compat");
+        BetterCloudsStatic.getLogger().info("SereneSeasons: initializing compat");
 
 
         try {
             instance = new SereneSeasonsCompatImpl();
         } catch (Throwable e) {
-            Main.LOGGER.error("SereneSeasons version not compatible", e);
+            BetterCloudsStatic.getLogger().error("SereneSeasons version not compatible", e);
         }
 
         if (instance == null) {

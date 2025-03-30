@@ -5,9 +5,9 @@ import org.joml.Matrix4d;
 import org.joml.Vector2d;
 import org.joml.Vector4d;
 
-public class MathUtil {
+public interface MathUtil {
 
-    public static float interpolateDayNightFactor(float time, float riseStart, float riseEnd, float setStart, float setEnd) {
+    static float interpolateDayNightFactor(float time, float riseStart, float riseEnd, float setStart, float setEnd) {
         if (time <= 6000 || time > 18000) {
             // sunrise time
             if (time > 18000) time -= 24000;
@@ -18,7 +18,7 @@ public class MathUtil {
         }
     }
 
-    public static float mapTimeOfDay(float time, float riseStart, float riseEnd, float setStart, float setEnd) {
+    static float mapTimeOfDay(float time, float riseStart, float riseEnd, float setStart, float setEnd) {
         if (time <= 6000 || time > 18000) {
             // sunrise time
             if (time > 18000) time -= 24000;
@@ -42,18 +42,18 @@ public class MathUtil {
         return time;
     }
 
-    public static float map(float x, float fromMin, float fromMax, float toMin, float toMax) {
+    static float map(float x, float fromMin, float fromMax, float toMin, float toMax) {
         float f = (x - fromMin) / (fromMax - fromMin);
         return f * (toMax - toMin) + toMin;
     }
 
-    public static float smoothstep(float x, float e0, float e1) {
+    static float smoothstep(float x, float e0, float e1) {
         x = MathHelper.clamp((x - e0) / (e1 - e0), 0, 1);
         return x * x * (3 - 2 * x);
     }
 
 
-    public static Vector2d calculateClippingPlanes(Matrix4d projInverseMatrix) {
+    static Vector2d calculateClippingPlanes(Matrix4d projInverseMatrix) {
         // "Fast" computation of the near and far plane doesn't work because of nausea and view bobbing.
         // This is slightly slower but should always give the correct results.
         Vector4d farPlane = new Vector4d(0, 0, 1, 1);

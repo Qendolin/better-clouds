@@ -1,9 +1,11 @@
 package com.qendolin.betterclouds.mixin.required;
 
-import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.BetterClouds;
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.clouds.Debug;
 import com.qendolin.betterclouds.clouds.Renderer;
 import com.qendolin.betterclouds.compat.Telemetry;
+import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.duck.WorldRendererDuck;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import net.minecraft.client.MinecraftClient;
@@ -35,7 +37,7 @@ import net.minecraft.util.math.MathHelper;
 import com.mojang.blaze3d.systems.RenderSystem;
 //?}
 
-import static com.qendolin.betterclouds.Main.glCompat;
+import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
 import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
 
 @Mixin(value = WorldRenderer.class, priority = 900)
@@ -85,7 +87,7 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
 
     @Inject(at = @At("TAIL"), method = "reload(Lnet/minecraft/resource/ResourceManager;)V")
     private void onReload(ResourceManager manager, CallbackInfo ci) {
-        if (!Main.initialized()) return;
+        if (!BetterClouds.isInitialized()) return;
         if (glCompat.isIncompatible()) return;
         try {
             if (cloudRenderer != null) cloudRenderer.reload(manager);
@@ -132,10 +134,10 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
         if (cloudRenderer == null) return;
         if (glCompat.isIncompatible()) return;
         if (world == null) return;
-        if (!Main.getConfig().enabledDimensions.contains(world.getDimensionEntry().getKey().orElse(null))) return;
-        if (!Main.getConfig().enabled) return;
+        if (!ConfigManager.instance().enabledDimensions.contains(world.getDimensionEntry().getKey().orElse(null))) return;
+        if (!BetterClouds.isEnabled()) return;
 
-        getProfiler().push(Main.MODID);
+        getProfiler().push(BetterCloudsStatic.MODID);
         glCompat.pushDebugGroupDev("Better Clouds");
 
         Vector3d cam = tempVector.set(camX, camY, camZ);

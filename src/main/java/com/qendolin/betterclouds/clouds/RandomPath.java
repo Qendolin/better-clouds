@@ -1,11 +1,17 @@
 package com.qendolin.betterclouds.clouds;
 
-import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import net.minecraft.util.math.MathHelper;
 
 import java.nio.ByteBuffer;
 
 public class RandomPath {
+
+    private static final int TICKS_PER_POINT = 20;
+    private static int[] path;
+
+    private static int points;
+    private static int pathWrap;
 
     private static double getPathLinear(double time, double travelSpeed, int coordinateIndex) {
         double x = time / TICKS_PER_POINT * travelSpeed;
@@ -32,10 +38,10 @@ public class RandomPath {
     }
 
     private static double getPointCoordinate(int index, int coordinate) {
-        int wraps = index / POINTS;
-        index -= wraps * POINTS;
-        int value = PATH[index * 2 + coordinate];
-        if (coordinate == 0) value += PATH_WRAP * wraps;
+        int wraps = index / points;
+        index -= wraps * points;
+        int value = path[index * 2 + coordinate];
+        if (coordinate == 0) value += pathWrap * wraps;
         return value;
     }
 
@@ -60,15 +66,12 @@ public class RandomPath {
         return getPathSmooth(time, travelSpeed, 1);
     }
 
-    private static final int TICKS_PER_POINT = 20;
-    private static final int[] PATH;
-
-    static {
+    public static void initialize() {
         int[] path = null;
         String name = "/static/path.bin";
         try (var res = RandomPath.class.getResourceAsStream(name)) {
             if (res == null) {
-                Main.LOGGER.error("Failed to open cloud path resource. name={}", name);
+                BetterCloudsStatic.getLogger().error("Failed to open cloud path resource. name={}", name);
             } else {
                 byte[] bytes = res.readAllBytes();
                 ByteBuffer buffer = ByteBuffer.wrap(bytes);
@@ -78,7 +81,7 @@ public class RandomPath {
                 }
             }
         } catch (Exception e) {
-            Main.LOGGER.error("Failed to load cloud path: ", e);
+            BetterCloudsStatic.getLogger().error("Failed to load cloud path", e);
         }
         if (path == null) {
             // use fallback path that just moves in -x direction
@@ -88,14 +91,9 @@ public class RandomPath {
                 path[i + 1] = 0;
             }
         }
-        PATH = path;
-    }
-
-    private static final int POINTS = PATH.length / 2;
-    private static final int PATH_WRAP = 2 * PATH[PATH.length - 2] - PATH[PATH.length - 4];
-
-    public static void init() {
-
+        RandomPath.path = path;
+        points = RandomPath.path.length / 2;
+        pathWrap = 2 * RandomPath.path[RandomPath.path.length - 2] - RandomPath.path[RandomPath.path.length - 4];
     }
 
 }

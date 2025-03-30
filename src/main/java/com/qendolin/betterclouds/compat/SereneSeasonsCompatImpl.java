@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds.compat;
 
-import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.config.ConfigManager;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import sereneseasons.api.season.ISeasonState;
@@ -22,7 +22,7 @@ public class SereneSeasonsCompatImpl extends SereneSeasonsCompat {
     private float getSeasonCloudiness(Season.SubSeason season) {
         String key = season.asString();
         return SUB_SEASON_CLOUDINESS_LOOKUP.getOrDefault(key, config -> 1.0f)
-            .apply(Main.getConfig().sereneSeasonsConfig);
+            .apply(ConfigManager.instance().sereneSeasonsConfig);
     }
 
     private int getSubSeasonTicks(ISeasonState state) {
@@ -42,7 +42,7 @@ public class SereneSeasonsCompatImpl extends SereneSeasonsCompat {
         int seasonDuration = state.getSubSeasonDuration();
         int half = seasonTicks < seasonDuration / 2 ? 0 : 1;
 
-        int transitionTicks = (int) (Main.getConfig().sereneSeasonsConfig.transitionDays * state.getDayDuration());
+        int transitionTicks = (int) (ConfigManager.instance().sereneSeasonsConfig.transitionDays * state.getDayDuration());
         transitionTicks = Math.min(transitionTicks, seasonDuration);
 
         if (transitionTicks <= 0) {

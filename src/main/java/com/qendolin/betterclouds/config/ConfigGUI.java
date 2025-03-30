@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds.config;
 
-import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.gui.ConfigScreen;
 import com.qendolin.betterclouds.gui.OptionGroupBuilderWrapper;
 import com.qendolin.betterclouds.gui.YACLOptionBuilder;
@@ -301,7 +301,7 @@ public class ConfigGUI {
     }
 
     public static ConfigScreen create(Screen parent) {
-        YetAnotherConfigLib yacl = YetAnotherConfigLib.create(Main.getConfigHandler(),
+        YetAnotherConfigLib yacl = YetAnotherConfigLib.create(ConfigManager.handler(),
             (defaults, config, builder) -> new ConfigGUI(defaults, config).assemble(builder));
         return new ConfigScreen(yacl, parent);
     }
@@ -312,7 +312,7 @@ public class ConfigGUI {
                 shaderPresetGUI.onSave();
                 config.selectedPreset = MathHelper.clamp(config.selectedPreset, 0, config.presets.size());
                 config.sortPresets();
-                Main.getConfigHandler().save();
+                ConfigManager.handler().save();
             })
             .title(Text.translatable(LANG_KEY_PREFIX + ".title"));
 
@@ -342,7 +342,7 @@ public class ConfigGUI {
         return builder;
     }
 
-    public static final String LANG_KEY_PREFIX = Main.MODID + ".config";
+    public static final String LANG_KEY_PREFIX = BetterCloudsStatic.MODID + ".config";
 
     static Text formatAsBlocksPerSecond(Float value) {
         return Text.translatable(LANG_KEY_PREFIX + ".unit.blocks_per_second", String.format("%.1f", value * 20));

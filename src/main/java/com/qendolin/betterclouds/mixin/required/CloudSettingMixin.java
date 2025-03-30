@@ -1,7 +1,8 @@
 package com.qendolin.betterclouds.mixin.required;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.BetterClouds;
+import com.qendolin.betterclouds.config.ConfigManager;
 import net.minecraft.client.option.CloudRenderMode;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.SimpleOption;
@@ -20,7 +21,9 @@ public abstract class CloudSettingMixin {
     @SuppressWarnings("UnresolvedMixinReference")
     @ModifyReturnValue(method = {"getCloudRenderModeValue", "getCloudsType", "method_1632", "m_92174_"}, remap = false, at = @At("RETURN"))
     private CloudRenderMode overrideCloudRenderMode(CloudRenderMode value) {
-        if (Main.getConfig().cloudOverride) {
+        if (!BetterClouds.isEnabled())
+            return value;
+        if (ConfigManager.instance().cloudOverride) {
             value = cloudRenderMode.getValue();
         }
         return value;

@@ -1,7 +1,7 @@
 package com.qendolin.betterclouds.mixin.required;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.compat.GLCompat;
 import com.qendolin.betterclouds.renderdoc.CaptureManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -28,7 +28,7 @@ public abstract class RenderSystemMixin {
     //?} else {
     /*private static void afterInitRenderer(int debugVerbosity, boolean debugSync, CallbackInfo ci) {
     *///?}
-        Main.initGlCompat();
+        GLCompat.initGlCompat();
     }
 
     @Inject(method = "flipFrame", at = @At(value = "INVOKE", target = "Lorg/lwjgl/glfw/GLFW;glfwSwapBuffers(J)V", shift = At.Shift.AFTER, remap = false))

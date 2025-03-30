@@ -1,6 +1,7 @@
 package com.qendolin.betterclouds.compat;
 
-import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.BetterClouds;
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.seibel.distanthorizons.api.DhApi;
 import com.seibel.distanthorizons.api.enums.rendering.EDhApiRenderPass;
 import com.seibel.distanthorizons.api.methods.events.DhApiEventRegister;
@@ -19,7 +20,7 @@ public abstract class DistantHorizonsSharedCompatImpl extends DistantHorizonsCom
     private DhApiRenderParam lastRenderParam = null;
 
     public DistantHorizonsSharedCompatImpl() {
-        Main.LOGGER.info("Registering DH Api events");
+        BetterCloudsStatic.getLogger().info("Registering DH Api events");
         // Lambdas didn't work
         DhApiEventRegister.on(DhApiAfterDhInitEvent.class, new DhApiAfterDhInitEvent() {
             @Override
@@ -36,7 +37,7 @@ public abstract class DistantHorizonsSharedCompatImpl extends DistantHorizonsCom
                 // With shaders the transparent rendering pass might be deferred and doesn't have a 'valid' dhProjectionMatrix
                 // Don't know if that's how it's supposed to be, but I can't use it.
 
-                if (Main.getConfig().enabled) {
+                if (BetterClouds.isEnabled()) {
                     disableLodClouds();
                 }
             }
