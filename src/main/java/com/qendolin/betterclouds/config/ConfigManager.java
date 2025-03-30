@@ -3,6 +3,7 @@ package com.qendolin.betterclouds.config;
 import com.google.gson.FieldNamingPolicy;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.platform.ModLoader;
+import com.qendolin.betterclouds.util.PreLaunchGuard;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
 import net.minecraft.registry.RegistryKey;
@@ -21,6 +22,10 @@ public class ConfigManager {
     public static final Identifier CONFIG_ID = Identifier.of(BetterCloudsStatic.MODID, "betterclouds-v1");
 
     private static ConfigClassHandler<Config> config;
+
+    static {
+        PreLaunchGuard.check();
+    }
 
     public static ConfigClassHandler<Config> handler() {
         if(config == null) {

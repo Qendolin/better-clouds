@@ -1,6 +1,7 @@
 package com.qendolin.betterclouds.config;
 
 import com.google.gson.*;
+import com.qendolin.betterclouds.util.PreLaunchGuard;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.registry.RegistryKey;
@@ -21,6 +22,9 @@ public class Config {
     public static final InstanceCreator<Config> INSTANCE_CREATOR = type -> new Config();
     public static final RegistryKeySerializer REGISTRY_KEY_SERIALIZER = new RegistryKeySerializer();
 
+    static {
+        PreLaunchGuard.check();
+    }
 
     @SuppressWarnings("unused")
     public Config() {
