@@ -207,7 +207,7 @@ dependencies {
 		}
 	}
 
-	compileOnly "maven.modrinth:distanthorizonsapi:3.0.0"
+	compileOnly "maven.modrinth:distanthorizonsapi:4.0.0"
 	modCompileOnly "maven.modrinth:serene-seasons:${property('deps.serene_seasons')}"
 	modCompileOnly "maven.modrinth:enhanced-celestials:${property('deps.enhanced_celestials')}"
 	modCompileOnly "maven.modrinth:data-anchor:D3z4pTH6" // use fabric 1.21.1 version for all
