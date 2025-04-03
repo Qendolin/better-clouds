@@ -1,5 +1,6 @@
 package com.qendolin.betterclouds.mixin;
 
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.platform.ModLoader;
 import com.qendolin.betterclouds.test.GameTestEnabled;
 
@@ -25,6 +26,10 @@ public class RuntimeMixinPlugin extends MixinPlugin {
         classes.add("GlResourceManagerAccessor");
         classes.add("GlBackendAccessor");
         //?}
+
+        if(BetterCloudsStatic.IS_DEV) {
+            classes.add("GlDebugMixin");
+        }
 
         if (GameTestEnabled.ENABLED) {
             classes.add("GameTestClientMixin");

@@ -342,6 +342,7 @@ public class GLCompat {
 
     public void enableDebugOutputSynchronousDev() {
         if (!isDev) return;
+        BetterCloudsStatic.getLogger().warn("Enabling synchronous OpenGL debug output");
         enableDebugOutputSynchronous();
     }
 
