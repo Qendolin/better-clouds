@@ -13,6 +13,8 @@ import net.minecraft.util.Identifier;
 
 //? if >=1.21.5 {
 import com.mojang.blaze3d.opengl.GlStateManager;
+import com.qendolin.betterclouds.mixin.runtime.GlResourceManagerAccessor;
+import com.qendolin.betterclouds.mixin.runtime.GlBackendAccessor;
 //?} else {
 /*import com.mojang.blaze3d.platform.GlStateManager;
 import com.qendolin.betterclouds.mixin.runtime.BufferRendererAccessor;
@@ -166,6 +168,7 @@ public class Resources implements Closeable {
     }
 
     public static void unbindVao() {
+        glBindVertexArray(0);
         //? if <1.21.5 {
         /*VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
         if (buffer == null) return;
@@ -176,6 +179,7 @@ public class Resources implements Closeable {
     }
 
     public static void unbindVbo() {
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
         //? if <1.21.5 {
         /*VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
         if (buffer == null) return;
@@ -395,9 +399,14 @@ public class Resources implements Closeable {
     }
 
     public static void unbindShader() {
-        //? if >=1.21.3 {
-        glUseProgram(0);
-        //?} else {
+        //? if >=1.21.5 {
+        var backend = (GlBackendAccessor) RenderSystem.getDevice();
+        var resourceManager = (GlResourceManagerAccessor) backend.getCommandEncoder();
+        resourceManager.setCurrentProgram(null);
+        resourceManager.setCurrentPipeline(null);
+        //?} else if >=1.21.3 {
+        /*glUseProgram(0);
+        *///?} else {
         /*int previousProgramId = ShaderProgramAccessor.getActiveProgramGlRef();
         if (previousProgramId > 0)
             glUseProgram(previousProgramId);

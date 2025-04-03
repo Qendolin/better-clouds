@@ -54,6 +54,7 @@ public class BetterClouds extends BetterCloudsStatic {
         if (!BetterCloudsStatic.IS_DEV) return;
         BetterCloudsStatic.logger.info("Initialized in dev mode, performance might vary");
 
+        BetterCloudsStatic.logger.info("Running mixin audit, game might crash");
         MixinEnvironment.getCurrentEnvironment().audit();
     }
 

@@ -21,6 +21,11 @@ public class RuntimeMixinPlugin extends MixinPlugin {
         classes.add("VertexBufferAccessor");
         *///?}
 
+        //? if >=1.21.5 {
+        classes.add("GlResourceManagerAccessor");
+        classes.add("GlBackendAccessor");
+        //?}
+
         if (GameTestEnabled.ENABLED) {
             classes.add("GameTestClientMixin");
             classes.add("GameTestInputUtilMixin");
