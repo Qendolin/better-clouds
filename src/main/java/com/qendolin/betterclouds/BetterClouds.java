@@ -18,6 +18,7 @@ import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import net.minecraft.client.MinecraftClient;
 import org.apache.logging.log4j.LogManager;
 import org.jetbrains.annotations.Nullable;
+import org.spongepowered.asm.mixin.MixinEnvironment;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -52,6 +53,8 @@ public class BetterClouds extends BetterCloudsStatic {
 
         if (!BetterCloudsStatic.IS_DEV) return;
         BetterCloudsStatic.logger.info("Initialized in dev mode, performance might vary");
+
+        MixinEnvironment.getCurrentEnvironment().audit();
     }
 
     public static void initializeClientEvents() {
