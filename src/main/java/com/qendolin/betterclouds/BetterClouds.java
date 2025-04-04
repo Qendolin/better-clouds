@@ -3,7 +3,6 @@ package com.qendolin.betterclouds;
 import com.qendolin.betterclouds.clouds.RandomPath;
 import com.qendolin.betterclouds.clouds.Renderer;
 import com.qendolin.betterclouds.compat.*;
-import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.config.ShaderPresetLoader;
@@ -13,7 +12,10 @@ import com.qendolin.betterclouds.platform.ModLoader;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import com.qendolin.betterclouds.test.GameTest;
 import com.qendolin.betterclouds.test.GameTestEnabled;
-import com.qendolin.betterclouds.util.*;
+import com.qendolin.betterclouds.util.ChatUtil;
+import com.qendolin.betterclouds.util.DataDirectoryMigration;
+import com.qendolin.betterclouds.util.NamedLogger;
+import com.qendolin.betterclouds.util.PreLaunchGuard;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import net.minecraft.client.MinecraftClient;
 import org.apache.logging.log4j.LogManager;
@@ -22,6 +24,8 @@ import org.spongepowered.asm.mixin.MixinEnvironment;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+
+import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
 
 public class BetterClouds extends BetterCloudsStatic {
 
@@ -54,7 +58,7 @@ public class BetterClouds extends BetterCloudsStatic {
         if (!BetterCloudsStatic.IS_DEV) return;
         BetterCloudsStatic.logger.info("Initialized in dev mode, performance might vary");
 
-        if(GameTestEnabled.ENABLED) {
+        if (GameTestEnabled.ENABLED) {
             BetterCloudsStatic.logger.info("Running mixin audit. No additional mods must be loaded!");
             MixinEnvironment.getCurrentEnvironment().audit();
         }
@@ -103,7 +107,7 @@ public class BetterClouds extends BetterCloudsStatic {
 
 
     public static boolean isEnabled() {
-        if(!ConfigManager.isInitialized()) return true;
+        if (!ConfigManager.isInitialized()) return true;
         return ConfigManager.instance().enabled;
     }
 

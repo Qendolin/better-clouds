@@ -170,10 +170,10 @@ dependencies {
 		compileOnly(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-common:0.2.0"))
 		implementation(include("com.github.bawnorton.mixinsquared:mixinsquared-${loader}:0.2.0"))
 
-		// neoforge includes mixinextras
-		if (isForge) {
+		// forge does not include mixinextras, and neoforge has a version that's too old <= 1.20.6
+		if (isForge || (isNeoForge && stonecutter.eval(mcVersion, "<=1.20.6"))) {
 			compileOnly(implementation("io.github.llamalad7:mixinextras-common:${property("deps.mixin_extras")}"))
-			include(implementation("io.github.llamalad7:mixinextras-forge:${property("deps.mixin_extras")}"))
+			include(implementation("io.github.llamalad7:mixinextras-${loader}:${property("deps.mixin_extras")}"))
 		}
 
 		// These should be included with yacl, but it doesn't work correctly, so adding them here

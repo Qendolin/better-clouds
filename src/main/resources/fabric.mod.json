@@ -38,7 +38,7 @@
       $mc_version_range
     ],
     "java": ">=17",
-    "fabric": "*",
+    "fabric-api": "*",
     "yet_another_config_lib_v3": "^3.4.0"
   },
   "recommends": {
