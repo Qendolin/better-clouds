@@ -7,6 +7,7 @@ import com.seibel.distanthorizons.api.enums.rendering.EDhApiRenderPass;
 import com.seibel.distanthorizons.api.methods.events.DhApiEventRegister;
 import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiAfterDhInitEvent;
 import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiBeforeRenderEvent;
+import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiColorDepthTextureCreatedEvent;
 import com.seibel.distanthorizons.api.methods.events.sharedParameterObjects.DhApiCancelableEventParam;
 import com.seibel.distanthorizons.api.methods.events.sharedParameterObjects.DhApiEventParam;
 import com.seibel.distanthorizons.api.methods.events.sharedParameterObjects.DhApiRenderParam;
@@ -18,6 +19,7 @@ import java.util.Optional;
 public abstract class DistantHorizonsSharedCompatImpl extends DistantHorizonsCompat {
     private boolean isDhInitialized = false;
     private DhApiRenderParam lastRenderParam = null;
+    protected boolean textureCreateFlag = false;
 
     public DistantHorizonsSharedCompatImpl() {
         BetterCloudsStatic.getLogger().info("Registering DH Api events");
@@ -40,6 +42,12 @@ public abstract class DistantHorizonsSharedCompatImpl extends DistantHorizonsCom
                 if (BetterClouds.isEnabled()) {
                     disableLodClouds();
                 }
+            }
+        });
+        DhApiEventRegister.on(DhApiColorDepthTextureCreatedEvent.class, new DhApiColorDepthTextureCreatedEvent() {
+            @Override
+            public void onResize(DhApiEventParam<EventParam> dhApiEventParam) {
+                textureCreateFlag = true;
             }
         });
     }
@@ -72,5 +80,15 @@ public abstract class DistantHorizonsSharedCompatImpl extends DistantHorizonsCom
             return Optional.of(result.payload);
         }
         return Optional.empty();
+    }
+
+    @Override
+    public boolean isTextureCreateFlagSet() {
+        return textureCreateFlag;
+    }
+
+    @Override
+    public void resetTextureCreateFlag() {
+        textureCreateFlag = false;
     }
 }

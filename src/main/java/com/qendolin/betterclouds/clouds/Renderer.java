@@ -311,6 +311,11 @@ public class Renderer implements AutoCloseable {
             if (depthId.isPresent()) {
                 Matrix4f dhProjectionMatrix = DistantHorizonsCompat.instance().getProjectionMatrix();
                 RenderHelper.bindTexture(depthId.get());
+                if(DistantHorizonsCompat.instance().isTextureCreateFlagSet()) {
+                    // This fixes a bug in DH, see: https://discord.com/channels/881614130614767666/1211290858134052894
+                    glBindTexture(GL_TEXTURE_2D, depthId.get());
+                    DistantHorizonsCompat.instance().resetTextureCreateFlag();
+                }
                 res.coverageShader().uDhPMatrix.setMat4(dhProjectionMatrix);
             } else {
                 RenderHelper.bindTexture(0);

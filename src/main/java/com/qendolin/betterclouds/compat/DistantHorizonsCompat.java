@@ -81,6 +81,10 @@ public abstract class DistantHorizonsCompat {
 
     public abstract void disableLodClouds();
 
+    public abstract boolean isTextureCreateFlagSet();
+
+    public abstract void resetTextureCreateFlag();
+
     private static class Stub extends DistantHorizonsCompat {
         @Override
         public boolean isReady() {
@@ -104,6 +108,16 @@ public abstract class DistantHorizonsCompat {
 
         @Override
         public void disableLodClouds() {
+
+        }
+
+        @Override
+        public boolean isTextureCreateFlagSet() {
+            return false;
+        }
+
+        @Override
+        public void resetTextureCreateFlag() {
 
         }
     }
