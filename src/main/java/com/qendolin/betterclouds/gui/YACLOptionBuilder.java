@@ -1,5 +1,6 @@
 package com.qendolin.betterclouds.gui;
 
+import com.qendolin.betterclouds.compat.YACLCompat;
 import com.qendolin.betterclouds.platform.ModLoader;
 import com.qendolin.betterclouds.platform.ModVersion;
 import dev.isxander.yacl3.api.*;
@@ -16,16 +17,6 @@ import java.util.function.Supplier;
 public interface YACLOptionBuilder<T> {
 
     static <T> YACLOptionBuilder<T> create(Option.Builder<T> delegate) {
-        ModVersion version = ModLoader.getModVersion("yet_another_config_lib_v3");
-        ModVersion.SemVer semver = version.asSemVer()
-            .orElseThrow(() -> new RuntimeException("Could not parse YACL version: " + version.getFriendlyString()));
-        if (semver.major != 3)
-            throw new RuntimeException("Unsupported YACL major version, must be 3: " + semver.major);
-
-        if (semver.minor < 6) {
-            return new YACL35OptionBuilderImpl<>(delegate);
-        }
-
         return new YACL36OptionBuilderImpl<>(delegate);
     }
 

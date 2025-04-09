@@ -45,6 +45,7 @@ public class BetterClouds extends BetterCloudsStatic {
 
         version = ModLoader.getModVersion(BetterCloudsStatic.MODID);
 
+        YACLCompat.initialize();
         DistantHorizonsCompat.initialize();
         IrisCompat.initialize();
         SereneSeasonsCompat.initialize();

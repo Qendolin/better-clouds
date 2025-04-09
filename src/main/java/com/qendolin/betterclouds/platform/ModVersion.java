@@ -1,5 +1,7 @@
 package com.qendolin.betterclouds.platform;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -69,7 +71,7 @@ public abstract class ModVersion {
         }
     }
 
-    public static final class SemVer {
+    public static final class SemVer implements Comparable<SemVer> {
         public final int major;
         public final int minor;
         public final int patch;
@@ -82,6 +84,18 @@ public abstract class ModVersion {
             this.patch = patch;
             this.build = build;
             this.prerelease = prerelease;
+        }
+
+
+        @Override
+        public int compareTo(@NotNull ModVersion.SemVer o) {
+            if(major < o.major) return -1;
+            if(major > o.major) return 1;
+            if(minor < o.minor) return -1;
+            if(minor > o.minor) return 1;
+            if(patch < o.patch) return -1;
+            if(patch > o.patch) return 1;
+            return 0;
         }
     }
 }

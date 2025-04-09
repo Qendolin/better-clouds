@@ -91,6 +91,7 @@ public class ShaderPresetGUI {
             .listener((opt, i) -> {
                 // The 'instant' listener gets called later, applyValue is called now manually
                 opt.applyValue();
+                //noinspection rawtypes
                 if (opt.controller() instanceof SelectController select) {
                     select.updateValues();
                 }
@@ -218,6 +219,7 @@ public class ShaderPresetGUI {
                 preset.markAsCopy();
                 config.presets.add(0, preset);
                 selectedPreset.requestSet(0);
+                //noinspection rawtypes
                 if (selectedPreset.controller() instanceof SelectController select) {
                     select.updateValues();
                 }
