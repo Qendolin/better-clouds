@@ -462,6 +462,7 @@ public class Renderer implements AutoCloseable {
         glDrawArrays(GL_TRIANGLES, 0, Mesh.CUBE_MESH_VERTEX_COUNT);
 
         if (glCompat.useDepthWriteFallback()) {
+            GlStateManager._colorMask(false, false, false, false);
             GlStateManager._activeTexture(GL_TEXTURE6);
             RenderHelper.bindTexture(res.oitCoverageDepthTexture());
             glTexParameteri(GL_TEXTURE_2D, glCompat.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_DEPTH_COMPONENT);
