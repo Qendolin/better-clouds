@@ -191,6 +191,9 @@ public class Renderer implements AutoCloseable {
                 res.timer().start();
         }
 
+        // Unbind vanilla shader, this is for compatability
+        RenderHelper.unbindShader();
+
         Config config = ConfigManager.instance();
         if (isFramebufferStale()) {
             res.reloadFramebuffer(scaledFramebufferWidth(), scaledFramebufferHeight());
@@ -222,7 +225,6 @@ public class Renderer implements AutoCloseable {
         getProfiler().swap("render_cleanup");
         rt.end();
         res.generator().unbind();
-        Resources.unbindShader();
         GlStateManager._disableBlend();
         GlStateManager._enableDepthTest();
         GlStateManager._depthMask(true);

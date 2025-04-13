@@ -7,6 +7,8 @@ import net.minecraft.client.texture.AbstractTexture;
 //? if >=1.21.5 {
 import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.textures.GpuTexture;
+import com.qendolin.betterclouds.mixin.runtime.GlBackendAccessor;
+import com.qendolin.betterclouds.mixin.runtime.GlResourceManagerAccessor;
 import net.minecraft.client.texture.GlTexture;
 //?} else {
 /*import com.mojang.blaze3d.platform.GlStateManager;
@@ -80,5 +82,27 @@ public interface RenderHelper {
             this(fog.start(), fog.end(), fog.shape(), fog.red(), fog.green(), fog.blue(), fog.alpha());
         }
         //?}
+    }
+
+    static void unbindShader() {
+        //? if >=1.21.5 {
+        var backend = (GlBackendAccessor) RenderSystem.getDevice();
+        var resourceManager = (GlResourceManagerAccessor) backend.getCommandEncoder();
+        var current = resourceManager.getCurrentProgram();
+        if(current != null)
+            current.unbind();
+        resourceManager.setCurrentProgram(null);
+        resourceManager.setCurrentPipeline(null);
+        //?} else if >=1.21.3 {
+        /*var current = RenderSystem.getShader();
+        if(current != null)
+            current.unbind();
+        RenderSystem.setShader((net.minecraft.client.gl.ShaderProgram) null);
+        *///?} else {
+        /*var current = RenderSystem.getShader();
+        if(current != null)
+            current.unbind();
+        RenderSystem.setShader(() -> null);
+        *///?}
     }
 }

@@ -1,8 +1,8 @@
 package com.qendolin.betterclouds.clouds.shaders;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.qendolin.betterclouds.clouds.Resources;
 import com.qendolin.betterclouds.compat.GLCompat;
+import com.qendolin.betterclouds.util.RenderHelper;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.InvalidHierarchicalFileException;
@@ -91,7 +91,7 @@ public class Shader implements AutoCloseable {
     }
 
     public void unbind() {
-        Resources.unbindShader();
+        RenderHelper.unbindShader();
     }
 
     protected Uniform getUniform(String name, boolean cached) {

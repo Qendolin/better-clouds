@@ -15,8 +15,14 @@ public interface GlResourceManagerAccessor {
     @Accessor("currentProgram")
     void setCurrentProgram(ShaderProgram program);
 
+    @Accessor("currentProgram")
+    ShaderProgram getCurrentProgram();
+
     @Accessor("currentPipeline")
     void setCurrentPipeline(RenderPipeline program);
+
+    @Accessor("currentPipeline")
+    RenderPipeline getCurrentPipeline();
 
 }
 
