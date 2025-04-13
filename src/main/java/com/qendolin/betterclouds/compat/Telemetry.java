@@ -28,7 +28,7 @@ public class Telemetry implements ITelemetry {
     public static final String ENDPOINT = "https://europe-west3-better-clouds.cloudfunctions.net/collect_telemetry";
     public static final int CONNECT_TIMEOUT_MS = 5000;
     public static final int READ_TIMEOUT_MS = 5000;
-    public static final LocalDateTime EXPIRATION_DATE = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0);
+    public static final LocalDateTime EXPIRATION_DATE = LocalDateTime.of(2025, Month.JULY, 1, 0, 0);
     public static final int VERSION = 3;
     public static final String SHADER_COMPILE_ERROR = "SHADER_COMPILE_ERROR";
     public static final String SYSTEM_INFORMATION = "SYSTEM_INFORMATION";

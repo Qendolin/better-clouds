@@ -562,8 +562,6 @@ public class GLCompat {
                 BetterCloudsStatic.getLogger().info("- Using {} fallback", fallback);
             }
         }
-
-        sendSystemDetailsTelemetry();
     }
 
     private static void sendSystemDetailsTelemetry() {

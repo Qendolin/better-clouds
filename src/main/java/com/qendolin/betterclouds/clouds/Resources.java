@@ -267,7 +267,7 @@ public class Resources implements Closeable {
 
             configurationIndex++;
             if (configurationIndex >= configurations.length) {
-                throw new RuntimeException("Better Clouds framebuffer incomplete, exhausted all options, your GPU is likely incompatible, status: " + status);
+                throw new IllegalStateException("Better Clouds framebuffer incomplete, exhausted all options, your GPU is likely incompatible, status: " + status);
             }
 
             BetterCloudsStatic.getLogger().warn("Framebuffer incomplete, trying different creation configuration. useStencilTextureFallback={}, useDepthWriteFallback={}, status={}", useStencilTextureFallback, useDepthWriteFallback, status);
