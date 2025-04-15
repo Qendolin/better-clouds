@@ -9,7 +9,6 @@ import com.qendolin.betterclouds.platform.ModVersion;
 import net.minecraft.MinecraftVersion;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.crash.CrashReport;
-import net.minecraft.util.crash.ReportType;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -63,7 +62,7 @@ public class Telemetry implements ITelemetry {
         this.url = url;
         if (BetterCloudsStatic.IS_DEV) {
             BetterCloudsStatic.getLogger().info("Started in dev mode, telemetry will not be sent");
-//            enabled = false;
+            enabled = false;
         }
         loadEnabledLabels();
     }
@@ -221,7 +220,9 @@ public class Telemetry implements ITelemetry {
     public void sendIssueReport(CrashReport report) {
         if (report == null) return;
         String shortReportText = report.getMessage() + "\n\n" + report.getCauseAsString();
-        String fullReportText = report.asString(ReportType.MINECRAFT_TEST_REPORT);
+        String fullReportText = report.asString(
+            /*? >=1.21 {*/ net.minecraft.util.crash.ReportType.MINECRAFT_TEST_REPORT /*?}*/
+        );
         new McLogsUploader().upload(fullReportText)
             .thenAccept(logUrl -> {
                 MinecraftClient.getInstance().send(() -> {

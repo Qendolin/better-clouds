@@ -2,6 +2,7 @@ package com.qendolin.betterclouds.gui;
 
 import com.qendolin.betterclouds.telemetry.ITelemetry;
 import com.qendolin.betterclouds.config.ConfigManager;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.*;
@@ -16,7 +17,10 @@ public class IssueReportScreen extends Screen {
     private static final Text TITLE = Text.translatable("betterclouds.gui.issueReport.title");
     private static final Text MESSAGE = Text.translatable("betterclouds.gui.issueReport.message");
     private static final Text TOAST_MESSAGE = Text.translatable("betterclouds.gui.issueReport.toast.sent");
-    private static final SystemToast.Type TOAST_TYPE = new SystemToast.Type();
+    private static final SystemToast.Type TOAST_TYPE =
+        /*? if >=1.20.4 {*/ new SystemToast.Type();
+        /*?} else {*/ /*SystemToast.Type.NARRATOR_TOGGLE; *//*?}*/
+
 
     private final ThreePartsLayoutWidget layout = new ThreePartsLayoutWidget(this);
     private final String details;
@@ -34,12 +38,13 @@ public class IssueReportScreen extends Screen {
         super.init();
         assert client != null;
 
-        layout.addHeader(TITLE, textRenderer);
-        var body = layout.addBody(DirectionalLayoutWidget.vertical().spacing(8));
+        layout.addHeader(new TextWidget(title, textRenderer));
+        var body = layout.addBody(new GridWidget().setRowSpacing(8));
+        var bodyAdder = body.createAdder(1);
         Text text = MutableText.of(MESSAGE.getContent())
             .append(Text.literal("\n\n"))
             .append(Text.literal(details).styled(style -> style.withColor(Formatting.GRAY)));
-        messageText = body.add(new MultilineTextWidget(text, this.textRenderer).setCentered(true));
+        messageText = bodyAdder.add(new MultilineTextWidget(text, this.textRenderer).setCentered(true));
 
         var footer = layout.addFooter(new GridWidget().setColumnSpacing(5).setRowSpacing(5));
         var footerAdder = footer.createAdder(2);
@@ -73,6 +78,15 @@ public class IssueReportScreen extends Screen {
         return false;
     }
 
+    //? if <1.21.2 {
+    /*@Override
+    public void resize(MinecraftClient client, int width, int height) {
+        super.resize(client, width, height);
+        refreshWidgetPositions();
+    }
+    *///?}
+
+    //? if >=1.21.2
     @Override
     protected void refreshWidgetPositions() {
         messageText.setMaxWidth(this.width - 50);
@@ -82,7 +96,9 @@ public class IssueReportScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
+        //? if <=1.20.1 {
+        /*renderBackground(context);
+        *///?}
         super.render(context, mouseX, mouseY, deltaTicks);
-
     }
 }
