@@ -5,6 +5,7 @@ import com.mojang.blaze3d.platform.GLX;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.BetterClouds;
 import com.qendolin.betterclouds.config.ConfigManager;
+import com.qendolin.betterclouds.telemetry.Telemetry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.Untracker;
 import org.lwjgl.glfw.GLFW;

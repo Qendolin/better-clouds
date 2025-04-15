@@ -4,7 +4,7 @@ import com.qendolin.betterclouds.BetterClouds;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.clouds.Debug;
 import com.qendolin.betterclouds.clouds.Renderer;
-import com.qendolin.betterclouds.compat.Telemetry;
+import com.qendolin.betterclouds.telemetry.IssueReportManager;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.duck.WorldRendererDuck;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
@@ -80,6 +80,8 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
     *///?}
 
 
+    @Shadow @Final private MinecraftClient client;
+
     @Override
     public Renderer betterclouds$getRenderer() {
         return cloudRenderer;
@@ -90,10 +92,11 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
         if (!BetterClouds.isInitialized()) return;
         if (glCompat.isIncompatible()) return;
         try {
-            if (cloudRenderer != null) cloudRenderer.reload(manager);
-        } catch (Exception e) {
-            Telemetry.INSTANCE.sendUnhandledException(e);
-            throw e;
+            if (cloudRenderer != null)
+                cloudRenderer.reload(manager);
+        } catch (Throwable e) {
+            if(!IssueReportManager.handle(e, "An error occurred while reloading resources: " + e.getMessage()))
+                throw e;
         }
     }
 
@@ -180,17 +183,22 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
                 final var ffrustumPos = frustumPos;
                 final var ffrustum = frustum;
                 renderPass.setRenderer(() -> {
-                    glCompat.pushDebugGroupDev("Better Clouds");
-                    cloudRenderer.render(fticks, ftickDelta, fcam, ffrustumPos, ffrustum);
-                    glCompat.popDebugGroupDev();
+                    try {
+                        glCompat.pushDebugGroupDev("Better Clouds");
+                        cloudRenderer.render(fticks, ftickDelta, fcam, ffrustumPos, ffrustum);
+                        glCompat.popDebugGroupDev();
+                    } catch (Throwable e) {
+                        if(!IssueReportManager.handle(e, "An error occurred while rendering: " + e.getMessage()))
+                            throw e;
+                    }
                 });
                 //?} else {
                 /*cloudRenderer.render(ticks, tickDelta, cam, frustumPos, frustum);
                  *///?}
             }
-        } catch (Exception e) {
-            Telemetry.INSTANCE.sendUnhandledException(e);
-            throw e;
+        } catch (Throwable e) {
+            if(!IssueReportManager.handle(e, "An error occurred while rendering: " + e.getMessage()))
+                throw e;
         }
 
         getProfiler().pop();

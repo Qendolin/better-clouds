@@ -3,6 +3,7 @@ package com.qendolin.betterclouds;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.serialization.Codec;
 import com.qendolin.betterclouds.clouds.Debug;
@@ -196,7 +197,7 @@ public class Commands {
                         return 0;
                     var entry = client.world.getDimensionEntry();
                     var key = entry.getKey().orElse(null);
-                    if(key == null)
+                    if (key == null)
                         return 0;
                     ConfigManager.instance().enabledDimensions.remove(key);
                     ConfigManager.handler().save();
@@ -204,103 +205,11 @@ public class Commands {
                     return 1;
                 })));
 
-        // rendedoc can't be loaded before opengl context creation on forge
-        //? if fabric {
         dispatcher.register(literal(BetterCloudsStatic.MODID + ":debug")
-            .then(literal("renderdoc")
-                .then(literal("capture")
-                    .executes(context -> {
-                        if (RenderDoc.isAvailable()) {
-                            ChatUtil.debugChatMessage("renderdoc.capture.trigger");
-                            CaptureManager.capture(result -> {
-                                if (result == null) {
-                                    ChatUtil.debugChatMessage("renderdoc.capture.failure");
-                                } else {
-                                    Path path = Path.of(result.path());
-                                    ChatUtil.debugChatMessage("renderdoc.capture.success",
-                                        Text.literal(path.toAbsolutePath().normalize().toString())
-                                            .styled(style -> style
-                                                .withUnderline(true)
-                                                .withClickEvent(createOpenFileClickEvent(path.getParent().toString()))
-                                            ));
-                                }
-                            });
-                            return 1;
-                        } else if (RenderDocLoader.isAvailable()) {
-                            ChatUtil.debugChatMessage(Text.translatable(
-                                ChatUtil.debugChatMessageKey("renderdoc.prompt.load"),
-                                Text.translatable(ChatUtil.debugChatMessageKey("renderdoc.prompt.load.action"))
-                                    .styled(style -> style
-                                        .withUnderline(true)
-                                        .withClickEvent(createCommandClickEvent("/betterclouds:debug renderdoc load")))
-                            ));
-                            return 0;
-                        } else {
-                            ChatUtil.debugChatMessage(Text.translatable(
-                                ChatUtil.debugChatMessageKey("renderdoc.prompt.install"),
-                                Text.translatable(ChatUtil.debugChatMessageKey("renderdoc.prompt.install.action"))
-                                    .styled(style -> style
-                                        .withUnderline(true)
-                                        .withClickEvent(createCommandClickEvent("/betterclouds:debug renderdoc install")))
-                            ));
-                            return 0;
-                        }
-                    }))
-                .then(literal("install").executes(context -> {
-                    CompletableFuture.runAsync(() -> {
-                        if (!RenderDoc.isAvailable() && !RenderDocLoader.isAvailable()) {
-                            ChatUtil.debugChatMessage("renderdoc.downloading");
-                            try {
-                                RenderDocLoader.install();
-                            } catch (Exception e) {
-                                ChatUtil.debugChatMessage("generic.error", e.toString());
-                            }
-                        }
-                        Path path = RenderDocLoader.libPath();
-                        ChatUtil.debugChatMessage("renderdoc.installed",
-                            Text.literal(path.toAbsolutePath().normalize().toString())
-                                .styled(style -> style
-                                    .withUnderline(true)
-                                    .withClickEvent(createOpenFileClickEvent(path.getParent().toString()))));
-                    });
-                    return 1;
-                }))
-                .then(literal("uninstall").executes(context -> {
-                    try {
-                        RenderDocLoader.uninstall();
-                    } catch (Exception e) {
-                        ChatUtil.debugChatMessage("generic.error", e.toString());
-                        return 0;
-                    }
-                    return 1;
-                }))
-                .then(literal("load").executes(context -> {
-                    if (!RenderDocLoader.isAvailable()) {
-                        ChatUtil.debugChatMessage(Text.translatable(
-                            ChatUtil.debugChatMessageKey("renderdoc.prompt.install"),
-                            Text.translatable(ChatUtil.debugChatMessageKey("renderdoc.prompt.install.action"))
-                                .styled(style -> style
-                                    .withUnderline(true)
-                                    .withClickEvent(createCommandClickEvent("/betterclouds:debug renderdoc install")))
-                        ));
-                        return 0;
-                    }
-                    if (RenderDoc.isAvailable()) {
-                        ChatUtil.debugChatMessage("renderdoc.load.ready", RenderDoc.getAPIVersion());
-                        return 1;
-                    }
-                    try {
-                        // in 12 hours
-                        long expires = System.currentTimeMillis() + 1000 * 60 * 60 * 12;
-                        CaptureManager.writeLaunchConfig(new CaptureManager.LaunchConfig(true, true, expires));
-                    } catch (IOException e) {
-                        ChatUtil.debugChatMessage("generic.error", e.toString());
-                        return 0;
-                    }
-                    ChatUtil.debugChatMessage("renderdoc.load.queued");
-                    return 1;
-                }))
-            ).then(literal("fallback")
+            //? if fabric {
+            .then(renderdocCommands())
+            //?}
+            .then(literal("fallback")
                 .then(argument("name", FallbackArgumentType.fallback())
                     .executes(context -> {
                         FallbackArgument fallback = FallbackArgumentType.getFallback(context, "name");
@@ -317,9 +226,109 @@ public class Commands {
                                 ChatUtil.debugChatMessage(Text.literal(String.format("Fallback %s is now %s", fallback.asString(), enable ? "enabled" : "disabled")));
                             });
                             return 1;
-                        })))));
-        //?}
+                        })))
+            )
+        );
     }
+
+    // rendedoc can't be loaded before opengl context creation on forge
+    //? if fabric {
+    private static LiteralArgumentBuilder<FabricClientCommandSource> renderdocCommands() {
+        return literal("renderdoc")
+            .then(literal("capture")
+                .executes(context -> {
+                    if (RenderDoc.isAvailable()) {
+                        ChatUtil.debugChatMessage("renderdoc.capture.trigger");
+                        CaptureManager.capture(result -> {
+                            if (result == null) {
+                                ChatUtil.debugChatMessage("renderdoc.capture.failure");
+                            } else {
+                                Path path = Path.of(result.path());
+                                ChatUtil.debugChatMessage("renderdoc.capture.success",
+                                    Text.literal(path.toAbsolutePath().normalize().toString())
+                                        .styled(style -> style
+                                            .withUnderline(true)
+                                            .withClickEvent(createOpenFileClickEvent(path.getParent().toString()))
+                                        ));
+                            }
+                        });
+                        return 1;
+                    } else if (RenderDocLoader.isAvailable()) {
+                        ChatUtil.debugChatMessage(Text.translatable(
+                            ChatUtil.debugChatMessageKey("renderdoc.prompt.load"),
+                            Text.translatable(ChatUtil.debugChatMessageKey("renderdoc.prompt.load.action"))
+                                .styled(style -> style
+                                    .withUnderline(true)
+                                    .withClickEvent(createCommandClickEvent("/betterclouds:debug renderdoc load")))
+                        ));
+                        return 0;
+                    } else {
+                        ChatUtil.debugChatMessage(Text.translatable(
+                            ChatUtil.debugChatMessageKey("renderdoc.prompt.install"),
+                            Text.translatable(ChatUtil.debugChatMessageKey("renderdoc.prompt.install.action"))
+                                .styled(style -> style
+                                    .withUnderline(true)
+                                    .withClickEvent(createCommandClickEvent("/betterclouds:debug renderdoc install")))
+                        ));
+                        return 0;
+                    }
+                }))
+            .then(literal("install").executes(context -> {
+                CompletableFuture.runAsync(() -> {
+                    if (!RenderDoc.isAvailable() && !RenderDocLoader.isAvailable()) {
+                        ChatUtil.debugChatMessage("renderdoc.downloading");
+                        try {
+                            RenderDocLoader.install();
+                        } catch (Exception e) {
+                            ChatUtil.debugChatMessage("generic.error", e.toString());
+                        }
+                    }
+                    Path path = RenderDocLoader.libPath();
+                    ChatUtil.debugChatMessage("renderdoc.installed",
+                        Text.literal(path.toAbsolutePath().normalize().toString())
+                            .styled(style -> style
+                                .withUnderline(true)
+                                .withClickEvent(createOpenFileClickEvent(path.getParent().toString()))));
+                });
+                return 1;
+            }))
+            .then(literal("uninstall").executes(context -> {
+                try {
+                    RenderDocLoader.uninstall();
+                } catch (Exception e) {
+                    ChatUtil.debugChatMessage("generic.error", e.toString());
+                    return 0;
+                }
+                return 1;
+            }))
+            .then(literal("load").executes(context -> {
+                if (!RenderDocLoader.isAvailable()) {
+                    ChatUtil.debugChatMessage(Text.translatable(
+                        ChatUtil.debugChatMessageKey("renderdoc.prompt.install"),
+                        Text.translatable(ChatUtil.debugChatMessageKey("renderdoc.prompt.install.action"))
+                            .styled(style -> style
+                                .withUnderline(true)
+                                .withClickEvent(createCommandClickEvent("/betterclouds:debug renderdoc install")))
+                    ));
+                    return 0;
+                }
+                if (RenderDoc.isAvailable()) {
+                    ChatUtil.debugChatMessage("renderdoc.load.ready", RenderDoc.getAPIVersion());
+                    return 1;
+                }
+                try {
+                    // in 12 hours
+                    long expires = System.currentTimeMillis() + 1000 * 60 * 60 * 12;
+                    CaptureManager.writeLaunchConfig(new CaptureManager.LaunchConfig(true, true, expires));
+                } catch (IOException e) {
+                    ChatUtil.debugChatMessage("generic.error", e.toString());
+                    return 0;
+                }
+                ChatUtil.debugChatMessage("renderdoc.load.queued");
+                return 1;
+            }));
+    }
+    //?}
 
     private enum FallbackArgument implements StringIdentifiable {
         BASE_INSTANCE(GLCompat::useBaseInstanceFallback, GLCompat::setUseBaseInstanceFallback),

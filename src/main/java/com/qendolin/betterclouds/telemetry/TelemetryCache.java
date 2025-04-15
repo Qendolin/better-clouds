@@ -1,4 +1,4 @@
-package com.qendolin.betterclouds.compat;
+package com.qendolin.betterclouds.telemetry;
 
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;

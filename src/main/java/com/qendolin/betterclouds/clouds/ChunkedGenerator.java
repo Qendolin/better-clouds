@@ -2,7 +2,7 @@ package com.qendolin.betterclouds.clouds;
 
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.Config;
-import com.qendolin.betterclouds.compat.Telemetry;
+import com.qendolin.betterclouds.telemetry.Telemetry;
 import com.qendolin.betterclouds.util.ChatUtil;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.Box;
@@ -121,7 +121,6 @@ public class ChunkedGenerator implements AutoCloseable {
         int size = MathHelper.floor(distance / options.spacing)
             + MathHelper.ceil(distance / options.spacing);
         if (size <= 0) {
-            Telemetry.INSTANCE.sendEvent("invalid_buffer_size", String.format("Invalid buffer size result %d from block_distance=%d (distance=%f) and spacing %f".formatted(size, distance, options.distance, options.spacing)));
             return 8 * 16;
         }
         return size;

@@ -6,7 +6,7 @@ import com.qendolin.betterclouds.Commands;
 import com.qendolin.betterclouds.clouds.shaders.*;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.util.RenderHelper;
-import com.qendolin.betterclouds.compat.Telemetry;
+import com.qendolin.betterclouds.telemetry.Telemetry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;

@@ -1,6 +1,7 @@
-package com.qendolin.betterclouds.compat;
+package com.qendolin.betterclouds.telemetry;
 
 import com.qendolin.betterclouds.BetterCloudsStatic;
+import net.minecraft.util.crash.CrashReport;
 
 import java.net.URL;
 import java.util.concurrent.CompletableFuture;
@@ -24,7 +25,7 @@ public interface ITelemetry {
 
     void sendUnhandledException(Exception e);
 
-    void sendEvent(String key, String message);
+    void sendIssueReport(CrashReport report);
 
     class NoopTelemetry implements ITelemetry {
         @Override
@@ -41,7 +42,7 @@ public interface ITelemetry {
         }
 
         @Override
-        public void sendEvent(String key, String message) {
+        public void sendIssueReport(CrashReport report) {
         }
     }
 }

@@ -131,6 +131,8 @@ public class Config {
     @SerialEntry
     public boolean gpuIncompatibleMessageEnabled = true;
     @SerialEntry
+    public boolean issueReportEnabled = true;
+    @SerialEntry
     public List<RegistryKey<DimensionType>> enabledDimensions = new ArrayList<>(List.of(DimensionTypes.OVERWORLD));
     @SerialEntry
     public SereneSeasonsConfig sereneSeasonsConfig = new SereneSeasonsConfig();

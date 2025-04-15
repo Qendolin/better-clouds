@@ -207,6 +207,7 @@ dependencies {
 		}
 	}
 
+	include(implementation('gs.mclo:api:5.0.0'))
 	compileOnly "maven.modrinth:distanthorizonsapi:4.0.0"
 	modCompileOnly "maven.modrinth:serene-seasons:${property('deps.serene_seasons')}"
 	modCompileOnly "maven.modrinth:enhanced-celestials:${property('deps.enhanced_celestials')}"

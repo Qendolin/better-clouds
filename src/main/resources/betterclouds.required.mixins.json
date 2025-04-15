@@ -7,13 +7,14 @@
   "mixins": [
   ],
   "client": [
-    "WorldMixin",
     "AbstractWidgetMixin",
     "CloudSettingMixin",
     "DimensionEffectsMixin",
+    "MinecraftClientMixin",
     "RenderSystemMixin",
     "TabButtonWidgetMixin",
     "TabNavigationWidgetAccessor",
+    "WorldMixin",
     "WorldRendererMixin"
   ],
   "injectors": {

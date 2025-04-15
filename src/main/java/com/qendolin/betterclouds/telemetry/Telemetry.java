@@ -1,11 +1,15 @@
-package com.qendolin.betterclouds.compat;
+package com.qendolin.betterclouds.telemetry;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.qendolin.betterclouds.BetterClouds;
 import com.qendolin.betterclouds.BetterCloudsStatic;
+import com.qendolin.betterclouds.compat.GLCompat;
 import com.qendolin.betterclouds.platform.ModVersion;
 import net.minecraft.MinecraftVersion;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.util.crash.CrashReport;
+import net.minecraft.util.crash.ReportType;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -13,28 +17,43 @@ import org.lwjgl.opengl.GL32;
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.Month;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Telemetry implements ITelemetry {
     public static final String ENDPOINT = "https://europe-west3-better-clouds.cloudfunctions.net/collect_telemetry";
+    public static final String ENABLED_LABELS_ENDPOINT = "https://storage.googleapis.com/better-clouds-static/v1/enabled_telemetry_labels.txt";
     public static final int CONNECT_TIMEOUT_MS = 5000;
     public static final int READ_TIMEOUT_MS = 5000;
-    public static final LocalDateTime EXPIRATION_DATE = LocalDateTime.of(2025, Month.JULY, 1, 0, 0);
     public static final int VERSION = 3;
-    public static final String SHADER_COMPILE_ERROR = "SHADER_COMPILE_ERROR";
-    public static final String SYSTEM_INFORMATION = "SYSTEM_INFORMATION";
-    public static final String UNHANDLED_EXCEPTION = "UNHANDLED_EXCEPTION";
 
-    public boolean enabled = true;
+    public enum Label {
+        SHADER_COMPILE_ERROR("SHADER_COMPILE_ERROR"),
+        SYSTEM_INFORMATION("SYSTEM_INFORMATION"),
+        UNHANDLED_EXCEPTION("UNHANDLED_EXCEPTION"),
+        AUTO_REPORT("AUTO_REPORT");
+
+        private final String string;
+
+        Label(String string) {
+            this.string = string;
+        }
+
+        @Override
+        public String toString() {
+            return string;
+        }
+    }
+
+    protected boolean enabled = true;
+    protected final ReentrantLock enabledLabelsLock = new ReentrantLock();
+    protected final Set<String> enabledLabels = new HashSet<>();
     protected final TelemetryCache cache = new TelemetryCache();
     protected final URL url;
     protected final Gson gson = new GsonBuilder()
@@ -42,31 +61,74 @@ public class Telemetry implements ITelemetry {
 
     protected Telemetry(URL url) {
         this.url = url;
-        if (LocalDateTime.now().isAfter(EXPIRATION_DATE)) {
-            // To prevent errors if the telemetry server shuts down in the future
-            BetterCloudsStatic.getLogger().info("Telemetry is expired, telemetry will not be sent");
-            enabled = false;
-        }
         if (BetterCloudsStatic.IS_DEV) {
             BetterCloudsStatic.getLogger().info("Started in dev mode, telemetry will not be sent");
-            enabled = false;
+//            enabled = false;
         }
+        loadEnabledLabels();
     }
+
+    private void loadEnabledLabels() {
+        CompletableFuture.runAsync(() -> {
+            try {
+                enabledLabelsLock.lock();
+                URL url = new URI(ENABLED_LABELS_ENDPOINT).toURL();
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.connect();
+                int responseCode = conn.getResponseCode();
+                if (responseCode < 200 || responseCode >= 300) {
+                    BetterCloudsStatic.getLogger().warn("Failed to get enabled telemetry labels: responseCode={}", responseCode);
+                    return;
+                }
+                Set<String> labels = new HashSet<>();
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+                    while (true) {
+                        String line = reader.readLine();
+                        if (line == null) break;
+                        if (!line.isBlank()) {
+                            labels.add(line.toUpperCase());
+                        }
+                    }
+                }
+                enabledLabels.clear();
+                enabledLabels.addAll(labels);
+            } catch (Exception e) {
+                BetterCloudsStatic.getLogger().warn("Failed to get enabled telemetry labels", e.getMessage());
+            } finally {
+                enabledLabelsLock.unlock();
+            }
+        });
+    };
 
     public CompletableFuture<Boolean> sendSystemInfo() {
-        return sendPayload("", SYSTEM_INFORMATION);
+        return sendPayload("", Label.SYSTEM_INFORMATION);
     }
 
-    protected CompletableFuture<Boolean> sendPayload(String payload, String... labels) {
-        if (!enabled) return CompletableFuture.completedFuture(false);
+    protected CompletableFuture<Boolean> sendPayload(String payload, Label... labels) {
+        if (!enabled)
+            return CompletableFuture.completedFuture(false);
+        if(!allLabelsEnabled(labels))
+            return CompletableFuture.completedFuture(false);
+
         try {
-            RequestBody body = new RequestBody(new SystemDetails(), List.of(labels), payload, BetterClouds.getVersion(), VERSION);
+            List<String> stringLabels = Arrays.stream(labels).map(Label::toString).toList();
+            RequestBody body = new RequestBody(new SystemDetails(), stringLabels, payload, BetterClouds.getVersion(), VERSION);
             String json = gson.toJson(body);
             final byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
             return postAsync(bytes);
         } catch (Throwable e) {
             BetterCloudsStatic.getLogger().error("Failed to send system information", e);
             return CompletableFuture.completedFuture(false);
+        }
+    }
+
+    private boolean allLabelsEnabled(Label[] labels) {
+        try {
+            enabledLabelsLock.lock();
+            return Arrays.stream(labels).map(Label::toString).allMatch(enabledLabels::contains);
+        } finally {
+            enabledLabelsLock.unlock();
         }
     }
 
@@ -95,7 +157,7 @@ public class Telemetry implements ITelemetry {
             }
             return true;
         } catch (Throwable e) {
-            BetterCloudsStatic.getLogger().error("Failed to post to telemetry endpoint: ", e);
+            BetterCloudsStatic.getLogger().error("Failed to post to telemetry endpoint", e);
             return false;
         } finally {
             IOUtils.closeQuietly(outputStream);
@@ -103,7 +165,8 @@ public class Telemetry implements ITelemetry {
     }
 
     protected HttpURLConnection createConnection() {
-        if (!enabled) return null;
+        if (!enabled)
+            return null;
         try {
             final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
@@ -111,7 +174,7 @@ public class Telemetry implements ITelemetry {
             connection.setUseCaches(false);
             return connection;
         } catch (Throwable e) {
-            BetterCloudsStatic.getLogger().error("Failed to connect to telemetry endpoint: ", e);
+            BetterCloudsStatic.getLogger().error("Failed to connect to telemetry endpoint", e);
             enabled = false;
         }
         return null;
@@ -120,19 +183,19 @@ public class Telemetry implements ITelemetry {
     public void sendShaderCompileError(String error) {
         if (error == null || error.isBlank()) return;
 
-        cachedSend(error, SHADER_COMPILE_ERROR);
+        cachedSend(error, Label.SHADER_COMPILE_ERROR);
     }
 
-    private void cachedSend(String error, String messageType) {
+    private void cachedSend(String error, Label label) {
         if (lazyOpenCache()) {
             String hash = cache.hash(error);
-            if (cache.contains(messageType, hash)) return;
+            if (cache.contains(label.toString(), hash)) return;
         }
-        sendPayload(error, messageType)
+        sendPayload(error, label)
             .whenComplete((success, throwable) -> {
                 if (success) {
                     String hash = cache.hash(error);
-                    cache.add(messageType, hash);
+                    cache.add(label.toString(), hash);
                 }
             });
     }
@@ -142,7 +205,7 @@ public class Telemetry implements ITelemetry {
             try {
                 cache.open();
             } catch (IOException e) {
-                BetterCloudsStatic.getLogger().warn("Failed to open telemetry cache: ", e);
+                BetterCloudsStatic.getLogger().warn("Failed to open telemetry cache", e);
             }
         }
         return cache.isAvailable();
@@ -151,12 +214,24 @@ public class Telemetry implements ITelemetry {
     public void sendUnhandledException(Exception e) {
         if (e == null) return;
         String message = ExceptionUtils.getStackTrace(e);
-        cachedSend(message, UNHANDLED_EXCEPTION);
+        cachedSend(message, Label.UNHANDLED_EXCEPTION);
     }
 
     @Override
-    public void sendEvent(String key, String message) {
-        // TODO:
+    public void sendIssueReport(CrashReport report) {
+        if (report == null) return;
+        String shortReportText = report.getMessage() + "\n\n" + report.getCauseAsString();
+        String fullReportText = report.asString(ReportType.MINECRAFT_TEST_REPORT);
+        new McLogsUploader().upload(fullReportText)
+            .thenAccept(logUrl -> {
+                MinecraftClient.getInstance().send(() -> {
+                    sendPayload(shortReportText + "\n\n" + "Full Report at: " + logUrl, Label.AUTO_REPORT);
+                });
+            })
+            .whenComplete((success, e) -> {
+                if(e != null)
+                    BetterCloudsStatic.getLogger().warn("Failed to upload issue report", e);
+            });
     }
 
     public static final class RequestBody {
