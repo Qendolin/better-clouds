@@ -1,8 +1,5 @@
 package com.qendolin.betterclouds.gui;
 
-import com.qendolin.betterclouds.compat.YACLCompat;
-import com.qendolin.betterclouds.platform.ModLoader;
-import com.qendolin.betterclouds.platform.ModVersion;
 import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.api.controller.ControllerBuilder;
 import net.minecraft.text.Text;

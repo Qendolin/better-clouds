@@ -2,33 +2,42 @@ package com.qendolin.betterclouds.clouds;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.BetterCloudsStatic;
-import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.clouds.shaders.ShaderParameters;
-import com.qendolin.betterclouds.compat.*;
+import com.qendolin.betterclouds.compat.DistantHorizonsCompat;
+import com.qendolin.betterclouds.compat.IrisCompat;
+import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import com.qendolin.betterclouds.util.ChatUtil;
 import com.qendolin.betterclouds.util.MathUtil;
 import com.qendolin.betterclouds.util.RenderHelper;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.*;
+import net.minecraft.client.render.DimensionEffects;
+import net.minecraft.client.render.Frustum;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
-import org.joml.*;
+import org.joml.Matrix4d;
+import org.joml.Matrix4f;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
 
-//? if >=1.21
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
+//? if >=1.21 {
 import net.minecraft.block.enums.CameraSubmersionType;
+//?} else {
+/*import net.minecraft.client.render.CameraSubmersionType;
+*///?}
 
 //? if >=1.21.5 {
 import com.mojang.blaze3d.opengl.GlStateManager;
 //?} else {
 /*import com.mojang.blaze3d.platform.GlStateManager;
- *///?}
-
-import java.lang.Math;
-import java.util.*;
+*///?}
 
 import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
 import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
@@ -313,7 +322,7 @@ public class Renderer implements AutoCloseable {
             if (depthId.isPresent()) {
                 Matrix4f dhProjectionMatrix = DistantHorizonsCompat.instance().getProjectionMatrix();
                 RenderHelper.bindTexture(depthId.get());
-                if(DistantHorizonsCompat.instance().isTextureCreateFlagSet()) {
+                if (DistantHorizonsCompat.instance().isTextureCreateFlagSet()) {
                     // This fixes a bug in DH, see: https://discord.com/channels/881614130614767666/1211290858134052894
                     glBindTexture(GL_TEXTURE_2D, depthId.get());
                     DistantHorizonsCompat.instance().resetTextureCreateFlag();

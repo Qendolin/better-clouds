@@ -2,7 +2,6 @@ package com.qendolin.betterclouds.clouds;
 
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.Config;
-import com.qendolin.betterclouds.telemetry.Telemetry;
 import com.qendolin.betterclouds.util.ChatUtil;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.Box;

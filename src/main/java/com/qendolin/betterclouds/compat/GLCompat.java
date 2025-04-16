@@ -2,8 +2,8 @@ package com.qendolin.betterclouds.compat;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.platform.GLX;
-import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.BetterClouds;
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.telemetry.Telemetry;
 import net.minecraft.client.MinecraftClient;

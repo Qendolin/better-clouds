@@ -1,8 +1,7 @@
 package com.qendolin.betterclouds.gui;
 
-import com.qendolin.betterclouds.telemetry.ITelemetry;
 import com.qendolin.betterclouds.config.ConfigManager;
-import net.minecraft.client.MinecraftClient;
+import com.qendolin.betterclouds.telemetry.ITelemetry;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.*;
@@ -11,6 +10,9 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.crash.CrashReport;
+
+//? if <1.21.2
+/*import net.minecraft.client.MinecraftClient;*/
 
 public class IssueReportScreen extends Screen {
 

@@ -1,7 +1,7 @@
 package com.qendolin.betterclouds.mixin.runtime;
 
-import org.spongepowered.asm.mixin.Mixin;
 import net.minecraft.client.util.Window;
+import org.spongepowered.asm.mixin.Mixin;
 //? if !forge {
 import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.injection.At;

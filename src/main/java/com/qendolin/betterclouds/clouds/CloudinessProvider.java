@@ -1,6 +1,9 @@
 package com.qendolin.betterclouds.clouds;
 
-import com.qendolin.betterclouds.compat.*;
+import com.qendolin.betterclouds.compat.FabricSeasonsCompat;
+import com.qendolin.betterclouds.compat.ModLoaded;
+import com.qendolin.betterclouds.compat.SereneSeasonsCompat;
+import com.qendolin.betterclouds.compat.WorldDuck;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.MathHelper;
 
