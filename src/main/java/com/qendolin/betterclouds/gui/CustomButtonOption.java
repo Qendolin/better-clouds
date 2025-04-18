@@ -34,13 +34,7 @@ public class CustomButtonOption implements ButtonOption {
         this.controller = new CustomActionController(this);
         this.binding = new EmptyBinderImpl();
 
-        boolean hasStateManager = false;
-        try {
-            Class.forName("dev.isxander.yacl3.api.StateManager");
-            hasStateManager = true;
-        } catch (ClassNotFoundException ignored) {}
-        if(hasStateManager) this.stateManager = StateManager.createImmutable(action);
-        else this.stateManager = null;
+        this.stateManager = StateManager.createImmutable(action);
     }
 
     public static com.qendolin.betterclouds.gui.CustomButtonOption.Builder createBuilder() {

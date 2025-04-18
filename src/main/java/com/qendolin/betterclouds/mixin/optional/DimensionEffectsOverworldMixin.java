@@ -1,7 +1,8 @@
 package com.qendolin.betterclouds.mixin.optional;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.BetterClouds;
+import com.qendolin.betterclouds.config.ConfigManager;
 import net.minecraft.client.render.DimensionEffects;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -21,7 +22,8 @@ public abstract class DimensionEffectsOverworldMixin extends DimensionEffects {
         remap = false,
         at = @At("RETURN"), expect = 0, require = 0)
     private float addCloudsYOffset(float value) {
-        if(!Main.getConfig().enabled) return value;
-        return value + Main.getConfig().yOffset;
+        if (!BetterClouds.isEnabled())
+            return value;
+        return value + ConfigManager.instance().yOffset;
     }
 }

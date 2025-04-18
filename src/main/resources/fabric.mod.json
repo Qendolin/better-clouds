@@ -12,32 +12,34 @@
     "sources": "https://github.com/Qendolin/better-clouds",
     "issues": "https://github.com/Qendolin/better-clouds/issues/new"
   },
-
   "license": "MPL-2.0",
   "icon": "assets/betterclouds/icon.png",
-
   "environment": "client",
   "entrypoints": {
     "client": [
       "com.qendolin.betterclouds.Entrypoint"
     ],
-    "modmenu": [ "com.qendolin.betterclouds.ModMenuIntegration" ],
+    "modmenu": [
+      "com.qendolin.betterclouds.ModMenuIntegration"
+    ],
     "preLaunch": [
       "com.qendolin.betterclouds.platform.fabric.Crash_Is_Not_Caused_By_BetterClouds"
     ]
   },
   "mixins": [
-    "betterclouds.mixins.json",
-    "betterclouds.optional.mixins.json"
+    "betterclouds.required.mixins.json",
+    "betterclouds.optional.mixins.json",
+    "betterclouds.runtime.mixins.json"
   ],
-  "accessWidener" : "betterclouds.accesswidener",
-
+  "accessWidener": "betterclouds.accesswidener",
   "depends": {
     "fabricloader": ">=0.14.0",
-    "minecraft": [$mc_version_range],
+    "minecraft": [
+      $mc_version_range
+    ],
     "java": ">=17",
-    "fabric": "*",
-    "yet_another_config_lib_v3": "^3.4.0"
+    "fabric-api": "*",
+    "yet_another_config_lib_v3": "^3.6.0"
   },
   "recommends": {
     "modmenu": "*",

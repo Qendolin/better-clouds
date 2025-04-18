@@ -185,5 +185,9 @@
   "betterclouds.config.entry.fabricSeasons.summerCloudiness": "Summer Cloudiness",
   "betterclouds.config.entry.fabricSeasons.fallCloudiness": "Fall Cloudiness",
   "betterclouds.config.entry.fabricSeasons.winterCloudiness": "Winter Cloudiness",
-  "betterclouds.config.text.shaders": "§4Shader support is experimental!§r\nSome shaders work, others don't.\nIt's best to turn off the clouds in the shader pack settings or set them to 'vanilla' if that is an option.\nYou can play with the color settings below if the clouds don't look right."
+  "betterclouds.config.text.shaders": "§4Shader support is experimental!§r\nSome shaders work, others don't.\nIt's best to turn off the clouds in the shader pack settings or set them to 'vanilla' if that is an option.\nYou can play with the color settings below if the clouds don't look right.",
+  "betterclouds.gui.issueReport.title": "§lBetter Clouds Issue Report§r",
+  "betterclouds.gui.issueReport.message": "Better Clouds has encountered an issue and §nhas been disabled§r!\nWould you like to §nsend an automatic report§r to the developer?\n\n\n§oDetails§r",
+  "betterclouds.gui.issueReport.disable": "Do not show this screen again",
+  "betterclouds.gui.issueReport.toast.sent": "Issue report submitted. Thanks!"
 }

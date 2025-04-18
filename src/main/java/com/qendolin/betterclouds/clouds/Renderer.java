@@ -1,41 +1,54 @@
 package com.qendolin.betterclouds.clouds;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.qendolin.betterclouds.config.Config;
-import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.clouds.shaders.ShaderParameters;
-import com.qendolin.betterclouds.compat.*;
+import com.qendolin.betterclouds.compat.DistantHorizonsCompat;
+import com.qendolin.betterclouds.compat.IrisCompat;
+import com.qendolin.betterclouds.config.Config;
+import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
+import com.qendolin.betterclouds.util.ChatUtil;
 import com.qendolin.betterclouds.util.MathUtil;
 import com.qendolin.betterclouds.util.RenderHelper;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.*;
+import net.minecraft.client.render.DimensionEffects;
+import net.minecraft.client.render.Frustum;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import org.apache.commons.lang3.ArrayUtils;
-import org.joml.*;
+import org.joml.Matrix4d;
+import org.joml.Matrix4f;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
 import org.lwjgl.opengl.GL43;
 import org.lwjgl.opengl.GL46;
 
-//? if >=1.21
-import net.minecraft.block.enums.CameraSubmersionType;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
-//? if >1.21.4 {
-/*import com.mojang.blaze3d.opengl.GlStateManager;
-*///?} else {
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.qendolin.betterclouds.mixin.RenderPhaseAccessor;
-//?}
+//? if >=1.21 {
+import net.minecraft.block.enums.CameraSubmersionType;
+//?} else {
+/*import net.minecraft.client.render.CameraSubmersionType;
+*///?}
+
+//? if >=1.21.5 {
+import com.mojang.blaze3d.opengl.GlStateManager;
+//?} else {
+/*import com.mojang.blaze3d.platform.GlStateManager;
+*///?}
 
 import java.lang.Math;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.*;
 
-import static com.qendolin.betterclouds.Main.getConfig;
-import static com.qendolin.betterclouds.Main.glCompat;
+import static com.qendolin.betterclouds.config.ConfigManager.getConfig;
+import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
 import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
 import static org.lwjgl.opengl.GL32.*;
 
@@ -104,21 +117,21 @@ public class Renderer implements AutoCloseable {
         regionOffsetsSsbo = glGenBuffers();
         glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER, regionOffsetsSsbo);
 
-        Main.LOGGER.info("Reloading cloud renderer...");
-        Main.LOGGER.debug("[1/6] Reloading shaders");
+        BetterCloudsStatic.getLogger().info("Reloading cloud renderer...");
+        BetterCloudsStatic.getLogger().debug("[1/6] Reloading shaders");
         shaderParameters = createShaderParameters(Main.getConfig());
         res.reloadShaders(manager, shaderParameters);
-        Main.LOGGER.debug("[2/6] Reloading generator");
+        BetterCloudsStatic.getLogger().debug("[2/6] Reloading generator");
         res.reloadGenerator(useCubeClouds());
-        Main.LOGGER.debug("[3/6] Reloading textures");
+        BetterCloudsStatic.getLogger().debug("[3/6] Reloading textures");
         res.reloadTextures(client);
-        Main.LOGGER.debug("[4/6] Reloading primitive meshes");
+        BetterCloudsStatic.getLogger().debug("[4/6] Reloading primitive meshes");
         res.reloadMeshPrimitives();
-        Main.LOGGER.debug("[5/6] Reloading framebuffer");
+        BetterCloudsStatic.getLogger().debug("[5/6] Reloading framebuffer");
         res.reloadFramebuffer(scaledFramebufferWidth(), scaledFramebufferHeight());
-        Main.LOGGER.debug("[6/6] Reloading timers");
+        BetterCloudsStatic.getLogger().debug("[6/6] Reloading timers");
         res.reloadTimer();
-        Main.LOGGER.info("Cloud renderer initialized");
+        BetterCloudsStatic.getLogger().info("Cloud renderer initialized");
     }
 
     public Resources resources() {
@@ -127,15 +140,15 @@ public class Renderer implements AutoCloseable {
 
     // Used to be called isFancyMode
     private boolean useCubeClouds() {
-        return Main.getConfig().sizeY > 0;
+        return ConfigManager.instance().sizeY > 0;
     }
 
     private int scaledFramebufferWidth() {
-        return (int) (Main.getConfig().preset().upscaleResolutionFactor * client.getFramebuffer().textureWidth);
+        return (int) (ConfigManager.instance().preset().upscaleResolutionFactor * client.getFramebuffer().textureWidth);
     }
 
     private int scaledFramebufferHeight() {
-        return (int) (Main.getConfig().preset().upscaleResolutionFactor * client.getFramebuffer().textureHeight);
+        return (int) (ConfigManager.instance().preset().upscaleResolutionFactor * client.getFramebuffer().textureHeight);
     }
 
     private ShaderParameters createShaderParameters(Config config) {
@@ -152,7 +165,7 @@ public class Renderer implements AutoCloseable {
     public PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, int ticks, float tickDelta, Vector3d cam) {
         assert RenderSystem.isOnRenderThread();
         getProfiler().swap("render_setup");
-        Config config = Main.getConfig();
+        Config config = ConfigManager.instance();
 
         if (res.failedToLoadCritical()) {
             if (RenderDoc.isFrameCapturing()) glCompat.debugMessage("prepare failed: critical resource not loaded");
@@ -232,7 +245,7 @@ public class Renderer implements AutoCloseable {
         res.generator().reallocateIfStale(config, useCubeClouds());
 
         float cloudiness = CloudinessProvider.getCloudiness(client.world, tickDelta);
-        res.generator().update(cam, ticks, tickDelta, Main.getConfig(), cloudiness);
+        res.generator().update(cam, ticks, tickDelta, ConfigManager.instance(), cloudiness);
         if (res.generator().canGenerate() && !res.generator().generating() && !Debug.generatorPause) {
             getProfiler().swap("generate_clouds");
             res.generator().generate();
@@ -297,17 +310,20 @@ public class Renderer implements AutoCloseable {
     // Note: render must not return early, this will cause corruption because prepare binds stuff
     public void render(int ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
         // In 1.21.3 render is called some time after prepare, so this may be false by now
-        if(res.failedToLoadCritical()) return;
+        if (res.failedToLoadCritical()) return;
 
         getProfiler().swap("render_setup");
         if (Debug.isProfilingEnabled()) {
             if (res.timer() == null)
                 res.reloadTimer();
-            if(res.timer() != null)
+            if (res.timer() != null)
                 res.timer().start();
         }
 
-        Config config = Main.getConfig();
+        // Unbind vanilla shader, this is for compatability
+        RenderHelper.unbindShader();
+
+        Config config = ConfigManager.instance();
         if (isFramebufferStale()) {
             res.reloadFramebuffer(scaledFramebufferWidth(), scaledFramebufferHeight());
         }
@@ -339,7 +355,6 @@ public class Renderer implements AutoCloseable {
         getProfiler().swap("render_cleanup");
         rt.end();
         res.generator().unbind();
-        Resources.unbindShader();
         GlStateManager._disableBlend();
         GlStateManager._enableDepthTest();
         GlStateManager._depthMask(true);
@@ -359,10 +374,10 @@ public class Renderer implements AutoCloseable {
             if (res.timer().frames() >= Debug.profileInterval) {
                 PerfTimer.Stats gpu = PerfTimer.Stats.of(res.timer().gpu());
                 PerfTimer.Stats cpu = PerfTimer.Stats.of(res.timer().cpu());
-                Main.LOGGER.info("GPU Times (msec):\n" + gpu);
-                Main.LOGGER.info("CPU Times (msec):\n" + cpu);
-                Main.debugChatMessage("profiling.gpuTimes", gpu.formatted());
-                Main.debugChatMessage("profiling.cpuTimes", cpu.formatted());
+                BetterCloudsStatic.getLogger().info("GPU Times (msec):\n" + gpu);
+                BetterCloudsStatic.getLogger().info("CPU Times (msec):\n" + cpu);
+                ChatUtil.debugChatMessage("profiling.gpuTimes", gpu.formatted());
+                ChatUtil.debugChatMessage("profiling.cpuTimes", cpu.formatted());
                 res.timer().reset();
             }
         }
@@ -402,7 +417,7 @@ public class Renderer implements AutoCloseable {
         glClear(GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         Config generatorConfig = getGeneratorConfig();
-        Config config = Main.getConfig();
+        Config config = ConfigManager.instance();
 
         res.coverageShader().bind();
         res.coverageShader().uMVPMatrix.setMat4(mvpMatrix);
@@ -410,8 +425,8 @@ public class Renderer implements AutoCloseable {
         res.coverageShader().uBoundingBox.setVec4((float) cam.x, (float) cam.z, generatorConfig.blockDistance() - generatorConfig.chunkSize / 2f, generatorConfig.yRange + config.sizeY);
         res.coverageShader().uTime.setFloat(ticks / 20);
         res.coverageShader().uMiscellaneous.setVec3(config.scaleFalloffMin, config.windEffectFactor, config.windSpeedFactor);
-        if(fog == null) { // Fog off
-            res.coverageShader().uFogRange.setVec2(config.blockDistance()-8, config.blockDistance());
+        if (fog == null) { // Fog off
+            res.coverageShader().uFogRange.setVec2(config.blockDistance() - 8, config.blockDistance());
         } else {
             res.coverageShader().uFogRange.setVec2(fog.start(), fog.end());
         }
@@ -429,6 +444,11 @@ public class Renderer implements AutoCloseable {
             if (depthId.isPresent()) {
                 Matrix4f dhProjectionMatrix = DistantHorizonsCompat.instance().getProjectionMatrix();
                 RenderHelper.bindTexture(depthId.get());
+                if (DistantHorizonsCompat.instance().isTextureCreateFlagSet()) {
+                    // This fixes a bug in DH, see: https://discord.com/channels/881614130614767666/1211290858134052894
+                    glBindTexture(GL_TEXTURE_2D, depthId.get());
+                    DistantHorizonsCompat.instance().resetTextureCreateFlag();
+                }
                 res.coverageShader().uDhPMatrix.setMat4(dhProjectionMatrix);
             } else {
                 RenderHelper.bindTexture(0);
@@ -808,7 +828,7 @@ public class Renderer implements AutoCloseable {
     }
 
     private void drawShading(float tickDelta, RenderHelper.Fog fog) {
-        Config config = Main.getConfig();
+        Config config = ConfigManager.instance();
         GlStateManager._depthFunc(GL_LEQUAL);
 
         if (!glCompat.useDepthWriteFallback()) {
@@ -820,7 +840,10 @@ public class Renderer implements AutoCloseable {
 
         GlStateManager._enableBlend();
         glBlendEquation(GL_FUNC_ADD);
+        // sync up state manager state, can be desynced by use of blendFunci
         GlStateManager._blendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
         GlStateManager._colorMask(false, false, false, false);
         glColorMaski(0, true, true, true, true);
         if (!glCompat.useStencilTextureFallback()) {
@@ -865,6 +888,7 @@ public class Renderer implements AutoCloseable {
         glDrawArrays(GL_TRIANGLES, 0, Mesh.CUBE_MESH_VERTEX_COUNT);
 
         if (glCompat.useDepthWriteFallback()) {
+            GlStateManager._colorMask(false, false, false, false);
             GlStateManager._activeTexture(GL_TEXTURE6);
             RenderHelper.bindTexture(res.oitCoverageDepthTexture());
             glTexParameteri(GL_TEXTURE_2D, glCompat.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_DEPTH_COMPONENT);
@@ -877,7 +901,7 @@ public class Renderer implements AutoCloseable {
     private Config getGeneratorConfig() {
         Config config = res.generator().config();
         if (config != null) return config;
-        return Main.getConfig();
+        return ConfigManager.instance();
     }
 
     private static void setFrustumTo(Frustum dst, Frustum src) {

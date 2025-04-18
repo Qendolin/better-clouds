@@ -1,7 +1,7 @@
 package com.qendolin.betterclouds.clouds;
 
 import com.qendolin.betterclouds.compat.FabricSeasonsCompat;
-import com.qendolin.betterclouds.compat.HeadInTheCloudsCompat;
+import com.qendolin.betterclouds.compat.ModLoaded;
 import com.qendolin.betterclouds.compat.SereneSeasonsCompat;
 import com.qendolin.betterclouds.compat.WorldDuck;
 import net.minecraft.client.world.ClientWorld;
@@ -10,7 +10,7 @@ import net.minecraft.util.math.MathHelper;
 public abstract class CloudinessProvider {
 
     public static float getCloudiness(ClientWorld world, float tickDelta) {
-        if(world == null)
+        if (world == null)
             return 1.0f;
         float weather = Math.max(0.6f * getTrueRainGradient(world, tickDelta), getTrueThunderGradient(world, tickDelta));
         float cloudiness = weather * 0.3f + 0.5f;
@@ -21,14 +21,14 @@ public abstract class CloudinessProvider {
 
 
     private static float getTrueRainGradient(ClientWorld world, float tickDelta) {
-        if (HeadInTheCloudsCompat.IS_LOADED) {
+        if (ModLoaded.HEAD_IN_THE_CLOUDS) {
             return ((WorldDuck) world).betterclouds$getOriginalRainGradient(tickDelta);
         }
         return world.getRainGradient(tickDelta);
     }
 
     private static float getTrueThunderGradient(ClientWorld world, float tickDelta) {
-        if (HeadInTheCloudsCompat.IS_LOADED) {
+        if (ModLoaded.HEAD_IN_THE_CLOUDS) {
             return ((WorldDuck) world).betterclouds$getOriginalThunderGradient(tickDelta);
         }
         return world.getThunderGradient(tickDelta);

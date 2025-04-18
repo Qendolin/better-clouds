@@ -32,12 +32,12 @@ public final class ModLoader {
 
     public static ModVersion getModVersion(String modId) {
         Optional<ModContainer> mod = FabricLoader.getInstance().getModContainer(modId);
-        if(mod.isEmpty()) return ModVersion.NONE;
+        if (mod.isEmpty()) return ModVersion.NONE;
         return new ModVersionImpl(mod.get().getMetadata().getVersion());
     }
 }
 //?} elif neoforge {
-/*import com.qendolin.betterclouds.Main;
+/*import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.platform.neoforge.ModVersionImpl;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
@@ -77,7 +77,7 @@ public final class ModLoader {
     public static ModVersion getModVersion(String modId) {
         ModList modList = ModList.get();
         if(modList == null) {
-            Main.LOGGER.warn("getModVersion called before the mod list is initialized.");
+            BetterCloudsStatic.getLogger().warn("getModVersion called before the mod list is initialized.");
             return ModVersion.NONE;
         }
         Optional<? extends ModContainer> mod = modList.getModContainerById(modId);
@@ -86,7 +86,7 @@ public final class ModLoader {
     }
 }
 *///?} elif forge {
-/*import com.qendolin.betterclouds.Main;
+/*import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.platform.forge.ModVersionImpl;
 import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModList;
@@ -126,7 +126,7 @@ public final class ModLoader {
     public static ModVersion getModVersion(String modId) {
         ModList modList = ModList.get();
         if(modList == null) {
-            Main.LOGGER.warn("getModVersion called before the mod list is initialized.");
+            BetterCloudsStatic.getLogger().warn("getModVersion called before the mod list is initialized.");
             return ModVersion.NONE;
         }
         Optional<? extends ModContainer> mod = modList.getModContainerById(modId);

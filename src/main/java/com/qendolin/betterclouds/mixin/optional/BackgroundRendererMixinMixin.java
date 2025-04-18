@@ -1,6 +1,7 @@
 package com.qendolin.betterclouds.mixin.optional;
 
 import com.bawnorton.mixinsquared.TargetHandler;
+import com.qendolin.betterclouds.BetterClouds;
 import com.qendolin.betterclouds.compat.SodiumExtraCompat;
 import net.minecraft.client.render.BackgroundRenderer;
 import org.spongepowered.asm.mixin.Mixin;
@@ -48,7 +49,8 @@ public class BackgroundRendererMixinMixin {
 
     @Unique
     private static void preventFogModificationCommon(CallbackInfo ci) {
-        if(SodiumExtraCompat.PREVENT_FOG_MODIFICATION.get()) {
+        if (!BetterClouds.isEnabled()) return;
+        if (SodiumExtraCompat.PREVENT_FOG_MODIFICATION.get()) {
             ci.cancel();
         }
     }

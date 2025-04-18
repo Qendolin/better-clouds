@@ -1,7 +1,6 @@
 package com.qendolin.betterclouds.compat;
 
-import com.qendolin.betterclouds.Main;
-import com.qendolin.betterclouds.platform.ModLoader;
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.seibel.distanthorizons.api.DhApi;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
@@ -19,40 +18,58 @@ public abstract class DistantHorizonsCompat {
     );
 
     private static DistantHorizonsCompat instance;
+    private static boolean isActive = false;
 
     public static void initialize() {
         if (instance != null) return;
-        Main.LOGGER.info("Initializing DistantHorizons compat");
 
-        boolean isLoaded = ModLoader.isModLoaded("distanthorizons");
+        if (!ModLoaded.DISTANT_HORIZONS) {
+            BetterCloudsStatic.getLogger().info("DistantHorizons: not loaded");
+            instance = new Stub();
+            return;
+        }
+
+        BetterCloudsStatic.getLogger().info("DistantHorizons: initializing compat");
+
         int apiVersion = 0;
         try {
             Class.forName("com.seibel.distanthorizons.api.DhApi");
             apiVersion = DhApi.getApiMajorVersion();
-            Main.LOGGER.info("DistantHorizons API version is {}.{}.{}", DhApi.getApiMajorVersion(), DhApi.getApiMinorVersion(), DhApi.getApiPatchVersion());
-        } catch (ClassNotFoundException e) {
-            isLoaded = false;
+            BetterCloudsStatic.getLogger().info("DistantHorizons API version is {}.{}.{}", DhApi.getApiMajorVersion(), DhApi.getApiMinorVersion(), DhApi.getApiPatchVersion());
+        } catch (ClassNotFoundException ignored) {
         }
 
-        if (isLoaded && apiVersion == 4) {
-            Main.LOGGER.warn("Using EXPERIMENTAL DistantHorizons 4 compat. The game might crash!");
-            instance = new DistantHorizons4CompatImpl();
-        } else if (isLoaded && apiVersion == 3) {
-            Main.LOGGER.info("Using DistantHorizons 3 compat");
-            instance = new DistantHorizons3CompatImpl();
-        } else if (isLoaded && apiVersion == 2) {
-            Main.LOGGER.info("Using DistantHorizons 2 compat");
-            instance = new DistantHorizons2CompatImpl();
-        } else {
-            Main.LOGGER.info("No DistantHorizons compat");
-            instance = new Stub();
+        try {
+            if (apiVersion == 4) {
+                BetterCloudsStatic.getLogger().warn("Using EXPERIMENTAL DistantHorizons 4 compat. The game might crash!");
+                instance = new DistantHorizons4CompatImpl();
+            } else if (apiVersion == 3) {
+                BetterCloudsStatic.getLogger().info("Using DistantHorizons 3 compat");
+                instance = new DistantHorizons3CompatImpl();
+            } else if (apiVersion == 2) {
+                BetterCloudsStatic.getLogger().info("Using DistantHorizons 2 compat");
+                instance = new DistantHorizons2CompatImpl();
+            } else {
+                BetterCloudsStatic.getLogger().error("DistantHorizons version not compatible");
+            }
+        } catch (Throwable e) {
+            BetterCloudsStatic.getLogger().error("DistantHorizons version not compatible", e);
         }
+
+        if (instance == null) {
+            instance = new Stub();
+        } else {
+            DistantHorizonsCompat.isActive = true;
+        }
+    }
+
+    public static boolean isActive() {
+        return isActive;
     }
 
     public static DistantHorizonsCompat instance() {
         return instance;
     }
-
 
     public abstract boolean isReady();
 
@@ -63,6 +80,10 @@ public abstract class DistantHorizonsCompat {
     public abstract Optional<Integer> getDepthTextureId();
 
     public abstract void disableLodClouds();
+
+    public abstract boolean isTextureCreateFlagSet();
+
+    public abstract void resetTextureCreateFlag();
 
     private static class Stub extends DistantHorizonsCompat {
         @Override
@@ -87,6 +108,16 @@ public abstract class DistantHorizonsCompat {
 
         @Override
         public void disableLodClouds() {
+
+        }
+
+        @Override
+        public boolean isTextureCreateFlagSet() {
+            return false;
+        }
+
+        @Override
+        public void resetTextureCreateFlag() {
 
         }
     }

@@ -77,21 +77,21 @@ public class ShaderPresetGUI {
         this.selectedPreset = createOption(int.class, "shaderPreset")
             .binding(defaults.selectedPreset, () -> config.selectedPreset, val -> config.selectedPreset = val)
             .customController(opt -> new SelectController<>(opt, config.presets, (i, preset) -> {
+                boolean deleted = presetsToBeDeleted.contains(preset);
                 if (preset.title.isBlank()) {
                     return Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.untitled")
-                        .styled(style -> style.withColor(Formatting.GRAY).withItalic(true));
+                        .styled(style -> style.withColor(Formatting.GRAY).withItalic(true).withStrikethrough(deleted));
                 } else if (!preset.editable) {
                     return Text.literal(preset.title)
                         .styled(style -> style.withItalic(true));
-                } else if (presetsToBeDeleted.contains(preset)) {
-                    return Text.literal(preset.title).styled(style -> style.withStrikethrough(true));
                 } else {
-                    return Text.literal(preset.title);
+                    return Text.literal(preset.title).styled(style -> style.withStrikethrough(deleted));
                 }
             }))
             .listener((opt, i) -> {
                 // The 'instant' listener gets called later, applyValue is called now manually
                 opt.applyValue();
+                //noinspection rawtypes
                 if (opt.controller() instanceof SelectController select) {
                     select.updateValues();
                 }
@@ -99,7 +99,7 @@ public class ShaderPresetGUI {
                     option.forgetPendingValue();
                     option.setAvailable(config.preset().editable);
                 }
-                updateRemovePresetButton();
+                updateNonResponsiveOptions();
             })
             .build();
         this.presetTitle = createOption(String.class, "presetTitle", false)
@@ -210,7 +210,7 @@ public class ShaderPresetGUI {
                 }
             })
             .build();
-        updateRemovePresetButton();
+        updateNonResponsiveOptions();
         this.copyPresetButton = CustomButtonOption.createBuilder()
             .name(() -> Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.copy"))
             .action((screen, buttonOption) -> {
@@ -219,10 +219,11 @@ public class ShaderPresetGUI {
                 preset.markAsCopy();
                 config.presets.add(0, preset);
                 selectedPreset.requestSet(0);
+                //noinspection rawtypes
                 if (selectedPreset.controller() instanceof SelectController select) {
                     select.updateValues();
                 }
-                updateRemovePresetButton();
+                updateNonResponsiveOptions();
             })
             .build();
 
@@ -293,9 +294,16 @@ public class ShaderPresetGUI {
         ));
     }
 
-    private void updateRemovePresetButton() {
-        if (removePresetButton == null) return;
-        removePresetButton.setAvailable(config.preset().editable && config.presets.size() > 1);
+    private void updateNonResponsiveOptions() {
+        if (removePresetButton != null) {
+            removePresetButton.setAvailable(config.preset().editable && config.presets.size() > 1);
+        }
+        if (presetTitle != null) {
+            // Yacl issue #263
+            String title = config.preset().title;
+            presetTitle.stateManager().set(title + " "); // some value that is not equal
+            presetTitle.stateManager().set(title);
+        }
     }
 
     public void onSave() {

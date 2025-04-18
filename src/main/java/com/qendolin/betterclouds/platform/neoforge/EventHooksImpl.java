@@ -3,8 +3,7 @@ package com.qendolin.betterclouds.platform.neoforge;
 import com.qendolin.betterclouds.platform.EventHooks;
 
 //? if neoforge {
-/*import com.qendolin.betterclouds.config.ShaderPresetLoader;
-import com.mojang.brigadier.CommandDispatcher;
+/*import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.resource.ResourceReloader;
 import net.minecraft.server.command.ServerCommandSource;
@@ -15,10 +14,17 @@ import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
 import net.neoforged.neoforge.common.NeoForge;
 
 //? if >=1.21.4 {
-/^import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;
-^///?} else {
-import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
-//?}
+import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;
+import com.qendolin.betterclouds.config.ShaderPresetLoader;
+//?} else {
+/^import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
+^///?}
+
+//? if >=1.20.6 {
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+//?} else {
+/^import net.neoforged.neoforge.event.TickEvent;
+^///?}
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -50,14 +56,31 @@ public class EventHooksImpl extends EventHooks {
     @Override
     public void onClientResourcesReload(Supplier<ResourceReloader> supplier) {
         //? if >=1.21.4 {
-        /^modEventBus.addListener(AddClientReloadListenersEvent.class, event -> {
+        modEventBus.addListener(AddClientReloadListenersEvent.class, event -> {
             event.addListener(ShaderPresetLoader.ID, supplier.get());
         });
-        ^///?} else {
-        modEventBus.addListener(RegisterClientReloadListenersEvent.class, event -> {
+        //?} else {
+        /^modEventBus.addListener(RegisterClientReloadListenersEvent.class, event -> {
             event.registerReloadListener(supplier.get());
         });
-        //?}
+        ^///?}
+    }
+
+    @Override
+    public void onClientTick(Consumer<MinecraftClient> callback) {
+        //? if >=1.20.6 {
+        NeoForge.EVENT_BUS.addListener(ClientTickEvent.Post.class, event -> {
+            MinecraftClient client = MinecraftClient.getInstance();
+            client.execute(() -> callback.accept(client));
+        });
+        //?} else {
+        /^NeoForge.EVENT_BUS.addListener(TickEvent.ClientTickEvent.class, event -> {
+            if(event.phase != TickEvent.Phase.END)
+                return;
+            MinecraftClient client = MinecraftClient.getInstance();
+            client.execute(() -> callback.accept(client));
+        });
+        ^///?}
     }
 
     @Override

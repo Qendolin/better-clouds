@@ -10,10 +10,10 @@ public final class Entrypoint implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         EventHooks.instance = new EventHooksImpl();
-
-        Main.initializeClientEvents();
-        Main.initializeClient();
+        BetterClouds.initializeClientEvents();
+        BetterClouds.initializeClient();
     }
+
 }
 //?} elif neoforge {
 /*import com.qendolin.betterclouds.platform.neoforge.EventHooksImpl;
@@ -27,24 +27,24 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 
 import java.util.function.BiFunction;
 
-@Mod(Main.MODID)
+@Mod(BetterClouds.MODID)
 public final class Entrypoint {
     public Entrypoint(IEventBus modEventBus) {
         EventHooks.instance = new EventHooksImpl(modEventBus);
 
-        Main.initializeClientEvents();
+        BetterClouds.initializeClientEvents();
 
         modEventBus.addListener(FMLClientSetupEvent.class, event -> {
-            MinecraftClient.getInstance().execute(Main::initializeClient);
+            MinecraftClient.getInstance().execute(BetterClouds::initializeClient);
 
             //? if <1.20.6 {
-            ModLoadingContext.get().registerExtensionPoint(net.neoforged.neoforge.client.ConfigScreenHandler.ConfigScreenFactory.class,
+            /^ModLoadingContext.get().registerExtensionPoint(net.neoforged.neoforge.client.ConfigScreenHandler.ConfigScreenFactory.class,
                 () -> new net.neoforged.neoforge.client.ConfigScreenHandler.ConfigScreenFactory(
                     (client, parent) -> ConfigGUI.create(parent)));
-            //?} else {
-            /^ModLoadingContext.get().registerExtensionPoint(net.neoforged.neoforge.client.gui.IConfigScreenFactory.class,
+            ^///?} else {
+            ModLoadingContext.get().registerExtensionPoint(net.neoforged.neoforge.client.gui.IConfigScreenFactory.class,
                 () -> (modContainer, parent) -> ConfigGUI.create(parent));
-            ^///?}
+            //?}
         });
     }
 }
@@ -57,7 +57,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
-@Mod(Main.MODID)
+@Mod(BetterCloudsStatic.MODID)
 public final class Entrypoint {
     @Deprecated
     @SuppressWarnings("removal")
@@ -68,10 +68,10 @@ public final class Entrypoint {
     public Entrypoint(FMLJavaModLoadingContext context) {
         EventHooks.instance = new EventHooksImpl(context.getModEventBus());
 
-        Main.initializeClientEvents();
+        BetterClouds.initializeClientEvents();
 
         context.getModEventBus().<FMLClientSetupEvent>addListener(event -> {
-            MinecraftClient.getInstance().execute(Main::initializeClient);
+            MinecraftClient.getInstance().execute(BetterClouds::initializeClient);
 
             context.registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class,
                 () -> new ConfigScreenHandler.ConfigScreenFactory(

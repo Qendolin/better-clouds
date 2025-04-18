@@ -2,7 +2,11 @@ package com.qendolin.betterclouds.compat;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.platform.GLX;
-import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.BetterClouds;
+import com.qendolin.betterclouds.BetterCloudsStatic;
+import com.qendolin.betterclouds.config.ConfigManager;
+import com.qendolin.betterclouds.telemetry.Telemetry;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.Untracker;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWVulkan;
@@ -203,11 +207,11 @@ public class GLCompat {
 
         String reason = null;
         if (hasContext) {
-            if(!openGl32) {
+            if (!openGl32) {
                 reason = "OpenGL 3.2 is required";
-            } else if(!(openGl33 || (glVertexAttribDivisor || arbInstancedArrays))) {
+            } else if (!(openGl33 || (glVertexAttribDivisor || arbInstancedArrays))) {
                 reason = "OpenGL 3.3, glVertexAttribDivisor, or arbInstancedArrays is required";
-            } else if(!(supportsStencilTexturing || (openGl40 || (glBlendFunci && glBlendEquationi) || arbDrawBuffersBlend))) {
+            } else if (!(supportsStencilTexturing || (openGl40 || (glBlendFunci && glBlendEquationi) || arbDrawBuffersBlend))) {
                 reason = "OpenGL 4.0, arbStencilTexturing, glBlendFunci and glBlendEquationi, or arbDrawBuffersBlend is required";
             }
         } else {
@@ -215,8 +219,8 @@ public class GLCompat {
         }
 
         compatible = reason == null;
-        if(reason != null) {
-            Main.LOGGER.warn("OpenGL compatibility check failed: " + reason);
+        if (reason != null) {
+            BetterCloudsStatic.getLogger().warn("OpenGL compatibility check failed: " + reason);
         }
 
         useBaseInstanceFallback = !supportsBaseInstance;
@@ -268,7 +272,7 @@ public class GLCompat {
             case GL43.GL_RENDERBUFFER -> "rb";
             default -> "unk";
         };
-        String fullLabel = Main.MODID + ":" + label + ":" + typeString;
+        String fullLabel = BetterCloudsStatic.MODID + ":" + label + ":" + typeString;
         if (glObjectLabel) {
             GL43.glObjectLabel(type, name, fullLabel);
         } else if (khrDebug) {
@@ -339,6 +343,7 @@ public class GLCompat {
 
     public void enableDebugOutputSynchronousDev() {
         if (!isDev) return;
+        BetterCloudsStatic.getLogger().warn("Enabling synchronous OpenGL debug output");
         enableDebugOutputSynchronous();
     }
 
@@ -531,5 +536,48 @@ public class GLCompat {
 
     public static String getVersion() {
         return GL32.glGetString(GL32.GL_VERSION);
+    }
+
+    public static GLCompat glCompat = null;
+
+    public static void initGlCompat() {
+        BetterCloudsStatic.getLogger().info("Initializing OpenGL compat");
+        try {
+            glCompat = new GLCompat(BetterCloudsStatic.IS_DEV);
+        } catch (Exception e) {
+            Telemetry.INSTANCE.sendUnhandledException(e);
+            throw e;
+        }
+
+        if (glCompat.isIncompatible()) {
+            BetterCloudsStatic.getLogger().warn("Your GPU (or configuration) is not compatible with Better Clouds. Try updating your drivers?");
+            BetterCloudsStatic.getLogger().info(" - Vendor:       {}", glCompat.getString(GL32.GL_VENDOR));
+            BetterCloudsStatic.getLogger().info(" - Renderer:     {}", glCompat.getString(GL32.GL_RENDERER));
+            BetterCloudsStatic.getLogger().info(" - GL Version:   {}", glCompat.getString(GL32.GL_VERSION));
+            BetterCloudsStatic.getLogger().info(" - GLSL Version: {}", glCompat.getString(GL32.GL_SHADING_LANGUAGE_VERSION));
+            BetterCloudsStatic.getLogger().info(" - Extensions:   {}", String.join(", ", glCompat.supportedCheckedExtensions));
+            BetterCloudsStatic.getLogger().info(" - Functions:    {}", String.join(", ", glCompat.supportedCheckedFunctions));
+        } else if (glCompat.isPartiallyIncompatible()) {
+            BetterCloudsStatic.getLogger().warn("Your GPU is not fully compatible with Better Clouds.");
+            for (String fallback : glCompat.usedFallbacks()) {
+                BetterCloudsStatic.getLogger().info("- Using {} fallback", fallback);
+            }
+        }
+    }
+
+    private static void sendSystemDetailsTelemetry() {
+        if (!BetterClouds.isInitialized() || glCompat == null) return;
+
+        if (ConfigManager.instance().lastTelemetryVersion >= Telemetry.VERSION) return;
+        Telemetry.INSTANCE.sendSystemInfo()
+            .whenComplete((success, throwable) -> {
+                MinecraftClient client = MinecraftClient.getInstance();
+                if (success && client != null) {
+                    client.execute(() -> {
+                        ConfigManager.instance().lastTelemetryVersion = Telemetry.VERSION;
+                        ConfigManager.handler().save();
+                    });
+                }
+            });
     }
 }

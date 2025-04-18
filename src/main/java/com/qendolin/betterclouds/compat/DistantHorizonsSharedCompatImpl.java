@@ -1,26 +1,28 @@
 package com.qendolin.betterclouds.compat;
 
-import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.BetterClouds;
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.seibel.distanthorizons.api.DhApi;
 import com.seibel.distanthorizons.api.enums.rendering.EDhApiRenderPass;
 import com.seibel.distanthorizons.api.methods.events.DhApiEventRegister;
 import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiAfterDhInitEvent;
 import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiBeforeRenderEvent;
+import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiColorDepthTextureCreatedEvent;
 import com.seibel.distanthorizons.api.methods.events.sharedParameterObjects.DhApiCancelableEventParam;
 import com.seibel.distanthorizons.api.methods.events.sharedParameterObjects.DhApiEventParam;
 import com.seibel.distanthorizons.api.methods.events.sharedParameterObjects.DhApiRenderParam;
 import com.seibel.distanthorizons.api.objects.DhApiResult;
 import org.joml.Matrix4f;
 
-import java.lang.reflect.Field;
 import java.util.Optional;
 
-abstract class DistantHorizonsSharedCompatImpl extends DistantHorizonsCompat {
+public abstract class DistantHorizonsSharedCompatImpl extends DistantHorizonsCompat {
     private boolean isDhInitialized = false;
     private DhApiRenderParam lastRenderParam = null;
+    protected boolean textureCreateFlag = false;
 
     public DistantHorizonsSharedCompatImpl() {
-        Main.LOGGER.info("Registering DH Api events");
+        BetterCloudsStatic.getLogger().info("Registering DH Api events");
         // Lambdas didn't work
         DhApiEventRegister.on(DhApiAfterDhInitEvent.class, new DhApiAfterDhInitEvent() {
             @Override
@@ -31,15 +33,21 @@ abstract class DistantHorizonsSharedCompatImpl extends DistantHorizonsCompat {
         DhApiEventRegister.on(DhApiBeforeRenderEvent.class, new DhApiBeforeRenderEvent() {
             @Override
             public void beforeRender(DhApiCancelableEventParam<DhApiRenderParam> dhApiEventParam) {
-                if(dhApiEventParam.value.renderPass == EDhApiRenderPass.OPAQUE || dhApiEventParam.value.renderPass == EDhApiRenderPass.OPAQUE_AND_TRANSPARENT) {
+                if (dhApiEventParam.value.renderPass == EDhApiRenderPass.OPAQUE || dhApiEventParam.value.renderPass == EDhApiRenderPass.OPAQUE_AND_TRANSPARENT) {
                     lastRenderParam = dhApiEventParam.value;
                 }
                 // With shaders the transparent rendering pass might be deferred and doesn't have a 'valid' dhProjectionMatrix
                 // Don't know if that's how it's supposed to be, but I can't use it.
 
-                if(Main.getConfig().enabled) {
+                if (BetterClouds.isEnabled()) {
                     disableLodClouds();
                 }
+            }
+        });
+        DhApiEventRegister.on(DhApiColorDepthTextureCreatedEvent.class, new DhApiColorDepthTextureCreatedEvent() {
+            @Override
+            public void onResize(DhApiEventParam<EventParam> dhApiEventParam) {
+                textureCreateFlag = true;
             }
         });
     }
@@ -72,5 +80,15 @@ abstract class DistantHorizonsSharedCompatImpl extends DistantHorizonsCompat {
             return Optional.of(result.payload);
         }
         return Optional.empty();
+    }
+
+    @Override
+    public boolean isTextureCreateFlagSet() {
+        return textureCreateFlag;
+    }
+
+    @Override
+    public void resetTextureCreateFlag() {
+        textureCreateFlag = false;
     }
 }

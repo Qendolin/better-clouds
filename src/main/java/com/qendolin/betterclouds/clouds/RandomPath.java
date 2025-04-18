@@ -1,18 +1,24 @@
 package com.qendolin.betterclouds.clouds;
 
-import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import net.minecraft.util.math.MathHelper;
 
 import java.nio.ByteBuffer;
 
 public class RandomPath {
 
+    private static final int TICKS_PER_POINT = 20;
+    private static int[] path;
+
+    private static int points;
+    private static int pathWrap;
+
     private static double getPathLinear(double time, double travelSpeed, int coordinateIndex) {
         double x = time / TICKS_PER_POINT * travelSpeed;
         int index = MathHelper.floor(x);
         double fractionalPart = MathHelper.fractionalPart(x);
 
-        double p0 = getPointCoordinate(index + 0, coordinateIndex);
+        double p0 = getPointCoordinate(index, coordinateIndex);
         double p1 = getPointCoordinate(index + 1, coordinateIndex);
 
         return p0 + (p1 - p0) * fractionalPart;
@@ -23,7 +29,7 @@ public class RandomPath {
         int index = MathHelper.floor(x);
         double fractionalPart = MathHelper.fractionalPart(x);
 
-        double p0 = getPointCoordinate(index + 0, coordinateIndex);
+        double p0 = getPointCoordinate(index, coordinateIndex);
         double p1 = getPointCoordinate(index + 1, coordinateIndex);
         double p2 = getPointCoordinate(index + 2, coordinateIndex);
         double p3 = getPointCoordinate(index + 3, coordinateIndex);
@@ -32,10 +38,10 @@ public class RandomPath {
     }
 
     private static double getPointCoordinate(int index, int coordinate) {
-        int wraps = index / POINTS;
-        index -= wraps * POINTS;
-        int value = PATH[index * 2 + coordinate];
-        if(coordinate == 0) value += PATH_WRAP * wraps;
+        int wraps = index / points;
+        index -= wraps * points;
+        int value = path[index * 2 + coordinate];
+        if (coordinate == 0) value += pathWrap * wraps;
         return value;
     }
 
@@ -46,9 +52,9 @@ public class RandomPath {
         // Catmull-Rom spline formula
         return 0.5 * (
             (2 * p1) +
-            (-p0 + p2) * t +
-            (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 +
-            (-p0 + 3 * p1 - 3 * p2 + p3) * t3
+                (-p0 + p2) * t +
+                (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 +
+                (-p0 + 3 * p1 - 3 * p2 + p3) * t3
         );
     }
 
@@ -60,15 +66,12 @@ public class RandomPath {
         return getPathSmooth(time, travelSpeed, 1);
     }
 
-    private static final int TICKS_PER_POINT = 20;
-    private static final int[] PATH;
-
-    static {
+    public static void initialize() {
         int[] path = null;
         String name = "/static/path.bin";
         try (var res = RandomPath.class.getResourceAsStream(name)) {
-            if(res == null) {
-                Main.LOGGER.error("Failed to open cloud path resource. name={}", name);
+            if (res == null) {
+                BetterCloudsStatic.getLogger().error("Failed to open cloud path resource. name={}", name);
             } else {
                 byte[] bytes = res.readAllBytes();
                 ByteBuffer buffer = ByteBuffer.wrap(bytes);
@@ -78,24 +81,19 @@ public class RandomPath {
                 }
             }
         } catch (Exception e) {
-            Main.LOGGER.error("Failed to load cloud path: ", e);
+            BetterCloudsStatic.getLogger().error("Failed to load cloud path", e);
         }
-        if(path == null) {
+        if (path == null) {
             // use fallback path that just moves in -x direction
             path = new int[16];
-            for (int i = 0; i < path.length; i+=2) {
+            for (int i = 0; i < path.length; i += 2) {
                 path[i] = -i * TICKS_PER_POINT;
-                path[i+1] = 0;
+                path[i + 1] = 0;
             }
         }
-        PATH = path;
-    }
-
-    private static final int POINTS = PATH.length / 2;
-    private static final int PATH_WRAP = 2 * PATH[PATH.length - 2] - PATH[PATH.length - 4];
-
-    public static void init() {
-
+        RandomPath.path = path;
+        points = RandomPath.path.length / 2;
+        pathWrap = 2 * RandomPath.path[RandomPath.path.length - 2] - RandomPath.path[RandomPath.path.length - 4];
     }
 
 }

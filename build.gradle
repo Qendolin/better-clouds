@@ -1,8 +1,11 @@
+import net.fabricmc.loom.task.prod.ClientProductionRunTask
+import net.fabricmc.loom.task.RunGameTask
+import net.fabricmc.loom.configuration.ide.RunConfigSettings
+
 plugins {
-	id "dev.architectury.loom" version "1.7-SNAPSHOT"
+	id "dev.architectury.loom" version "1.10-SNAPSHOT"
 	id "architectury-plugin" version "3.4-SNAPSHOT"
 	id "com.modrinth.minotaur"
-	id "com.github.johnrengelman.shadow"
 }
 
 apply from: rootProject.file('common.gradle').path
@@ -83,23 +86,31 @@ repositories {
 		name = 'NeoForged'
 		url = 'https://maven.neoforged.net/releases'
 	}
-	maven { url "https://maven.quiltmc.org/repository/release" }
+	maven { url = "https://maven.quiltmc.org/repository/release" }
 	maven { url = "https://maven.bawnorton.com/releases" }
 }
 
 loom {
 	accessWidenerPath.set(project.rootProject.file("src/main/resources/betterclouds.accesswidener"))
 
-	runConfigs.configureEach {
-		ideConfigGenerated true
-		runDir "../../run"
-	}
-
 	if (isForge) forge {
 		mixinConfigs(
-				"betterclouds.mixins.json",
+				"betterclouds.required.mixins.json",
 				"betterclouds.optional.mixins.json",
+				"betterclouds.runtime.mixins.json",
 		)
+	}
+
+	runs {
+		client {
+			ideConfigGenerated true
+			runDir "../../run"
+		}
+
+		server {
+			ideConfigGenerated false
+			runDir "../../run"
+		}
 	}
 }
 
@@ -121,6 +132,11 @@ dependencies {
 		if (property('loom.yarn_patch_neoforge') != "") {
 			it.mappings("dev.architectury:yarn-mappings-patch-neoforge:${property('loom.yarn_patch_neoforge')}")
 		}
+		def override = project.file("override.tiny")
+		if (override.exists()) {
+			println("Using mapping overrides: ${override}")
+			it.mappings(override)
+		}
 	}
 
 	if (isFabric) {
@@ -137,6 +153,10 @@ dependencies {
 		modCompileOnly "maven.modrinth:voxy:0.1.5-alpha"
 
 		include(implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.2.0")))
+
+		// for the prodClient task
+		productionRuntimeMods "dev.isxander:yet-another-config-lib:${property('deps.yacl')}-fabric"
+		productionRuntimeMods "net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}"
 	}
 
 	if (isNeoForge || isForge) {
@@ -152,10 +172,10 @@ dependencies {
 		compileOnly(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-common:0.2.0"))
 		implementation(include("com.github.bawnorton.mixinsquared:mixinsquared-${loader}:0.2.0"))
 
-		// neoforge includes mixinextras
-		if (isForge) {
+		// forge does not include mixinextras, and neoforge has a version that's too old <= 1.20.6
+		if (isForge || (isNeoForge && stonecutter.eval(mcVersion, "<=1.20.6"))) {
 			compileOnly(implementation("io.github.llamalad7:mixinextras-common:${property("deps.mixin_extras")}"))
-			include(implementation("io.github.llamalad7:mixinextras-forge:${property("deps.mixin_extras")}"))
+			include(implementation("io.github.llamalad7:mixinextras-${loader}:${property("deps.mixin_extras")}"))
 		}
 
 		// These should be included with yacl, but it doesn't work correctly, so adding them here
@@ -189,9 +209,11 @@ dependencies {
 		}
 	}
 
-	compileOnly "maven.modrinth:distanthorizonsapi:3.0.0"
+	include(implementation('gs.mclo:api:5.0.0'))
+	compileOnly "maven.modrinth:distanthorizonsapi:4.0.0"
 	modCompileOnly "maven.modrinth:serene-seasons:${property('deps.serene_seasons')}"
 	modCompileOnly "maven.modrinth:enhanced-celestials:${property('deps.enhanced_celestials')}"
+	modCompileOnly "maven.modrinth:data-anchor:D3z4pTH6" // use fabric 1.21.1 version for all
 }
 
 processResources {
@@ -232,25 +254,10 @@ processResources {
 	exclude("assets/**/*.xcf")
 }
 
-configurations {
-	shadowBundle {
-		canBeResolved = true
-		canBeConsumed = false
-	}
-}
-
-shadowJar {
-	configurations = [project.configurations.shadow]
-	archiveClassifier = "dev-shadow"
-}
-
 remapJar {
 	if (isNeoForge) {
 		atAccessWideners.add("betterclouds.accesswidener")
 	}
-	input = tasks.shadowJar.archiveFile
-	archiveClassifier = null
-	dependsOn(tasks.shadowJar)
 }
 
 stonecutter {
@@ -261,9 +268,62 @@ stonecutter {
 	}
 
 	java {
-		withSourcesJar()
+		// withSourcesJar()
 		sourceCompatibility = j21 ? JavaVersion.VERSION_21 : JavaVersion.VERSION_17
 		targetCompatibility = j21 ? JavaVersion.VERSION_21 : JavaVersion.VERSION_17
+	}
+}
+
+// Testing
+if (isFabric) {
+	def configureProdClientRunTask = { it ->
+		// depend on all possible 'downloadAssets' tasks
+		// this is dumb but I couldn't figure out anything better
+		stonecutter.versions.each { vers ->
+			it.mustRunAfter(":${vers.project}:downloadAssets")
+		}
+		// This runs the game as a normal client would, in a production env
+		it.runDir = rootProject.file("runTest")
+	}
+	project.tasks.register("runProdClient", ClientProductionRunTask) {
+		configureProdClientRunTask(it)
+		it.outputs.upToDateWhen { false }
+	}
+	project.tasks.register("runClientTest", ClientProductionRunTask) {
+		configureProdClientRunTask(it)
+		jvmArgs.add("-Dbetterclouds.client.gametest")
+		// I'm not sure about this:
+		// it.outputs.upToDateWhen { false }
+	}
+} else {
+	loom {
+		runs {
+			// Not actually prod
+			clientTest {
+				client()
+				ideConfigGenerated = false
+				runDir = "../../runTest"
+				vmArgs "-Dbetterclouds.client.gametest"
+			}
+		}
+	}
+	afterEvaluate {
+		project.tasks.named("runClientTest").configure {
+			stonecutter.versions.each { vers ->
+				it.mustRunAfter(":${vers.project}:downloadAssets")
+			}
+		}
+	}
+}
+
+afterEvaluate {
+	// Run in order from oldest to newest
+	project.tasks.named("runClientTest").configure {
+		stonecutter.versions.each { vers ->
+			if (stonecutter.eval(vers.version, "<${stonecutter.current.version}")) {
+				it.mustRunAfter(":${vers.project}:runClientTest")
+			}
+		}
 	}
 }
 
@@ -290,11 +350,22 @@ if (stonecutter.current.isActive) {
 		group = "project"
 		dependsOn(tasks.named("genSources"))
 	}
+	if (isFabric) {
+		rootProject.tasks.register("activeRunProdClient") {
+			group = "project"
+			dependsOn(tasks.named("runProdClient"))
+		}
+	}
+	rootProject.tasks.register("activeRunClientTest") {
+		group = "project"
+		dependsOn(tasks.named("runClientTest"))
+	}
 }
 
 jar {
+	inputs.property "archivesName", project.base.archivesName
 	from(project.rootProject.file("LICENSE").path) {
-		rename { "${it}_${project.archives_base_name}" }
+		rename { "${it}_${inputs.properties.archivesName}" }
 	}
 }
 

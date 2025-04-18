@@ -1,20 +1,20 @@
 package com.qendolin.betterclouds.renderdoc;
 
+import com.qendolin.betterclouds.BetterCloudsStatic;
+
 import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 public class CaptureManager {
 
-    public static final Path LAUNCH_CONFIG_PATH = Path.of("./better-clouds/capture.conf");
+    public static final Path LAUNCH_CONFIG_PATH = BetterCloudsStatic.getDataDirectory().resolve("capture.conf");
 
     private static final List<Map.Entry<Long, Runnable>> callbacks = new ArrayList<>();
     private static final AtomicLong frameIndex = new AtomicLong(0);
@@ -30,24 +30,29 @@ public class CaptureManager {
     }
 
     public static void writeLaunchConfig(LaunchConfig config) throws IOException {
-        String str = "";
-        str += "load=" + config.load + "\n";
-        str += "once=" + config.once + "\n";
-        str += "expires=" + config.expires + "\n";
-        Files.writeString(LAUNCH_CONFIG_PATH, str, StandardCharsets.UTF_8);
+        Properties properties = new Properties();
+        properties.setProperty("load", String.valueOf(config.load));
+        properties.setProperty("once", String.valueOf(config.once));
+        properties.setProperty("expires", String.valueOf(config.expires));
+
+        try (Writer writer = Files.newBufferedWriter(LAUNCH_CONFIG_PATH, StandardCharsets.UTF_8)) {
+            properties.store(writer, "RenderDoc Launch Configuration");
+        }
     }
 
     public static LaunchConfig readLaunchConfig() {
-        try {
-            List<String> confLines = Files.readAllLines(LAUNCH_CONFIG_PATH, StandardCharsets.UTF_8);
-            Map<String, String> conf = confLines.stream()
-                .map(line -> line.split("="))
-                .collect(Collectors.toMap(kvp -> kvp[0], kvp -> kvp[1]));
-            boolean load = conf.get("load").equalsIgnoreCase("true");
-            boolean once = conf.get("once").equalsIgnoreCase("true");
-            long expires = Long.parseLong(conf.get("expires"));
+        if(!Files.exists(LAUNCH_CONFIG_PATH))
+            return new LaunchConfig(false, false, 0);
+
+        try (Reader reader = Files.newBufferedReader(LAUNCH_CONFIG_PATH, StandardCharsets.UTF_8)) {
+            Properties properties = new Properties();
+            properties.load(reader);
+            boolean load = Boolean.parseBoolean(properties.getProperty("load", "false"));
+            boolean once = Boolean.parseBoolean(properties.getProperty("once", "false"));
+            long expires = Long.parseLong(properties.getProperty("expires", "0"));
             return new LaunchConfig(load, once, expires);
-        } catch (Exception e) {
+        } catch (IOException | NumberFormatException e) {
+            BetterCloudsStatic.getLogger().error("Failed to read RenderDoc launch configuration", e);
             return new LaunchConfig(false, false, 0);
         }
     }

@@ -1,22 +1,73 @@
 package com.qendolin.betterclouds.compat;
 
-import com.qendolin.betterclouds.Main;
-import com.qendolin.betterclouds.platform.ModLoader;
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import net.minecraft.world.World;
 import org.joml.Vector3f;
 
 public abstract class EnhancedCelestialsCompat {
 
-    public static final boolean IS_LOADED = ModLoader.isModLoaded("enhancedcelestials");
-
     private static EnhancedCelestialsCompat instance;
+    private static boolean isActive = false;
 
     public static void initialize() {
         if (instance != null) return;
 
-        Main.LOGGER.info("Initializing EnhancedCelestials compat");
+        if (!ModLoaded.ENHANCED_CELESTIALS) {
+            BetterCloudsStatic.getLogger().info("EnhancedCelestials: not loaded");
+            instance = new Stub();
+            return;
+        }
 
-        instance = IS_LOADED ? new EnhancedCelestialsCompatImpl() : new Stub();
+        BetterCloudsStatic.getLogger().info("EnhancedCelestials: initializing compat");
+
+        int version = 0;
+        boolean v1devPackage = true;
+        try {
+            Class.forName("dev.corgitaco.enhancedcelestials.lunarevent.EnhancedCelestialsLunarForecastWorldData");
+            version = 2;
+        } catch (ClassNotFoundException ignored) {
+        }
+
+        if (version == 0) {
+            try {
+                Class.forName("corgitaco.enhancedcelestials.EnhancedCelestialsWorldData");
+                version = 1;
+                v1devPackage = false;
+            } catch (ClassNotFoundException ignored) {
+            }
+        }
+
+        if (version == 0) {
+            try {
+                Class.forName("dev.corgitaco.enhancedcelestials.EnhancedCelestialsWorldData");
+                version = 1;
+            } catch (ClassNotFoundException ignored) {
+            }
+        }
+
+        try {
+            if (version == 1) {
+                BetterCloudsStatic.getLogger().info("Using EnhancedCelestials 1 compat");
+                instance = new EnhancedCelestials1CompatImpl(v1devPackage);
+            } else if (version == 2) {
+                BetterCloudsStatic.getLogger().info("Using EnhancedCelestials 2 compat");
+                instance = new EnhancedCelestials2CompatImpl();
+            } else {
+                BetterCloudsStatic.getLogger().error("EnhancedCelestials version not compatible");
+            }
+        } catch (Throwable e) {
+            BetterCloudsStatic.getLogger().error("EnhancedCelestials version not compatible", e);
+        }
+
+        if (instance == null) {
+            instance = new Stub();
+        } else {
+            EnhancedCelestialsCompat.isActive = true;
+        }
+    }
+
+    public static boolean isActive() {
+        return isActive;
     }
 
     public static EnhancedCelestialsCompat instance() {

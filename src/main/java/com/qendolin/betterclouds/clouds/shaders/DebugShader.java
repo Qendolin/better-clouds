@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds.clouds.shaders;
 
-import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 
@@ -9,8 +9,8 @@ import java.util.Map;
 
 public class DebugShader extends Shader {
 
-    public static final Identifier VERTEX_SHADER_ID = Identifier.of(Main.MODID, "shaders/core/debug.vert");
-    public static final Identifier FRAGMENT_SHADER_ID = Identifier.of(Main.MODID, "shaders/core/debug.frag");
+    public static final Identifier VERTEX_SHADER_ID = Identifier.of(BetterCloudsStatic.MODID, "shaders/core/debug.vert");
+    public static final Identifier FRAGMENT_SHADER_ID = Identifier.of(BetterCloudsStatic.MODID, "shaders/core/debug.frag");
 
     public final Uniform uModelViewMatrix;
     public final Uniform uProjectionMatrix;

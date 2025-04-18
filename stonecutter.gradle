@@ -1,19 +1,30 @@
 plugins {
     id "dev.kikugie.stonecutter"
     id "com.modrinth.minotaur" version "2.+" apply false
-    id "dev.architectury.loom" version "1.7-SNAPSHOT" apply false
+    id "dev.architectury.loom" version "1.10-SNAPSHOT" apply false
     id "architectury-plugin" version "3.4-SNAPSHOT" apply false
     id "com.github.johnrengelman.shadow" version "8.1.1" apply false
 }
 
 apply from: 'common.gradle'
 
-stonecutter.active "1.21.4-fabric" /* [SC] DO NOT EDIT */
+stonecutter.active "1.21.5-fabric" /* [SC] DO NOT EDIT */
 
-// Chiseled tasks run for every version in their own "instance", in the respective versions/ subdirs
+// Chiseled tasks run for every version in their own "instance", in the respective versions/subdirs
 stonecutter.registerChiseled tasks.register("chiseledBuild", stonecutter.chiseled) {
     setGroup "project"
     ofTask "build"
+}
+
+stonecutter.registerChiseled tasks.register("chiseledRemapJar", stonecutter.chiseled) {
+    setGroup "project"
+    ofTask "remapJar"
+}
+
+stonecutter.registerChiseled tasks.register("chiseledRunClientTest", stonecutter.chiseled) {
+//    versions { _, vers -> vers.project.endsWith("-fabric") }
+    setGroup "project"
+    ofTask "runClientTest"
 }
 
 stonecutter.registerChiseled tasks.register("chiseledModrinth", stonecutter.chiseled) {

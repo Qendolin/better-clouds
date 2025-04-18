@@ -1,16 +1,13 @@
 package com.qendolin.betterclouds.compat;
 
-import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.FabricSeasonsConfig;
-import com.qendolin.betterclouds.platform.ModLoader;
 import net.minecraft.world.World;
 
 import java.util.Map;
 import java.util.function.Function;
 
 public abstract class FabricSeasonsCompat {
-    public static final boolean IS_LOADED = ModLoader.isModLoaded("seasons");
-
     public static final Map<String, Function<FabricSeasonsConfig, Float>> SEASON_CLOUDINESS_LOOKUP = Map.ofEntries(
         Map.entry("spring", config -> config.springCloudiness),
         Map.entry("summer", config -> config.summerCloudiness),
@@ -19,20 +16,36 @@ public abstract class FabricSeasonsCompat {
     );
 
     private static FabricSeasonsCompat instance;
+    private static boolean isActive = false;
+
 
     public static void initialize() {
         if (instance != null) return;
 
-        Main.LOGGER.info("Initializing FabricSeasons compat");
-
-        boolean isLoaded = IS_LOADED;
-        try {
-            Class.forName("io.github.lucaargolo.seasons.FabricSeasons");
-        } catch (ClassNotFoundException e) {
-            isLoaded = false;
+        if (!ModLoaded.FABRIC_SEASONS) {
+            BetterCloudsStatic.getLogger().info("FabricSeasons: not loaded");
+            instance = new Stub();
+            return;
         }
 
-        instance = isLoaded ? new FabricSeasonsCompatImpl() : new FabricSeasonsCompat.Stub();
+        BetterCloudsStatic.getLogger().info("FabricSeasons: initializing compat");
+
+
+        try {
+            instance = new FabricSeasonsCompatImpl();
+        } catch (Throwable e) {
+            BetterCloudsStatic.getLogger().error("FabricSeasons version not compatible", e);
+        }
+
+        if (instance == null) {
+            instance = new Stub();
+        } else {
+            FabricSeasonsCompat.isActive = true;
+        }
+    }
+
+    public static boolean isActive() {
+        return isActive;
     }
 
     public static FabricSeasonsCompat instance() {

@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds.compat;
 
-import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.config.ConfigManager;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import sereneseasons.api.season.ISeasonState;
@@ -10,7 +10,7 @@ import sereneseasons.api.season.SeasonHelper;
 public class SereneSeasonsCompatImpl extends SereneSeasonsCompat {
 
     private Season.SubSeason getRelativeSeason(Season.SubSeason season, int d) {
-        if(d == 0)
+        if (d == 0)
             return season;
 
         int index = season.ordinal();
@@ -22,7 +22,7 @@ public class SereneSeasonsCompatImpl extends SereneSeasonsCompat {
     private float getSeasonCloudiness(Season.SubSeason season) {
         String key = season.asString();
         return SUB_SEASON_CLOUDINESS_LOOKUP.getOrDefault(key, config -> 1.0f)
-            .apply(Main.getConfig().sereneSeasonsConfig);
+            .apply(ConfigManager.instance().sereneSeasonsConfig);
     }
 
     private int getSubSeasonTicks(ISeasonState state) {
@@ -34,18 +34,18 @@ public class SereneSeasonsCompatImpl extends SereneSeasonsCompat {
     @Override
     public float getCloudinessFactor(World world) {
         var state = SeasonHelper.getSeasonState(world);
-        if(state == null) return 1.0f;
+        if (state == null) return 1.0f;
         var season = state.getSubSeason();
-        if(season == null) return 1.0f;
+        if (season == null) return 1.0f;
 
         int seasonTicks = getSubSeasonTicks(state);
         int seasonDuration = state.getSubSeasonDuration();
         int half = seasonTicks < seasonDuration / 2 ? 0 : 1;
 
-        int transitionTicks = (int) (Main.getConfig().sereneSeasonsConfig.transitionDays * state.getDayDuration());
+        int transitionTicks = (int) (ConfigManager.instance().sereneSeasonsConfig.transitionDays * state.getDayDuration());
         transitionTicks = Math.min(transitionTicks, seasonDuration);
 
-        if(transitionTicks <= 0) {
+        if (transitionTicks <= 0) {
             return getSeasonCloudiness(season);
         }
 
@@ -53,7 +53,7 @@ public class SereneSeasonsCompatImpl extends SereneSeasonsCompat {
         float end = getSeasonCloudiness(getRelativeSeason(season, half));
 
         float blend;
-        if(half == 0) {
+        if (half == 0) {
             blend = (float) seasonTicks / transitionTicks + 0.5f;
         } else {
             blend = (float) (seasonDuration - seasonTicks) / transitionTicks + 0.5f;

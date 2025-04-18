@@ -4,7 +4,8 @@ import dev.isxander.yacl3.config.v2.api.SerialEntry;
 
 public class SereneSeasonsConfig {
 
-    public SereneSeasonsConfig() {}
+    public SereneSeasonsConfig() {
+    }
 
     public SereneSeasonsConfig(SereneSeasonsConfig other) {
         this.transitionDays = other.transitionDays;

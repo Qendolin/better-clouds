@@ -7,15 +7,15 @@ import net.minecraft.util.math.Box;
 import org.joml.Vector3d;
 import org.lwjgl.opengl.GL32;
 
-//? if >1.21.4 {
-/*import com.mojang.blaze3d.vertex.VertexFormat;
-*///?}
+//? if >=1.21.5 {
+import com.mojang.blaze3d.vertex.VertexFormat;
+//?}
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.qendolin.betterclouds.Main.glCompat;
+import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
 
 public class Debug {
     public static int profileInterval = 0;
@@ -51,7 +51,7 @@ public class Debug {
 
         // FIXME: Does not take into account generator offset (wind)
 
-        if(renderer == null) {
+        if (renderer == null) {
             renderer = new BuiltBufferRenderer();
         }
 
@@ -69,7 +69,7 @@ public class Debug {
         res.debugShader().uProjectionMatrix.setMat4(RenderSystem.getProjectionMatrix());
 
         var built = vertices.endNullable();
-        if(built != null) {
+        if (built != null) {
             //? if >=1.21 {
             ByteBuffer vertexBuffer = built.getBuffer();
             int vertexCount = built.getDrawParameters().vertexCount();
@@ -174,14 +174,14 @@ public class Debug {
         }
 
         public void render(ByteBuffer buffer, int vertexCount) {
-            if(buffer.remaining() == 0) return;
+            if (buffer.remaining() == 0) return;
 
             int prevVao = GL32.glGetInteger(GL32.GL_VERTEX_ARRAY_BINDING);
 
             GL32.glBindVertexArray(vaoId);
             GL32.glBindBuffer(GL32.GL_ARRAY_BUFFER, vboId);
 
-            if(buffer.remaining() > vboSize) {
+            if (buffer.remaining() > vboSize) {
                 vboSize = buffer.remaining();
                 GL32.glBufferData(GL32.GL_ARRAY_BUFFER, buffer, GL32.GL_STREAM_DRAW);
                 int stride = 3 * Float.BYTES + 4;

@@ -16,7 +16,7 @@ public abstract class EffectTintProvider {
     private static final Vector3f Y = new Vector3f(0.299f, 0.587f, 0.114f);
 
     public static Vector3f getEffectTint(MinecraftClient client, @Nullable RenderHelper.Fog fog, float tickDelta) {
-        if(client.world == null || client.player == null)
+        if (client.world == null || client.player == null)
             return new Vector3f(1.0f, 1.0f, 1.0f);
 
         Vector3f cloudColor = getCloudsColor(client.world, tickDelta);

@@ -1,7 +1,7 @@
 package com.qendolin.betterclouds.config;
 
 import com.google.gson.*;
-
+import com.qendolin.betterclouds.util.PreLaunchGuard;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.registry.RegistryKey;
@@ -25,6 +25,9 @@ public class Config {
     public static final InstanceCreator<Config> INSTANCE_CREATOR = type -> new Config();
     public static final RegistryKeySerializer REGISTRY_KEY_SERIALIZER = new RegistryKeySerializer();
 
+    static {
+        PreLaunchGuard.check();
+    }
 
     @SuppressWarnings("unused")
     public Config() {
@@ -57,7 +60,7 @@ public class Config {
         this.selectedPreset = other.selectedPreset;
         this.presets = other.presets;
         this.enableExtendedRenderDistance = other.enableExtendedRenderDistance;
-        if(this.presets == null) {
+        if (this.presets == null) {
             //noinspection IncompleteCopyConstructor
             this.presets = new ArrayList<>();
         }
@@ -133,6 +136,8 @@ public class Config {
     public int lastTelemetryVersion = 0;
     @SerialEntry
     public boolean gpuIncompatibleMessageEnabled = true;
+    @SerialEntry
+    public boolean issueReportEnabled = true;
     @SerialEntry
     public List<RegistryKey<DimensionType>> enabledDimensions = new ArrayList<>(List.of(DimensionTypes.OVERWORLD));
     @SerialEntry

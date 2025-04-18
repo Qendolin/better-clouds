@@ -1,39 +1,36 @@
 package com.qendolin.betterclouds.clouds;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.Commands;
-import com.qendolin.betterclouds.Main;
 import com.qendolin.betterclouds.clouds.shaders.*;
+import com.qendolin.betterclouds.config.ConfigManager;
+import com.qendolin.betterclouds.telemetry.Telemetry;
 import com.qendolin.betterclouds.util.RenderHelper;
-import com.qendolin.betterclouds.compat.Telemetry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 
-//? if >1.21.4 {
-/*import com.mojang.blaze3d.opengl.GlStateManager;
-*///?} else {
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.qendolin.betterclouds.mixin.BufferRendererAccessor;
-import com.qendolin.betterclouds.mixin.VertexBufferAccessor;
- //?}
-
-//? if <1.21.3 {
-/*import com.qendolin.betterclouds.mixin.ShaderProgramAccessor;
-*///?}
+//? if >=1.21.5 {
+import com.mojang.blaze3d.opengl.GlStateManager;
+//?} else {
+/*import com.mojang.blaze3d.platform.GlStateManager;
+import com.qendolin.betterclouds.mixin.runtime.BufferRendererAccessor;
+import com.qendolin.betterclouds.mixin.runtime.VertexBufferAccessor;
+ *///?}
 
 import java.io.Closeable;
 import java.io.IOException;
 
-import static com.qendolin.betterclouds.Main.LOGGER;
-import static com.qendolin.betterclouds.Main.glCompat;
+import static com.qendolin.betterclouds.BetterCloudsStatic.getLogger;
+import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
 import static org.lwjgl.opengl.GL32.*;
 
 public class Resources implements Closeable {
     // Texture Unit 5
-    public static final Identifier NOISE_TEXTURE = Identifier.of(Main.MODID, "textures/environment/cloud_noise_rgb.png");
+    public static final Identifier NOISE_TEXTURE = Identifier.of(BetterCloudsStatic.MODID, "textures/environment/cloud_noise_rgb.png");
     // Texture Unit 4
-    public static final Identifier LIGHTING_TEXTURE = Identifier.of(Main.MODID, "textures/environment/cloud_light_gradient.png");
+    public static final Identifier LIGHTING_TEXTURE = Identifier.of(BetterCloudsStatic.MODID, "textures/environment/cloud_light_gradient.png");
 
     private static final int UNASSIGNED = 0;
 
@@ -127,14 +124,13 @@ public class Resources implements Closeable {
 
     public boolean failedToLoadCritical() {
         if (depthShader == null || coverageShader == null || shadingShader == null || cullingShader == null) return true;
-        if (depthShader.isIncomplete() || coverageShader.isIncomplete() || shadingShader.isIncomplete() || debugShader.isIncomplete() || cullingShader.isIncomplete()) return true;
+        if (depthShader.isIncomplete() || coverageShader.isIncomplete() || shadingShader.isIncomplete() || debugShader.isIncomplete() || cullingShader.isIncomplete())
+            return true;
         if (generator == null) return true;
         if (oitFbo == UNASSIGNED) return true;
         if (oitDataTexture == UNASSIGNED || oitCoverageTexture == UNASSIGNED)
             return true;
-        if (cubeVao == UNASSIGNED || cubeVbo == UNASSIGNED) return true;
-
-        return false;
+        return cubeVao == UNASSIGNED || cubeVbo == UNASSIGNED;
     }
 
     public void reloadTimer() {
@@ -176,27 +172,29 @@ public class Resources implements Closeable {
     }
 
     public static void unbindVao() {
-        //? if <=1.21.4 {
-        VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
+        glBindVertexArray(0);
+        //? if <1.21.5 {
+        /*VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
         if (buffer == null) return;
         int previousVaoId = buffer.getVertexArrayId();
         if (previousVaoId > 0)
             glBindVertexArray(previousVaoId);
-        //?}
+        *///?}
     }
 
     public static void unbindVbo() {
-        //? if <=1.21.4 {
-        VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        //? if <1.21.5 {
+        /*VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
         if (buffer == null) return;
         //? if >=1.21.3 {
         int previousVboId = buffer.getVertexBuffer().handle;
         //?} else {
-        /*int previousVboId = buffer.getVertexBufferId();
-        *///?}
+        /^int previousVboId = buffer.getVertexBufferId();
+        ^///?}
         if (previousVboId > 0)
             glBindBuffer(GL_ARRAY_BUFFER, previousVboId);
-        //?}
+        *///?}
     }
 
     public void reloadTextures(MinecraftClient client) {
@@ -224,7 +222,7 @@ public class Resources implements Closeable {
         deleteGenerator();
 
         generator = new ChunkedGenerator();
-        generator.allocate(Main.getConfig(), fancy);
+        generator.allocate(ConfigManager.instance(), fancy);
         generator.clear();
         generator.unbind();
     }
@@ -236,7 +234,7 @@ public class Resources implements Closeable {
 
     public void reloadFramebuffer(int width, int height) {
         if (width == 0 || height == 0) {
-            LOGGER.warn("Cannot create framebuffer with size 0 ({}x{})! Skipping framebuffer creation to avoid an error.", width, height);
+            getLogger().warn("Cannot create framebuffer with size 0 ({}x{})! Skipping framebuffer creation to avoid an error.", width, height);
             return;
         }
         deleteFramebuffer();
@@ -267,8 +265,8 @@ public class Resources implements Closeable {
             createFramebufferAttachments(useStencilTextureFallback, useDepthWriteFallback);
             int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
             if (status == GL_FRAMEBUFFER_COMPLETE) {
-                Main.LOGGER.info("Framebuffer complete. useStencilTextureFallback={}, useDepthWriteFallback={}", useStencilTextureFallback, useDepthWriteFallback);
-                if(configurationIndex != -1) {
+                BetterCloudsStatic.getLogger().info("Framebuffer complete. useStencilTextureFallback={}, useDepthWriteFallback={}", useStencilTextureFallback, useDepthWriteFallback);
+                if (configurationIndex != -1) {
                     glCompat.setUseStencilTextureFallback(useStencilTextureFallback);
                     glCompat.setUseDepthWriteFallback(useDepthWriteFallback);
                 }
@@ -278,11 +276,11 @@ public class Resources implements Closeable {
             deleteFramebufferAttachments();
 
             configurationIndex++;
-            if(configurationIndex >= configurations.length) {
-                throw new RuntimeException("Better Clouds framebuffer incomplete, exhausted all options, your GPU is likely incompatible, status: " + status);
+            if (configurationIndex >= configurations.length) {
+                throw new IllegalStateException("Better Clouds framebuffer incomplete, exhausted all options, your GPU is likely incompatible, status: " + status);
             }
 
-            Main.LOGGER.warn("Framebuffer incomplete, trying different creation configuration. useStencilTextureFallback={}, useDepthWriteFallback={}, status={}", useStencilTextureFallback, useDepthWriteFallback, status);
+            BetterCloudsStatic.getLogger().warn("Framebuffer incomplete, trying different creation configuration. useStencilTextureFallback={}, useDepthWriteFallback={}, status={}", useStencilTextureFallback, useDepthWriteFallback, status);
             useStencilTextureFallback = configurations[configurationIndex][0];
             useDepthWriteFallback = configurations[configurationIndex][1];
         }
@@ -351,11 +349,11 @@ public class Resources implements Closeable {
             reloadShadersInternal(manager, shaderParameters);
         } catch (Exception e) {
             Commands.sendGpuIncompatibleChatMessage();
-            Main.LOGGER.error(e);
+            BetterCloudsStatic.getLogger().error(e);
             Telemetry.INSTANCE.sendShaderCompileError(e.toString());
             deleteShaders();
         }
-        unbindShader();
+        RenderHelper.unbindShader();
     }
 
     protected void reloadShadersInternal(ResourceManager manager, ShaderParameters shaderParameters) throws IOException {
@@ -416,16 +414,6 @@ public class Resources implements Closeable {
         shadingShader = null;
         debugShader = null;
         cullingShader = null;
-    }
-
-    public static void unbindShader() {
-        //? if >=1.21.3 {
-        glUseProgram(0);
-        //?} else {
-        /*int previousProgramId = ShaderProgramAccessor.getActiveProgramGlRef();
-        if (previousProgramId > 0)
-            glUseProgram(previousProgramId);
-        *///?}
     }
 
     @Override

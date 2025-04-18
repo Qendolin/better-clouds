@@ -1,17 +1,14 @@
 package com.qendolin.betterclouds.config;
 
-import dev.isxander.yacl3.api.*;
-import dev.isxander.yacl3.api.controller.ControllerBuilder;
+import dev.isxander.yacl3.api.ListOption;
+import dev.isxander.yacl3.api.OptionDescription;
+import dev.isxander.yacl3.api.StateManager;
 import dev.isxander.yacl3.api.controller.StringControllerBuilder;
-import dev.isxander.yacl3.gui.controllers.string.IStringController;
-import dev.isxander.yacl3.impl.controller.AbstractControllerBuilderImpl;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
-import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.dimension.DimensionTypes;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 

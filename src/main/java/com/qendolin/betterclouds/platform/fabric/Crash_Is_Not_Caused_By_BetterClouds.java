@@ -1,10 +1,11 @@
 package com.qendolin.betterclouds.platform.fabric;
 
 //? if fabric {
-import com.qendolin.betterclouds.util.NamedLogger;
+
 import com.qendolin.betterclouds.renderdoc.CaptureManager;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import com.qendolin.betterclouds.renderdoc.RenderDocLoader;
+import com.qendolin.betterclouds.util.NamedLogger;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import org.apache.logging.log4j.LogManager;
@@ -13,6 +14,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class Crash_Is_Not_Caused_By_BetterClouds implements PreLaunchEntrypoint {
+
+    private static boolean hasRan = false;
+
+    public static boolean isPreLaunchComplete() {
+        return hasRan;
+    }
+
     @Override
     public void onPreLaunch() {
         NamedLogger logger;
@@ -55,6 +63,8 @@ public class Crash_Is_Not_Caused_By_BetterClouds implements PreLaunchEntrypoint 
             }
         } catch (Throwable e) {
             logger.error("RenderDoc could not be loaded: {}", e);
+        } finally {
+            hasRan = true;
         }
     }
 }
