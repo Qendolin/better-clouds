@@ -1,8 +1,10 @@
 package com.qendolin.betterclouds.clouds.shaders;
 
 import com.mojang.blaze3d.platform.GlStateManager;
-import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.clouds.Resources;
+import com.qendolin.betterclouds.compat.GLCompat;
+import com.qendolin.betterclouds.util.RenderHelper;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.InvalidHierarchicalFileException;
@@ -22,7 +24,7 @@ import static org.lwjgl.opengl.GL20.glGetUniformLocation;
 
 public class CullingShader implements Closeable {
 
-    public static final Identifier COMPUTE_SHADER_ID = Identifier.of(Main.MODID, "shaders/core/betterclouds_culling.comp");
+    public static final Identifier COMPUTE_SHADER_ID = Identifier.of(BetterCloudsStatic.MODID, "shaders/core/betterclouds_culling.comp");
 
     public final Uniform uFrustumPlaneTop;
     public final Uniform uFrustumPlaneRight;
@@ -36,7 +38,7 @@ public class CullingShader implements Closeable {
     public CullingShader(ResourceManager resMan) throws IOException {
         int comp = compileShader(GL43.GL_COMPUTE_SHADER, COMPUTE_SHADER_ID, resMan);
 
-        Main.glCompat.objectLabelDev(Main.glCompat.GL_SHADER, comp, COMPUTE_SHADER_ID.getPath());
+        GLCompat.glCompat.objectLabelDev(GLCompat.glCompat.GL_SHADER, comp, COMPUTE_SHADER_ID.getPath());
 
         programId = GlStateManager.glCreateProgram();
         glAttachShader(programId, comp);
@@ -99,7 +101,7 @@ public class CullingShader implements Closeable {
     }
 
     public void unbind() {
-        Resources.unbindShader();
+        RenderHelper.unbindShader();
     }
 
     protected Uniform getUniform(String name, boolean cached) {

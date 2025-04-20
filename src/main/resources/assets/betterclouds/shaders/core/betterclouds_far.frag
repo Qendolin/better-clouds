@@ -58,7 +58,7 @@ void main() {
     value4.z = value4.z == 0.0 ? 0.0 : 1.0;
     value4.w = value4.w == 0.0 ? 0.0 : 1.0;
     float value = dot(value4, vec4(0.25));
-    value = 1.0;
+//    value = 1.0;
 
     // debug grid lines
 //    if(texpos.x > 120 || texpos.y > 120) value = 1.0;
@@ -68,17 +68,19 @@ void main() {
 
 //    vec2 center = vec2(0.5 * (REGIONS * 128.0 * u_spacing));
     vec2 center = u_circle.xy;
-    float circle_fade = smoothstep(u_circle.z * (15.0 / 16.0), u_circle.z, length(in_world - center));
+    float circle_fade = smoothstep(u_circle.z * (15.0 / 16.0), u_circle.z + (2.0 / 16.0), length(in_world - center));
 
     int x = int(gl_FragCoord.x) % 4;
     int y = int(gl_FragCoord.y) % 4;
     int index = x + y * 4;
 
-//    if(circle_fade <= dither_matrix[index]) {
-//        discard;
-//    }
+    // FIXME: kind of distracting, but better then not having it?
+    if(circle_fade <= dither_matrix[index]) {
+        discard;
+    }
+    value *= circle_fade;
 
-    if(value == 0) discard;
+    if(value <= 0.0) discard;
 
     float depth = texelFetch(u_depth_texture, ivec2(gl_FragCoord.xy), 0).r;
     if(min(gl_FragCoord.z, 1.0) > depth) discard;

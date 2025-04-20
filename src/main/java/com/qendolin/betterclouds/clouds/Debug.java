@@ -8,8 +8,8 @@ import org.joml.Vector3d;
 import org.lwjgl.opengl.GL32;
 
 //? if >=1.21.5 {
-import com.mojang.blaze3d.vertex.VertexFormat;
-//?}
+/*import com.mojang.blaze3d.vertex.VertexFormat;
+*///?}
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;

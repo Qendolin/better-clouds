@@ -34,8 +34,8 @@ import net.minecraft.util.math.MathHelper;
 *///?}
 
 //? if >=1.21.5 {
-import com.mojang.blaze3d.systems.RenderSystem;
-//?}
+/*import com.mojang.blaze3d.systems.RenderSystem;
+*///?}
 
 import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
 import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
@@ -115,18 +115,18 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
     }
 
     //? if >=1.21.5 {
-    @Inject(at = @At("HEAD"), method = "renderClouds", cancellable = true)
+    /*@Inject(at = @At("HEAD"), method = "renderClouds", cancellable = true)
     private void renderClouds(FrameGraphBuilder frameGraphBuilder, CloudRenderMode _mode, Vec3d cameraPos, float _ticks, int _color, float _cloudHeight, CallbackInfo ci) {
         double camX = cameraPos.x, camY = cameraPos.y, camZ = cameraPos.z;
         float tickDelta = MathHelper.fractionalPart(_ticks);
         Matrix4f viewMat = RenderSystem.getModelViewMatrix();
         Matrix4f projMat = RenderSystem.getProjectionMatrix();
-    //?} elif >=1.21.3 {
-    /*@Inject(at = @At("HEAD"), method = "renderClouds", cancellable = true)
+    *///?} elif >=1.21.3 {
+    @Inject(at = @At("HEAD"), method = "renderClouds", cancellable = true)
     private void renderClouds(FrameGraphBuilder frameGraphBuilder, Matrix4f viewMat, Matrix4f projMat, CloudRenderMode _mode, Vec3d cameraPos, float _ticks, int _color, float _cloudHeight, CallbackInfo ci) {
         double camX = cameraPos.x, camY = cameraPos.y, camZ = cameraPos.z;
         float tickDelta = MathHelper.fractionalPart(_ticks);
-    *///?} elif >=1.20.6 {
+    //?} elif >=1.20.6 {
     /*@Inject(at = @At("HEAD"), method = "renderClouds(Lnet/minecraft/client/util/math/MatrixStack;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;FDDD)V", cancellable = true)
     private void renderClouds(MatrixStack matrices, Matrix4f viewMat, Matrix4f projMat, float tickDelta, double camX, double camY, double camZ, CallbackInfo ci) {
     *///?} else {
@@ -184,7 +184,7 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
                 final var ffrustum = frustum;
                 renderPass.setRenderer(() -> {
                     try {
-                        getProfiler().push(Main.MODID);
+                        getProfiler().push(BetterCloudsStatic.MODID);
                         glCompat.pushDebugGroupDev("Better Clouds");
                         cloudRenderer.render(fticks, ftickDelta, fcam, ffrustumPos, ffrustum);
                         glCompat.popDebugGroupDev();

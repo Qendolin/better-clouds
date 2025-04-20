@@ -12,12 +12,12 @@ import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 
 //? if >=1.21.5 {
-import com.mojang.blaze3d.opengl.GlStateManager;
-//?} else {
-/*import com.mojang.blaze3d.platform.GlStateManager;
+/*import com.mojang.blaze3d.opengl.GlStateManager;
+*///?} else {
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.qendolin.betterclouds.mixin.runtime.BufferRendererAccessor;
 import com.qendolin.betterclouds.mixin.runtime.VertexBufferAccessor;
- *///?}
+ //?}
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -174,27 +174,27 @@ public class Resources implements Closeable {
     public static void unbindVao() {
         glBindVertexArray(0);
         //? if <1.21.5 {
-        /*VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
+        VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
         if (buffer == null) return;
         int previousVaoId = buffer.getVertexArrayId();
         if (previousVaoId > 0)
             glBindVertexArray(previousVaoId);
-        *///?}
+        //?}
     }
 
     public static void unbindVbo() {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         //? if <1.21.5 {
-        /*VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
+        VertexBufferAccessor buffer = (VertexBufferAccessor) BufferRendererAccessor.getCurrentVertexBuffer();
         if (buffer == null) return;
         //? if >=1.21.3 {
         int previousVboId = buffer.getVertexBuffer().handle;
         //?} else {
-        /^int previousVboId = buffer.getVertexBufferId();
-        ^///?}
+        /*int previousVboId = buffer.getVertexBufferId();
+        *///?}
         if (previousVboId > 0)
             glBindBuffer(GL_ARRAY_BUFFER, previousVboId);
-        *///?}
+        //?}
     }
 
     public void reloadTextures(MinecraftClient client) {

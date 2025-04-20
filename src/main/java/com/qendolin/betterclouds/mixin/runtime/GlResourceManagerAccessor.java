@@ -2,7 +2,7 @@ package com.qendolin.betterclouds.mixin.runtime;
 
 //? if >=1.21.5 {
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
+/*import com.mojang.blaze3d.pipeline.RenderPipeline;
 import net.minecraft.client.gl.GlResourceManager;
 import net.minecraft.client.gl.ShaderProgram;
 import org.spongepowered.asm.mixin.Mixin;
@@ -26,4 +26,4 @@ public interface GlResourceManagerAccessor {
 
 }
 
-//?}
+*///?}

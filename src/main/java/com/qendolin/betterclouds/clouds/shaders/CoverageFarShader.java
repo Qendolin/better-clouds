@@ -1,7 +1,7 @@
 package com.qendolin.betterclouds.clouds.shaders;
 
 import com.google.common.collect.ImmutableMap;
-import com.qendolin.betterclouds.Main;
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 
@@ -11,8 +11,8 @@ import java.util.Map;
 public class CoverageFarShader extends Shader {
     public static final String DEF_REGIONS = "_REGIONS_";
 
-    public static final Identifier VERTEX_SHADER_ID = Identifier.of(Main.MODID, "shaders/core/betterclouds_far.vert");
-    public static final Identifier FRAGMENT_SHADER_ID = Identifier.of(Main.MODID, "shaders/core/betterclouds_far.frag");
+    public static final Identifier VERTEX_SHADER_ID = Identifier.of(BetterCloudsStatic.MODID, "shaders/core/betterclouds_far.vert");
+    public static final Identifier FRAGMENT_SHADER_ID = Identifier.of(BetterCloudsStatic.MODID, "shaders/core/betterclouds_far.frag");
 
     public final Uniform uDepthTexture;
     public final Uniform uMVPMatrix;

@@ -11,11 +11,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class GlDebugMixin {
     @Inject(
         method =
-            /*? if >=1.21.5 >>*/ "onDebugMessage",
-            /*? if <1.21.5 >>*/ /*"info",*/
+            /*? if >=1.21.5 >>*/ /*"onDebugMessage",*/
+            /*? if <1.21.5 >>*/ "info",
         at = @At("TAIL")
     )
-    private /*? if <1.21.5 >>*/ /*static*/ void onDebugMessage(
+    private /*? if <1.21.5 >>*/ static void onDebugMessage(
         int source,
         int type,
         int id,

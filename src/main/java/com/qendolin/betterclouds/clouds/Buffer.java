@@ -9,7 +9,6 @@ import org.lwjgl.system.MemoryUtil;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
-import static com.qendolin.betterclouds.Main.getConfig;
 import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
 import static org.lwjgl.opengl.GL32.*;
 
@@ -66,7 +65,7 @@ public class Buffer implements AutoCloseable {
         glBindBuffer(GL43.GL_DRAW_INDIRECT_BUFFER, drawIndirectBufferId);
         glCompat.objectLabelDev(glCompat.GL_BUFFER, drawIndirectBufferId, "draw_indirect_buffer");
 //        int drawCommandCount = MathHelper.ceilDiv(size * size, 64);
-        int drawCommandCount = MathHelper.square(MathHelper.ceilDiv(2 * getConfig().blockDistance(), 32));
+        int drawCommandCount = MathHelper.square(MathHelper.ceilDiv(2 * ConfigManager.instance().blockDistance(), 32));
         tmp_drawCommandCount = drawCommandCount;
         glBufferData(GL43.GL_DRAW_INDIRECT_BUFFER, (long) drawCommandCount * 4 * Integer.BYTES, GL_DYNAMIC_DRAW);
         var drawCommandStaticData = new int[drawCommandCount * 4];

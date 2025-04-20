@@ -5,50 +5,50 @@ import net.minecraft.client.render.FogShape;
 import net.minecraft.client.texture.AbstractTexture;
 
 //? if >=1.21.5 {
-import com.mojang.blaze3d.opengl.GlStateManager;
+/*import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.textures.GpuTexture;
 import com.qendolin.betterclouds.mixin.runtime.GlBackendAccessor;
 import com.qendolin.betterclouds.mixin.runtime.GlResourceManagerAccessor;
 import net.minecraft.client.texture.GlTexture;
-//?} else {
-/*import com.mojang.blaze3d.platform.GlStateManager;
-*///?}
+*///?} else {
+import com.mojang.blaze3d.platform.GlStateManager;
+//?}
 
 
 public interface RenderHelper {
 
     static int getTextureId(AbstractTexture texture) {
         //? if >=1.21.5 {
-        if (texture.getGlTexture() instanceof GlTexture glTexture) {
+        /*if (texture.getGlTexture() instanceof GlTexture glTexture) {
             // yarn name is getGlId, but there is a conflict with iris
             return glTexture.glId();
         } else {
             throw new IllegalStateException("Texture is not a GlTexture");
         }
-        //?} else {
-        /*return texture.getGlId();
-        *///?}
+        *///?} else {
+        return texture.getGlId();
+        //?}
     }
 
     //? if >=1.21.5 {
-    static int getTextureId(GpuTexture texture) {
+    /*static int getTextureId(GpuTexture texture) {
         if (texture instanceof GlTexture glTexture) {
             return glTexture.glId();
         } else {
             throw new IllegalStateException("Texture is not a GlTexture");
         }
     }
-    //?}
+    *///?}
 
     static void bindTexture(AbstractTexture texture) {
         bindTexture(getTextureId(texture));
     }
 
     //? if >=1.21.5 {
-    static void bindTexture(GpuTexture texture) {
+    /*static void bindTexture(GpuTexture texture) {
         bindTexture(getTextureId(texture));
     }
-    //?}
+    *///?}
 
     static void bindTexture(int id) {
         GlStateManager._bindTexture(id);
@@ -86,19 +86,19 @@ public interface RenderHelper {
 
     static void unbindShader() {
         //? if >=1.21.5 {
-        var backend = (GlBackendAccessor) RenderSystem.getDevice();
+        /*var backend = (GlBackendAccessor) RenderSystem.getDevice();
         var resourceManager = (GlResourceManagerAccessor) backend.getCommandEncoder();
         var current = resourceManager.getCurrentProgram();
         if(current != null)
             current.unbind();
         resourceManager.setCurrentProgram(null);
         resourceManager.setCurrentPipeline(null);
-        //?} else if >=1.21.3 {
-        /*var current = RenderSystem.getShader();
+        *///?} else if >=1.21.3 {
+        var current = RenderSystem.getShader();
         if(current != null)
             current.unbind();
         RenderSystem.setShader((net.minecraft.client.gl.ShaderProgram) null);
-        *///?} else {
+        //?} else {
         /*var current = RenderSystem.getShader();
         if(current != null)
             current.unbind();

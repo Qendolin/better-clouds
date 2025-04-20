@@ -37,17 +37,16 @@ import net.minecraft.block.enums.CameraSubmersionType;
 *///?}
 
 //? if >=1.21.5 {
-import com.mojang.blaze3d.opengl.GlStateManager;
-//?} else {
-/*import com.mojang.blaze3d.platform.GlStateManager;
-*///?}
+/*import com.mojang.blaze3d.opengl.GlStateManager;
+*///?} else {
+import com.mojang.blaze3d.platform.GlStateManager;
+//?}
 
 import java.lang.Math;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.*;
 
-import static com.qendolin.betterclouds.config.ConfigManager.getConfig;
 import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
 import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
 import static org.lwjgl.opengl.GL32.*;
@@ -87,9 +86,9 @@ public class Renderer implements AutoCloseable {
 
     public void reload(ResourceManager manager) {
 //        float spacing = 8;
-        float spacing = getConfig().spacing;
+        float spacing = ConfigManager.instance().spacing;
 //        float blockDistance = 256 * 16; // radius
-        float blockDistance = Main.getConfig().renderDistance * 16; // radius
+        float blockDistance = ConfigManager.instance().renderDistance * 16; // radius
         int size = ChunkGenerator2.calculateSize(blockDistance, spacing);
 //        int size = 1;
         int clouds = MathHelper.square(size * ChunkGenerator2.GEN_CHUNK_SIZE);
@@ -119,7 +118,7 @@ public class Renderer implements AutoCloseable {
 
         BetterCloudsStatic.getLogger().info("Reloading cloud renderer...");
         BetterCloudsStatic.getLogger().debug("[1/6] Reloading shaders");
-        shaderParameters = createShaderParameters(Main.getConfig());
+        shaderParameters = createShaderParameters(ConfigManager.instance());
         res.reloadShaders(manager, shaderParameters);
         BetterCloudsStatic.getLogger().debug("[2/6] Reloading generator");
         res.reloadGenerator(useCubeClouds());
@@ -560,7 +559,7 @@ public class Renderer implements AutoCloseable {
     private boolean generateCulledDrawCommands(DrawCommands draws, int region, int lvl, int x, int z) {
         final float[] bounds = new float[4];
         chunkGenerator2.bounds(region, lvl, x, z, bounds);
-        float maxDist = getConfig().blockDistance() / 2f; // half is far
+        float maxDist = ConfigManager.instance().blockDistance() / 2f; // half is far
 
         int visible = frustumCuller.test2(bounds[0], bounds[1], bounds[2], bounds[3]);
         int inRange = frustumCuller.testDist2(bounds[0], bounds[1], bounds[2], bounds[3], maxDist);
@@ -597,6 +596,27 @@ public class Renderer implements AutoCloseable {
         return false;
     }
 
+    private void drawFarClouds(Config config, Vector3d cam) {
+        GlStateManager._disableCull();
+        res.coverageFarShader().bind();
+        res.coverageFarShader().uMVPMatrix.setMat4(mvpMatrix);
+        res.coverageFarShader().uSpacing.setFloat(config.spacing);
+        res.coverageFarShader().uCircle.setVec3((float) cam.x, (float) cam.z, config.blockDistance() * 0.5f);
+
+        GlStateManager._depthMask(false);
+
+        int coverage = MathHelper.ceil((config.sizeXZ*config.sizeXZ)/(config.spacing*config.spacing)) * 2;
+        glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
+        glStencilFunc(GL_ALWAYS, Math.min(coverage, 64), 0xff);
+//        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 18);
+
+        glStencilOp(GL_KEEP, GL_INCR, GL_INCR);
+        glStencilFunc(GL_ALWAYS, 0xff, 0xff);
+
+        GlStateManager._depthMask(true);
+    }
+
     private void drawCloudsWithFrustumCulling(Frustum frustumAtOrigin, Config config, Vector3d cam) {
 //        glBindBuffer(GL_ARRAY_BUFFER, cloudBufferId);
 //        glBindBuffer(GL_ARRAY_BUFFER, cloudBufferWriteOnceId);
@@ -631,9 +651,13 @@ public class Renderer implements AutoCloseable {
         }
 
         res.coverageShader().uCameraPos.setVec3((float) cam.x, (float) cam.y - cloudsHeight, (float) cam.z);
-        res.coverageShader().uSpacing.setFloat(getConfig().spacing);
+        res.coverageShader().uSpacing.setFloat(config.spacing);
         res.coverageShader().uCircle.setVec3((float) cam.x, (float) cam.z, config.blockDistance() * 0.5f);
 
+        // Render flat first,
+        // otherwise there are some issues with ordering
+        drawFarClouds(config, cam);
+        res.coverageShader().bind();
 
         // FIXME: some chunks are drawn at a higher sub level than needed
         // When the larger chunk is split, but all the children are drawn anyways, because they are at the lowest sub level
@@ -655,21 +679,6 @@ public class Renderer implements AutoCloseable {
                 GL43.glDrawArraysInstancedBaseInstance(GL_TRIANGLE_FAN, 0, 8, cmd.count, cmd.start);
             }
         }
-
-
-        // FIXME: render flat first
-        // There are some issues with ordering
-        GlStateManager._disableCull();
-        res.coverageFarShader().bind();
-        res.coverageFarShader().uMVPMatrix.setMat4(mvpMatrix);
-        res.coverageFarShader().uSpacing.setFloat(config.spacing);
-        res.coverageFarShader().uCircle.setVec3((float) cam.x, (float) cam.z, config.blockDistance() * 0.5f);
-
-        int coverage = MathHelper.ceil((config.sizeXZ*config.sizeXZ)/(config.spacing*config.spacing)) * 2;
-        glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
-        glStencilFunc(GL_ALWAYS, Math.min(coverage, 64), 0xff);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-//        glDrawArrays(GL_TRIANGLE_STRIP, 0, 18);
 
         if (1 == 1) return;
 

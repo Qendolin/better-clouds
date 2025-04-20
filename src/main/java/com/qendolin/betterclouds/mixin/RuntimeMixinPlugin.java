@@ -17,15 +17,15 @@ public class RuntimeMixinPlugin extends MixinPlugin {
         List<String> classes = new ArrayList<>();
 
         //? if <1.21.5 {
-        /*classes.add("BufferRendererAccessor");
+        classes.add("BufferRendererAccessor");
         classes.add("RenderPhaseAccessor");
         classes.add("VertexBufferAccessor");
-        *///?}
+        //?}
 
         //? if >=1.21.5 {
-        classes.add("GlResourceManagerAccessor");
+        /*classes.add("GlResourceManagerAccessor");
         classes.add("GlBackendAccessor");
-        //?}
+        *///?}
 
         if(BetterCloudsStatic.IS_DEV) {
             classes.add("GlDebugMixin");
