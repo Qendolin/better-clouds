@@ -13,8 +13,12 @@ pluginManagement {
             url = "https://maven.neoforged.net/releases"
         }
         maven {
-            name = "Kikugie"
+            name = "Kikugie Releases"
             url = "https://maven.kikugie.dev/releases"
+        }
+        maven {
+            name = "Kikugie Snapshots"
+            url = "https://maven.kikugie.dev/snapshots"
         }
         maven {
             name = "Architectury"
@@ -26,7 +30,7 @@ pluginManagement {
 }
 
 plugins {
-    id "dev.kikugie.stonecutter" version "0.5.2"
+    id "dev.kikugie.stonecutter" version "0.6-beta.2"
 }
 
 stonecutter {
