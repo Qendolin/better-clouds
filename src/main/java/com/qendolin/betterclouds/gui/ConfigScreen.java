@@ -1,5 +1,6 @@
 package com.qendolin.betterclouds.gui;
 
+import com.qendolin.betterclouds.telemetry.IssueReportManager;
 import dev.isxander.yacl3.api.PlaceholderCategory;
 import dev.isxander.yacl3.api.YetAnotherConfigLib;
 import dev.isxander.yacl3.api.utils.OptionUtils;
@@ -51,6 +52,18 @@ public class ConfigScreen extends YACLScreen {
         });
 
         return pendingChanges.get();
+    }
+
+    @Override
+    public void tick() {
+        try {
+            super.tick();
+        } catch (Exception e) {
+            if(!IssueReportManager.handle(e, "An error occurred while processing the config screen: " + e.getMessage())) {
+                throw e;
+            }
+            client.execute(() -> client.setScreen(IssueReportManager.popQueuedScreen()));
+        }
     }
 
     @Override

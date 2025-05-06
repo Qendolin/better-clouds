@@ -32,7 +32,7 @@ public class IssueReportManager {
         lastShowTime = time;
         ConfigManager.instance().enabled = false;
         IssueReportScreen screen = new IssueReportScreen(e, details);
-        client.send(() -> {
+        client.execute(() -> {
             if(client.currentScreen == null) {
                 client.setScreen(screen);
             } else if(!(client.currentScreen instanceof IssueReportScreen)) {

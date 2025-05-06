@@ -188,6 +188,10 @@ dependencies {
 			modCompileOnly "maven.modrinth:rubidium-extra:0.5.7e+mc1.21-build.129"
 		}
 
+		if (hasProperty("deps.terra_firma_craft")) {
+			modCompileOnly "maven.modrinth:terrafirmacraft:${property('deps.terra_firma_craft')}"
+		}
+
 		// Because yarn mappings are used the mods can't be loaded from the 'mods' directory at runtime.
 		// It causes NoClassDefFoundErrors due to the different mappings.
 		// This is a workaround that uses 'modLocalRuntime' to remap the mods found in the 'mods-forge' directory.

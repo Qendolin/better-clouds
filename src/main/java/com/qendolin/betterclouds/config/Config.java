@@ -55,15 +55,14 @@ public class Config {
         this.cloudOverride = other.cloudOverride;
         this.useIrisFBO = other.useIrisFBO;
         this.selectedPreset = other.selectedPreset;
-        this.presets = other.presets;
-        if (this.presets == null) {
-            //noinspection IncompleteCopyConstructor
-            this.presets = new ArrayList<>();
-        }
+        //noinspection IncompleteCopyConstructor
+        this.presets = other.presets == null ? new ArrayList<>() : new ArrayList<>(other.presets);
         this.presets.replaceAll(ShaderPresetConfig::new);
         this.lastTelemetryVersion = other.lastTelemetryVersion;
         this.gpuIncompatibleMessageEnabled = other.gpuIncompatibleMessageEnabled;
-        this.enabledDimensions = other.enabledDimensions;
+        this.issueReportEnabled = other.issueReportEnabled;
+        //noinspection IncompleteCopyConstructor
+        this.enabledDimensions = other.enabledDimensions == null ? new ArrayList<>() : new ArrayList<>(other.enabledDimensions);
         this.celestialBodyHalo = other.celestialBodyHalo;
         this.useFrustumCulling = other.useFrustumCulling;
         //noinspection IncompleteCopyConstructor
