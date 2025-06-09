@@ -3,6 +3,7 @@ package com.qendolin.betterclouds.clouds;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.clouds.shaders.ShaderParameters;
+import com.qendolin.betterclouds.compat.ArsNouveauCompat;
 import com.qendolin.betterclouds.compat.DistantHorizonsCompat;
 import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.config.Config;
@@ -220,7 +221,10 @@ public class Renderer implements AutoCloseable {
 
         // Draw to game framebuffer
         VanillaRenderTarget rt = new VanillaRenderTarget(client, config);
-        rt.begin();
+        boolean isArsRendering = ArsNouveauCompat.isArsRendering();
+        if (!isArsRendering) {
+            rt.begin();
+        }
 
         // Render debug stuff
         getProfiler().swap("draw_debug");
@@ -232,7 +236,9 @@ public class Renderer implements AutoCloseable {
 
         // Restore state
         getProfiler().swap("render_cleanup");
-        rt.end();
+        if (!isArsRendering) {
+            rt.end();
+        }
         res.generator().unbind();
         GlStateManager._disableBlend();
         GlStateManager._enableDepthTest();
