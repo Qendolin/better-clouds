@@ -1,6 +1,7 @@
 package com.qendolin.betterclouds.config;
 
 import com.google.gson.*;
+import com.qendolin.betterclouds.compat.BigGlobeCompat;
 import com.qendolin.betterclouds.util.PreLaunchGuard;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
 import net.minecraft.client.MinecraftClient;
@@ -31,6 +32,7 @@ public class Config {
     }
 
     public Config(Config other) {
+        this.migrationVersion = other.migrationVersion;
         this.distance = other.distance;
         this.randomPlacement = other.randomPlacement;
         this.fuzziness = other.fuzziness;
@@ -71,6 +73,8 @@ public class Config {
         this.fabricSeasonsConfig = new FabricSeasonsConfig(other.fabricSeasonsConfig);
     }
 
+    @SerialEntry
+    public int migrationVersion = 0;
     @SerialEntry
     public boolean enabled = true;
     @SerialEntry
@@ -132,7 +136,7 @@ public class Config {
     @SerialEntry
     public boolean issueReportEnabled = true;
     @SerialEntry
-    public List<RegistryKey<DimensionType>> enabledDimensions = new ArrayList<>(List.of(DimensionTypes.OVERWORLD));
+    public List<RegistryKey<DimensionType>> enabledDimensions = new ArrayList<>(getDefaultDimensions());
     @SerialEntry
     public SereneSeasonsConfig sereneSeasonsConfig = new SereneSeasonsConfig();
     @SerialEntry
@@ -205,6 +209,12 @@ public class Config {
 
     public int blockDistance() {
         return (int) (this.distance * MinecraftClient.getInstance().options.getViewDistance().getValue() * 16);
+    }
+
+    public static List<RegistryKey<DimensionType>> getDefaultDimensions() {
+        return List.of(
+            DimensionTypes.OVERWORLD,
+            BigGlobeCompat.DIMENSION_KEY);
     }
 
     public static class RegistryKeySerializer implements JsonSerializer<RegistryKey<DimensionType>>, JsonDeserializer<RegistryKey<DimensionType>> {

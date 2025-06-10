@@ -70,6 +70,7 @@ public class ConfigManager {
 
         try {
             config.load();
+            Migrations.migrate(config.instance());
             return;
         } catch (Exception e) {
             BetterCloudsStatic.getLogger().error("Failed to load config", e);
