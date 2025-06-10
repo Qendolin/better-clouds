@@ -1,12 +1,12 @@
 package com.qendolin.betterclouds.compat;
 
 public class ArsNouveauCompat {
-    private static final int STACK_DEPTH = 10;
-    public static boolean isArsRendering() {
+    public static final ThreadLocal<Boolean> IS_SKY_TEXTURE_CLOUDS_RENDERING = ThreadLocal.withInitial(() -> false);
+
+    public static boolean isSkyTextureCloudsRendering() {
         if (!ModLoaded.ARS_NOUVEAU) {
             return false;
         }
-        StackWalker instance = StackWalker.getInstance();
-        return instance.walk(stream -> stream.limit(STACK_DEPTH).anyMatch(s -> s.getClassName().equals("com.hollingsworth.arsnouveau.client.SkyTextureHandler")));
+        return IS_SKY_TEXTURE_CLOUDS_RENDERING.get();
     }
 }

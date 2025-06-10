@@ -15,6 +15,9 @@ public class OptionalMixinPlugin extends MixinPlugin {
         if (mixinClassName.endsWith("ExtendedShaderAccessor") || mixinClassName.endsWith("FallbackShaderAccessor")) {
             return ModLoaded.IRIS;
         }
+        if (mixinClassName.endsWith("ArsNouveauSkyTextureHandlerMixin")) {
+            return ModLoaded.ARS_NOUVEAU;
+        }
         return true;
     }
 }

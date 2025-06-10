@@ -133,6 +133,11 @@ public class Renderer implements AutoCloseable {
             return PrepareResult.NO_RENDER;
         }
 
+        // This doesn't make the Skyweave block work, but it prevents larger issues
+        if (ArsNouveauCompat.isSkyTextureCloudsRendering()) {
+            return PrepareResult.NO_RENDER;
+        }
+
         DimensionEffects effects = world.getDimensionEffects();
         cloudsHeight = effects.getCloudsHeight();
 
@@ -221,10 +226,7 @@ public class Renderer implements AutoCloseable {
 
         // Draw to game framebuffer
         VanillaRenderTarget rt = new VanillaRenderTarget(client, config);
-        boolean isArsRendering = ArsNouveauCompat.isArsRendering();
-        if (!isArsRendering) {
-            rt.begin();
-        }
+        rt.begin();
 
         // Render debug stuff
         getProfiler().swap("draw_debug");
@@ -236,9 +238,7 @@ public class Renderer implements AutoCloseable {
 
         // Restore state
         getProfiler().swap("render_cleanup");
-        if (!isArsRendering) {
-            rt.end();
-        }
+        rt.end();
         res.generator().unbind();
         GlStateManager._disableBlend();
         GlStateManager._enableDepthTest();
