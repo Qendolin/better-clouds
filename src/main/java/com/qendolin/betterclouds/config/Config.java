@@ -51,6 +51,7 @@ public class Config {
         this.samplingScale = other.samplingScale;
         this.scaleFalloffMin = other.scaleFalloffMin;
         this.fogRangeFactor = other.fogRangeFactor;
+        this.fogEndFactor = other.fogEndFactor;
         this.usePersistentBuffers = other.usePersistentBuffers;
         this.irisSupport = other.irisSupport;
         this.enabled = other.enabled;
@@ -115,6 +116,8 @@ public class Config {
     public float scaleFalloffMin = 0.25f;
     @SerialEntry
     public float fogRangeFactor = 1f;
+    @SerialEntry
+    public float fogEndFactor = 1f;
     @SerialEntry
     public boolean usePersistentBuffers = true;
     @SerialEntry

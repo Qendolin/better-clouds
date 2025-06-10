@@ -46,7 +46,8 @@ float linearFogFade(float distance, float fog_start, float fog_end) {
         return 0.0;
     }
 
-    return smoothstep(fog_end, fog_start, distance);
+    float f = 1.0 - (distance - fog_start) / (fog_end - fog_start);
+    return f * f;
 }
 
 void main() {

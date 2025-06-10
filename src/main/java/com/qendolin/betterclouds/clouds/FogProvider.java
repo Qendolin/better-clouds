@@ -61,10 +61,12 @@ public abstract class FogProvider {
         if (end == 0.0) {
             // Assume fog is disabled
             return null;
-        } else {
-            float range = end - start;
-            start = Math.max(end - config.fogRangeFactor * range, 0);
         }
+
+        float range = end - start;
+        end *= config.fogEndFactor; // no clamp because fun
+        start = Math.max(end - config.fogRangeFactor * range, 0);
+
         return new RenderHelper.Fog(start, end, shape, color.x, color.y, color.z, color.w);
     }
 

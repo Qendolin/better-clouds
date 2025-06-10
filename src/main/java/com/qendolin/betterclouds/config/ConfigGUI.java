@@ -46,6 +46,7 @@ public class ConfigGUI {
 
     public final Option<Boolean> enabled;
     public final Option<Float> fogRangeFactor;
+    public final Option<Float> fogEndFactor;
     public final Option<Boolean> usePersistentBuffers;
     public final Option<Boolean> useFrustumCulling;
 
@@ -157,6 +158,10 @@ public class ConfigGUI {
             .binding(defaults.fogRangeFactor, () -> config.fogRangeFactor, val -> config.fogRangeFactor = val)
             .customController(opt -> new FloatSliderController(opt, 0.1f, 8.0f, 0.1f, ConfigGUI::formatAsTimes))
             .build();
+        this.fogEndFactor = createOption(float.class, "fogEndFactor")
+            .binding(defaults.fogEndFactor, () -> config.fogEndFactor, val -> config.fogEndFactor = val)
+            .customController(opt -> new FloatSliderController(opt, 0.5f, 16.0f, 0.1f, ConfigGUI::formatAsTimes))
+            .build();
         this.usePersistentBuffers = createOption(boolean.class, "usePersistentBuffers")
             .binding(defaults.usePersistentBuffers, () -> config.usePersistentBuffers, val -> config.usePersistentBuffers = val)
             .customController(TickBoxController::new)
@@ -244,7 +249,8 @@ public class ConfigGUI {
             shaderPresetGUI.opacity,
             shaderPresetGUI.opacityFactor,
             shaderPresetGUI.opacityExponent,
-            fogRangeFactor
+            fogRangeFactor,
+            fogEndFactor
         ));
 
         appearanceCategory.add(new Pair<>(OptionGroup.createBuilder()
