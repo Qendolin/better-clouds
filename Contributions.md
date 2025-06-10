@@ -20,6 +20,8 @@
    - Provide traditional chinese translation – [#115](https://github.com/Qendolin/better-clouds/pull/115)
  - Tarteroycc
    - Provide ukrainian translation – [#132](https://github.com/Qendolin/better-clouds/pull/132)
+ - mpustovoi
+   - Provide russian translation – [#212](https://github.com/Qendolin/better-clouds/pull/212)
 
 ... got a PR accepted
  
