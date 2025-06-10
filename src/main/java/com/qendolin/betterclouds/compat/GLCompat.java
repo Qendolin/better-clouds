@@ -1,18 +1,23 @@
 package com.qendolin.betterclouds.compat;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.platform.GLX;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.BetterClouds;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.telemetry.Telemetry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.Untracker;
+import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWVulkan;
 import org.lwjgl.opengl.*;
+import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -562,6 +567,23 @@ public class GLCompat {
             for (String fallback : glCompat.usedFallbacks()) {
                 BetterCloudsStatic.getLogger().info("- Using {} fallback", fallback);
             }
+        }
+    }
+
+    public void shaderSource(int shader, String source) {
+        // Fixes https://github.com/Qendolin/better-clouds/issues/218 hopefully
+        byte[] sourceBytes = source.getBytes(Charsets.UTF_8);
+        ByteBuffer buffer = MemoryUtil.memAlloc(sourceBytes.length + 1);
+        buffer.put(sourceBytes);
+        buffer.put((byte)0);
+        buffer.flip();
+
+        try (MemoryStack memorystack = MemoryStack.stackPush()) {
+            PointerBuffer pointerbuffer = memorystack.mallocPointer(1);
+            pointerbuffer.put(buffer);
+            GL20C.nglShaderSource(shader, 1, pointerbuffer.address0(), 0L);
+        } finally {
+            MemoryUtil.memFree(buffer);
         }
     }
 

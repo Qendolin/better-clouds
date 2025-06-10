@@ -1,6 +1,7 @@
 package com.qendolin.betterclouds.clouds.shaders;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.compat.GLCompat;
 import com.qendolin.betterclouds.util.RenderHelper;
 import net.minecraft.resource.ResourceManager;
@@ -14,6 +15,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
+import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
 import static org.lwjgl.opengl.GL32.*;
 
 public class Shader implements AutoCloseable {
@@ -28,8 +30,8 @@ public class Shader implements AutoCloseable {
         int vsh = compileShader(GL_VERTEX_SHADER, vshId, resMan);
         int fsh = compileShader(GL_FRAGMENT_SHADER, fshId, resMan);
 
-        GLCompat.glCompat.objectLabelDev(GLCompat.glCompat.GL_SHADER, vsh, vshId.getPath());
-        GLCompat.glCompat.objectLabelDev(GLCompat.glCompat.GL_SHADER, fsh, fshId.getPath());
+        glCompat.objectLabelDev(glCompat.GL_SHADER, vsh, vshId.getPath());
+        glCompat.objectLabelDev(glCompat.GL_SHADER, fsh, fshId.getPath());
 
         programId = glCreateProgram();
         glAttachShader(programId, vsh);
@@ -61,7 +63,7 @@ public class Shader implements AutoCloseable {
             shaderSrc = shaderSrc.replace(entry.getKey(), entry.getValue());
         }
         int id = glCreateShader(type);
-        glShaderSource(id, shaderSrc);
+        glCompat.shaderSource(id, shaderSrc);
         glCompileShader(id);
         if (glGetShaderi(id, GL_COMPILE_STATUS) == 0) {
             String log = StringUtils.trim(glGetShaderInfoLog(id, 32768));
