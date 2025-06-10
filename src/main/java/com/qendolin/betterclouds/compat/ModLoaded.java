@@ -11,4 +11,5 @@ public abstract class ModLoaded {
     public static final boolean HEAD_IN_THE_CLOUDS = ModLoader.isModLoaded("head_in_the_clouds");
     public static final boolean SERENE_SEASONS = ModLoader.isModLoaded("sereneseasons");
     public static final boolean SODIUM_EXTRA = ModLoader.isModLoaded("sodium-extra");
+    public static final boolean ARS_NOUVEAU = ModLoader.isModLoaded("ars_nouveau");
 }

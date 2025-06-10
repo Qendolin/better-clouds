@@ -3,6 +3,7 @@ package com.qendolin.betterclouds.clouds;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.clouds.shaders.ShaderParameters;
+import com.qendolin.betterclouds.compat.ArsNouveauCompat;
 import com.qendolin.betterclouds.compat.DistantHorizonsCompat;
 import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.config.Config;
@@ -129,6 +130,11 @@ public class Renderer implements AutoCloseable {
 
         // Rendering clouds when underwater was making them very visible in unloaded chunks
         if (client.gameRenderer.getCamera().getSubmersionType() != CameraSubmersionType.NONE) {
+            return PrepareResult.NO_RENDER;
+        }
+
+        // This doesn't make the Skyweave block work, but it prevents larger issues
+        if (ArsNouveauCompat.isSkyTextureCloudsRendering()) {
             return PrepareResult.NO_RENDER;
         }
 
