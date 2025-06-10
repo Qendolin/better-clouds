@@ -22,6 +22,8 @@
    - Provide ukrainian translation – [#132](https://github.com/Qendolin/better-clouds/pull/132)
  - mpustovoi
    - Provide russian translation – [#212](https://github.com/Qendolin/better-clouds/pull/212)
+- justliliandev
+   - Fix Ars Nouveau flickering issue – [#222](https://github.com/Qendolin/better-clouds/pull/222)
 
 ... got a PR accepted
  
