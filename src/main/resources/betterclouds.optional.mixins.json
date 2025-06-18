@@ -9,6 +9,8 @@
     "ExtendedShaderAccessor",
     "FallbackShaderAccessor",
     "BackgroundRendererMixinMixin",
-    "ArsNouveauSkyTextureHandlerMixin"
+    "ArsNouveauSkyTextureHandlerMixin",
+    "AstrocraftPlanetManagerAccessor",
+    "AstrocraftPlanetRendererAccessor"
   ]
 }
