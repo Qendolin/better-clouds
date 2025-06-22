@@ -32,7 +32,7 @@ stonecutter.registerChiseled tasks.register("chiseledModrinth", stonecutter.chis
     ofTask "modrinth"
 
     doLast {
-        new File(rootProject.absolutePath("changelog.txt")).delete()
+        new File(rootProject.absoluteProjectPath("changelog.txt")).delete()
     }
 }
 

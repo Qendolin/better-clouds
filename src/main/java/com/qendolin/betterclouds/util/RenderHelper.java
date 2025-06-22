@@ -94,7 +94,7 @@ public abstract class RenderHelper {
         //? if >=1.21.6 {
         return viewMatrix;
         //?} else {
-        /*return RenderSystem.getProjectionMatrix();
+        /*return RenderSystem.getModelViewMatrix();
          *///?}
     }
 
