@@ -2,6 +2,7 @@ package com.qendolin.betterclouds.util;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.texture.AbstractTexture;
+import org.joml.Matrix4f;
 
 //? if >=1.21.5 {
 import com.mojang.blaze3d.opengl.GlStateManager;
@@ -9,7 +10,6 @@ import com.mojang.blaze3d.textures.GpuTexture;
 import com.qendolin.betterclouds.mixin.runtime.GlBackendAccessor;
 import com.qendolin.betterclouds.mixin.runtime.GlCommandEncoderAccessor;
 import net.minecraft.client.texture.GlTexture;
-import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
 //?} else {
 /*import com.mojang.blaze3d.platform.GlStateManager;
@@ -83,7 +83,7 @@ public abstract class RenderHelper {
     }
 
     public static Matrix4f getProjectionMatrix() {
-        //? if >=1.21.5 {
+        //? if >=1.21.6 {
         return projectionMatrix;
         //?} else {
         /*return RenderSystem.getProjectionMatrix();
@@ -91,14 +91,14 @@ public abstract class RenderHelper {
     }
 
     public static Matrix4f getViewMatrix() {
-        //? if >=1.21.5 {
+        //? if >=1.21.6 {
         return viewMatrix;
         //?} else {
         /*return RenderSystem.getProjectionMatrix();
          *///?}
     }
 
-    //? if >=1.21.5 {
+    //? if >=1.21.6 {
     public static void setProjectionMatrix(Matrix4f matrix) {
         projectionMatrix = matrix;
     }

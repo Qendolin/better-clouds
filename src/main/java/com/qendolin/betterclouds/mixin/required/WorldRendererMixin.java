@@ -1,6 +1,5 @@
 package com.qendolin.betterclouds.mixin.required;
 
-import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.qendolin.betterclouds.BetterClouds;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.clouds.Debug;
@@ -14,7 +13,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
-import net.minecraft.client.util.ObjectAllocator;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.resource.ResourceManager;
 import org.jetbrains.annotations.Nullable;
@@ -39,6 +37,11 @@ import net.minecraft.util.math.MathHelper;
 
 //? if >=1.21.5 {
 import com.mojang.blaze3d.systems.RenderSystem;
+//?}
+
+//? if >=1.21.6 {
+import com.mojang.blaze3d.buffers.GpuBufferSlice;
+import net.minecraft.client.util.ObjectAllocator;
 //?}
 
 import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
@@ -118,7 +121,7 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
         *///?}
     }
 
-    //? if >=1.21.5 {
+    //? if >=1.21.6 {
     @Inject(at = @At("HEAD"), method = "render")
     private void captureViewAndProjectionMatrix(ObjectAllocator allocator, RenderTickCounter tickCounter, boolean renderBlockOutline, Camera camera, Matrix4f positionMatrix, Matrix4f projectionMatrix, GpuBufferSlice fog, Vector4f fogColor, boolean shouldRenderSky, CallbackInfo ci) {
         RenderHelper.setProjectionMatrix(projectionMatrix);
