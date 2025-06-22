@@ -33,7 +33,9 @@ public class Config {
 
     public Config(Config other) {
         this.migrationVersion = other.migrationVersion;
-        this.distance = other.distance;
+        //? if <1.21.6 {
+        /*this.distance = other.distance;
+        *///?}
         this.randomPlacement = other.randomPlacement;
         this.fuzziness = other.fuzziness;
         this.shuffle = other.shuffle;
@@ -78,8 +80,10 @@ public class Config {
     public int migrationVersion = 0;
     @SerialEntry
     public boolean enabled = true;
-    @SerialEntry
+    //? if <1.21.6 {
+    /*@SerialEntry
     public float distance = 4;
+    *///?}
     @SerialEntry
     public float randomPlacement = 1.0f;
     @SerialEntry
@@ -211,7 +215,11 @@ public class Config {
     }
 
     public int blockDistance() {
-        return (int) (this.distance * MinecraftClient.getInstance().options.getViewDistance().getValue() * 16);
+        //? if >=1.21.6 {
+        return MinecraftClient.getInstance().options.getCloudRenderDistance().getValue() * 16;
+        //?} else {
+        /*return (int) (this.distance * MinecraftClient.getInstance().options.getViewDistance().getValue() * 16);
+        *///?}
     }
 
     public static List<RegistryKey<DimensionType>> getDefaultDimensions() {

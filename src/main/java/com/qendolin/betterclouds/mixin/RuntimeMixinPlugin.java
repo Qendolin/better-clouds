@@ -45,6 +45,7 @@ public class RuntimeMixinPlugin extends MixinPlugin {
         //? if >=1.21.6 {
         classes.add("FogRendererMixin");
         classes.add("DimensionTypeMixin");
+        classes.add("SimpleOptionAccessor");
         //?}
 
         if(BetterCloudsStatic.IS_DEV) {

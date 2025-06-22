@@ -118,7 +118,7 @@ public class ChunkedGenerator implements AutoCloseable {
     private static int calcBufferSize(Config options) {
         int distance = options.blockDistance();
         int size = MathHelper.floor(distance / options.spacing)
-            + MathHelper.ceil(distance / options.spacing);
+                   + MathHelper.ceil(distance / options.spacing);
         if (size <= 0) {
             return 8 * 16;
         }
@@ -152,6 +152,8 @@ public class ChunkedGenerator implements AutoCloseable {
         int chunkX = floorCloudChunk(worldOriginX, options.chunkSize);
         int chunkZ = floorCloudChunk(worldOriginZ, options.chunkSize);
 
+        float distance = options.blockDistance();
+
         boolean updateGeometry;
         if (queuedTask != null || runningTask != null || completedTask != null) {
             Task prevTask = queuedTask == null ? (runningTask == null ? completedTask : runningTask) : queuedTask;
@@ -161,14 +163,15 @@ public class ChunkedGenerator implements AutoCloseable {
 
             Config prevOptions = prevTask.options();
             boolean optionsChanged = options.fuzziness != prevOptions.fuzziness
-                || options.chunkSize != prevOptions.chunkSize
-                || options.yRange != prevOptions.yRange
-                || options.sparsity != prevOptions.sparsity
-                || options.spacing != prevOptions.spacing
-                || options.randomPlacement != prevOptions.randomPlacement
-                || options.distance != prevOptions.distance
-                || options.samplingScale != prevOptions.samplingScale
-                || options.shuffle != prevOptions.shuffle;
+                                     || options.chunkSize != prevOptions.chunkSize
+                                     || options.yRange != prevOptions.yRange
+                                     || options.sparsity != prevOptions.sparsity
+                                     || options.spacing != prevOptions.spacing
+                                     || options.randomPlacement != prevOptions.randomPlacement
+                                     || options.samplingScale != prevOptions.samplingScale
+                                     || options.shuffle != prevOptions.shuffle;
+
+            optionsChanged |= prevTask.distance() != distance;
 
             float prevCloudiness = prevTask.cloudiness();
             boolean cloudinessChanged = Math.ceil(cloudiness * 100) != Math.ceil(prevCloudiness * 100);
@@ -186,7 +189,7 @@ public class ChunkedGenerator implements AutoCloseable {
         }
 
         if (updateGeometry) {
-            queuedTask = new Task(chunkX, chunkZ, new Config(options), cloudiness, buffer, sampler);
+            queuedTask = new Task(chunkX, chunkZ, new Config(options), distance, cloudiness, buffer, sampler);
         }
     }
 
@@ -261,6 +264,7 @@ public class ChunkedGenerator implements AutoCloseable {
         private final int chunkX;
         private final int chunkZ;
         private final Config options;
+        private final float distance;
         private final float cloudiness;
         private final Buffer buffer;
         private final Sampler sampler;
@@ -272,11 +276,12 @@ public class ChunkedGenerator implements AutoCloseable {
 
         private long startTime;
 
-        public Task(int chunkX, int chunkZ, Config options, float cloudiness, Buffer buffer, Sampler sampler) {
+        public Task(int chunkX, int chunkZ, Config options, float distance, float cloudiness, Buffer buffer, Sampler sampler) {
             this.id = nextId.getAndIncrement();
             this.chunkX = chunkX;
             this.chunkZ = chunkZ;
             this.options = options;
+            this.distance = distance;
             this.cloudiness = cloudiness;
             this.buffer = buffer;
             this.sampler = sampler;
@@ -321,6 +326,10 @@ public class ChunkedGenerator implements AutoCloseable {
 
         public Config options() {
             return options;
+        }
+
+        public float distance() {
+            return distance;
         }
 
         public float cloudiness() {

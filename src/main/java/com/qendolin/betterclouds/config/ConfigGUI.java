@@ -17,6 +17,14 @@ import net.minecraft.util.math.MathHelper;
 import java.util.ArrayList;
 import java.util.List;
 
+//? if >=1.21.6 {
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.option.GameOptions;
+import java.util.function.Supplier;
+
+import com.qendolin.betterclouds.mixin.runtime.SimpleOptionAccessor;
+//?}
+
 public class ConfigGUI {
     private final Config config;
 
@@ -26,7 +34,11 @@ public class ConfigGUI {
     public final DimensionsGUI dimensionsGUI;
 
     public final Option<Integer> chunkSize;
-    public final Option<Float> distance;
+    //? if >=1.21.6 {
+    public final Option<Integer> distance;
+    //?} else {
+    /*public final Option<Float> distance;
+    *///?}
     public final Option<Float> fuzziness;
     public final Option<Float> spacing;
     public final Option<Float> sparsity;
@@ -82,10 +94,22 @@ public class ConfigGUI {
             .binding(defaults.chunkSize, () -> config.chunkSize, val -> config.chunkSize = val)
             .customController(opt -> new IntegerSliderController(opt, 16, 128, 8))
             .build();
-        this.distance = createOption(float.class, "distance")
+        //? if >=1.21.6 {
+        final Supplier<GameOptions> options = () -> MinecraftClient.getInstance().options;
+        int defaultDistance = ((SimpleOptionAccessor) (Object) options.get().getCloudRenderDistance()).getDefaultValue();
+        this.distance = YACLOptionBuilder.create(Option.<Integer>createBuilder())
+            .name(Text.translatable("options.renderCloudsDistance"))
+            .instant(true)
+            .binding(defaultDistance,
+                () -> options.get().getCloudRenderDistance().getValue(), val -> options.get().getCloudRenderDistance().setValue(val))
+            .customController(opt -> new IntegerSliderController(opt, 1, Math.max(defaultDistance, 128), 1))
+            .build();
+        //?} else {
+        /*this.distance = createOption(float.class, "distance")
             .binding(defaults.distance, () -> config.distance, val -> config.distance = val)
             .customController(opt -> new FloatSliderController(opt, 1, 4, 0.05f, ConfigGUI::formatAsTimes))
             .build();
+        *///?}
         this.fuzziness = createOption(float.class, "fuzziness")
             .binding(defaults.fuzziness, () -> config.fuzziness, val -> config.fuzziness = val)
             .customController(opt -> new FloatSliderController(opt, 0, 1, 0.01f, ConfigGUI::formatAsPercent))
