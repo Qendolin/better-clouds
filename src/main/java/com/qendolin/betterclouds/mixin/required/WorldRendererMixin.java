@@ -1,5 +1,6 @@
 package com.qendolin.betterclouds.mixin.required;
 
+import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.qendolin.betterclouds.BetterClouds;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.clouds.Debug;
@@ -8,15 +9,18 @@ import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.duck.WorldRendererDuck;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import com.qendolin.betterclouds.telemetry.IssueReportManager;
+import com.qendolin.betterclouds.util.RenderHelper;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
+import net.minecraft.client.util.ObjectAllocator;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.resource.ResourceManager;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector3d;
+import org.joml.Vector4f;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -115,12 +119,20 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
     }
 
     //? if >=1.21.5 {
+    @Inject(at = @At("HEAD"), method = "render")
+    private void captureViewAndProjectionMatrix(ObjectAllocator allocator, RenderTickCounter tickCounter, boolean renderBlockOutline, Camera camera, Matrix4f positionMatrix, Matrix4f projectionMatrix, GpuBufferSlice fog, Vector4f fogColor, boolean shouldRenderSky, CallbackInfo ci) {
+        RenderHelper.setProjectionMatrix(projectionMatrix);
+        RenderHelper.setViewMatrix(positionMatrix);
+    }
+    //?}
+
+    //? if >=1.21.5 {
     @Inject(at = @At("HEAD"), method = "renderClouds", cancellable = true)
     private void renderClouds(FrameGraphBuilder frameGraphBuilder, CloudRenderMode _mode, Vec3d cameraPos, float _ticks, int _color, float _cloudHeight, CallbackInfo ci) {
         double camX = cameraPos.x, camY = cameraPos.y, camZ = cameraPos.z;
         float tickDelta = MathHelper.fractionalPart(_ticks);
-        Matrix4f viewMat = RenderSystem.getModelViewMatrix();
-        Matrix4f projMat = RenderSystem.getProjectionMatrix();
+        Matrix4f viewMat = RenderHelper.getViewMatrix();
+        Matrix4f projMat = RenderHelper.getProjectionMatrix();
     //?} elif >=1.21.3 {
     /*@Inject(at = @At("HEAD"), method = "renderClouds", cancellable = true)
     private void renderClouds(FrameGraphBuilder frameGraphBuilder, Matrix4f viewMat, Matrix4f projMat, CloudRenderMode _mode, Vec3d cameraPos, float _ticks, int _color, float _cloudHeight, CallbackInfo ci) {
@@ -184,8 +196,10 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
                 final var ffrustum = frustum;
                 renderPass.setRenderer(() -> {
                     try {
+                        getProfiler().push("clouds");
                         glCompat.pushDebugGroupDev("Better Clouds");
                         cloudRenderer.render(fticks, ftickDelta, fcam, ffrustumPos, ffrustum);
+                        getProfiler().pop();
                         glCompat.popDebugGroupDev();
                     } catch (Throwable e) {
                         if(!IssueReportManager.handle(e, "An error occurred while rendering: " + e.getMessage()))

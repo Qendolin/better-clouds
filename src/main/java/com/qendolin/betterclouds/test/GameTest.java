@@ -151,8 +151,13 @@ public class GameTest {
         test.waitTicks(20);
         test.runOnClient(client -> {
             assert client.world != null;
-            client.world.disconnect();
+            //? >=1.21.6 {
+            client.world.disconnect(Text.translatable("menu.returnToMenu"));
+            client.disconnect(new MessageScreen(Text.translatable("menu.savingLevel")), false);
+            //?} else {
+            /*client.world.disconnect();
             client.disconnect(new MessageScreen(Text.translatable("menu.savingLevel")));
+            *///?}
         });
 
         test.waitFor(client -> (client.getServer() == null || client.getServer().isRunning()) && client.world == null, SharedConstants.TICKS_PER_MINUTE);

@@ -8,7 +8,7 @@ plugins {
 
 apply from: 'common.gradle'
 
-stonecutter.active "1.21.5-fabric" /* [SC] DO NOT EDIT */
+stonecutter.active "1.21.6-fabric" /* [SC] DO NOT EDIT */
 
 // Chiseled tasks run for every version in their own "instance", in the respective versions/subdirs
 stonecutter.registerChiseled tasks.register("chiseledBuild", stonecutter.chiseled) {

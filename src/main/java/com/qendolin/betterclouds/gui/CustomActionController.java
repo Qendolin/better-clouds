@@ -5,6 +5,7 @@ import dev.isxander.yacl3.api.utils.Dimension;
 import dev.isxander.yacl3.gui.AbstractWidget;
 import dev.isxander.yacl3.gui.YACLScreen;
 import dev.isxander.yacl3.gui.controllers.ActionController;
+import dev.isxander.yacl3.gui.utils.GuiUtils;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.screen.ScreenTexts;
 import net.minecraft.text.Text;
@@ -32,10 +33,8 @@ public class CustomActionController extends ActionController {
             Text name = control.option().changed() ? modifiedOptionName : control.option().name();
 
             drawButtonRect(context, getDimension().x(), getDimension().y(), getDimension().xLimit(), getDimension().yLimit(), isHovered(), isAvailable());
-            context.getMatrices().push();
-            context.getMatrices().translate(getDimension().x() + getDimension().width() / 2f - textRenderer.getWidth(name) / 2f, getTextY(), 0);
-            context.drawTextWithShadow(textRenderer, name, 0, 0, getValueColor());
-            context.getMatrices().pop();
+            float textX = getDimension().x() + getDimension().width() / 2f - textRenderer.getWidth(name) / 2f;
+            context.drawTextWithShadow(textRenderer, name, (int) textX, getTextY(), getValueColor());
 
             if (isHovered()) {
                 drawHoveredControl(context, mouseX, mouseY, delta);

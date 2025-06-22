@@ -9,7 +9,7 @@
   "client": [
     "AbstractWidgetMixin",
     "CloudSettingMixin",
-    "DimensionEffectsMixin",
+    "GameRendererAccessor",
     "MinecraftClientMixin",
     "RenderSystemMixin",
     "TabButtonWidgetMixin",

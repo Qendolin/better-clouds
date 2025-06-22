@@ -1,103 +1,79 @@
 package com.qendolin.betterclouds.util;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.render.FogShape;
 import net.minecraft.client.texture.AbstractTexture;
 
 //? if >=1.21.5 {
 import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.textures.GpuTexture;
 import com.qendolin.betterclouds.mixin.runtime.GlBackendAccessor;
-import com.qendolin.betterclouds.mixin.runtime.GlResourceManagerAccessor;
+import com.qendolin.betterclouds.mixin.runtime.GlCommandEncoderAccessor;
 import net.minecraft.client.texture.GlTexture;
+import org.joml.Matrix4f;
+import org.joml.Matrix4fc;
 //?} else {
 /*import com.mojang.blaze3d.platform.GlStateManager;
-*///?}
+ *///?}
 
 
-public interface RenderHelper {
+public abstract class RenderHelper {
 
-    static int getTextureId(AbstractTexture texture) {
+    private static Matrix4f projectionMatrix = new Matrix4f().identity();
+    private static Matrix4f viewMatrix = new Matrix4f().identity();
+
+    public static int getTextureId(AbstractTexture texture) {
         //? if >=1.21.5 {
         if (texture.getGlTexture() instanceof GlTexture glTexture) {
-            // yarn name is getGlId, but there is a conflict with iris
-            return glTexture.glId();
+            return glTexture.getGlId();
         } else {
             throw new IllegalStateException("Texture is not a GlTexture");
         }
         //?} else {
         /*return texture.getGlId();
-        *///?}
+         *///?}
     }
 
     //? if >=1.21.5 {
-    static int getTextureId(GpuTexture texture) {
+    public static int getTextureId(GpuTexture texture) {
         if (texture instanceof GlTexture glTexture) {
-            return glTexture.glId();
+            return glTexture.getGlId();
         } else {
             throw new IllegalStateException("Texture is not a GlTexture");
         }
     }
     //?}
 
-    static void bindTexture(AbstractTexture texture) {
+    public static void bindTexture(AbstractTexture texture) {
         bindTexture(getTextureId(texture));
     }
 
     //? if >=1.21.5 {
-    static void bindTexture(GpuTexture texture) {
+    public static void bindTexture(GpuTexture texture) {
         bindTexture(getTextureId(texture));
     }
     //?}
 
-    static void bindTexture(int id) {
+    public static void bindTexture(int id) {
         GlStateManager._bindTexture(id);
     }
 
-
-    static Fog getFog() {
-        //? if >=1.21.3 {
-        var fog = RenderSystem.getShaderFog();
-        return new Fog(fog);
-        //?} else {
-        /*float[] color = RenderSystem.getShaderFogColor();
-        return new Fog(RenderSystem.getShaderFogStart(), RenderSystem.getShaderFogEnd(), RenderSystem.getShaderFogShape(), color[0], color[1], color[2], color[3]);
-        *///?}
-    }
-
-    record Fog(float start, float end, FogShape shape, float red, float green, float blue, float alpha) {
-        public void apply() {
-            //? if >=1.21.3 {
-            RenderSystem.setShaderFog(new net.minecraft.client.render.Fog(start, end, shape, red, green, blue, alpha));
-            //?} else {
-            /*RenderSystem.setShaderFogStart(start);
-            RenderSystem.setShaderFogEnd(end);
-            RenderSystem.setShaderFogShape(shape);
-            RenderSystem.setShaderFogColor(red, green, blue, alpha);
-            *///?}
-        }
-
-        //? if >=1.21.3 {
-        public Fog(net.minecraft.client.render.Fog fog) {
-            this(fog.start(), fog.end(), fog.shape(), fog.red(), fog.green(), fog.blue(), fog.alpha());
-        }
-        //?}
-    }
-
-    static void unbindShader() {
+    public static void unbindShader() {
         //? if >=1.21.5 {
         var backend = (GlBackendAccessor) RenderSystem.getDevice();
-        var resourceManager = (GlResourceManagerAccessor) backend.getCommandEncoder();
-        var current = resourceManager.getCurrentProgram();
-        if(current != null)
+        var commandEncoder = (GlCommandEncoderAccessor) backend.getCommandEncoder();
+        var current = commandEncoder.getCurrentProgram();
+        //? if =1.21.5 {
+        /*if (current != null)
             current.unbind();
-        resourceManager.setCurrentProgram(null);
-        resourceManager.setCurrentPipeline(null);
+        *///?}
+        commandEncoder.setCurrentProgram(null);
+        commandEncoder.setCurrentPipeline(null);
         //?} else if >=1.21.3 {
         /*var current = RenderSystem.getShader();
         if(current != null)
             current.unbind();
         RenderSystem.setShader((net.minecraft.client.gl.ShaderProgram) null);
+        
         *///?} else {
         /*var current = RenderSystem.getShader();
         if(current != null)
@@ -105,4 +81,30 @@ public interface RenderHelper {
         RenderSystem.setShader(() -> null);
         *///?}
     }
+
+    public static Matrix4f getProjectionMatrix() {
+        //? if >=1.21.5 {
+        return projectionMatrix;
+        //?} else {
+        /*return RenderSystem.getProjectionMatrix();
+         *///?}
+    }
+
+    public static Matrix4f getViewMatrix() {
+        //? if >=1.21.5 {
+        return viewMatrix;
+        //?} else {
+        /*return RenderSystem.getProjectionMatrix();
+         *///?}
+    }
+
+    //? if >=1.21.5 {
+    public static void setProjectionMatrix(Matrix4f matrix) {
+        projectionMatrix = matrix;
+    }
+
+    public static void setViewMatrix(Matrix4f matrix) {
+        viewMatrix = matrix;
+    }
+    //?}
 }

@@ -2,6 +2,7 @@ package com.qendolin.betterclouds.clouds;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.BetterCloudsStatic;
+import com.qendolin.betterclouds.clouds.fog.FogProvider;
 import com.qendolin.betterclouds.clouds.shaders.ShaderParameters;
 import com.qendolin.betterclouds.compat.ArsNouveauCompat;
 import com.qendolin.betterclouds.compat.DistantHorizonsCompat;
@@ -139,7 +140,11 @@ public class Renderer implements AutoCloseable {
         }
 
         DimensionEffects effects = world.getDimensionEffects();
-        cloudsHeight = effects.getCloudsHeight();
+        //? if >=1.21.6 {
+        cloudsHeight = world.getDimension().cloudHeight().orElse(192);
+        //?} else {
+        /*cloudsHeight = effects.getCloudsHeight();
+        *///?}
 
         res.generator().bind();
         ShaderParameters currentShaderParameters = createShaderParameters(config);
@@ -214,7 +219,7 @@ public class Renderer implements AutoCloseable {
             res.reloadFramebuffer(scaledFramebufferWidth(), scaledFramebufferHeight());
         }
 
-        RenderHelper.Fog fog = FogProvider.getFog(client, config, tickDelta);
+        FogProvider.Fog fog = FogProvider.instance.getFog(client, config, tickDelta);
 
         // Render clouds to our framebuffer
         getProfiler().swap("draw_coverage");
@@ -272,7 +277,7 @@ public class Renderer implements AutoCloseable {
         return res.fboWidth() != scaledFramebufferWidth() || res.fboHeight() != scaledFramebufferHeight();
     }
 
-    private void drawCoverage(float ticks, Vector3d cam, Vector3d frustumPos, Frustum frustum, RenderHelper.Fog fog) {
+    private void drawCoverage(float ticks, Vector3d cam, Vector3d frustumPos, Frustum frustum, FogProvider.Fog fog) {
         GlStateManager._enableDepthTest();
         GlStateManager._colorMask(true, true, true, true);
         GlStateManager._depthMask(true);
@@ -418,7 +423,7 @@ public class Renderer implements AutoCloseable {
         glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), count, start);
     }
 
-    private void drawShading(float tickDelta, RenderHelper.Fog fog) {
+    private void drawShading(float tickDelta, FogProvider.Fog fog) {
         Config config = ConfigManager.instance();
         GlStateManager._depthFunc(GL_LEQUAL);
 

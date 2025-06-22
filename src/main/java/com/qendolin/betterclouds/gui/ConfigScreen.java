@@ -75,9 +75,11 @@ public class ConfigScreen extends YACLScreen {
     //? if >=1.20.6 {
         if (client == null || client.world == null) {
             this.renderPanoramaBackground(context, delta);
-            //? if >=1.21.3 {
-            this.applyBlur();
-            //?} else {
+            //? if >=1.21.5 {
+            this.applyBlur(context);
+            //?} else if >=1.21.3 {
+            /*this.applyBlur();
+            *///?} else {
             /*this.applyBlur(delta);
             *///?}
         }

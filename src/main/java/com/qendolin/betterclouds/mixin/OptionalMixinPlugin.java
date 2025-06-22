@@ -6,9 +6,6 @@ public class OptionalMixinPlugin extends MixinPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
-        if (mixinClassName.endsWith("DimensionEffectsOverworldMixin")) {
-            return ModLoaded.SODIUM_EXTRA;
-        }
         if (mixinClassName.endsWith("BackgroundRendererMixinMixin")) {
             return ModLoaded.SODIUM_EXTRA;
         }

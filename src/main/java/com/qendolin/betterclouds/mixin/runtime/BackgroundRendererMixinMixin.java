@@ -1,6 +1,7 @@
-package com.qendolin.betterclouds.mixin.optional;
+package com.qendolin.betterclouds.mixin.runtime;
 
-import com.bawnorton.mixinsquared.TargetHandler;
+//? if <1.21.6 {
+/*import com.bawnorton.mixinsquared.TargetHandler;
 import com.qendolin.betterclouds.BetterClouds;
 import com.qendolin.betterclouds.compat.SodiumExtraCompat;
 import net.minecraft.client.render.BackgroundRenderer;
@@ -10,13 +11,14 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+@SuppressWarnings("UnusedMixin")
 @Mixin(value = BackgroundRenderer.class, priority = 1500)
 public class BackgroundRendererMixinMixin {
 
     // For 1.21 (and .1 unofficially) sodium extra 0.5 and 0.6 exist, thats why both are needed
 
     //? if <=1.21.1 {
-    /*@TargetHandler(
+    /^@TargetHandler(
         mixin = "me.flashyreese.mods.sodiumextra.mixin.fog.MixinBackgroundRenderer",
         name = "applyFog"
     )
@@ -29,7 +31,7 @@ public class BackgroundRendererMixinMixin {
     private static void preventFogModification5(CallbackInfo ci) {
         preventFogModificationCommon(ci);
     }
-    *///?}
+    ^///?}
 
     //? if >=1.21 {
     @TargetHandler(
@@ -55,3 +57,4 @@ public class BackgroundRendererMixinMixin {
         }
     }
 }
+*///?}

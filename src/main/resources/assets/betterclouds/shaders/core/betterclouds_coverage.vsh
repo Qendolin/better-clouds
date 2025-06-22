@@ -71,8 +71,12 @@ void main() {
     vec3 localWorldVertexPos = vertexPos - u_origin_offset;
 
     // Due to the limited max depth this can sometimes result in issues but they're barely visible
-    pass_color.r = linearFogFade(length(localWorldVertexPos.xz), u_fog_range.x, u_fog_range.y);
+    //? if >=1.21.6 {
+    pass_color.r = linearFogFade(length(localWorldVertexPos.xyz), u_fog_range.x, u_fog_range.y);
+    //?} else {
+    /*pass_color.r = linearFogFade(length(localWorldVertexPos.xz), u_fog_range.x, u_fog_range.y);
     pass_color.r *= linearFogFade(abs(localWorldVertexPos.y), u_fog_range.y-16, u_fog_range.y);
+    *///?}
 
 #if POSITIONAL_COLORING
     pass_color.g = (scale.y * 0.625 * (in_vert.y+0.375) + in_pos.y) / (u_bounding_box.w);

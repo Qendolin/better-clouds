@@ -17,6 +17,7 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.MathHelper;
+import org.joml.Matrix3x2fStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -148,8 +149,12 @@ public class SelectController<T> implements Controller<Integer> {
         protected void drawList(DrawContext context) {
             if ((!isMouseInteracted() && !isFocused()) || !isAvailable()) return;
 
-            context.getMatrices().push();
+            //? if >=1.21.6 {
+            context.getMatrices().pushMatrix();
+            //?} else {
+            /*context.getMatrices().push();
             context.getMatrices().translate(0, 0, 100);
+            *///?}
 
             List<Text> values = control.formatValues();
             Dimension<Integer> dim = getExpandedBounds();
@@ -174,7 +179,11 @@ public class SelectController<T> implements Controller<Integer> {
                 }
                 context.drawTextWithShadow(textRenderer, text, x, y, getValueColor());
             }
-            context.getMatrices().pop();
+            //? if >=1.21.6 {
+            context.getMatrices().popMatrix();
+            //?} else {
+            /*context.getMatrices().pop();
+            *///?}
         }
 
         @SuppressWarnings("BooleanMethodIsAlwaysInverted")
@@ -193,17 +202,31 @@ public class SelectController<T> implements Controller<Integer> {
         @Override
         protected void drawHoveredControl(DrawContext context, int mouseX, int mouseY, float delta) {
             Dimension<Integer> dim = getDimension();
-            MatrixStack matrices = context.getMatrices();
+            //? if >=1.21.6 {
+            Matrix3x2fStack matrices = context.getMatrices();
+            matrices.pushMatrix();
+            //?} else {
+            /*MatrixStack matrices = context.getMatrices();
             matrices.push();
+            *///?}
             int arrowWidth = textRenderer.getWidth(UP_ARROW);
-            matrices.translate(getDimension().xLimit() - getXPadding() - ARROW_SPACE / 2f, dim.y() + dim.height() / 2f, 0);
+            //? if >=1.21.6 {
+            matrices.translate(getDimension().xLimit() - getXPadding() - ARROW_SPACE / 2f, dim.y() + dim.height() / 2f);
+            matrices.scale(1.5f, 1f);
+            //?} else {
+            /*matrices.translate(getDimension().xLimit() - getXPadding() - ARROW_SPACE / 2f, dim.y() + dim.height() / 2f, 0);
             matrices.scale(1.5f, 1f, 1);
+            *///?}
             int hoveredArrow = getHoveredArrow(mouseX, mouseY);
             context.drawText(textRenderer, UP_ARROW, -arrowWidth / 2, -textRenderer.fontHeight + 1, 0xff404040, false);
             context.drawText(textRenderer, DOWN_ARROW, -arrowWidth / 2, 1, 0xff404040, false);
             context.drawText(textRenderer, UP_ARROW, -arrowWidth / 2, -textRenderer.fontHeight + 2, hoveredArrow == -1 ? -1 : 0xffc0c0c0, false);
             context.drawText(textRenderer, DOWN_ARROW, -arrowWidth / 2, 0, hoveredArrow == 1 ? -1 : 0xffc0c0c0, false);
-            matrices.pop();
+            //? if >=1.21.6 {
+            matrices.popMatrix();
+            //?} else {
+            /*matrices.pop();
+            *///?}
         }
 
         protected int getHoveredArrow(int mouseX, int mouseY) {
@@ -214,11 +237,19 @@ public class SelectController<T> implements Controller<Integer> {
 
         @Override
         protected void drawValueText(DrawContext context, int mouseX, int mouseY, float delta) {
-            context.getMatrices().push();
+            //? if >=1.21.6 {
+            context.getMatrices().pushMatrix();
+            if (isHovered())
+                context.getMatrices().translate(-ARROW_SPACE - getXPadding(), 0);
+            super.drawValueText(context, mouseX, mouseY, delta);
+            context.getMatrices().popMatrix();
+            //?} else {
+            /*context.getMatrices().push();
             if (isHovered())
                 context.getMatrices().translate(-ARROW_SPACE - getXPadding(), 0, 0);
             super.drawValueText(context, mouseX, mouseY, delta);
             context.getMatrices().pop();
+            *///?}
         }
 
         @Override

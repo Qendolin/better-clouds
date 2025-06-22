@@ -1,6 +1,7 @@
 package com.qendolin.betterclouds.clouds;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.qendolin.betterclouds.util.RenderHelper;
 import net.minecraft.client.render.*;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.Box;
@@ -63,8 +64,8 @@ public class Debug {
         drawFrustumCulledBoxes(vertices, cam);
 
         res.debugShader().bind();
-        res.debugShader().uModelViewMatrix.setMat4(RenderSystem.getModelViewMatrix());
-        res.debugShader().uProjectionMatrix.setMat4(RenderSystem.getProjectionMatrix());
+        res.debugShader().uModelViewMatrix.setMat4(RenderHelper.getViewMatrix());
+        res.debugShader().uProjectionMatrix.setMat4(RenderHelper.getProjectionMatrix());
 
         var built = vertices.endNullable();
         if (built != null) {

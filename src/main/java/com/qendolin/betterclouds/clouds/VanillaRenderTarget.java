@@ -4,6 +4,7 @@ package com.qendolin.betterclouds.clouds;
 import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.config.Config;
 import net.minecraft.client.MinecraftClient;
+import java.util.function.Supplier;
 
 //? if >=1.21.5 {
 import com.mojang.blaze3d.systems.RenderPass;
@@ -19,6 +20,7 @@ import com.qendolin.betterclouds.mixin.runtime.RenderPhaseAccessor;
 public class VanillaRenderTarget {
 
     private final MinecraftClient client;
+    private static final Supplier<String> RENDER_PASS_LABEL = () -> "BetterClouds";
 
     private final boolean useIris;
     //? if >=1.21.5 {
@@ -45,7 +47,12 @@ public class VanillaRenderTarget {
         //? if >=1.21.5 {
         renderPass = RenderSystem.getDevice()
             .createCommandEncoder()
-            .createRenderPass(framebuffer.getColorAttachment(), OptionalInt.empty(), framebuffer.getDepthAttachment(), OptionalDouble.empty());
+            /*? if >=1.21.6 {*/
+            .createRenderPass(RENDER_PASS_LABEL, framebuffer.getColorAttachmentView(), OptionalInt.empty(), framebuffer.getDepthAttachmentView(), OptionalDouble.empty());
+            /*?} else {*/
+            /*.createRenderPass(framebuffer.getColorAttachment(), OptionalInt.empty(), framebuffer.getDepthAttachment(), OptionalDouble.empty());
+            *//*?}*/
+
         //?} else {
         /*framebuffer.beginWrite(false);
         renderPhase = RenderPhaseAccessor.getCloudsTarget();

@@ -1,6 +1,7 @@
-package com.qendolin.betterclouds.mixin.required;
+package com.qendolin.betterclouds.mixin.runtime;
 
-import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+//? if <1.21.6 {
+/*import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.qendolin.betterclouds.BetterClouds;
 import com.qendolin.betterclouds.compat.ModLoaded;
 import com.qendolin.betterclouds.config.ConfigManager;
@@ -8,6 +9,7 @@ import net.minecraft.client.render.DimensionEffects;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
+@SuppressWarnings("UnusedMixin")
 @Mixin(DimensionEffects.class)
 public abstract class DimensionEffectsMixin {
 
@@ -25,3 +27,4 @@ public abstract class DimensionEffectsMixin {
         return value + ConfigManager.instance().yOffset;
     }
 }
+*///?}
