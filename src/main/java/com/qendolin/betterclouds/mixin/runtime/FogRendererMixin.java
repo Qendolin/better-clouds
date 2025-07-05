@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds.mixin.runtime;
 
-//? if =1.21.6 {
+//? if =1.21.6 || = 1.21.7 {
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;

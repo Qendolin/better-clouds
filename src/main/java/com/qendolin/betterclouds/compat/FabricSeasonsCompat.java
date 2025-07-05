@@ -2,6 +2,8 @@ package com.qendolin.betterclouds.compat;
 
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.FabricSeasonsConfig;
+import com.qendolin.betterclouds.platform.ModLoader;
+import com.qendolin.betterclouds.platform.ModVersion;
 import net.minecraft.world.World;
 
 import java.util.Map;
@@ -18,6 +20,8 @@ public abstract class FabricSeasonsCompat {
     private static FabricSeasonsCompat instance;
     private static boolean isActive = false;
 
+    private static final ModVersion.SemVer MINIMUM_VERSION = new ModVersion.SemVer(2, 4, 0);
+
 
     public static void initialize() {
         if (instance != null) return;
@@ -30,6 +34,11 @@ public abstract class FabricSeasonsCompat {
 
         BetterCloudsStatic.getLogger().info("FabricSeasons: initializing compat");
 
+        if(ModLoader.getModVersion("seasons").asSemVer().map(version -> version.compareTo(MINIMUM_VERSION) >= 0).orElse(false)) {
+            BetterCloudsStatic.getLogger().error("FabricSeasons version not compatible, minimum required is {}", MINIMUM_VERSION);
+            instance = new Stub();
+            return;
+        }
 
         try {
             instance = new FabricSeasonsCompatImpl();

@@ -78,6 +78,14 @@ public abstract class ModVersion {
         public final String build;
         public final String prerelease;
 
+        public SemVer(int major, int minor, int patch) {
+            this.major = major;
+            this.minor = minor;
+            this.patch = patch;
+            this.build = "";
+            this.prerelease = "";
+        }
+
         public SemVer(int major, int minor, int patch, String build, String prerelease) {
             this.major = major;
             this.minor = minor;
@@ -96,6 +104,19 @@ public abstract class ModVersion {
             if(patch < o.patch) return -1;
             if(patch > o.patch) return 1;
             return 0;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append(major).append('.').append(minor).append('.').append(patch);
+            if (!prerelease.isEmpty()) {
+                sb.append('-').append(prerelease);
+            }
+            if (!build.isEmpty()) {
+                sb.append('+').append(build);
+            }
+            return sb.toString();
         }
     }
 }
