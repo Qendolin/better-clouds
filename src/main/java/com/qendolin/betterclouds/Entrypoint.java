@@ -10,6 +10,7 @@ public final class Entrypoint implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         EventHooks.instance = new EventHooksImpl();
+        BetterClouds.initializeClientEarly();
         BetterClouds.initializeClientEvents();
         BetterClouds.initializeClient();
     }
@@ -23,6 +24,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 
 import java.util.function.BiFunction;
@@ -32,6 +34,7 @@ public final class Entrypoint {
     public Entrypoint(IEventBus modEventBus) {
         EventHooks.instance = new EventHooksImpl(modEventBus);
 
+        BetterClouds.initializeClientEarly();
         BetterClouds.initializeClientEvents();
 
         modEventBus.addListener(FMLClientSetupEvent.class, event -> {
@@ -68,6 +71,7 @@ public final class Entrypoint {
     public Entrypoint(FMLJavaModLoadingContext context) {
         EventHooks.instance = new EventHooksImpl(context.getModEventBus());
 
+        BetterClouds.initializeClientEarly();
         BetterClouds.initializeClientEvents();
 
         context.getModEventBus().<FMLClientSetupEvent>addListener(event -> {

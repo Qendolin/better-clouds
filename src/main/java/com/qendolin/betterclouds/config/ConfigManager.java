@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ConfigManager {
     public static final Path CONFIG_PATH = ModLoader.getConfigDir().resolve("betterclouds-v1.json");

@@ -16,6 +16,7 @@ public abstract class BetterCloudsStatic {
     protected static NamedLogger logger = new NamedLogger(LogManager.getLogger("BetterClouds/PreLaunch"), !IS_DEV);
     protected static ModVersion version = null;
     protected static boolean initialized = false;
+    protected static boolean initializedEarly = false;
 
     public static boolean isInitialized() {
         return initialized;

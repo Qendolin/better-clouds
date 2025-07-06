@@ -33,17 +33,25 @@ public class BetterClouds extends BetterCloudsStatic {
         PreLaunchGuard.check();
     }
 
-    public static void initializeClient() {
+    public static void initializeClientEarly() {
         if (!BetterCloudsStatic.IS_CLIENT)
-            throw new IllegalStateException("Minecraft environment is not 'client' but the client initializer was called");
-        if (isInitialized()) return;
-        initialized = true;
+            throw new IllegalStateException("Minecraft environment is not 'client' but the early client initializer was called");
+        if (initializedEarly) return;
+        initializedEarly = true;
+
         logger = new NamedLogger(LogManager.getLogger("BetterClouds"), !IS_DEV);
 
         ConfigManager.initialize();
         ConfigManager.loadWithFailureBackup();
 
         version = ModLoader.getModVersion(BetterCloudsStatic.MODID);
+    }
+
+    public static void initializeClient() {
+        if (!BetterCloudsStatic.IS_CLIENT)
+            throw new IllegalStateException("Minecraft environment is not 'client' but the client initializer was called");
+        if (isInitialized()) return;
+        initialized = true;
 
         YACLCompat.initialize();
         DistantHorizonsCompat.initialize();
