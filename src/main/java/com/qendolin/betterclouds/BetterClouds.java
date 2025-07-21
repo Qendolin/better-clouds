@@ -114,10 +114,12 @@ public class BetterClouds extends BetterCloudsStatic {
         return null;
     }
 
-
     public static boolean isEnabled() {
-        if (!ConfigManager.isInitialized()) return true;
-        return ConfigManager.instance().enabled;
+        if (!ConfigManager.isInitialized()) return false;
+        Config config = ConfigManager.instance();
+        if(!config.enabled) return false;
+        if(!config.irisSupport && IrisCompat.instance().isShadersEnabled()) return false;
+        return true;
     }
 
     @Deprecated

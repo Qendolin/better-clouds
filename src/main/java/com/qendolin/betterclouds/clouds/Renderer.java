@@ -124,10 +124,6 @@ public class Renderer implements AutoCloseable {
             if (RenderDoc.isFrameCapturing()) glCompat.debugMessage("prepare failed: critical resource not loaded");
             return PrepareResult.FALLBACK;
         }
-        if (!config.irisSupport && IrisCompat.instance().isShadersEnabled()) {
-            if (RenderDoc.isFrameCapturing()) glCompat.debugMessage("prepare failed: iris support disabled");
-            return PrepareResult.FALLBACK;
-        }
 
         // Rendering clouds when underwater was making them very visible in unloaded chunks
         if (client.gameRenderer.getCamera().getSubmersionType() != CameraSubmersionType.NONE) {
