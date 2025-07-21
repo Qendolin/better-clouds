@@ -335,6 +335,7 @@ public class Resources implements Closeable {
     }
 
     public void reloadShaders(ResourceManager manager, ShaderParameters shaderParameters) {
+        RenderHelper.saveShader();
         try {
             reloadShadersInternal(manager, shaderParameters);
         } catch (Exception e) {
@@ -343,7 +344,7 @@ public class Resources implements Closeable {
             Telemetry.INSTANCE.sendShaderCompileError(e.toString());
             deleteShaders();
         }
-        RenderHelper.unbindShader();
+        RenderHelper.restoreShader();
     }
 
     protected void reloadShadersInternal(ResourceManager manager, ShaderParameters shaderParameters) throws IOException {

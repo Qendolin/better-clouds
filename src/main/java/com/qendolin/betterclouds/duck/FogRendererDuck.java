@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds.duck;
 
-//? if =1.21.6 || = 1.21.7 {
+//? if >=1.21.6 && <1.22.0 {
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.RenderTickCounter;

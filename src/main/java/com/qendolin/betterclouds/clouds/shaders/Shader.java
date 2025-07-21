@@ -1,8 +1,6 @@
 package com.qendolin.betterclouds.clouds.shaders;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.qendolin.betterclouds.BetterCloudsStatic;
-import com.qendolin.betterclouds.compat.GLCompat;
 import com.qendolin.betterclouds.util.RenderHelper;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
@@ -90,10 +88,6 @@ public class Shader implements AutoCloseable {
 
     public int glId() {
         return programId;
-    }
-
-    public void unbind() {
-        RenderHelper.unbindShader();
     }
 
     protected Uniform getUniform(String name, boolean cached) {

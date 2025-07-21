@@ -211,8 +211,13 @@ public class Renderer implements AutoCloseable {
                 res.timer().start();
         }
 
-        // Unbind vanilla shader, this is for compatability
-        RenderHelper.unbindShader();
+        // Unbind vanilla shader, this is for compatability (with iris)
+        //? if <1.21.6 {
+        /*RenderHelper.unbindShader();
+        *///?}
+        RenderHelper.saveShader();
+        RenderHelper.saveColorMask();
+        RenderHelper.saveDepthMask();
 
         Config config = ConfigManager.instance();
         if (isFramebufferStale()) {
@@ -247,10 +252,13 @@ public class Renderer implements AutoCloseable {
         res.generator().unbind();
         GlStateManager._disableBlend();
         GlStateManager._enableDepthTest();
-        GlStateManager._depthMask(true);
+        RenderHelper.depthMask(true);
+        RenderHelper.restoreDepthMask();
         GlStateManager._depthFunc(GL_LEQUAL);
         GlStateManager._activeTexture(GL_TEXTURE0);
-        GlStateManager._colorMask(true, true, true, true);
+        RenderHelper.colorMask(true, true, true, true);
+        RenderHelper.restoreColorMask();
+        RenderHelper.restoreShader();
 
         if (!glCompat.useStencilTextureFallback()) {
             glDisable(GL_STENCIL_TEST);
@@ -279,8 +287,8 @@ public class Renderer implements AutoCloseable {
 
     private void drawCoverage(float ticks, Vector3d cam, Vector3d frustumPos, Frustum frustum, FogProvider.Fog fog) {
         GlStateManager._enableDepthTest();
-        GlStateManager._colorMask(true, true, true, true);
-        GlStateManager._depthMask(true);
+        RenderHelper.colorMask(true, true, true, true);
+        RenderHelper.depthMask(true);
         glEnable(GL_DEPTH_CLAMP);
 
         if (glCompat.useStencilTextureFallback()) {
@@ -428,7 +436,7 @@ public class Renderer implements AutoCloseable {
         GlStateManager._depthFunc(GL_LEQUAL);
 
         if (!glCompat.useDepthWriteFallback()) {
-            GlStateManager._depthMask(true);
+            RenderHelper.depthMask(true);
             GlStateManager._enableDepthTest();
         } else {
             GlStateManager._disableDepthTest();
@@ -440,7 +448,7 @@ public class Renderer implements AutoCloseable {
         GlStateManager._blendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
         glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
-        GlStateManager._colorMask(false, false, false, false);
+        RenderHelper.colorMask(false, false, false, false);
         glColorMaski(0, true, true, true, true);
         if (!glCompat.useStencilTextureFallback()) {
             glDisable(GL_STENCIL_TEST);
@@ -484,7 +492,7 @@ public class Renderer implements AutoCloseable {
         glDrawArrays(GL_TRIANGLES, 0, Mesh.CUBE_MESH_VERTEX_COUNT);
 
         if (glCompat.useDepthWriteFallback()) {
-            GlStateManager._colorMask(false, false, false, false);
+            RenderHelper.colorMask(false, false, false, false);
             GlStateManager._activeTexture(GL_TEXTURE6);
             RenderHelper.bindTexture(res.oitCoverageDepthTexture());
             glTexParameteri(GL_TEXTURE_2D, glCompat.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_DEPTH_COMPONENT);
