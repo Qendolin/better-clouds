@@ -1,6 +1,6 @@
 plugins {
     id "dev.kikugie.stonecutter"
-    id "com.modrinth.minotaur" version "2.+" apply false
+    id "me.modmuss50.mod-publish-plugin" version "0.8.4" apply false
     id "dev.architectury.loom" version "1.10-SNAPSHOT" apply false
     id "architectury-plugin" version "3.4-SNAPSHOT" apply false
     id "com.github.johnrengelman.shadow" version "8.1.1" apply false
@@ -27,9 +27,9 @@ stonecutter.registerChiseled tasks.register("chiseledRunClientTest", stonecutter
     ofTask "runClientTest"
 }
 
-stonecutter.registerChiseled tasks.register("chiseledModrinth", stonecutter.chiseled) {
+stonecutter.registerChiseled tasks.register("chiseledPublishMods", stonecutter.chiseled) {
     setGroup "project"
-    ofTask "modrinth"
+    ofTask "publishMods"
 
     doLast {
         new File(rootProject.absoluteProjectPath("changelog.txt")).delete()

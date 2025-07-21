@@ -5,7 +5,7 @@ import net.fabricmc.loom.configuration.ide.RunConfigSettings
 plugins {
 	id "dev.architectury.loom" version "1.10-SNAPSHOT"
 	id "architectury-plugin" version "3.4-SNAPSHOT"
-	id "com.modrinth.minotaur"
+	id "me.modmuss50.mod-publish-plugin"
 }
 
 apply from: rootProject.file('common.gradle').path
@@ -339,11 +339,11 @@ if (stonecutter.current.active) {
 		group = "project"
 		dependsOn(tasks.named("remapJar"))
 	}
-	rootProject.tasks.register("activeModrinth") {
+	rootProject.tasks.register("activePublishMods") {
 		group = "project"
-		dependsOn(tasks.named("modrinth"))
+		dependsOn(tasks.named("publishMods"))
 	}
-	rootProject.tasks.named("activeModrinth") {
+	rootProject.tasks.named("activePublishMods") {
 		doLast {
 			new File(rootProject.absoluteProjectPath("changelog.txt")).delete()
 		}
@@ -372,30 +372,30 @@ jar {
 	}
 }
 
-modrinth { // Make sure it runs after build!
-	var loaderName = loom.platform.get().displayName
-	var releaseName = property('mod.release').toString().capitalize()
-	var releaseLetter = property('mod.release').toString().toLowerCase().substring(0, 1)
-
+publishMods {
 	def secrets = new Properties()
-
 	project.rootProject.file("secrets.properties").withInputStream {
-		stream -> secrets.load(stream)
+		secrets.load(it)
 	}
 
-	//noinspection GroovyAssignabilityCheck
-	changelog = project.provider {
+	var releaseName = property('mod.release').toString().capitalize()
+	def releaseType = property("mod.release").toString().toUpperCase()
+	def releaseLetter = releaseType.substring(0, 1).toLowerCase()
+	def loaderName = loom.platform.get().displayName
+	def modVersion = property("mod.version").toString()
+	def mcVersions = findProperty("deps.minecraft").toString().split(",").collect { it.trim().replace(".0", "") }
+
+	def changelogProvider = provider {
 		def file = rootProject.file("changelog.txt")
 		def lock = rootProject.file("changelog.txt.lock")
 		if (lock.createNewFile()) {
 			println("Opening changelog in notepad")
 			file.createNewFile()
-			def process = new ProcessBuilder("notepad", file.absolutePath)
-					.start()
+			def process = new ProcessBuilder("notepad", file.absolutePath).start()
 			process.waitFor()
 			lock.delete()
 		} else {
-			println("Waiting changelog lock")
+			println("Waiting for changelog lock...")
 			while (lock.exists()) {
 				sleep(100)
 			}
@@ -410,35 +410,63 @@ modrinth { // Make sure it runs after build!
 		return changelog
 	}
 
-	token.set(secrets.MODRINTH as String)
-	projectId = '5srFLIaK'
-	// Will fail if Modrinth has this version alread
-	versionNumber = "${property('mod.version')}+${mcVersion}-${loader}-${releaseLetter}"
-	versionName = "${releaseName} ${property('mod.version')} for ${mcVersion} ${loaderName}"
-	versionType = "${property('mod.release')}"
-	uploadFile = remapJar
-	gameVersions = findProperty("deps.minecraft").toString().split(",").collect { trimSuffix(it, ".0") }
-	loaders.add(loader)
-	dependencies {
-		// A special DSL for creating dependencies
-		// scope.type
-		// The scope can be `required`, `optional`, `incompatible`, or `embedded`
-		// The type can either be `project` or `version`
-		required.version "yacl", "${property('deps.yacl')}-${loader}"
+	file = remapJar.archiveFile
+	changelog = changelogProvider
+	version = "${modVersion}+${mcVersion}-${loader}-${releaseLetter}"
+	type = releaseType.toUpperCase()
+	displayName = "${releaseName} ${modVersion} for ${mcVersion} ${loaderName}"
+	modLoaders.add(loader)
 
+	modrinth {
+		accessToken = providers.provider { secrets.getProperty("MODRINTH") }
+		projectId = "5srFLIaK"
+		minecraftVersions.addAll(mcVersions)
+
+		requires("yacl")
 		if (isFabric) {
-			required.project "fabric-api"
-			optional.project "modmenu"
-			incompatible.project "vulkanmod"
-			incompatible.project "immersiveportals"
+			requires("fabric-api")
+			optional("modmenu")
+			incompatible("vulkanmod")
+			incompatible("immersiveportals")
 		}
 
 		if (isFabric || stonecutter.eval(mcVersion, ">=1.21")) {
-			optional.project "sodium"
-			optional.project "iris"
+			optional("sodium")
+			optional("iris")
 		} else {
-			optional.project "embeddium"
-			optional.project "oculus"
+			optional("embeddium")
+			optional("oculus")
+		}
+
+		projectDescription = providers.fileContents(layout.projectDirectory.file("readme.md")).asText
+	}
+
+	curseforge {
+		accessToken = providers.provider { secrets.getProperty("CURSEFORGE") }
+		projectId = "1285973"
+		projectSlug = "better-clouds"
+		minecraftVersions.addAll(mcVersions)
+
+		changelogType = "markdown"
+
+		javaVersions.add(JavaVersion.VERSION_17)
+		clientRequired = true
+		serverRequired = false
+
+		requires("yacl")
+		if (isFabric) {
+			requires("fabric-api")
+			optional("modmenu")
+			incompatible("vulkanmod")
+			incompatible("immersive-portals-mod")
+		}
+
+		if (isFabric || stonecutter.eval(mcVersion, ">=1.21")) {
+			optional("sodium")
+			optional("irisshaders")
+		} else {
+			optional("embeddium")
+			optional("oculus")
 		}
 	}
 }
