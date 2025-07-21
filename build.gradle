@@ -378,8 +378,14 @@ publishMods {
 		secrets.load(it)
 	}
 
-	var releaseName = property('mod.release').toString().capitalize()
-	def releaseType = property("mod.release").toString().toUpperCase()
+	def releaseType = property("mod.release").toString()
+	var releaseName = releaseType.capitalize()
+	def releaseTypeEnum = switch (releaseType.toLowerCase()) {
+		case "release", "stable" -> "STABLE"
+		case "beta"              -> "BETA"
+		case "alpha"             -> "ALPHA"
+		default                 -> throw new GradleException("Unknown release type: ${releaseType}")
+	}
 	def releaseLetter = releaseType.substring(0, 1).toLowerCase()
 	def loaderName = loom.platform.get().displayName
 	def modVersion = property("mod.version").toString()
@@ -413,7 +419,7 @@ publishMods {
 	file = remapJar.archiveFile
 	changelog = changelogProvider
 	version = "${modVersion}+${mcVersion}-${loader}-${releaseLetter}"
-	type = releaseType.toUpperCase()
+	type = releaseTypeEnum
 	displayName = "${releaseName} ${modVersion} for ${mcVersion} ${loaderName}"
 	modLoaders.add(loader)
 
