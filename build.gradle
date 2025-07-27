@@ -14,8 +14,8 @@ base {
 	archivesName = project.archives_base_name
 }
 
-var String loader = loom.platform.get().displayName.toLowerCase()
-var String mcVersion = stonecutter.current.version
+var loader = loom.platform.get().displayName.toLowerCase()
+var mcVersion = stonecutter.current.version
 
 var isFabric = loader == "fabric"
 var isNeoForge = loader == "neoforge"
@@ -380,12 +380,15 @@ publishMods {
 
 	def releaseType = property("mod.release").toString()
 	var releaseName = releaseType.capitalize()
-	def releaseTypeEnum = switch (releaseType.toLowerCase()) {
-		case "release", "stable" -> "STABLE"
-		case "beta"              -> "BETA"
-		case "alpha"             -> "ALPHA"
-		default                 -> throw new GradleException("Unknown release type: ${releaseType}")
-	}
+	def releaseTypeEnum = [
+			"release": "STABLE",
+			"stable" : "STABLE",
+			"beta"   : "BETA",
+			"alpha"  : "ALPHA"
+	][releaseType.toLowerCase()]
+	if (!releaseTypeEnum)
+		throw new GradleException("Unknown release type: ${releaseType}")
+
 	def releaseLetter = releaseType.substring(0, 1).toLowerCase()
 	def loaderName = loom.platform.get().displayName
 	def modVersion = property("mod.version").toString()
