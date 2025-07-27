@@ -1,6 +1,7 @@
 package com.qendolin.betterclouds.config;
 
 import com.qendolin.betterclouds.compat.BigGlobeCompat;
+import com.qendolin.betterclouds.compat.MiddleEarthCompat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +15,11 @@ public class Migrations {
         MIGRATIONS.add(config -> {
             if(!config.enabledDimensions.contains(BigGlobeCompat.DIMENSION_KEY)) {
                 config.enabledDimensions.add(BigGlobeCompat.DIMENSION_KEY);
+            }
+        });
+        MIGRATIONS.add(config -> {
+            if(!config.enabledDimensions.contains(MiddleEarthCompat.DIMENSION_KEY)) {
+                config.enabledDimensions.add(MiddleEarthCompat.DIMENSION_KEY);
             }
         });
     }
