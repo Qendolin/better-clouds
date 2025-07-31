@@ -7,6 +7,10 @@ import sereneseasons.api.season.ISeasonState;
 import sereneseasons.api.season.Season;
 import sereneseasons.api.season.SeasonHelper;
 
+import java.lang.reflect.Method;
+import java.util.Locale;
+import java.util.function.Function;
+
 public class SereneSeasonsCompatImpl extends SereneSeasonsCompat {
 
     private Season.SubSeason getRelativeSeason(Season.SubSeason season, int d) {
@@ -20,7 +24,8 @@ public class SereneSeasonsCompatImpl extends SereneSeasonsCompat {
     }
 
     private float getSeasonCloudiness(Season.SubSeason season) {
-        String key = season.asString();
+        // Instead of asString, because it is not available in old versions of the mod
+        String key = season.name().toLowerCase(Locale.ROOT);
         return SUB_SEASON_CLOUDINESS_LOOKUP.getOrDefault(key, config -> 1.0f)
             .apply(ConfigManager.instance().sereneSeasonsConfig);
     }

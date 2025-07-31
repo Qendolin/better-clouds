@@ -5,11 +5,11 @@ import net.irisshaders.iris.pipeline.programs.ExtendedShader;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(ExtendedShader.class)
+@Mixin(value = ExtendedShader.class, remap = false)
 public interface ExtendedShaderAccessor {
-    @Accessor(value = "writingToBeforeTranslucent", remap = false)
+    @Accessor(value = "writingToBeforeTranslucent")
     GlFramebuffer getWritingToBeforeTranslucent();
 
-    @Accessor(value = "writingToAfterTranslucent", remap = false)
+    @Accessor(value = "writingToAfterTranslucent")
     GlFramebuffer getWritingToAfterTranslucent();
 }

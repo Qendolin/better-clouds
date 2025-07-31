@@ -5,6 +5,7 @@ import com.qendolin.betterclouds.config.SereneSeasonsConfig;
 import net.minecraft.world.World;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
 public abstract class SereneSeasonsCompat {
@@ -23,12 +24,13 @@ public abstract class SereneSeasonsCompat {
         Map.entry("late_winter", config -> config.lateWinterCloudiness)
     );
 
+    private static final AtomicBoolean initialized = new AtomicBoolean(false);
     private static SereneSeasonsCompat instance;
     private static boolean isActive = false;
 
 
     public static void initialize() {
-        if (instance != null) return;
+        if (initialized.getAndSet(true)) return;
 
         if (!ModLoaded.SERENE_SEASONS) {
             BetterCloudsStatic.getLogger().info("SereneSeasons: not loaded");
@@ -63,6 +65,11 @@ public abstract class SereneSeasonsCompat {
     public abstract float getCloudinessFactor(World world);
 
     private static class Stub extends SereneSeasonsCompat {
+
+        static {
+            SereneSeasonsCompat.instance = new Stub();
+        }
+
         @Override
         public float getCloudinessFactor(World world) {
             return 1.0f;

@@ -7,6 +7,7 @@ import com.qendolin.betterclouds.platform.ModVersion;
 import net.minecraft.world.World;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
 public abstract class FabricSeasonsCompat {
@@ -17,6 +18,7 @@ public abstract class FabricSeasonsCompat {
         Map.entry("winter", config -> config.winterCloudiness)
     );
 
+    private static final AtomicBoolean initialized = new AtomicBoolean(false);
     private static FabricSeasonsCompat instance;
     private static boolean isActive = false;
 
@@ -24,7 +26,7 @@ public abstract class FabricSeasonsCompat {
 
 
     public static void initialize() {
-        if (instance != null) return;
+        if (initialized.getAndSet(true)) return;
 
         if (!ModLoaded.FABRIC_SEASONS) {
             BetterCloudsStatic.getLogger().info("FabricSeasons: not loaded");
@@ -34,7 +36,7 @@ public abstract class FabricSeasonsCompat {
 
         BetterCloudsStatic.getLogger().info("FabricSeasons: initializing compat");
 
-        if(ModLoader.getModVersion("seasons").asSemVer().map(version -> version.compareTo(MINIMUM_VERSION) >= 0).orElse(false)) {
+        if(!ModLoader.getModVersion("seasons").asSemVer().map(version -> version.compareTo(MINIMUM_VERSION) >= 0).orElse(false)) {
             BetterCloudsStatic.getLogger().error("FabricSeasons version not compatible, minimum required is {}", MINIMUM_VERSION);
             instance = new Stub();
             return;
@@ -64,6 +66,10 @@ public abstract class FabricSeasonsCompat {
     public abstract float getCloudinessFactor(World world);
 
     protected static class Stub extends FabricSeasonsCompat {
+
+        static {
+            FabricSeasonsCompat.instance = new Stub();
+        }
 
         @Override
         public float getCloudinessFactor(World world) {

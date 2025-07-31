@@ -4,13 +4,16 @@ import com.qendolin.betterclouds.BetterCloudsStatic;
 import net.minecraft.world.World;
 import org.joml.Vector3f;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public abstract class EnhancedCelestialsCompat {
 
+    private static final AtomicBoolean initialized = new AtomicBoolean(false);
     private static EnhancedCelestialsCompat instance;
     private static boolean isActive = false;
 
     public static void initialize() {
-        if (instance != null) return;
+        if (initialized.getAndSet(true)) return;
 
         if (!ModLoaded.ENHANCED_CELESTIALS) {
             BetterCloudsStatic.getLogger().info("EnhancedCelestials: not loaded");
@@ -81,6 +84,10 @@ public abstract class EnhancedCelestialsCompat {
     public abstract float getMoonSize(World world);
 
     private static class Stub extends EnhancedCelestialsCompat {
+        static {
+            EnhancedCelestialsCompat.instance = new Stub();
+        }
+        
         @Override
         public Vector3f getEventTint(World world) {
             return new Vector3f(1.0f, 1.0f, 1.0f);

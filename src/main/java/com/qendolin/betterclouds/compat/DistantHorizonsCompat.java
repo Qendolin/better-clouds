@@ -6,6 +6,7 @@ import org.joml.Matrix4f;
 import org.joml.Vector4f;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class DistantHorizonsCompat {
     // Used when DH is enabled, but some other issue prevents it from working as intended
@@ -17,11 +18,12 @@ public abstract class DistantHorizonsCompat {
         new Vector4f(0, 0, -1, 1)
     );
 
+    private static final AtomicBoolean initialized = new AtomicBoolean(false);
     private static DistantHorizonsCompat instance;
     private static boolean isActive = false;
 
     public static void initialize() {
-        if (instance != null) return;
+        if (initialized.getAndSet(true)) return;
 
         if (!ModLoaded.DISTANT_HORIZONS) {
             BetterCloudsStatic.getLogger().info("DistantHorizons: not loaded");
@@ -86,6 +88,11 @@ public abstract class DistantHorizonsCompat {
     public abstract void resetTextureCreateFlag();
 
     private static class Stub extends DistantHorizonsCompat {
+
+        static {
+            DistantHorizonsCompat.instance = new Stub();
+        }
+
         @Override
         public boolean isReady() {
             return false;

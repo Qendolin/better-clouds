@@ -47,7 +47,7 @@
   },
   "breaks": {
     "vulkanmod": "*",
-    "iris": "<1.7.0",
+    "iris": "<1.6.0",
     "immersive_portals": "*"
   }
 }

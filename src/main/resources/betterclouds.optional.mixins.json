@@ -5,8 +5,10 @@
   "plugin": "com.qendolin.betterclouds.mixin.OptionalMixinPlugin",
   "compatibilityLevel": "JAVA_17",
   "client": [
+    "ArsNouveauSkyTextureHandlerMixin",
     "ExtendedShaderAccessor",
+    "ExtendedShaderCoderbotAccessor",
     "FallbackShaderAccessor",
-    "ArsNouveauSkyTextureHandlerMixin"
+    "FallbackShaderCoderbotAccessor"
   ]
 }
