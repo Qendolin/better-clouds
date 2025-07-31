@@ -1,24 +1,25 @@
 package com.qendolin.betterclouds.mixin.runtime;
 
 //? if >=1.21.6 {
-import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.qendolin.betterclouds.BetterClouds;
 import com.qendolin.betterclouds.config.ConfigManager;
 import net.minecraft.world.dimension.DimensionType;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
 
 import java.util.Optional;
 
 @SuppressWarnings("UnusedMixin")
 @Mixin(DimensionType.class)
 public class DimensionTypeMixin {
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    @ModifyReturnValue(method = "cloudHeight", at = @At("RETURN"))
-    private Optional<Integer> addCloudsYOffset(Optional<Integer> original) {
-        if(original.isEmpty() || !BetterClouds.isEnabled()) return original;
+    // Have to use WrapMethod because of Sodium Extra
+    @WrapMethod(method = "cloudHeight")
+    private Optional<Integer> addCloudsYOffset(Operation<Optional<Integer>> original) {
+        var result = original.call();
+        if(result.isEmpty() || !BetterClouds.isEnabled()) return result;
 
-        return Optional.of(original.get() + (int) ConfigManager.instance().yOffset);
+        return Optional.of(result.get() + (int) ConfigManager.instance().yOffset);
     }
 }
 //?}
