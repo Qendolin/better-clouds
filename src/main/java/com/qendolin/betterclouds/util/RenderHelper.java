@@ -18,7 +18,6 @@ import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.textures.GpuTexture;
 import net.minecraft.client.texture.GlTexture;
 import org.lwjgl.opengl.GL32;
-
 //?} else {
 /*import com.mojang.blaze3d.platform.GlStateManager;
 *///?}
@@ -30,6 +29,9 @@ public abstract class RenderHelper {
     private static Matrix4f viewMatrix = new Matrix4f().identity();
 
     //? if >=1.21.6 {
+    public record FogDataAndColor(net.minecraft.client.render.fog.FogData fogData, org.joml.Vector4f color) {}
+    private static FogDataAndColor fogDataAndColor = null;
+
     private static int savedShaderId = 0;
     //?}
 
@@ -184,6 +186,14 @@ public abstract class RenderHelper {
 
     public static void setViewMatrix(Matrix4f matrix) {
         viewMatrix = matrix;
+    }
+
+    public static void setFogDataAndColor(FogDataAndColor data) {
+        fogDataAndColor = data;
+    }
+
+    public static FogDataAndColor getFogDataAndColor() {
+        return fogDataAndColor;
     }
     //?}
 }

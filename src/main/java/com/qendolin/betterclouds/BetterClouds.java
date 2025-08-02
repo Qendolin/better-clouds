@@ -18,10 +18,14 @@ import com.qendolin.betterclouds.util.NamedLogger;
 import com.qendolin.betterclouds.util.PreLaunchGuard;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.text.ClickEvent;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import org.apache.logging.log4j.LogManager;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 
+import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -96,6 +100,23 @@ public class BetterClouds extends BetterCloudsStatic {
                 CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
                     .execute(() -> client.execute(Commands::sendHardwareMaybeIncompatibleChatMessage));
             }
+            //? if >=1.21.6 {
+            if (ModLoaded.LUNAR) {
+                CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
+                    .execute(() -> client.execute(() -> {
+                        URI prismURL = URI.create("https://prismlauncher.org/");
+                        URI modrinthURL = URI.create("https://modrinth.com/app");
+                        ChatUtil.debugChatMessage(Text.literal("Lunar Client sucks! Use ")
+                            .append(Text.literal("[Prism]").styled(style -> style.withClickEvent(
+                                new ClickEvent.OpenUrl(prismURL)).withColor(Formatting.GREEN).withUnderline(true)))
+                                .append(Text.literal(" or ")
+                            .append(Text.literal("[Modrinth]").styled(style -> style.withClickEvent(
+                                new ClickEvent.OpenUrl(modrinthURL)).withColor(Formatting.GREEN).withUnderline(true)))
+                                    .append(" instead!"))
+                        );
+                    }));
+            }
+            //? }
             if (RenderDoc.isAvailable()) {
                 ChatUtil.debugChatMessage("renderdoc.load.ready", RenderDoc.getAPIVersion());
             }
@@ -117,8 +138,8 @@ public class BetterClouds extends BetterCloudsStatic {
     public static boolean isEnabled() {
         if (!ConfigManager.isInitialized()) return false;
         Config config = ConfigManager.instance();
-        if(!config.enabled) return false;
-        if(!config.irisSupport && IrisCompat.instance().isShadersEnabled()) return false;
+        if (!config.enabled) return false;
+        if (!config.irisSupport && IrisCompat.instance().isShadersEnabled()) return false;
         return true;
     }
 

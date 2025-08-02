@@ -33,7 +33,7 @@ public interface FogProvider {
             SodiumExtraCompat.PREVENT_FOG_MODIFICATION.set(false);
         }
 
-        if (fog.end == 0.0 || fog.end < fog.start) {
+        if (fog == null || fog.end == 0.0 || fog.end < fog.start) {
             // Assume fog is disabled
             return null;
         }
