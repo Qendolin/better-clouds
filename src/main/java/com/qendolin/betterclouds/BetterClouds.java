@@ -18,16 +18,19 @@ import com.qendolin.betterclouds.util.NamedLogger;
 import com.qendolin.betterclouds.util.PreLaunchGuard;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.ClickEvent;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import org.apache.logging.log4j.LogManager;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 
-import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+
+//? if >=1.21.6 {
+import net.minecraft.text.ClickEvent;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
+import java.net.URI;
+//?}
 
 import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
 
@@ -116,7 +119,7 @@ public class BetterClouds extends BetterCloudsStatic {
                         );
                     }));
             }
-            //? }
+            //?}
             if (RenderDoc.isAvailable()) {
                 ChatUtil.debugChatMessage("renderdoc.load.ready", RenderDoc.getAPIVersion());
             }

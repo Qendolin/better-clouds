@@ -58,6 +58,17 @@ public class GameTest {
             }
         });
 
+        Thread timeoutThread = new Thread(() -> {
+            try {
+                Thread.sleep(5 * 60 * 1000);
+            } catch (InterruptedException ignored) {
+                return;
+            }
+            if (!finished.get()) {
+                caught.set(new RuntimeException("GameTest timed out!"));
+                stop.set(true);
+            }
+        });
         Thread testThread = new Thread(() -> {
             try {
                 runTestAsync(ctx);
@@ -68,6 +79,7 @@ public class GameTest {
                 stop.set(true);
             }
         });
+        timeoutThread.start();
         testThread.setName("Test thread");
         testThread.setDaemon(true);
         testThread.start();

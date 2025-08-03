@@ -152,6 +152,9 @@ dependencies {
 		if (stonecutter.eval(mcVersion, "=1.20.1")) // coderbot package
 			modCompileOnly project.rootProject.files("vendor/iris-mc1.20.1-1.6.17-ripped.jar")
 		modCompileOnly "maven.modrinth:fabric-seasons:${property('deps.fabric_seasons')}"
+		if (stonecutter.eval(mcVersion, ">=1.21")) {
+			modCompileOnly "maven.modrinth:sodium-options-api:fabric-1.21.1-1.0.10"
+		}
 
 		include(implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.2.0")))
 
@@ -186,6 +189,7 @@ dependencies {
 		if (stonecutter.eval(mcVersion, ">=1.21")) {
 			modCompileOnly "maven.modrinth:iris:${property('deps.iris')}"
 			modCompileOnly "maven.modrinth:sodium-extra:${property('deps.sodium_extra')}"
+			modCompileOnly "maven.modrinth:sodium-options-api:neoforge-1.21.1-1.0.9"
 		} else {
 			modCompileOnly "maven.modrinth:oculus:1.20.1-1.7.0"
 			if (stonecutter.eval(mcVersion, "=1.20.1")) // coderbot package
@@ -193,9 +197,8 @@ dependencies {
 			modCompileOnly "maven.modrinth:rubidium-extra:0.5.7e+mc1.21-build.129"
 		}
 
-		if (hasProperty("deps.terra_firma_craft")) {
+		if (!property("deps.terra_firma_craft").blank)
 			modCompileOnly "maven.modrinth:terrafirmacraft:${property('deps.terra_firma_craft')}"
-		}
 
 		// Because yarn mappings are used the mods can't be loaded from the 'mods' directory at runtime.
 		// It causes NoClassDefFoundErrors due to the different mappings.
@@ -221,7 +224,7 @@ dependencies {
 	modCompileOnly "maven.modrinth:serene-seasons:${property('deps.serene_seasons')}"
 	modCompileOnly "maven.modrinth:enhanced-celestials:${property('deps.enhanced_celestials')}"
 	modCompileOnly "maven.modrinth:data-anchor:D3z4pTH6" // use fabric 1.21.1 version for all
-	if (property("deps.sodium") != "")
+	if (!property("deps.sodium").blank)
 		modCompileOnly "maven.modrinth:sodium:${property('deps.sodium')}"
 }
 
