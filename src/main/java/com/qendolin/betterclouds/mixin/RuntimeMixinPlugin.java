@@ -48,6 +48,13 @@ public class RuntimeMixinPlugin extends MixinPlugin {
         classes.add("SimpleOptionAccessor");
         //?}
 
+        //? if >=1.21.1 {
+        if (ModLoaded.SODIUM) {
+            classes.add("SodiumGameOptionPagesMixin");
+            classes.add("SodiumOptionGroupBuilderAccessor");
+        }
+        //?}
+
         if(BetterCloudsStatic.IS_DEV) {
             classes.add("GlDebugMixin");
         }

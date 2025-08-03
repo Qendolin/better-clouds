@@ -221,6 +221,8 @@ dependencies {
 	modCompileOnly "maven.modrinth:serene-seasons:${property('deps.serene_seasons')}"
 	modCompileOnly "maven.modrinth:enhanced-celestials:${property('deps.enhanced_celestials')}"
 	modCompileOnly "maven.modrinth:data-anchor:D3z4pTH6" // use fabric 1.21.1 version for all
+	if (property("deps.sodium") != "")
+		modCompileOnly "maven.modrinth:sodium:${property('deps.sodium')}"
 }
 
 processResources {

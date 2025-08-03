@@ -188,5 +188,7 @@
   "betterclouds.gui.issueReport.title": "§lBetter Clouds Issue Report§r",
   "betterclouds.gui.issueReport.message": "Better Clouds has encountered an issue and §nhas been disabled§r!\nWould you like to §nsend an automatic report§r to the developer?\n\n\n§oDetails§r",
   "betterclouds.gui.issueReport.disable": "Do not show this screen again",
-  "betterclouds.gui.issueReport.toast.sent": "Issue report submitted. Thanks!"
+  "betterclouds.gui.issueReport.toast.sent": "Issue report submitted. Thanks!",
+  "betterclouds.compat.sodium.option.enabled.name": "Better Clouds",
+  "betterclouds.compat.sodium.option.enabled.tooltip": "Use Better Clouds instead of Sodium's cloud rendering."
 }

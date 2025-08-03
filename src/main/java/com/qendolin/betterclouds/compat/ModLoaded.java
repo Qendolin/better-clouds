@@ -13,4 +13,5 @@ public abstract class ModLoaded {
     public static final boolean SODIUM_EXTRA = ModLoader.isModLoaded("sodium-extra");
     public static final boolean ARS_NOUVEAU = ModLoader.isModLoaded("ars_nouveau");
     public static final boolean LUNAR = ModLoader.isModLoaded("ichor");
+    public static final boolean SODIUM = ModLoader.isModLoaded("sodium");
 }
