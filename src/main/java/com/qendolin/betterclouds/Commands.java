@@ -173,6 +173,15 @@ public class Commands {
                             ChatUtil.debugChatMessage("updatedPreferences");
                             return 1;
                         })))
+                //? if >=1.21.6 {
+                .then(literal("yesLunarClientSeriouslySucks")
+                    .executes(context -> {
+                        ConfigManager.instance().lunarSucksMessageEnabled = false;
+                        ConfigManager.handler().save();
+                        ChatUtil.debugChatMessage("updatedPreferences");
+                        return 1;
+                    }))
+                //?}
             )
         );
         dispatcher.register(literal(BetterCloudsStatic.MODID + ":dimension")

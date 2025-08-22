@@ -71,6 +71,9 @@ public class Config {
         this.enabledDimensions = other.enabledDimensions == null ? new ArrayList<>() : new ArrayList<>(other.enabledDimensions);
         this.celestialBodyHalo = other.celestialBodyHalo;
         this.useFrustumCulling = other.useFrustumCulling;
+        //? if >=1.21.6 {
+        this.lunarSucksMessageEnabled = other.lunarSucksMessageEnabled;
+        //?}
         //noinspection IncompleteCopyConstructor
         this.sereneSeasonsConfig = new SereneSeasonsConfig(other.sereneSeasonsConfig);
         //noinspection IncompleteCopyConstructor
@@ -143,6 +146,10 @@ public class Config {
     public boolean gpuIncompatibleMessageEnabled = true;
     @SerialEntry
     public boolean issueReportEnabled = true;
+    //? if >=1.21.6 {
+    @SerialEntry
+    public boolean lunarSucksMessageEnabled = true;
+    //?}
     @SerialEntry
     public List<RegistryKey<DimensionType>> enabledDimensions = new ArrayList<>(getDefaultDimensions());
     @SerialEntry

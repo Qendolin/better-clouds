@@ -24,6 +24,7 @@ import org.spongepowered.asm.mixin.MixinEnvironment;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 //? if >=1.21.6 {
 import net.minecraft.text.ClickEvent;
@@ -91,6 +92,7 @@ public class BetterClouds extends BetterCloudsStatic {
                 GameTest.run(client);
             }
         });
+        AtomicBoolean firstJoin = new AtomicBoolean(true);
         EventHooks.instance.onWorldJoin(client -> {
             if (glCompat.isIncompatible()) {
                 CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
@@ -104,7 +106,7 @@ public class BetterClouds extends BetterCloudsStatic {
                     .execute(() -> client.execute(Commands::sendHardwareMaybeIncompatibleChatMessage));
             }
             //? if >=1.21.6 {
-            if (ModLoaded.LUNAR) {
+            if (ModLoaded.LUNAR && ConfigManager.instance().lunarSucksMessageEnabled && firstJoin.get()) {
                 CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
                     .execute(() -> client.execute(() -> {
                         URI prismURL = URI.create("https://prismlauncher.org/");
@@ -123,6 +125,8 @@ public class BetterClouds extends BetterCloudsStatic {
             if (RenderDoc.isAvailable()) {
                 ChatUtil.debugChatMessage("renderdoc.load.ready", RenderDoc.getAPIVersion());
             }
+
+            firstJoin.set(false);
         });
         EventHooks.instance.onClientResourcesReload(() -> ShaderPresetLoader.INSTANCE);
         EventHooks.instance.onClientCommandRegistration(Commands::register);
