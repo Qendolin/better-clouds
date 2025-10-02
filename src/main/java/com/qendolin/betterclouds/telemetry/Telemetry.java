@@ -261,7 +261,13 @@ public class Telemetry implements ITelemetry {
             public MetaInfo(ModVersion modVersion) {
                 this.modVersion = modVersion.getFriendlyString();
                 this.modSemVer = modVersion.asSemVer().orElse(null);
-                this.mcVersion = /*? if >=1.21.6 {*/ MinecraftVersion.CURRENT.name(); /*?} else {*/ /*MinecraftVersion.CURRENT.getName(); *//*?}*/
+                this.mcVersion = /*? if >=1.21.9 {*/
+                    MinecraftVersion.create().name();
+                    /*?} else if >=1.21.6 {*/
+                    /*MinecraftVersion.CURRENT.name();
+                    *//*?} else {*/
+                /*MinecraftVersion.CURRENT.getName(); */
+                /*?}*/
                 this.mcSemVer = ModVersion.fromString(this.mcVersion).asSemVer().orElse(null);
             }
         }

@@ -36,7 +36,11 @@ public abstract class OptionListGroupSeparatorEntryMixin extends ElementListWidg
         this.afterRender = callback;
     }
 
-    @Inject(method = "renderContent", at = @At("HEAD"))
+    //? if >=1.21.9 {
+    @Inject(method = "render", at = @At("HEAD"), remap = true)
+    //?} else {
+    /*@Inject(method = "renderContent", at = @At("HEAD"))
+    *///?}
     private void onBeforeRender(DrawContext context, int mouseX, int mouseY, boolean hovered, float tickDelta, CallbackInfo ci) {
         if (beforeRender != null) {
             int x = ((OptionListWidget.Entry) (Object) this).getX();
@@ -47,7 +51,11 @@ public abstract class OptionListGroupSeparatorEntryMixin extends ElementListWidg
         }
     }
 
-    @Inject(method = "renderContent", at = @At("RETURN"))
+    //? if >=1.21.9 {
+    @Inject(method = "render", at = @At("RETURN"), remap = true)
+    //?} else {
+    /*@Inject(method = "renderContent", at = @At("RETURN"))
+    *///?}
     private void onAfterRender(DrawContext context, int mouseX, int mouseY, boolean hovered, float tickDelta, CallbackInfo ci) {
         if (afterRender != null) {
             int x = ((OptionListWidget.Entry) (Object) this).getX();

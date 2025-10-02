@@ -39,7 +39,11 @@ public abstract class OptionListOptionEntryMixin extends ElementListWidget.Entry
         this.afterRender = callback;
     }
 
-    @Inject(method = "renderContent", at = @At("HEAD"))
+    //? if >=1.21.9 {
+    @Inject(method = "render", at = @At("HEAD"), remap = true)
+    //?} else {
+    /*@Inject(method = "renderContent", at = @At("HEAD"))
+    *///?}
     private void onBeforeRender(DrawContext context, int mouseX, int mouseY, boolean hovered, float tickDelta, CallbackInfo ci) {
         if (beforeRender != null) {
             int x = widget.getDimension().x();
@@ -50,7 +54,11 @@ public abstract class OptionListOptionEntryMixin extends ElementListWidget.Entry
         }
     }
 
-    @Inject(method = "renderContent", at = @At("RETURN"))
+    //? if >=1.21.9 {
+    @Inject(method = "render", at = @At("RETURN"), remap = true)
+    //?} else {
+    /*@Inject(method = "renderContent", at = @At("RETURN"))
+    *///?}
     private void onAfterRender(DrawContext context, int mouseX, int mouseY, boolean hovered, float tickDelta, CallbackInfo ci) {
         if (afterRender != null) {
             int x = widget.getDimension().x();
@@ -71,7 +79,13 @@ public abstract class OptionListOptionEntryMixin extends ElementListWidget.Entry
         return yPadding;
     }
 
-    @ModifyArg(method = "updateHeight", at = @At(value = "INVOKE", target = "Ldev/isxander/yacl3/gui/OptionListWidget$OptionEntry;setHeight(I)V"))
+
+    @ModifyArg(
+        method = "updateHeight",
+        at = @At(value = "INVOKE",
+            target = "Ldev/isxander/yacl3/gui/OptionListWidget$OptionEntry;setHeight(I)V"
+            /*? if >=1.21.9 {*/, remap = true /*?}*/
+        ))
     private int modifyYPadding(int original) {
         return original + yPadding;
     }

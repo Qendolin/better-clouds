@@ -55,8 +55,16 @@ implements IdentifiableResourceReloadListener {
     }
     //?}
 
+
     @Override
-    public CompletableFuture<Void> reload(ResourceReloader.Synchronizer helper, ResourceManager manager, /*? if <1.21.3 {*/ /*Profiler loadProfiler, Profiler applyProfiler, *//*?}*/ Executor loadExecutor, Executor applyExecutor) {
+    //? if >=1.21.9 {
+    public CompletableFuture<Void> reload(Store store, Executor loadExecutor, Synchronizer helper, Executor applyExecutor) {
+        ResourceManager manager = store.getResourceManager();
+    //?} else if >=1.21.3 {
+    /*public CompletableFuture<Void> reload(ResourceReloader.Synchronizer helper, ResourceManager manager, Executor loadExecutor, Executor applyExecutor) {
+    *///?} else {
+    /*public CompletableFuture<Void> reload(ResourceReloader.Synchronizer helper, ResourceManager manager, Profiler loadProfiler, Profiler applyProfiler, Executor loadExecutor, Executor applyExecutor) {
+    *///?}
         return load(manager, loadExecutor).thenCompose(helper::whenPrepared).thenCompose(
             (o) -> apply(o, manager, applyExecutor)
         );

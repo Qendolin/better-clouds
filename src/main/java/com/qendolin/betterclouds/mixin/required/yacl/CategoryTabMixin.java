@@ -101,7 +101,11 @@ public abstract class CategoryTabMixin implements CustomCategoryTabDuck {
 
         boolean pendingChanges = screen.pendingChanges();
 
-        if (Screen.hasShiftDown()) {
+        //? if >=1.21.9 {
+        if (MinecraftClient.getInstance().isShiftPressed()) {
+        //?} else {
+        /*if (Screen.hasShiftDown()) {
+        *///?}
             cancelResetButton.active = true;
             cancelResetButton.setTooltip(Tooltip.of(Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".reset.tooltip")));
         } else {

@@ -52,14 +52,16 @@ public abstract class OptionListWidgetMixin extends EntryListWidget<OptionListWi
                 if(entry.option.controller() instanceof LabelController) {
                     duck.betterclouds$onBeforeRender((self, context, x, y, width, height, mouseX, mouseY, hovered, tickDelta) -> {
                         if (client.world == null) return;
+                        if (!((OptionListWidget.OptionEntry) self).isViewable()) return;
                         Dimension<Integer> dim = ((OptionListWidget.OptionEntry) self).widget.getDimension();
                         context.fill(dim.x(), dim.y(), dim.xLimit(), dim.yLimit(), 0x6b000000);
                     });
                 }
             } else if(child instanceof OptionListWidget.GroupSeparatorEntry && child instanceof OptionListEntryExtensionDuck duck) {
                 duck.betterclouds$setYPadding(2);
-                duck.betterclouds$onBeforeRender((self, context, x, y, entryWidth, entryHeight, mouseX, mouseY, hovered1, tickDelta) -> {
+                duck.betterclouds$onBeforeRender((self, context, x, y, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta) -> {
                     if (client.world == null) return;
+                    if (!((OptionListWidget.GroupSeparatorEntry) self).isViewable()) return;
                     context.fill(x, y + 3, x + entryWidth + 1, y + entryHeight - 2, 0x6b000000);
                 });
             }
@@ -88,8 +90,15 @@ public abstract class OptionListWidgetMixin extends EntryListWidget<OptionListWi
                 return List.of();
             }
 
-            public void renderContent(DrawContext drawContext, int i, int i1, boolean b, float v) {}
+            //? if >=1.21.9 {
+            public void render(DrawContext context, int mouseX, int mouseY, boolean hovered, float deltaTicks) {
+            }
+            //?} else {
+            /*public void renderContent(DrawContext drawContext, int mouseX, int mouseY, boolean hovered, float deltaTicks) {
+            }
+            *///?}
 
+            // <3.8.0
             @Deprecated
             public void render(DrawContext context, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
             }

@@ -11,8 +11,6 @@ import com.qendolin.betterclouds.telemetry.IssueReportManager;
 import com.qendolin.betterclouds.util.RenderHelper;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
-import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
-import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.resource.ResourceManager;
 import org.jetbrains.annotations.Nullable;
@@ -55,11 +53,15 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
 
     @Unique
     private Renderer cloudRenderer;
-    @Shadow
+    //? if >=1.21.9 {
+    @Unique Frustum frustum;
+    //?} else {
+    /*@Shadow
     private Frustum frustum;
+    *///?}
 
     @Inject(method = "<init>", at = @At("TAIL"))
-    private void init(MinecraftClient client, EntityRenderDispatcher entityRenderDispatcher, BlockEntityRenderDispatcher blockEntityRenderDispatcher, BufferBuilderStorage bufferBuilders, CallbackInfo ci) {
+    private void init(CallbackInfo ci) {
         if (glCompat.isIncompatible()) return;
         cloudRenderer = new Renderer(client);
     }
@@ -121,13 +123,21 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
         *///?}
     }
 
-    //? if >=1.21.6 {
+    //? if >=1.21.9 {
     @Inject(at = @At("HEAD"), method = "render")
+    private void captureViewAndProjectionMatrix(ObjectAllocator allocator, RenderTickCounter tickCounter, boolean renderBlockOutline, Camera camera, Matrix4f positionMatrix, Matrix4f projectionFinalMatrix, Matrix4f projectionOnlyMatrix, GpuBufferSlice fogBuffer, Vector4f fogColor, boolean renderSky, CallbackInfo ci) {
+        RenderHelper.setProjectionMatrix(projectionFinalMatrix);
+        RenderHelper.setViewMatrix(positionMatrix);
+        frustum = new Frustum(positionMatrix, projectionOnlyMatrix);
+        frustum.setPosition(camera.getPos().getX(), camera.getPos().getY(), camera.getPos().getZ());
+    }
+    //?} else if >=1.21.6 {
+    /*@Inject(at = @At("HEAD"), method = "render")
     private void captureViewAndProjectionMatrix(ObjectAllocator allocator, RenderTickCounter tickCounter, boolean renderBlockOutline, Camera camera, Matrix4f positionMatrix, Matrix4f projectionMatrix, GpuBufferSlice fog, Vector4f fogColor, boolean shouldRenderSky, CallbackInfo ci) {
         RenderHelper.setProjectionMatrix(projectionMatrix);
         RenderHelper.setViewMatrix(positionMatrix);
     }
-    //?}
+    *///?}
 
     //? if >=1.21.5 {
     @Inject(at = @At("HEAD"), method = "renderClouds", cancellable = true)

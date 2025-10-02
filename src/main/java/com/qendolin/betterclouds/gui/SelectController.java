@@ -12,12 +12,10 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.util.InputUtil;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.MathHelper;
-import org.joml.Matrix3x2fStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -203,10 +201,10 @@ public class SelectController<T> implements Controller<Integer> {
         protected void drawHoveredControl(DrawContext context, int mouseX, int mouseY, float delta) {
             Dimension<Integer> dim = getDimension();
             //? if >=1.21.6 {
-            Matrix3x2fStack matrices = context.getMatrices();
+            var matrices = context.getMatrices();
             matrices.pushMatrix();
             //?} else {
-            /*MatrixStack matrices = context.getMatrices();
+            /*var matrices = context.getMatrices();
             matrices.push();
             *///?}
             int arrowWidth = textRenderer.getWidth(UP_ARROW);
@@ -272,7 +270,11 @@ public class SelectController<T> implements Controller<Integer> {
         }
 
         @Override
-        public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        //? if >=1.21.9 {
+        public boolean onMouseClicked(double mouseX, double mouseY, int button) {
+        //?} else {
+        /*public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        *///?}
             if (!isMouseOver(mouseX, mouseY) || (button != 0 && button != 1) || !isAvailable())
                 return false;
 
@@ -323,7 +325,11 @@ public class SelectController<T> implements Controller<Integer> {
         }
 
         @Override
-        public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        //? if >=1.21.9 {
+        public boolean onKeyPressed(int keyCode, int scanCode, int modifiers) {
+       //?} else {
+        /*public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        *///?}
             if (!focused)
                 return false;
 

@@ -59,7 +59,11 @@ public final class ModLoader {
         if(modList != null) {
             return modList.isLoaded(modId);
         }
-        LoadingModList loadingModList = LoadingModList.get();
+        //? if >=1.21.9 {
+        LoadingModList loadingModList = FMLLoader.getCurrent().getLoadingModList();
+        //?} else {
+        /^LoadingModList loadingModList = LoadingModList.get();
+        ^///?}
         if(loadingModList != null) {
             return loadingModList.getModFileById(modId) != null;
         }
@@ -67,11 +71,19 @@ public final class ModLoader {
     }
 
     public static boolean isDevelopmentEnvironment() {
-        return !FMLLoader.isProduction();
+        //? if >=1.21.9 {
+        return !FMLLoader.getCurrent().isProduction();
+        //?} else {
+        /^return !FMLLoader.isProduction();
+        ^///?}
     }
 
     public static boolean isClientEnvironment() {
-        return FMLLoader.getDist().isClient();
+        //? if >=1.21.9 {
+        return !FMLLoader.getCurrent().getDist().isClient();
+        //?} else {
+        /^return !FMLLoader.getDist().isClient();
+        ^///?}
     }
 
     public static ModVersion getModVersion(String modId) {
