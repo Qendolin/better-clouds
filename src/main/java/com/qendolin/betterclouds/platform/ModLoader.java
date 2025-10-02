@@ -80,9 +80,9 @@ public final class ModLoader {
 
     public static boolean isClientEnvironment() {
         //? if >=1.21.9 {
-        return !FMLLoader.getCurrent().getDist().isClient();
+        return FMLLoader.getCurrent().getDist().isClient();
         //?} else {
-        /^return !FMLLoader.getDist().isClient();
+        /^return FMLLoader.getDist().isClient();
         ^///?}
     }
 
