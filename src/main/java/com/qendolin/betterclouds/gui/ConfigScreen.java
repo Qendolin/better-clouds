@@ -1,5 +1,6 @@
 package com.qendolin.betterclouds.gui;
 
+import com.qendolin.betterclouds.duck.CustomCategoryTabDuck;
 import com.qendolin.betterclouds.telemetry.IssueReportManager;
 import dev.isxander.yacl3.api.PlaceholderCategory;
 import dev.isxander.yacl3.api.YetAnotherConfigLib;
@@ -24,17 +25,22 @@ public class ConfigScreen extends YACLScreen {
     @Override
     protected void init() {
         assert client != null;
+        this.tabArea = new ScreenRect(0, 24, this.width, this.height - 24);
+        int currentTab = this.tabNavigationBar != null ? this.tabNavigationBar.getTabs().indexOf(this.tabManager.getCurrentTab()) : 0;
+        if (currentTab == -1) {
+            currentTab = 0;
+        }
         tabNavigationBar = new CustomScrollableNavigationBar(this.width, tabManager, config.categories()
             .stream()
             .map(category -> {
                 if (category instanceof PlaceholderCategory placeholder)
                     return new PlaceholderTab(placeholder, this);
-                return new CustomCategoryTab(client, this, () -> tabArea, category);
+                var tab = new CategoryTab(this, category, tabArea);
+                ((CustomCategoryTabDuck) tab).betterclouds$applyOverride();
+                return tab;
             }).toList());
-        tabNavigationBar.selectTab(0, false);
+        tabNavigationBar.selectTab(currentTab, false);
         tabNavigationBar.init();
-        ScreenRect navBarArea = tabNavigationBar.getNavigationFocus();
-        tabArea = new ScreenRect(0, navBarArea.height() - 1, this.width, this.height - navBarArea.height() + 1);
         tabManager.setTabArea(tabArea);
         addDrawableChild(tabNavigationBar);
 
@@ -62,6 +68,7 @@ public class ConfigScreen extends YACLScreen {
             if(!IssueReportManager.handle(e, "An error occurred while processing the config screen: " + e.getMessage())) {
                 throw e;
             }
+            assert client != null;
             client.execute(() -> client.setScreen(IssueReportManager.popQueuedScreen()));
         }
     }

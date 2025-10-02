@@ -7,15 +7,16 @@
   "mixins": [
   ],
   "client": [
-    "AbstractWidgetMixin",
     "CloudSettingMixin",
     "GameRendererAccessor",
     "MinecraftClientMixin",
     "RenderSystemMixin",
-    "TabButtonWidgetMixin",
-    "TabNavigationWidgetAccessor",
     "WorldMixin",
-    "WorldRendererMixin"
+    "WorldRendererMixin",
+    "yacl.AbstractWidgetMixin",
+    "yacl.CategoryTabMixin",
+    "yacl.OptionListWidgetMixin",
+    "yacl.TabButtonWidgetMixin"
   ],
   "injectors": {
     "defaultRequire": 1

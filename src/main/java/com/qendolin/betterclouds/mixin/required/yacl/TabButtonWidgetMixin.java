@@ -1,4 +1,4 @@
-package com.qendolin.betterclouds.mixin.required;
+package com.qendolin.betterclouds.mixin.required.yacl;
 
 
 import net.minecraft.client.gui.widget.ClickableWidget;

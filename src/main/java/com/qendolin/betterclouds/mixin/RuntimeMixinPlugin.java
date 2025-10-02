@@ -3,6 +3,7 @@ package com.qendolin.betterclouds.mixin;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.compat.ModLoaded;
 import com.qendolin.betterclouds.platform.ModLoader;
+import com.qendolin.betterclouds.platform.ModVersion;
 import com.qendolin.betterclouds.test.GameTestEnabled;
 
 import java.util.ArrayList;
@@ -55,6 +56,21 @@ public class RuntimeMixinPlugin extends MixinPlugin {
         }
         //?}
 
+        // Don't load YACLCompat class
+        boolean isYacl3_8_0 = ModLoader.getModVersion("yet_another_config_lib_v3").asSemVer()
+            .map(v -> v.compareTo(new ModVersion.SemVer(3, 8, 0)) >= 0).orElse(false);
+        if (isYacl3_8_0) {
+            //? if <1.21 {
+            /*throw com.qendolin.betterclouds.compat.ReflectAccess.IncompatibleModDependencyException.of("YACL", "For versions <1.21 please use YACL 3.7 or lower");
+            *///?} else {
+            classes.add("yacl.OptionListGroupSeparatorEntryMixin");
+            classes.add("yacl.OptionListOptionEntryMixin");
+            //?}
+        } else {
+            classes.add("yacl.OldOptionListGroupSeparatorEntryMixin");
+            classes.add("yacl.OldOptionListOptionEntryMixin");
+        }
+
         if(BetterCloudsStatic.IS_DEV) {
             classes.add("GlDebugMixin");
         }
@@ -66,6 +82,7 @@ public class RuntimeMixinPlugin extends MixinPlugin {
             classes.add("GameTestWindowMixin");
         }
 
+        //noinspection ConstantValue
         if (classes.isEmpty())
             return null;
 

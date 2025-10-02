@@ -5,6 +5,9 @@ import com.qendolin.betterclouds.platform.ModLoader;
 import com.qendolin.betterclouds.platform.ModVersion;
 
 public class YACLCompat {
+
+    public static final ModVersion.SemVer Version3_8_0 = new ModVersion.SemVer(3, 8, 0);
+
     private static ModVersion.SemVer version;
 
     public static void initialize() {

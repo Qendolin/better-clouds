@@ -62,7 +62,7 @@
   "betterclouds.config.group.shaders.technical": "Technical",
   "betterclouds.config.category.compat": "Mod Interop",
   "betterclouds.config.group.compat.dimensions": "Dimensions",
-  "betterclouds.config.group.compat.dimensions.description": "Identifiers of dimensions where Better Clouds is active.\nUse /betterclouds:dimension to add or remove the current dimension.",
+  "betterclouds.config.group.compat.dimensions.description": "Identifiers of dimension types where Better Clouds is active.\nUse /betterclouds:dimension to add or remove the current dimension.",
   "betterclouds.config.group.compat.sereneSeasons": "Serene Seasons",
   "betterclouds.config.group.compat.sereneSeasons.description": "Options for interoperability with the mod \"Serene Seasons\"",
   "betterclouds.config.group.compat.fabricSeasons": "Fabric Seasons",
