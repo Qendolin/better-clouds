@@ -1,9 +1,7 @@
 import net.fabricmc.loom.task.prod.ClientProductionRunTask
-import net.fabricmc.loom.task.RunGameTask
-import net.fabricmc.loom.configuration.ide.RunConfigSettings
 
 plugins {
-	id "dev.architectury.loom" version "1.10-SNAPSHOT"
+	id "dev.architectury.loom" version "1.11-SNAPSHOT"
 	id "architectury-plugin" version "3.4-SNAPSHOT"
 	id "me.modmuss50.mod-publish-plugin"
 }
