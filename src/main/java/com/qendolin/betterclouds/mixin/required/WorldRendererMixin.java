@@ -139,7 +139,14 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
     }
     *///?}
 
-    //? if >=1.21.5 {
+    //? if >=1.21.9 && neoforge {
+    /*@Inject(at = @At("HEAD"), method = "addCloudsPass", cancellable = true)
+    private void renderClouds(FrameGraphBuilder frameGraphBuilder, CloudRenderMode _mode, Vec3d cameraPos, float _ticks, int _color, float _cloudHeight, Matrix4f modelViewMatrix, CallbackInfo ci) {
+        double camX = cameraPos.x, camY = cameraPos.y, camZ = cameraPos.z;
+        float tickDelta = MathHelper.fractionalPart(_ticks);
+        Matrix4f viewMat = RenderHelper.getViewMatrix();
+        Matrix4f projMat = RenderHelper.getProjectionMatrix();
+    *///?} else if >=1.21.5 {
     @Inject(at = @At("HEAD"), method = "renderClouds", cancellable = true)
     private void renderClouds(FrameGraphBuilder frameGraphBuilder, CloudRenderMode _mode, Vec3d cameraPos, float _ticks, int _color, float _cloudHeight, CallbackInfo ci) {
         double camX = cameraPos.x, camY = cameraPos.y, camZ = cameraPos.z;
