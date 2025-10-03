@@ -270,18 +270,15 @@ remapJar {
 	}
 }
 
-stonecutter {
-	var j21 = eval(mcVersion, ">=1.20.6")
+def j21 = stonecutter.eval(mcVersion, ">=1.20.6")
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = j21 ? 21 : 17
+}
 
-	tasks.withType(JavaCompile).configureEach {
-		it.options.release = j21 ? 21 : 17
-	}
-
-	java {
-		// withSourcesJar()
-		sourceCompatibility = j21 ? JavaVersion.VERSION_21 : JavaVersion.VERSION_17
-		targetCompatibility = j21 ? JavaVersion.VERSION_21 : JavaVersion.VERSION_17
-	}
+java {
+	// withSourcesJar()
+	sourceCompatibility = j21 ? JavaVersion.VERSION_21 : JavaVersion.VERSION_17
+	targetCompatibility = j21 ? JavaVersion.VERSION_21 : JavaVersion.VERSION_17
 }
 
 // Testing

@@ -9,30 +9,3 @@ plugins {
 apply from: 'common.gradle'
 
 stonecutter.active "1.21.9-fabric" /* [SC] DO NOT EDIT */
-
-// Chiseled tasks run for every version in their own "instance", in the respective versions/subdirs
-stonecutter.registerChiseled tasks.register("chiseledBuild", stonecutter.chiseled) {
-    setGroup "project"
-    ofTask "build"
-}
-
-stonecutter.registerChiseled tasks.register("chiseledRemapJar", stonecutter.chiseled) {
-    setGroup "project"
-    ofTask "remapJar"
-}
-
-stonecutter.registerChiseled tasks.register("chiseledRunClientTest", stonecutter.chiseled) {
-//    versions { _, vers -> vers.project.endsWith("-fabric") }
-    setGroup "project"
-    ofTask "runClientTest"
-}
-
-stonecutter.registerChiseled tasks.register("chiseledPublishMods", stonecutter.chiseled) {
-    setGroup "project"
-    ofTask "publishMods"
-
-    doLast {
-        new File(rootProject.absoluteProjectPath("changelog.txt")).delete()
-    }
-}
-
