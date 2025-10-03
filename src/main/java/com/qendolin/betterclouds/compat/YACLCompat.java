@@ -9,6 +9,7 @@ public class YACLCompat {
     public static final ModVersion.SemVer Version3_8_0 = new ModVersion.SemVer(3, 8, 0);
 
     private static ModVersion.SemVer version;
+    private static boolean isVersion3_8_0;
 
     public static void initialize() {
 
@@ -26,10 +27,15 @@ public class YACLCompat {
         }
 
         YACLCompat.version = semver;
+        isVersion3_8_0 = semver.compareTo(Version3_8_0) >= 0;
     }
 
     public static ModVersion.SemVer getVersion() {
         return version;
+    }
+
+    public static boolean isVersion3_8_0() {
+        return isVersion3_8_0;
     }
 
 }

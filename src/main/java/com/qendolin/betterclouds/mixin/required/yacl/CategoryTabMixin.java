@@ -57,7 +57,7 @@ public abstract class CategoryTabMixin implements CustomCategoryTabDuck {
             optionListField.setAccessible(true);
             Object optionList = optionListField.get(this);
             Method getListMethod;
-            if(YACLCompat.getVersion().compareTo(YACLCompat.Version3_8_0) >= 0) {
+            if(YACLCompat.isVersion3_8_0()) {
                 getListMethod = optionList.getClass().getDeclaredMethod("getType");
             } else {
                 getListMethod = optionList.getClass().getDeclaredMethod("getList");
@@ -80,7 +80,7 @@ public abstract class CategoryTabMixin implements CustomCategoryTabDuck {
     }
 
     @Unique
-    public void hideOrShow() {
+    private void hideOrShow() {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.currentScreen == screen) {
             hideShowButton.setMessage(Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".show"));
@@ -120,9 +120,7 @@ public abstract class CategoryTabMixin implements CustomCategoryTabDuck {
 
     @Inject(method = "tick", at = @At("TAIL"))
     private void onTick(CallbackInfo ci) {
-        if (!override) {
-            return;
-        }
+        if (!override) return;
 
         updateButtons();
     }

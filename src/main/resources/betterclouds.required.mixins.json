@@ -11,6 +11,7 @@
     "GameRendererAccessor",
     "MinecraftClientMixin",
     "RenderSystemMixin",
+    "TabNavigationWidgetMixin",
     "WorldMixin",
     "WorldRendererMixin",
     "yacl.AbstractWidgetMixin",

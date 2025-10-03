@@ -44,6 +44,8 @@ import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.fml.loading.LoadingModList;
+import net.neoforged.fml.loading.moddiscovery.ModInfo;
+import java.util.Objects;
 
 public final class ModLoader {
     public static Path getConfigDir() {
@@ -89,7 +91,16 @@ public final class ModLoader {
     public static ModVersion getModVersion(String modId) {
         ModList modList = ModList.get();
         if(modList == null) {
-            BetterCloudsStatic.getLogger().warn("getModVersion called before the mod list is initialized.");
+            //? if >=1.21.9 {
+            LoadingModList loadingModList = FMLLoader.getCurrent().getLoadingModList();
+             //?} else {
+            /^LoadingModList loadingModList = LoadingModList.get();
+            ^///?}
+            for (ModInfo mod : loadingModList.getMods()) {
+                if(Objects.equals(mod.getModId(), modId)) {
+                    return new ModVersionImpl(mod.getVersion());
+                }
+            }
             return ModVersion.NONE;
         }
         Optional<? extends ModContainer> mod = modList.getModContainerById(modId);
@@ -98,13 +109,14 @@ public final class ModLoader {
     }
 }
 *///?} elif forge {
-/*import com.qendolin.betterclouds.BetterCloudsStatic;
-import com.qendolin.betterclouds.platform.forge.ModVersionImpl;
+/*import com.qendolin.betterclouds.platform.forge.ModVersionImpl;
 import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.fml.loading.LoadingModList;
+import net.minecraftforge.fml.loading.moddiscovery.ModInfo;
+import java.util.Objects;
 
 public final class ModLoader {
     public static Path getConfigDir() {
@@ -138,7 +150,12 @@ public final class ModLoader {
     public static ModVersion getModVersion(String modId) {
         ModList modList = ModList.get();
         if(modList == null) {
-            BetterCloudsStatic.getLogger().warn("getModVersion called before the mod list is initialized.");
+            LoadingModList loadingModList = LoadingModList.get();
+            for (ModInfo mod : loadingModList.getMods()) {
+                if(Objects.equals(mod.getModId(), modId)) {
+                    return new ModVersionImpl(mod.getVersion());
+                }
+            }
             return ModVersion.NONE;
         }
         Optional<? extends ModContainer> mod = modList.getModContainerById(modId);

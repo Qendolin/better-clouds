@@ -266,8 +266,8 @@ public class Telemetry implements ITelemetry {
                     /*?} else if >=1.21.6 {*/
                     /*MinecraftVersion.CURRENT.name();
                     *//*?} else {*/
-                /*MinecraftVersion.CURRENT.getName(); */
-                /*?}*/
+                /*MinecraftVersion.CURRENT.getName(); 
+                *//*?}*/
                 this.mcSemVer = ModVersion.fromString(this.mcVersion).asSemVer().orElse(null);
             }
         }

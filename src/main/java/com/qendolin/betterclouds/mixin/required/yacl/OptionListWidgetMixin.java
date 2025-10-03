@@ -1,5 +1,6 @@
 package com.qendolin.betterclouds.mixin.required.yacl;
 
+import com.qendolin.betterclouds.compat.YACLCompat;
 import com.qendolin.betterclouds.duck.OptionListEntryExtensionDuck;
 import com.qendolin.betterclouds.duck.CustomOptionListWidgetDuck;
 import dev.isxander.yacl3.api.utils.Dimension;
@@ -41,6 +42,12 @@ public abstract class OptionListWidgetMixin extends EntryListWidget<OptionListWi
     public void betterclouds$applyOverride() {
         override = true;
         refreshOptions();
+        //? if <1.20.6 {
+        /*setRenderBackground(client.world == null);
+        *///?}
+        //? if <1.20.4 {
+        /*setRenderHorizontalShadows(client.world == null);
+        *///?}
     }
 
     @Inject(method = "refreshOptions", at=@At("TAIL"))
@@ -62,7 +69,11 @@ public abstract class OptionListWidgetMixin extends EntryListWidget<OptionListWi
                 duck.betterclouds$onBeforeRender((self, context, x, y, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta) -> {
                     if (client.world == null) return;
                     if (!((OptionListWidget.GroupSeparatorEntry) self).isViewable()) return;
-                    context.fill(x, y + 3, x + entryWidth + 1, y + entryHeight - 2, 0x6b000000);
+                    if(YACLCompat.isVersion3_8_0()) {
+                        context.fill(x, y + 3, x + entryWidth + 1, y + entryHeight - 2, 0x6b000000);
+                    } else {
+                        context.fill(x, y + 1, x + entryWidth + 1, y + entryHeight, 0x6b000000);
+                    }
                 });
             }
         }
