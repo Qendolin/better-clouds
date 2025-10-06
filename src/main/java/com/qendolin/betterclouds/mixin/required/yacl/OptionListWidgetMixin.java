@@ -18,12 +18,14 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 
-@Mixin(value = OptionListWidget.class, remap = false)
+@Mixin(value = OptionListWidget.class)
 public abstract class OptionListWidgetMixin extends EntryListWidget<OptionListWidget.Entry> implements CustomOptionListWidgetDuck   {
 
-    @Shadow public abstract void refreshOptions();
+    @Shadow(remap = false) public abstract void refreshOptions();
 
     @Unique
     private boolean override = false;
@@ -50,7 +52,7 @@ public abstract class OptionListWidgetMixin extends EntryListWidget<OptionListWi
         *///?}
     }
 
-    @Inject(method = "refreshOptions", at=@At("TAIL"))
+    @Inject(method = "refreshOptions", at=@At("TAIL"), remap = false)
     private void onRefreshOptions(CallbackInfo ci) {
         if (!override) return;
 
@@ -80,17 +82,6 @@ public abstract class OptionListWidgetMixin extends EntryListWidget<OptionListWi
 
         // I cannot believe that this works
         var padding = ((OptionListWidget) (Object) this).new Entry() {
-            //? if >1.20.1 {
-            {
-                setHeight(4);
-            }
-            //?} else {
-            /*@Override
-            public int getItemHeight() {
-                return 4;
-            }
-            *///?}
-
             @Override
             public List<? extends Element> children() {
                 return List.of();
@@ -113,7 +104,33 @@ public abstract class OptionListWidgetMixin extends EntryListWidget<OptionListWi
             @Deprecated
             public void render(DrawContext context, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
             }
+
+            @Deprecated
+            public int getItemHeight() {
+                // not sure that this works, but whatever
+                return 4;
+            }
         };
+        //? if >1.20.1 {
+        try {
+            // For >=3.8.0
+            Method setHeightMethod = padding.getClass().getMethod("setHeight", int.class);
+            setHeightMethod.invoke(padding, 4);
+        } catch (NoSuchMethodException ignored) {
+        } catch (InvocationTargetException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+        //?}
+
         addEntry(padding);
+
+        try {
+            // For <3.8.0
+            Method recacheViewableChildrenMethod = getClass().getMethod("recacheViewableChildren");
+            recacheViewableChildrenMethod.invoke(this);
+        } catch (NoSuchMethodException ignored) {
+        } catch (InvocationTargetException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -118,7 +118,11 @@ public abstract class CategoryTabMixin implements CustomCategoryTabDuck {
         saveFinishedButton.setTooltip(Tooltip.of(pendingChanges ? Text.translatable("yacl.gui.save.tooltip") : Text.translatable("yacl.gui.finished.tooltip")));
     }
 
-    @Inject(method = "tick", at = @At("TAIL"))
+    @Inject(
+        method = "tick",
+        /*? if <1.20.4 {*//*remap = true,*//*?}*/
+        at = @At("TAIL")
+    )
     private void onTick(CallbackInfo ci) {
         if (!override) return;
 

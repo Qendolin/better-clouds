@@ -36,8 +36,9 @@ public abstract class OldOptionListGroupSeparatorEntryMixin extends ElementListW
     }
 
     @Inject(
-        method = "render",
-        at = @At("HEAD")
+        method = {"render", "method_25343", "m_6311_"},
+        at = @At("HEAD"),
+        remap = false
     )
     private void onBeforeRender(DrawContext context, int index, int y, int x, int w, int h, int mouseX, int mouseY, boolean hovered, float tickDelta, CallbackInfo ci) {
         if (beforeRender != null) {
@@ -46,8 +47,9 @@ public abstract class OldOptionListGroupSeparatorEntryMixin extends ElementListW
     }
 
     @Inject(
-        method = "render",
-        at = @At("RETURN")
+        method = {"render", "method_25343", "m_6311_"},
+        at = @At("RETURN"),
+        remap = false
     )
     private void onAfterRender(DrawContext context, int index, int y, int x, int w, int h, int mouseX, int mouseY, boolean hovered, float tickDelta, CallbackInfo ci) {
         if (afterRender != null) {
