@@ -9,13 +9,14 @@ on: [ pull_request, push ]
 jobs:
   build:
     runs-on: ubuntu-24.04
-    env:
-      GRADLE_OPTS: "-Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000"
     strategy:
       matrix:
         modloader: [ fabric, forge ]
         version: [ 1.20.1, 1.20.4, 1.20.6, 1.21.1, 1.21.3,
                    1.21.4, 1.21.5, 1.21.8, 1.21.10, 1.21.11 ]
+    env:
+      GRADLE_OPTS: "-Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000"
+      ORG_GRADLE_PROJECT_modTarget: ${{ matrix.version }}-${{ matrix.modloader }}
     steps:
       - name: checkout repository
         uses: actions/checkout@v4
@@ -32,8 +33,8 @@ jobs:
           distribution: 'microsoft'
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
-      - name: switch stonecutter version
-        run: ./gradlew stonecutterSwitchTo${{ matrix.version }}-${{ matrix.modloader }}
+      - name: list gradle projects    # There should only be one project listed (hopefully)
+        run: ./gradlew -q projects
       - name: build project
         run: ./gradlew :${{ matrix.version }}-${{ matrix.modloader }}:build
       - name: upload build artifact
