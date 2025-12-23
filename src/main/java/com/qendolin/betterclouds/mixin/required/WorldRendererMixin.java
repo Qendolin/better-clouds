@@ -129,7 +129,11 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
         RenderHelper.setProjectionMatrix(projectionFinalMatrix);
         RenderHelper.setViewMatrix(positionMatrix);
         frustum = new Frustum(positionMatrix, projectionOnlyMatrix);
-        frustum.setPosition(camera.getPos().getX(), camera.getPos().getY(), camera.getPos().getZ());
+        //? if >=1.21.11 {
+        frustum.setPosition(camera.getCameraPos().getX(), camera.getCameraPos().getY(), camera.getCameraPos().getZ());
+        //?} else {
+        /*frustum.setPosition(camera.getPos().getX(), camera.getPos().getY(), camera.getPos().getZ());
+        *///?}
     }
     //?} else if >=1.21.6 {
     /*@Inject(at = @At("HEAD"), method = "render")
@@ -139,7 +143,13 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
     }
     *///?}
 
-    //? if >=1.21.9 && neoforge {
+    //? if >=1.21.11 && fabric {
+    @Inject(at = @At("HEAD"), method = "renderClouds", cancellable = true)
+    private void renderClouds(FrameGraphBuilder frameGraphBuilder, CloudRenderMode mode, Vec3d cameraPos, long time, float tickDelta, int i, float g, CallbackInfo ci) {
+        double camX = cameraPos.x, camY = cameraPos.y, camZ = cameraPos.z;
+        Matrix4f viewMat = RenderHelper.getViewMatrix();
+        Matrix4f projMat = RenderHelper.getProjectionMatrix();
+    //?} else if >=1.21.9 && neoforge {
     /*@Inject(at = @At("HEAD"), method = "addCloudsPass", cancellable = true)
     private void renderClouds(FrameGraphBuilder frameGraphBuilder, CloudRenderMode _mode, Vec3d cameraPos, float _ticks, int _color, float _cloudHeight, Matrix4f modelViewMatrix, CallbackInfo ci) {
         double camX = cameraPos.x, camY = cameraPos.y, camZ = cameraPos.z;
@@ -147,13 +157,13 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
         Matrix4f viewMat = RenderHelper.getViewMatrix();
         Matrix4f projMat = RenderHelper.getProjectionMatrix();
     *///?} else if >=1.21.5 {
-    @Inject(at = @At("HEAD"), method = "renderClouds", cancellable = true)
+    /*@Inject(at = @At("HEAD"), method = "renderClouds", cancellable = true)
     private void renderClouds(FrameGraphBuilder frameGraphBuilder, CloudRenderMode _mode, Vec3d cameraPos, float _ticks, int _color, float _cloudHeight, CallbackInfo ci) {
         double camX = cameraPos.x, camY = cameraPos.y, camZ = cameraPos.z;
         float tickDelta = MathHelper.fractionalPart(_ticks);
         Matrix4f viewMat = RenderHelper.getViewMatrix();
         Matrix4f projMat = RenderHelper.getProjectionMatrix();
-    //?} elif >=1.21.3 {
+    *///?} elif >=1.21.3 {
     /*@Inject(at = @At("HEAD"), method = "renderClouds", cancellable = true)
     private void renderClouds(FrameGraphBuilder frameGraphBuilder, Matrix4f viewMat, Matrix4f projMat, CloudRenderMode _mode, Vec3d cameraPos, float _ticks, int _color, float _cloudHeight, CallbackInfo ci) {
         double camX = cameraPos.x, camY = cameraPos.y, camZ = cameraPos.z;

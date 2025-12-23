@@ -43,18 +43,22 @@ public class RuntimeMixinPlugin extends MixinPlugin {
         classes.add("DimensionEffectsOverworldMixin");
         *///?}
 
-        //? if >=1.21.6 {
-        classes.add("FogRendererMixin");
+        //? if >=1.21.6 && <1.21.11 {
+        /*classes.add("FogRendererMixin");
         classes.add("DimensionTypeMixin");
+        classes.add("SimpleOptionAccessor");
+        *///?} elif >=1.21.11 {
+        classes.add("FogRendererMixin");
+        classes.add("WorldEnvironmentAttributeAccessMixin");
         classes.add("SimpleOptionAccessor");
         //?}
 
-        //? if >=1.21.1 {
-        if (ModLoaded.SODIUM) {
+        //? if >=1.21.1 && <1.21.11 {
+        /*if (ModLoaded.SODIUM) {
             classes.add("SodiumGameOptionPagesMixin");
             classes.add("SodiumOptionGroupBuilderAccessor");
         }
-        //?}
+        *///?}
 
         // Don't load YACLCompat class
         boolean isYacl3_8_0 = ModLoader.getModVersion("yet_another_config_lib_v3").asSemVer()

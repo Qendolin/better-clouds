@@ -7,6 +7,10 @@ import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.util.math.MathHelper;
+//? if >=1.21.11 {
+import net.minecraft.world.MoonPhase;
+import net.minecraft.world.attribute.EnvironmentAttributes;
+//?}
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -19,7 +23,7 @@ public abstract class EffectTintProvider {
         if (client.world == null || client.player == null)
             return new Vector3f(1.0f, 1.0f, 1.0f);
 
-        Vector3f cloudColor = getCloudsColor(client.world, tickDelta);
+        Vector3f cloudColor = getCloudsColor(client, client.world, tickDelta);
 
         if (EnhancedCelestialsCompat.instance().isEventActive(client.world)) {
             Vector3f tint = EnhancedCelestialsCompat.instance().getEventTint(client.world);
@@ -33,8 +37,9 @@ public abstract class EffectTintProvider {
         Vector3f cloudBaseChroma = cloudBaseLuma < 0.0001 ? new Vector3f(1.0f) : new Vector3f(cloudColor).div(cloudBaseLuma);
 
         float cloudLuma = cloudBaseLuma;
-        float moon = MathHelper.clamp(-MathHelper.cos(client.world.getSkyAngle(tickDelta) * 2 * MathHelper.PI), -0.25f, 0.25f) * 2 + 0.5f;
-        float moonSize = client.world.getMoonSize() * EnhancedCelestialsCompat.instance().getMoonSize(client.world);
+        float skyAngle = getSkyAngle(client, client.world, tickDelta);
+        float moon = MathHelper.clamp(-MathHelper.cos(skyAngle * 2 * MathHelper.PI), -0.25f, 0.25f) * 2 + 0.5f;
+        float moonSize = getMoonSize(client, client.world, tickDelta) * EnhancedCelestialsCompat.instance().getMoonSize(client.world);
         cloudLuma += moonSize * moon * 0.65f;
 
         // CrY - Chroma and Luma
@@ -77,7 +82,7 @@ public abstract class EffectTintProvider {
         );
     }
 
-    private static Vector3f getCloudsColor(ClientWorld world, float tickDelta) {
+    private static Vector3f getCloudsColor(MinecraftClient client, ClientWorld world, float tickDelta) {
         final Vector3f Y = new Vector3f(0.299f, 0.587f, 0.114f);
 
         // this is from ClientWorld#getCloudsColor
@@ -85,7 +90,7 @@ public abstract class EffectTintProvider {
         float rain = world.getRainGradient(tickDelta);
         color.lerp(new Vector3f(color.dot(Y) * 0.6f), rain * 0.95f);
 
-        float sky = world.getSkyAngle(tickDelta);
+        float sky = getSkyAngle(client, world, tickDelta);
 
         float sun = MathHelper.cos(sky * (float) (Math.PI * 2)) * 2.0F + 0.5F;
         sun = MathHelper.clamp(sun, 0.0F, 1.0F);
@@ -103,5 +108,27 @@ public abstract class EffectTintProvider {
 
     private static void linearToGamma(Vector3f color) {
         color.set((float) Math.pow(color.x, 1 / 2.2), (float) Math.pow(color.y, 1 / 2.2), (float) Math.pow(color.z, 1 / 2.2));
+    }
+
+    private static float getSkyAngle(MinecraftClient client, ClientWorld world, float tickDelta) {
+        //? if >=1.21.11 {
+        float sunAngleRad = client.gameRenderer.getCamera()
+            .getEnvironmentAttributeInterpolator()
+            .get(EnvironmentAttributes.SUN_ANGLE_VISUAL, tickDelta) * (float) (Math.PI / 180.0);
+        return sunAngleRad / (float) (Math.PI * 2.0);
+        //?} else {
+        /*return world.getSkyAngle(tickDelta);
+        *///?}
+    }
+
+    private static float getMoonSize(MinecraftClient client, ClientWorld world, float tickDelta) {
+        //? if >=1.21.11 {
+        MoonPhase phase = client.gameRenderer.getCamera()
+            .getEnvironmentAttributeInterpolator()
+            .get(EnvironmentAttributes.MOON_PHASE_VISUAL, tickDelta);
+        return 1.0f - (phase.getIndex() / 8.0f);
+        //?} else {
+        /*return world.getMoonSize();
+        *///?}
     }
 }

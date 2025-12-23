@@ -26,7 +26,7 @@ public class VanillaRenderTarget {
     //? if >=1.21.5 {
     private RenderPass renderPass = null;
     //?} else {
-    /*private RenderPhase renderPhase = null;
+    /*private Object renderPhase = null;
      *///?}
 
     public VanillaRenderTarget(MinecraftClient client, Config config) {
@@ -56,7 +56,7 @@ public class VanillaRenderTarget {
         //?} else {
         /*framebuffer.beginWrite(false);
         renderPhase = RenderPhaseAccessor.getCloudsTarget();
-        renderPhase.startDrawing();
+        invokeRenderPhase(renderPhase, "startDrawing");
         *///?}
     }
 
@@ -71,9 +71,19 @@ public class VanillaRenderTarget {
             renderPass.close();
         }
         //?} else {
-        /*if(renderPhase != null) {
-            renderPhase.endDrawing();
+        /*if (renderPhase != null) {
+            invokeRenderPhase(renderPhase, "endDrawing");
         }
         *///?}
     }
+
+    //? if <1.21.5 {
+    /*private static void invokeRenderPhase(Object renderPhase, String methodName) {
+        try {
+            renderPhase.getClass().getMethod(methodName).invoke(renderPhase);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException("Failed to call RenderPhase." + methodName, e);
+        }
+    }
+    *///?}
 }

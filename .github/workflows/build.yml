@@ -32,6 +32,8 @@ jobs:
           distribution: 'microsoft'
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
+      - name: switch stonecutter version
+        run: ./gradlew stonecutterSwitchTo${{ matrix.version }}-${{ matrix.modloader }}
       - name: build project
         run: ./gradlew :${{ matrix.version }}-${{ matrix.modloader }}:build
       - name: upload build artifact

@@ -14,12 +14,17 @@ import com.qendolin.betterclouds.util.ChatUtil;
 import com.qendolin.betterclouds.util.MathUtil;
 import com.qendolin.betterclouds.util.RenderHelper;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.DimensionEffects;
+//? if <1.21.6 {
+/*import net.minecraft.client.render.DimensionEffects;
+*///?}
 import net.minecraft.client.render.Frustum;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
+//? if >=1.21.11 {
+import net.minecraft.world.attribute.EnvironmentAttributes;
+//?}
 import org.joml.Matrix4d;
 import org.joml.Matrix4f;
 import org.joml.Vector3d;
@@ -135,11 +140,13 @@ public class Renderer implements AutoCloseable {
             return PrepareResult.NO_RENDER;
         }
 
-        DimensionEffects effects = world.getDimensionEffects();
-        //? if >=1.21.6 {
-        cloudsHeight = world.getDimension().cloudHeight().orElse(192);
-        //?} else {
-        /*cloudsHeight = effects.getCloudsHeight();
+        //? if >=1.21.11 {
+        cloudsHeight = world.getEnvironmentAttributes().getAttributeValue(EnvironmentAttributes.CLOUD_HEIGHT_VISUAL);
+        //?} elif >=1.21.6 {
+        /*cloudsHeight = world.getDimension().cloudHeight().orElse(192);
+        *///?} else {
+        /*DimensionEffects effects = world.getDimensionEffects();
+        cloudsHeight = effects.getCloudsHeight();
         *///?}
 
         res.generator().bind();
@@ -464,8 +471,18 @@ public class Renderer implements AutoCloseable {
         RenderHelper.bindTexture(client.getTextureManager().getTexture(Resources.LIGHTING_TEXTURE));
 
         Vector3f effectTint = EffectTintProvider.getEffectTint(client, fog, tickDelta);
-        long skyTime = world.getLunarTime() % 24000;
-        float skyAngleRad = world.getSkyAngleRadians(tickDelta);
+        //? if >=1.21.11 {
+        long skyTime = world.getTimeOfDay() % 24000;
+        //?} else {
+        /*long skyTime = world.getLunarTime() % 24000;
+        *///?}
+        //? if >=1.21.11 {
+        float skyAngleRad = client.gameRenderer.getCamera()
+            .getEnvironmentAttributeInterpolator()
+            .get(EnvironmentAttributes.SUN_ANGLE_VISUAL, tickDelta) * (float) (Math.PI / 180.0);
+        //?} else {
+        /*float skyAngleRad = world.getSkyAngleRadians(tickDelta);
+        *///?}
         float sunPathAngleRad = (float) Math.toRadians(config.preset().sunPathAngle);
         float dayNightFactor = MathUtil.interpolateDayNightFactor(skyTime, config.preset().sunriseStartTime, config.preset().sunriseEndTime, config.preset().sunsetStartTime, config.preset().sunsetEndTime);
         float brightness = (1 - dayNightFactor) * config.preset().nightBrightness + dayNightFactor * config.preset().dayBrightness;
