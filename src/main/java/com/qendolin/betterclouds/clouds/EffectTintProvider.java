@@ -112,10 +112,10 @@ public abstract class EffectTintProvider {
 
     private static float getSkyAngle(MinecraftClient client, ClientWorld world, float tickDelta) {
         //? if >=1.21.11 {
-        float sunAngleRad = client.gameRenderer.getCamera()
+        float sunAngleDeg = client.gameRenderer.getCamera()
             .getEnvironmentAttributeInterpolator()
-            .get(EnvironmentAttributes.SUN_ANGLE_VISUAL, tickDelta) * (float) (Math.PI / 180.0);
-        return sunAngleRad / (float) (Math.PI * 2.0);
+            .get(EnvironmentAttributes.SUN_ANGLE_VISUAL, tickDelta);
+        return sunAngleDeg / 360f;
         //?} else {
         /*return world.getSkyAngle(tickDelta);
         *///?}

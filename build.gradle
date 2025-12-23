@@ -382,11 +382,8 @@ jar {
 
 publishMods {
 	def secrets = new Properties()
-	def secretsFile = project.rootProject.file("secrets.properties")
-	if (secretsFile.exists()) {
-		secretsFile.withInputStream { secrets.load(it) }
-	} else if (gradle.startParameter.taskNames.any { it.toLowerCase().contains("publish") }) {
-		throw new GradleException("Missing secrets.properties for publishMods")
+	project.rootProject.file("secrets.properties").withInputStream {
+		secrets.load(it)
 	}
 
 	def releaseType = property("mod.release").toString()

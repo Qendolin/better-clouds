@@ -37,7 +37,7 @@ jobs:
         run: chmod +x ./gradlew
       - name: switch stonecutter version
         run: ./gradlew stonecutterSwitchTo${{ env.BUILD_TARGET }}
-      - name: list gradle projects    # There should only be one project listed (hopefully)
+      - name: list gradle projects    # There should only be one project listed in each workflow (hopefully)
         run: ./gradlew -q projects
       - name: build project
         run: ./gradlew :${{ env.BUILD_TARGET }}:build
