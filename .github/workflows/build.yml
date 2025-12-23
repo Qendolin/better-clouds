@@ -35,6 +35,8 @@ jobs:
           distribution: 'microsoft'
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
+      - name: switch stonecutter version
+        run: ./gradlew stonecutterSwitchTo${{ env.BUILD_TARGET }}
       - name: list gradle projects    # There should only be one project listed (hopefully)
         run: ./gradlew -q projects
       - name: build project
