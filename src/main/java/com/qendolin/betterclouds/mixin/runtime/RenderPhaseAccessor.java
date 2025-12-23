@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 public interface RenderPhaseAccessor {
 
     @Accessor("CLOUDS_TARGET")
-    static RenderPhase.Target getCloudsTarget() {
+    static Object getCloudsTarget() {
         return null;
     }
 }

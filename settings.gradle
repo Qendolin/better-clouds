@@ -42,6 +42,7 @@ stonecutter {
         }
 
         // The topmost version is considered the "default" and activated with "Reset active project"
+        mc("1.21.11", "fabric", "forge")
         mc("1.21.10", "fabric", "forge")
         mc("1.21.8", "fabric", "forge")
         mc("1.21.5", "fabric", "forge")
