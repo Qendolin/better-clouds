@@ -20,8 +20,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.*;
 //? if >=1.21.11 {
 import net.minecraft.world.attribute.EnvironmentAttributes;
 //?}
@@ -141,7 +140,7 @@ public class Renderer implements AutoCloseable {
         }
 
         //? if >=1.21.11 {
-        cloudsHeight = world.getEnvironmentAttributes().getAttributeValue(EnvironmentAttributes.CLOUD_HEIGHT_VISUAL);
+        cloudsHeight = world.getEnvironmentAttributes().getAttributeValue(EnvironmentAttributes.CLOUD_HEIGHT_VISUAL, new Vec3d(cam.x, cam.y, cam.z));
         //?} elif >=1.21.6 {
         /*cloudsHeight = world.getDimension().cloudHeight().orElse(192);
         *///?} else {
