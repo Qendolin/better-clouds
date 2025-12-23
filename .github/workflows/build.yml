@@ -8,8 +8,10 @@ on: [ pull_request, push ]
 
 jobs:
   build:
+    name: check_${{ matrix.version }}-${{ matrix.modloader }}
     runs-on: ubuntu-24.04
     strategy:
+      fail-fast: false
       matrix:
         modloader: [ fabric, forge ]
         version: [ 1.20.1, 1.20.6, 1.21.1, 1.21.11 ]
