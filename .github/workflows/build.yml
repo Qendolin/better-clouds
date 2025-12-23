@@ -17,6 +17,7 @@ jobs:
         version: [ 1.20.1, 1.20.6, 1.21.1, 1.21.11 ]
     env:
       GRADLE_OPTS: "-Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000"
+      BUILD_TARGET: ${{ matrix.version }}-${{ matrix.modloader }}
       ORG_GRADLE_PROJECT_modTarget: ${{ matrix.version }}-${{ matrix.modloader }}
     steps:
       - name: checkout repository
@@ -37,11 +38,11 @@ jobs:
       - name: list gradle projects    # There should only be one project listed (hopefully)
         run: ./gradlew -q projects
       - name: build project
-        run: ./gradlew :${{ matrix.version }}-${{ matrix.modloader }}:build
+        run: ./gradlew :${{ env.BUILD_TARGET }}:build
       - name: upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.version }}-${{ matrix.modloader }}-artifacts
+          name: ${{ env.BUILD_TARGET }}-artifacts
           path: |
-            ${{ matrix.modloader }}/build/libs/*.jar
+            versions/${{ env.BUILD_TARGET }}/build/libs/*.jar
           if-no-files-found: error
