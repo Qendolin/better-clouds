@@ -103,7 +103,11 @@ public class ShaderPresetGUI {
             })
             .build();
         this.presetTitle = createOption(String.class, "presetTitle", false)
-            .binding("", () -> config.preset().title, val -> config.preset().title = val)
+            .binding("", () -> config.preset().title, val -> {
+                if (config.preset().editable) {
+                    config.preset().title = val;
+                }
+            })
             .customController(StringController::new)
             .build();
         this.saturation = createOption(float.class, "saturation")
