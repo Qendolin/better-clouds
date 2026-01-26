@@ -2,7 +2,6 @@ package com.qendolin.betterclouds.config;
 
 import com.qendolin.betterclouds.gui.CustomButtonOption;
 import com.qendolin.betterclouds.gui.CustomIntegerFieldController;
-import com.qendolin.betterclouds.gui.SelectController;
 import dev.isxander.yacl3.api.ButtonOption;
 import dev.isxander.yacl3.api.LabelOption;
 import dev.isxander.yacl3.api.Option;
@@ -19,6 +18,12 @@ import net.minecraft.util.Pair;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+
+//? if >=1.21.11 {
+import com.qendolin.betterclouds.gui.SelectDropdownController;
+//?} else {
+/*import com.qendolin.betterclouds.gui.SelectController;
+*///?}
 
 import static com.qendolin.betterclouds.config.ConfigGUI.*;
 
@@ -76,7 +81,7 @@ public class ShaderPresetGUI {
 
         this.selectedPreset = createOption(int.class, "shaderPreset")
             .binding(defaults.selectedPreset, () -> config.selectedPreset, val -> config.selectedPreset = val)
-            .customController(opt -> new SelectController<>(opt, config.presets, (i, preset) -> {
+            .customController(opt -> new /*? if >=1.21.11 {*/ SelectDropdownController /*?} else {*/ /*SelectController *//*?}*/ <>(opt, config.presets, (i, preset) -> {
                 boolean deleted = presetsToBeDeleted.contains(preset);
                 if (preset.title.isBlank()) {
                     return Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.untitled")
@@ -92,7 +97,7 @@ public class ShaderPresetGUI {
                 // The 'instant' listener gets called later, applyValue is called now manually
                 opt.applyValue();
                 //noinspection rawtypes
-                if (opt.controller() instanceof SelectController select) {
+                if (opt.controller() instanceof /*? if >=1.21.11 {*/ SelectDropdownController /*?} else {*/ /*SelectController *//*?}*/  select) {
                     select.updateValues();
                 }
                 for (Option<?> option : shaderConfigPresetOptions) {
@@ -224,7 +229,7 @@ public class ShaderPresetGUI {
                 config.presets.add(0, preset);
                 selectedPreset.requestSet(0);
                 //noinspection rawtypes
-                if (selectedPreset.controller() instanceof SelectController select) {
+                if (selectedPreset.controller() instanceof /*? if >=1.21.11 {*/ SelectDropdownController /*?} else {*/ /*SelectController *//*?}*/  select) {
                     select.updateValues();
                 }
                 updateNonResponsiveOptions();
