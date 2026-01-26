@@ -145,7 +145,7 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
 
     //? if >=1.21.11 && fabric {
     @Inject(at = @At("HEAD"), method = "renderClouds", cancellable = true)
-    private void renderClouds(FrameGraphBuilder frameGraphBuilder, CloudRenderMode mode, Vec3d cameraPos, long time, float tickDelta, int i, float g, CallbackInfo ci) {
+    private void renderClouds(FrameGraphBuilder frameGraphBuilder, CloudRenderMode mode, Vec3d cameraPos, long time, float tickDelta, int _color, float _cloudHeight, CallbackInfo ci) {
         double camX = cameraPos.x, camY = cameraPos.y, camZ = cameraPos.z;
         Matrix4f viewMat = RenderHelper.getViewMatrix();
         Matrix4f projMat = RenderHelper.getProjectionMatrix();
