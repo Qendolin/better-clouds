@@ -1,7 +1,7 @@
 package com.qendolin.betterclouds.mixin.runtime;
 
-//? if >=1.21.6 {
-import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+//? if >=1.21.6 && <1.21.11 {
+/*import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.qendolin.betterclouds.BetterClouds;
 import com.qendolin.betterclouds.config.ConfigManager;
@@ -22,4 +22,4 @@ public class DimensionTypeMixin {
         return Optional.of(result.get() + (int) ConfigManager.instance().yOffset);
     }
 }
-//?}
+*///?}

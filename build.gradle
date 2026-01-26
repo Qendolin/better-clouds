@@ -19,18 +19,19 @@ var isFabric = loader == "fabric"
 var isNeoForge = loader == "neoforge"
 var isForge = loader == "forge"
 
-// The current stonecutter version (0.4) has an issue with groovy gradle which makes
-// stonecutter.configureEach { stonecutter.const(...) } not work correctly inside stonecutter.gradle.
-// Putting it here fixes the problem.
-stonecutter.const("fabric", isFabric)
-stonecutter.const("neoforge", isNeoForge)
-stonecutter.const("forge", isForge)
-
 stonecutter {
-	dependency("yacl", property('deps.yacl'))
+	dependencies {
+		put("yacl", property('deps.yacl'))
+	}
+	constants {
+		put("fabric", isFabric)
+		put("neoforge", isNeoForge)
+		put("forge", isForge)
+	}
 }
 
-stonecutter.allowExtensions("vsh", "fsh")
+stonecutter.filters.include("**/*.vsh")
+stonecutter.filters.include("**/*.fsh")
 
 static def buildVersionString(String modVersion, String releaseType, String mcVersion, String loader) {
 	var semver = modVersion
@@ -101,6 +102,11 @@ loom {
 	}
 
 	runs {
+		configureEach {
+			// Uncomment if needed, but can often lead to issues in my experience
+			// vmArg "-XX:+AllowEnhancedClassRedefinition"
+		}
+
 		client {
 			ideConfigGenerated true
 			runDir "../../run"
@@ -378,8 +384,11 @@ jar {
 
 publishMods {
 	def secrets = new Properties()
-	project.rootProject.file("secrets.properties").withInputStream {
-		secrets.load(it)
+	def secretsFile = project.rootProject.file("secrets.properties")
+	if (secretsFile.exists()) {
+		secretsFile.withInputStream { secrets.load(it) }
+	} else if (gradle.startParameter.taskNames.any { it.toLowerCase().contains("publish") }) {
+		throw new GradleException("Missing secrets.properties for publishMods")
 	}
 
 	def releaseType = property("mod.release").toString()

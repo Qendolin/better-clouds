@@ -42,7 +42,10 @@ public abstract class DistantHorizonsCompat {
         }
 
         try {
-            if (apiVersion == 4) {
+            if (apiVersion == 5) {
+                BetterCloudsStatic.getLogger().info("Using EXPERIMENTAL DistantHorizons 5 compat.");
+                instance = new DistantHorizons5CompatImpl();
+            } else if (apiVersion == 4) {
                 BetterCloudsStatic.getLogger().warn("Using EXPERIMENTAL DistantHorizons 4 compat. The game might crash!");
                 instance = new DistantHorizons4CompatImpl();
             } else if (apiVersion == 3) {

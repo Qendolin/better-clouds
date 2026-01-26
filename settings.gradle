@@ -30,27 +30,37 @@ pluginManagement {
 }
 
 plugins {
-    id "dev.kikugie.stonecutter" version "0.7"
+    id "dev.kikugie.stonecutter" version "0.8.3"
 }
 
 stonecutter {
     shared {
-        def mc = { String version, String... loaders ->
+        def mc = { String ver, String... loaders ->
             loaders.each { loader ->
-                vers("$version-$loader", version)
+                version "$ver-$loader", ver
             }
         }
 
-        // The topmost version is considered the "default" and activated with "Reset active project"
-        mc("1.21.10", "fabric", "forge")
-        mc("1.21.8", "fabric", "forge")
-        mc("1.21.5", "fabric", "forge")
-        mc("1.21.4", "fabric", "forge")
-        mc("1.21.3", "fabric", "forge")
-        mc("1.21.1", "fabric", "forge")
-        mc("1.20.6", "fabric", "forge")
-        mc("1.20.4", "fabric", "forge")
-        mc("1.20.1", "fabric", "forge")
+        def modTarget = providers.gradleProperty("modTarget").orNull
+        if (modTarget != null) {
+            def parts = modTarget.split("-", 2)
+            if (parts.length != 2) {
+                throw new GradleException("Invalid modTarget specifier '"+modTarget+"'!")
+            }
+            mc(parts[0], parts[1])
+        } else {
+            // The topmost version is considered the "default" and activated with "Reset active project"
+            mc("1.21.11", "fabric", "forge")
+            mc("1.21.10", "fabric", "forge")
+            mc("1.21.8", "fabric", "forge")
+            mc("1.21.5", "fabric", "forge")
+            mc("1.21.4", "fabric", "forge")
+            mc("1.21.3", "fabric", "forge")
+            mc("1.21.1", "fabric", "forge")
+            mc("1.20.6", "fabric", "forge")
+            mc("1.20.4", "fabric", "forge")
+            mc("1.20.1", "fabric", "forge")
+        }
     }
 
     create rootProject

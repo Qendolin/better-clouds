@@ -1,7 +1,7 @@
 package com.qendolin.betterclouds.mixin.runtime;
 
-//? if >=1.21.1 {
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+//? if >=1.21.1 && <1.21.11 {
+/*import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
@@ -57,4 +57,4 @@ public class SodiumGameOptionPagesMixin {
         return original.call(instance);
     }
 }
-//?}
+*///?}

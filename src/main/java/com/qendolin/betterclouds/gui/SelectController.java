@@ -1,6 +1,8 @@
 package com.qendolin.betterclouds.gui;
 
-import com.google.common.collect.ImmutableList;
+//? if <1.21.11 {
+
+/*import com.google.common.collect.ImmutableList;
 import dev.isxander.yacl3.api.Controller;
 import dev.isxander.yacl3.api.Option;
 import dev.isxander.yacl3.api.utils.Dimension;
@@ -150,9 +152,9 @@ public class SelectController<T> implements Controller<Integer> {
             //? if >=1.21.6 {
             context.getMatrices().pushMatrix();
             //?} else {
-            /*context.getMatrices().push();
+            /^context.getMatrices().push();
             context.getMatrices().translate(0, 0, 100);
-            *///?}
+            ^///?}
 
             List<Text> values = control.formatValues();
             Dimension<Integer> dim = getExpandedBounds();
@@ -180,8 +182,8 @@ public class SelectController<T> implements Controller<Integer> {
             //? if >=1.21.6 {
             context.getMatrices().popMatrix();
             //?} else {
-            /*context.getMatrices().pop();
-            *///?}
+            /^context.getMatrices().pop();
+            ^///?}
         }
 
         @SuppressWarnings("BooleanMethodIsAlwaysInverted")
@@ -204,17 +206,17 @@ public class SelectController<T> implements Controller<Integer> {
             var matrices = context.getMatrices();
             matrices.pushMatrix();
             //?} else {
-            /*var matrices = context.getMatrices();
+            /^var matrices = context.getMatrices();
             matrices.push();
-            *///?}
+            ^///?}
             int arrowWidth = textRenderer.getWidth(UP_ARROW);
             //? if >=1.21.6 {
             matrices.translate(getDimension().xLimit() - getXPadding() - ARROW_SPACE / 2f, dim.y() + dim.height() / 2f);
             matrices.scale(1.5f, 1f);
             //?} else {
-            /*matrices.translate(getDimension().xLimit() - getXPadding() - ARROW_SPACE / 2f, dim.y() + dim.height() / 2f, 0);
+            /^matrices.translate(getDimension().xLimit() - getXPadding() - ARROW_SPACE / 2f, dim.y() + dim.height() / 2f, 0);
             matrices.scale(1.5f, 1f, 1);
-            *///?}
+            ^///?}
             int hoveredArrow = getHoveredArrow(mouseX, mouseY);
             context.drawText(textRenderer, UP_ARROW, -arrowWidth / 2, -textRenderer.fontHeight + 1, 0xff404040, false);
             context.drawText(textRenderer, DOWN_ARROW, -arrowWidth / 2, 1, 0xff404040, false);
@@ -223,8 +225,8 @@ public class SelectController<T> implements Controller<Integer> {
             //? if >=1.21.6 {
             matrices.popMatrix();
             //?} else {
-            /*matrices.pop();
-            *///?}
+            /^matrices.pop();
+            ^///?}
         }
 
         protected int getHoveredArrow(int mouseX, int mouseY) {
@@ -242,12 +244,12 @@ public class SelectController<T> implements Controller<Integer> {
             super.drawValueText(context, mouseX, mouseY, delta);
             context.getMatrices().popMatrix();
             //?} else {
-            /*context.getMatrices().push();
+            /^context.getMatrices().push();
             if (isHovered())
                 context.getMatrices().translate(-ARROW_SPACE - getXPadding(), 0, 0);
             super.drawValueText(context, mouseX, mouseY, delta);
             context.getMatrices().pop();
-            *///?}
+            ^///?}
         }
 
         @Override
@@ -273,8 +275,8 @@ public class SelectController<T> implements Controller<Integer> {
         //? if >=1.21.9 {
         public boolean onMouseClicked(double mouseX, double mouseY, int button) {
         //?} else {
-        /*public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        *///?}
+        /^public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        ^///?}
             if (!isMouseOver(mouseX, mouseY) || (button != 0 && button != 1) || !isAvailable())
                 return false;
 
@@ -311,9 +313,9 @@ public class SelectController<T> implements Controller<Integer> {
         public boolean mouseScrolled(
             double mouseX,
             double mouseY,
-            /*? if >1.20.1 {*/
+            /^? if >1.20.1 {^/
             double horizontalAmount,
-            /*?}*/
+            /^?}^/
             double verticalAmount
         ) {
             if (!isMouseOver(mouseX, mouseY) || !isAvailable()) return false;
@@ -328,8 +330,8 @@ public class SelectController<T> implements Controller<Integer> {
         //? if >=1.21.9 {
         public boolean onKeyPressed(int keyCode, int scanCode, int modifiers) {
        //?} else {
-        /*public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        *///?}
+        /^public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        ^///?}
             if (!focused)
                 return false;
 
@@ -349,3 +351,5 @@ public class SelectController<T> implements Controller<Integer> {
         }
     }
 }
+
+*///?}

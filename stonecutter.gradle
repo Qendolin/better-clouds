@@ -8,4 +8,9 @@ plugins {
 
 apply from: 'common.gradle'
 
-stonecutter.active "1.21.10-fabric" /* [SC] DO NOT EDIT */
+def modTarget = providers.gradleProperty("modTarget").orNull
+if (modTarget != null) {
+    stonecutter.active modTarget    // for the github workflow, so that it doesn't try to load an unknown version
+} else {
+    stonecutter.active "1.21.11-fabric" /* [SC] DO NOT EDIT */
+}

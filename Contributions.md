@@ -24,6 +24,8 @@
    - Provide russian translation – [#212](https://github.com/Qendolin/better-clouds/pull/212)
 - justliliandev
    - Fix Ars Nouveau flickering issue – [#222](https://github.com/Qendolin/better-clouds/pull/222)
+- orangishcat
+   - Updated the mod to 1.21.11 – [#279](https://github.com/Qendolin/better-clouds/pull/279)
 
 ... got a PR accepted
  
