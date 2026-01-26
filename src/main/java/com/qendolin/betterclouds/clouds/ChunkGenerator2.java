@@ -37,9 +37,13 @@ public class ChunkGenerator2 {
 
     RegionMap regionMap;
 
+    int[] counts;
+    int subSize;
+
     public ChunkGenerator2(ByteBuffer buffer, int size, float spacing) {
         this.buffer = buffer;
         this.size = size;
+        this.subSize = size * (1 << MAX_SUB_LVL);
         this.spacing = spacing;
         this.index = new long[size * size];
         this.regionOffsets = new int[size * size * 2];
@@ -47,6 +51,8 @@ public class ChunkGenerator2 {
         this.generationOrder = new short[GEN_CHUNK_SIZE_2][];
         this.generationOrderInverse = new short[GEN_CHUNK_SIZE_2];
         initGenerationOrder();
+
+        this.counts = new int[subSize * subSize];
     }
 
 
@@ -271,6 +277,24 @@ public class ChunkGenerator2 {
         return size * size;
     }
 
+    public int dynCountOf(int i, int start, int count) {
+        int lvl = MathHelper.floorLog2(GEN_CHUNK_SIZE / (int) Math.sqrt(count));
+        int sub = Math.max(subLvlSize(MAX_SUB_LVL - lvl), 1);
+        int sum = 0;
+
+        for (int j = 0; j < sub*sub; j++) {
+            int base = convSubLvl(start/count,lvl,MAX_SUB_LVL);
+            sum += counts[base + j];
+        }
+        return sum;
+    }
+
+    public int dynCountOf(int i, int lvl, int x, int z) {
+        int dsize = MAX_SUB_LVL - lvl;
+        int index = i * (1 << MAX_SUB_LVL) + x * dsize + z * dsize * dsize;
+        return counts[index];
+    }
+
     // Idea: decouple generation chunks from visibility chunks.
     // One generation chunk is subdivided into multiple visibility chunks.
     // The vis chunks are always contiguous in memory.
@@ -357,10 +381,33 @@ public class ChunkGenerator2 {
         return true;
     }
 
+    private static int convSubLvl(int index, int from, int to) {
+        if(from < to) {
+            return index << (to - from);
+        } else if(to < from) {
+            return index >> (from - to);
+        }
+        return index;
+    }
+
+    private static int subLvlSize(int lvl) {
+        return 1 << lvl;
+    }
+
+    private static int subLvlSizeSq(int lvl) {
+        return MathHelper.square(1 << lvl);
+    }
+
     public void generate(ByteBuffer slice, int chunkx, int chunkz, int rx, int rz) {
         slice.clear();
         int index = 0;
         int length = GEN_CHUNK_SIZE_2;
+
+        for (int i = 0; i < subLvlSizeSq(MAX_SUB_LVL); i++) {
+            int base = convSubLvl((rx + size * rz), 0, MAX_SUB_LVL);
+            counts[base + i] = 0;
+        }
+
         // local pos
         for (int i = 0; i < generationOrder.length; i++) {
 //            short packed = generationOrder[i];
@@ -397,6 +444,13 @@ public class ChunkGenerator2 {
 //            slice.put(z);
 //            slice.put(0); // vec3 padding
 //            }
+            Debug.totalPoints++;
+            if(value > 0) {
+                Debug.totalClouds++;
+                int base = convSubLvl((rx + size * rz), 0, MAX_SUB_LVL);
+                int counti = convSubLvl(base + i, 7, MAX_SUB_LVL);
+                counts[counti]++;
+            }
         }
     }
 

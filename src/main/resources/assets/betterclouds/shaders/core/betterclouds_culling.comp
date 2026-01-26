@@ -39,7 +39,7 @@ uniform vec3 u_frustum_planes[4];
 uniform vec3 u_origin;
 uniform int u_cloud_count;
 
-shared uint local_counter = 0;
+shared uint local_counter;
 
 //bool isInFrustum(vec2 position) {
 //    return dot(position, u_frustum_planes[0].xy) - u_frustum_planes[0].z > 0

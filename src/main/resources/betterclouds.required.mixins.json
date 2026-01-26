@@ -9,6 +9,7 @@
   "client": [
     "AbstractWidgetMixin",
     "CloudSettingMixin",
+    "DebugHudMixin",
     "DimensionEffectsMixin",
     "MinecraftClientMixin",
     "RenderSystemMixin",

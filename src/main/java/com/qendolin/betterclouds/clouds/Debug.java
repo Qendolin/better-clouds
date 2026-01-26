@@ -24,6 +24,10 @@ public class Debug {
     // -1 to disable, 0 to initialize, paused tick otherwise
     public static int animationPause = -1;
     public static boolean generatorForceUpdate = false;
+    public static int currentRenderedClouds = 0;
+    public static int currentTotalClouds = 0;
+    public static int totalClouds = 0;
+    public static int totalPoints = 0;
 
     public static final List<Pair<Box, Boolean>> frustumCulledBoxes = new ArrayList<>();
 

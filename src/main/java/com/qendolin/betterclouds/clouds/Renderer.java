@@ -291,6 +291,7 @@ public class Renderer implements AutoCloseable {
         rotationProjectionMatrix.mul(tempMatrix);
 
 //        tempMatrix.translate((float) res.generator().renderOriginX(cam.x), (float) (cloudsHeight - cam.y), (float) res.generator().renderOriginZ(cam.z));
+        // TODO: Temporary, matrix should not include camera offset
         tempMatrix.translate((float) -cam.x, (float) (cloudsHeight - cam.y), (float) -cam.z);
         tempMatrix.m33(1);
 
@@ -559,7 +560,7 @@ public class Renderer implements AutoCloseable {
     private boolean generateCulledDrawCommands(DrawCommands draws, int region, int lvl, int x, int z) {
         final float[] bounds = new float[4];
         chunkGenerator2.bounds(region, lvl, x, z, bounds);
-        float maxDist = ConfigManager.instance().blockDistance() / 2f; // half is far
+        float maxDist = ConfigManager.instance().blockDistance() * (ConfigManager.instance().enableExtendedRenderDistance ? 0.5f : 1.0f); // half is far
 
         int visible = frustumCuller.test2(bounds[0], bounds[1], bounds[2], bounds[3]);
         int inRange = frustumCuller.testDist2(bounds[0], bounds[1], bounds[2], bounds[3], maxDist);
@@ -652,7 +653,7 @@ public class Renderer implements AutoCloseable {
 
         res.coverageShader().uCameraPos.setVec3((float) cam.x, (float) cam.y - cloudsHeight, (float) cam.z);
         res.coverageShader().uSpacing.setFloat(config.spacing);
-        res.coverageShader().uCircle.setVec3((float) cam.x, (float) cam.z, config.blockDistance() * 0.5f);
+        res.coverageShader().uCircle.setVec3((float) cam.x, (float) cam.z, config.blockDistance() * (ConfigManager.instance().enableExtendedRenderDistance ? 0.5f : 1.0f));
 
         // Render flat first,
         // otherwise there are some issues with ordering
@@ -667,12 +668,16 @@ public class Renderer implements AutoCloseable {
         // Culling this many faces is quite slow, so any regions that are not the center regions can
         // not draw faces that always point away
 
+        Debug.currentRenderedClouds = 0;
+        Debug.currentTotalClouds = 0;
         for (int region = 0; region < chunkGenerator2.index.length; region++) {
             commands.reset(0);
             generateCulledDrawCommands(commands, region, 0, 0, 0);
 
             for (int i = 0; i < commands.size(); i++) {
                 DrawCommand cmd = commands.get(i);
+                Debug.currentRenderedClouds += chunkGenerator2.dynCountOf(region, cmd.start, cmd.count);
+                Debug.currentTotalClouds += cmd.count;
                 if (Debug.frustumCulling)
                     Debug.addFrustumCulledBox(new Box(cmd.bounds[0], cloudsHeight, cmd.bounds[1], cmd.bounds[2], cloudsHeight + 64, cmd.bounds[3]), 0, 0, true);
 //                GL43.glDrawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, 0, Mesh.FANCY_MESH_VERTEX_COUNT, cmd.count, cmd.start);

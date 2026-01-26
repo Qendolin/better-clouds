@@ -187,11 +187,12 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
                         getProfiler().push(BetterCloudsStatic.MODID);
                         glCompat.pushDebugGroupDev("Better Clouds");
                         cloudRenderer.render(fticks, ftickDelta, fcam, ffrustumPos, ffrustum);
-                        glCompat.popDebugGroupDev();
-                        getProfiler().pop();
                     } catch (Throwable e) {
                         if(!IssueReportManager.handle(e, "An error occurred while rendering: " + e.getMessage()))
                             throw e;
+                    } finally {
+                        glCompat.popDebugGroupDev();
+                        getProfiler().pop();
                     }
                 });
                 //?} else {
@@ -201,10 +202,11 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
         } catch (Throwable e) {
             if(!IssueReportManager.handle(e, "An error occurred while rendering: " + e.getMessage()))
                 throw e;
+        } finally {
+            glCompat.popDebugGroupDev();
+            getProfiler().pop();
         }
 
-        getProfiler().pop();
-        glCompat.popDebugGroupDev();
     }
 
 

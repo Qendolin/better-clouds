@@ -44,7 +44,7 @@ stonecutter {
         mc("1.21.1", "fabric", "forge")
         mc("1.20.6", "fabric", "forge")
         mc("1.20.4", "fabric", "forge")
-        mc("1.20.1", "fabric") // Forge 1.20.1 is broken in Arch-Loom 1.10
+        mc("1.20.1", "fabric", "forge")
     }
 
     create rootProject

@@ -342,7 +342,7 @@ if (stonecutter.current.isActive) {
 	}
 	rootProject.tasks.named("activeModrinth") {
 		doLast {
-			new File(rootProject.relativePath("changelog.txt")).delete()
+			new File(rootProject.absoluteProjectPath("changelog.txt")).delete()
 		}
 	}
 	// Register task to run genSources for the active version only

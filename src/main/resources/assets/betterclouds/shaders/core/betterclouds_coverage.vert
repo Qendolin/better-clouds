@@ -285,7 +285,8 @@ void main() {
 //    y += 0.01;
 //    float y = 0.5;
     vec3 p = vec3(morton_pos.x, y, morton_pos.y) * vec3(u_spacing, 64, u_spacing) + region_offset;
-    p += r;
+//    p += r;
+    p.y = 0.0;
 
     vec3 d = u_camera_pos - p;
     ivec3 corner = ivec3(d.x <= 0.0 ? -1:1, d.y <= 0.0 ? -1:1, d.z <= 0.0 ? -1:1);
@@ -305,7 +306,9 @@ void main() {
     vec3 vertexPos = SIZE * v + p;
     gl_Position = u_mvp_matrix * vec4(vertexPos, 1.0);
 
-    if (y == 0.0 || length(u_camera_pos.xz - p.xz) > u_circle.z) {
+    bool isOutsideRadius = length(u_camera_pos.xz - p.xz) > u_circle.z;
+    isOutsideRadius = false;
+    if (y == 0.0 || isOutsideRadius) {
         gl_Position = vec4(0.0, 0.0, 0.0, -1.0);
     }
 }
