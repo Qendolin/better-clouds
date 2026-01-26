@@ -102,7 +102,8 @@ loom {
 
 	runs {
 		configureEach {
-			vmArg "-XX:+AllowEnhancedClassRedefinition"
+			// Uncomment if needed, but can often lead to issues in my experience
+			// vmArg "-XX:+AllowEnhancedClassRedefinition"
 		}
 
 		client {
