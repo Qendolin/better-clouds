@@ -1,5 +1,9 @@
 accessWidener	v1	named
 
+#? if <1.21.5 {
+#accessible class net/minecraft/client/render/RenderPhase$Target
+#?}
+
 mutable		field	net/minecraft/client/render/Frustum	frustumIntersection			Lorg/joml/FrustumIntersection;
 accessible	field	net/minecraft/client/render/Frustum	frustumIntersection			Lorg/joml/FrustumIntersection;
 mutable 	field 	net/minecraft/client/render/Frustum positionProjectionMatrix 	Lorg/joml/Matrix4f;
