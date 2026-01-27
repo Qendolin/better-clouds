@@ -9,6 +9,20 @@
 
 **Please, feel free to [report](https://github.com/Qendolin/better-clouds/issues/new) any issues** 
 
+&nbsp;  
+&nbsp;  
+&nbsp;  
+
+# ⚠️ DISCONTINUED ⚠️
+
+This mod is discontinued and will not recive any more updates!
+
+I'm open to pass on maintainership if anyone wants to.
+
+&nbsp;  
+&nbsp;  
+&nbsp; 
+
 ---
 
 **Introducing "Better Clouds"** - Enhancing the Skies of Minecraft! 🌤️
