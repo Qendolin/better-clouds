@@ -1,0 +1,25 @@
+plugins {
+	id "base"
+}
+
+base {
+	archivesName = "${project.archives_base_name}-common"
+}
+
+version = "${property('mod.version')}+${property('deps.minecraft')}-common"
+
+configurations {
+	commonJava {
+		canBeResolved = false
+		canBeConsumed = true
+	}
+	commonResources {
+		canBeResolved = false
+		canBeConsumed = true
+	}
+}
+
+artifacts {
+	commonJava file("src/main/java")
+	commonResources file("src/main/resources")
+}

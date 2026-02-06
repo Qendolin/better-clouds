@@ -1,0 +1,260 @@
+plugins {
+	id "dev.architectury.loom"
+	id "architectury-plugin"
+	id "me.modmuss50.mod-publish-plugin"
+}
+
+base {
+	archivesName = project.archives_base_name
+}
+
+def loader = "neoforge"
+def mcVersion = rootProject.ext.mcVersion
+
+version = rootProject.ext.buildVersionString(
+	property("mod.version").toString(),
+	property("mod.release").toString().toLowerCase(),
+	mcVersion,
+	loader
+)
+
+architectury {
+	// arch runtime, enables hot reloading
+	compileOnly()
+	minecraft = mcVersion
+
+	platformSetupLoomIde()
+	neoForge()
+}
+
+loom {
+	accessWidenerPath.set(project(":common").file("src/main/resources/betterclouds.accesswidener"))
+
+	runs {
+		client {
+			ideConfigGenerated true
+			runDir "../run"
+		}
+
+		server {
+			ideConfigGenerated false
+			runDir "../run"
+		}
+	}
+}
+
+configurations {
+	commonJava {
+		canBeResolved = true
+		canBeConsumed = false
+	}
+	commonResources {
+		canBeResolved = true
+		canBeConsumed = false
+	}
+}
+
+dependencies {
+	commonJava project(path: ":common", configuration: "commonJava")
+	commonResources project(path: ":common", configuration: "commonResources")
+
+	// To change versions see gradle.properties.
+	minecraft "com.mojang:minecraft:$mcVersion"
+	mappings loom.layered {
+		it.mappings("net.fabricmc:yarn:${property('loom.yarn')}:v2")
+		if (property("loom.yarn_patch_neoforge") != "") {
+			it.mappings("dev.architectury:yarn-mappings-patch-neoforge:${property('loom.yarn_patch_neoforge')}")
+		}
+		def override = rootProject.file("override.tiny")
+		if (override.exists()) {
+			println("Using mapping overrides: ${override}")
+			it.mappings(override)
+		}
+	}
+
+	annotationProcessor "io.github.llamalad7:mixinextras-common:${property('deps.mixin_extras')}"
+
+	modImplementation "net.neoforged:neoforge:${property('loader.neoforge')}"
+
+	modImplementation("dev.isxander:yet-another-config-lib:${property('deps.yacl')}-${loader}") {
+		transitive = false
+	}
+
+	compileOnly(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-common:${property('deps.mixinsquared')}"))
+	implementation(include("com.github.bawnorton.mixinsquared:mixinsquared-${loader}:${property('deps.mixinsquared')}"))
+	implementation(include("io.github.llamalad7:mixinextras-neoforge:${property('deps.mixin_extras')}"))
+
+	// These should be included with yacl, but it doesn't work correctly, so adding them here.
+	runtimeOnly "org.quiltmc.parsers:json:0.3.0"
+	runtimeOnly "org.quiltmc.parsers:gson:0.3.0"
+
+	compileOnly "maven.modrinth:YL57xq9U:${property('deps.iris_neoforge')}"
+	compileOnly "maven.modrinth:PtjYWJkn:${property('deps.sodium_extra_neoforge')}"
+	compileOnly "maven.modrinth:Es5v4eyq:${property('deps.sodium_options_api_neoforge')}"
+
+	if (!property("deps.terra_firma_craft").blank) {
+		compileOnly "maven.modrinth:JaCEZUhg:${property('deps.terra_firma_craft')}"
+	}
+
+	// Because yarn mappings are used the mods can't be loaded from 'mods' at runtime.
+	// This remaps jars in run/mods-neoforge as modLocalRuntime deps.
+	def localModsDir = rootProject.file("./run/mods-neoforge/")
+	if (localModsDir.exists() && localModsDir.isDirectory()) {
+		def localMods = localModsDir
+			.listFiles({ file -> file.isFile() && file.name.endsWith(".jar") } as FileFilter)
+		localMods.each { mod ->
+			println "Added NeoForge Mod: ${mod.name}"
+			dependencies {
+				modLocalRuntime files(mod)
+			}
+		}
+	}
+
+	include(implementation("gs.mclo:api:${property('deps.mclo_api')}"))
+	compileOnly "maven.modrinth:Xs0XTOVv:${property('deps.distanthorizons_api')}"
+	compileOnly "maven.modrinth:e0bNACJD:${property('deps.serene_seasons')}"
+	compileOnly "maven.modrinth:2rL16t1O:${property('deps.enhanced_celestials')}-neoforge"
+	compileOnly "maven.modrinth:z2XEADmE:${property('deps.data_anchor')}-neoforge"
+	if (!property("deps.sodium").blank) {
+		compileOnly "maven.modrinth:AANobbMI:${property('deps.sodium')}-neoforge"
+	}
+}
+
+tasks.named("compileJava", JavaCompile) {
+	dependsOn(configurations.commonJava)
+	source(configurations.commonJava)
+}
+
+processResources {
+	dependsOn(configurations.commonResources)
+	from(configurations.commonResources)
+
+	def props = [
+		version: project.version,
+		loader : loader,
+	]
+	props["mc_version_range"] = findProperty("deps.minecraft").toString().split(",").collect {
+		"[$it]"
+	}.join(",")
+	props["neoforge_version_range"] = findProperty("deps.neoforge").toString()
+
+	props.forEach(inputs::property)
+
+	filesMatching(["fabric.mod.json", "META-INF/mods.toml", "META-INF/neoforge.mods.toml"]) {
+		expand props
+	}
+
+	exclude("fabric.mod.json")
+	exclude("META-INF/mods.toml")
+	exclude("assets/**/*.ase")
+	exclude("assets/**/*.xcf")
+}
+
+remapJar {
+	atAccessWideners.add("betterclouds.accesswidener")
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 21
+}
+
+java {
+	withSourcesJar()
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
+}
+
+jar {
+	inputs.property "archivesName", project.base.archivesName
+	from(rootProject.file("LICENSE").path) {
+		rename { "${it}_${inputs.properties.archivesName}" }
+	}
+}
+
+publishMods {
+	def secrets = new Properties()
+	def secretsFile = rootProject.file("secrets.properties")
+	if (secretsFile.exists()) {
+		secretsFile.withInputStream { secrets.load(it) }
+	} else if (gradle.startParameter.taskNames.any { it.toLowerCase().contains("publish") }) {
+		throw new GradleException("Missing secrets.properties for publishMods")
+	}
+
+	def releaseType = property("mod.release").toString()
+	def releaseName = releaseType.capitalize()
+	def releaseTypeEnum = [
+		"release": "STABLE",
+		"stable" : "STABLE",
+		"beta"   : "BETA",
+		"alpha"  : "ALPHA"
+	][releaseType.toLowerCase()]
+	if (!releaseTypeEnum) {
+		throw new GradleException("Unknown release type: ${releaseType}")
+	}
+
+	def releaseLetter = releaseType.substring(0, 1).toLowerCase()
+	def loaderName = loom.platform.get().displayName
+	def modVersion = property("mod.version").toString()
+	def mcVersions = findProperty("deps.minecraft").toString().split(",").collect { it.trim().replace(".0", "") }
+
+	def changelogProvider = provider {
+		def file = rootProject.file("changelog.txt")
+		def lock = rootProject.file("changelog.txt.lock")
+		if (lock.createNewFile()) {
+			println("Opening changelog in notepad")
+			file.createNewFile()
+			def process = new ProcessBuilder("notepad", file.absolutePath).start()
+			process.waitFor()
+			lock.delete()
+		} else {
+			println("Waiting for changelog lock...")
+			while (lock.exists()) {
+				sleep(100)
+			}
+		}
+
+		def changelog = file.getText("UTF-8")
+		if (changelog.isBlank()) {
+			file.delete()
+			throw new GradleException("Changelog was blank")
+		}
+
+		return changelog
+	}
+
+	file = remapJar.archiveFile
+	changelog = changelogProvider
+	version = "${modVersion}+${mcVersion}-${loader}-${releaseLetter}"
+	type = releaseTypeEnum
+	displayName = "${releaseName} ${modVersion} for ${mcVersion} ${loaderName}"
+	modLoaders.add(loader)
+
+	modrinth {
+		accessToken = providers.provider { secrets.getProperty("MODRINTH") }
+		projectId = "5srFLIaK"
+		minecraftVersions.addAll(mcVersions)
+
+		requires("yacl")
+		optional("sodium")
+		optional("iris")
+
+		projectDescription = providers.fileContents(rootProject.layout.projectDirectory.file("README.md")).asText
+	}
+
+	curseforge {
+		accessToken = providers.provider { secrets.getProperty("CURSEFORGE") }
+		projectId = "1285973"
+		projectSlug = "better-clouds"
+		minecraftVersions.addAll(mcVersions)
+
+		changelogType = "markdown"
+
+		javaVersions.add(JavaVersion.VERSION_21)
+		clientRequired = true
+		serverRequired = false
+
+		requires("yacl")
+		optional("sodium")
+		optional("irisshaders")
+	}
+}

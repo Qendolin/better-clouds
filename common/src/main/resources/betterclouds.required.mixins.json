@@ -1,0 +1,24 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.qendolin.betterclouds.mixin.required",
+  "plugin": "com.qendolin.betterclouds.mixin.RequiredMixinPlugin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+  ],
+  "client": [
+    "CloudSettingMixin",
+    "GameRendererAccessor",
+    "MinecraftClientMixin",
+    "RenderSystemMixin",
+    "TabNavigationWidgetMixin",
+    "WorldMixin",
+    "WorldRendererMixin",
+    "yacl.AbstractWidgetMixin",
+    "yacl.CategoryTabMixin",
+    "yacl.OptionListWidgetMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

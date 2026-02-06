@@ -1,0 +1,245 @@
+plugins {
+	id "dev.architectury.loom"
+	id "architectury-plugin"
+	id "me.modmuss50.mod-publish-plugin"
+}
+
+base {
+	archivesName = project.archives_base_name
+}
+
+def loader = "fabric"
+def mcVersion = rootProject.ext.mcVersion
+
+version = rootProject.ext.buildVersionString(
+	property("mod.version").toString(),
+	property("mod.release").toString().toLowerCase(),
+	mcVersion,
+	loader
+)
+
+architectury {
+	// arch runtime, enables hot reloading
+	compileOnly()
+	minecraft = mcVersion
+
+	platformSetupLoomIde()
+	fabric()
+}
+
+loom {
+	accessWidenerPath.set(project(":common").file("src/main/resources/betterclouds.accesswidener"))
+
+	runs {
+		client {
+			ideConfigGenerated true
+			runDir "../run"
+		}
+
+		server {
+			ideConfigGenerated false
+			runDir "../run"
+		}
+	}
+}
+
+configurations {
+	commonJava {
+		canBeResolved = true
+		canBeConsumed = false
+	}
+	commonResources {
+		canBeResolved = true
+		canBeConsumed = false
+	}
+}
+
+dependencies {
+	commonJava project(path: ":common", configuration: "commonJava")
+	commonResources project(path: ":common", configuration: "commonResources")
+
+	// To change versions see gradle.properties.
+	minecraft "com.mojang:minecraft:$mcVersion"
+	mappings loom.layered {
+		it.mappings("net.fabricmc:yarn:${property('loom.yarn')}:v2")
+		if (property("loom.yarn_patch_neoforge") != "") {
+			it.mappings("dev.architectury:yarn-mappings-patch-neoforge:${property('loom.yarn_patch_neoforge')}")
+		}
+		def override = rootProject.file("override.tiny")
+		if (override.exists()) {
+			println("Using mapping overrides: ${override}")
+			it.mappings(override)
+		}
+	}
+
+	annotationProcessor "io.github.llamalad7:mixinextras-common:${property('deps.mixin_extras')}"
+
+	modImplementation "net.fabricmc:fabric-loader:${property('loader.fabric')}"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${property('deps.fabric_api')}"
+
+	modImplementation "com.terraformersmc:modmenu:${property('deps.modmenu')}"
+	modImplementation "dev.isxander:yet-another-config-lib:${property('deps.yacl')}-fabric"
+
+	modCompileOnly "maven.modrinth:PtjYWJkn:${property('deps.sodium_extra_fabric')}"
+	modCompileOnly "maven.modrinth:YL57xq9U:${property('deps.iris_fabric')}"
+	modCompileOnly "maven.modrinth:KJe6y9Eu:${property('deps.fabric_seasons')}"
+	modCompileOnly "maven.modrinth:Es5v4eyq:${property('deps.sodium_options_api_fabric')}"
+
+	include(implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-fabric:${property('deps.mixinsquared')}")))
+	implementation(include("io.github.llamalad7:mixinextras-fabric:${property('deps.mixin_extras')}"))
+
+	include(implementation("gs.mclo:api:${property('deps.mclo_api')}"))
+	compileOnly "maven.modrinth:Xs0XTOVv:${property('deps.distanthorizons_api')}"
+	modCompileOnly "maven.modrinth:e0bNACJD:${property('deps.serene_seasons')}"
+	modCompileOnly "maven.modrinth:2rL16t1O:${property('deps.enhanced_celestials')}-fabric"
+	modCompileOnly "maven.modrinth:z2XEADmE:${property('deps.data_anchor')}-fabric"
+	if (!property("deps.sodium").blank) {
+		modCompileOnly "maven.modrinth:AANobbMI:${property('deps.sodium')}-fabric"
+	}
+
+	// For the prodClient task.
+	productionRuntimeMods "dev.isxander:yet-another-config-lib:${property('deps.yacl')}-fabric"
+	productionRuntimeMods "net.fabricmc.fabric-api:fabric-api:${property('deps.fabric_api')}"
+}
+
+tasks.named("compileJava", JavaCompile) {
+	dependsOn(configurations.commonJava)
+	source(configurations.commonJava)
+}
+
+processResources {
+	dependsOn(configurations.commonResources)
+	from(configurations.commonResources)
+
+	def props = [
+		version: project.version,
+		loader : loader,
+	]
+	props["mc_version_range"] = findProperty("deps.minecraft").toString().split(",").collect {
+		"\"=$it\""
+	}.join(", ")
+
+	props.forEach(inputs::property)
+
+	filesMatching(["fabric.mod.json", "META-INF/mods.toml", "META-INF/neoforge.mods.toml"]) {
+		expand props
+	}
+
+	exclude("META-INF/neoforge.mods.toml")
+	exclude("META-INF/mods.toml")
+	exclude("assets/**/*.ase")
+	exclude("assets/**/*.xcf")
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 21
+}
+
+java {
+	withSourcesJar()
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
+}
+
+jar {
+	inputs.property "archivesName", project.base.archivesName
+	from(rootProject.file("LICENSE").path) {
+		rename { "${it}_${inputs.properties.archivesName}" }
+	}
+}
+
+publishMods {
+	def secrets = new Properties()
+	def secretsFile = rootProject.file("secrets.properties")
+	if (secretsFile.exists()) {
+		secretsFile.withInputStream { secrets.load(it) }
+	} else if (gradle.startParameter.taskNames.any { it.toLowerCase().contains("publish") }) {
+		throw new GradleException("Missing secrets.properties for publishMods")
+	}
+
+	def releaseType = property("mod.release").toString()
+	def releaseName = releaseType.capitalize()
+	def releaseTypeEnum = [
+		"release": "STABLE",
+		"stable" : "STABLE",
+		"beta"   : "BETA",
+		"alpha"  : "ALPHA"
+	][releaseType.toLowerCase()]
+	if (!releaseTypeEnum) {
+		throw new GradleException("Unknown release type: ${releaseType}")
+	}
+
+	def releaseLetter = releaseType.substring(0, 1).toLowerCase()
+	def loaderName = loom.platform.get().displayName
+	def modVersion = property("mod.version").toString()
+	def mcVersions = findProperty("deps.minecraft").toString().split(",").collect { it.trim().replace(".0", "") }
+
+	def changelogProvider = provider {
+		def file = rootProject.file("changelog.txt")
+		def lock = rootProject.file("changelog.txt.lock")
+		if (lock.createNewFile()) {
+			println("Opening changelog in notepad")
+			file.createNewFile()
+			def process = new ProcessBuilder("notepad", file.absolutePath).start()
+			process.waitFor()
+			lock.delete()
+		} else {
+			println("Waiting for changelog lock...")
+			while (lock.exists()) {
+				sleep(100)
+			}
+		}
+
+		def changelog = file.getText("UTF-8")
+		if (changelog.isBlank()) {
+			file.delete()
+			throw new GradleException("Changelog was blank")
+		}
+
+		return changelog
+	}
+
+	file = remapJar.archiveFile
+	changelog = changelogProvider
+	version = "${modVersion}+${mcVersion}-${loader}-${releaseLetter}"
+	type = releaseTypeEnum
+	displayName = "${releaseName} ${modVersion} for ${mcVersion} ${loaderName}"
+	modLoaders.add(loader)
+
+	modrinth {
+		accessToken = providers.provider { secrets.getProperty("MODRINTH") }
+		projectId = "5srFLIaK"
+		minecraftVersions.addAll(mcVersions)
+
+		requires("yacl")
+		requires("fabric-api")
+		optional("modmenu")
+		incompatible("vulkanmod")
+		incompatible("immersiveportals")
+		optional("sodium")
+		optional("iris")
+
+		projectDescription = providers.fileContents(rootProject.layout.projectDirectory.file("README.md")).asText
+	}
+
+	curseforge {
+		accessToken = providers.provider { secrets.getProperty("CURSEFORGE") }
+		projectId = "1285973"
+		projectSlug = "better-clouds"
+		minecraftVersions.addAll(mcVersions)
+
+		changelogType = "markdown"
+
+		javaVersions.add(JavaVersion.VERSION_21)
+		clientRequired = true
+		serverRequired = false
+
+		requires("yacl")
+		requires("fabric-api")
+		optional("modmenu")
+		incompatible("vulkanmod")
+		incompatible("immersive-portals-mod")
+		optional("sodium")
+		optional("irisshaders")
+	}
+}

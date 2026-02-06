@@ -37,30 +37,28 @@ ext.modifyModVersion = { File file, int delta ->
 
 tasks.register('incrementModVersions') {
 	group = 'publishing'
-	description = 'Increments the patch version of mod.version in all gradle.properties files.'
+	description = 'Increments the patch version of mod.version in gradle.properties.'
 	doLast {
-		fileTree('versions').matching { include '**/gradle.properties' }.each { file ->
-			try {
-				modifyModVersion(file, 1)
-			} catch (Exception e) {
-				println "Error processing ${file}: ${e.message}"
-				throw e
-			}
+		def file = rootProject.file('gradle.properties')
+		try {
+			modifyModVersion(file, 1)
+		} catch (Exception e) {
+			println "Error processing ${file}: ${e.message}"
+			throw e
 		}
 	}
 }
 
 tasks.register('decrementModVersions') {
 	group = 'publishing'
-	description = 'Decrements the patch version of mod.version in all gradle.properties files.'
+	description = 'Decrements the patch version of mod.version in gradle.properties.'
 	doLast {
-		fileTree('versions').matching { include '**/gradle.properties' }.each { file ->
-			try {
-				modifyModVersion(file, -1)
-			} catch (Exception e) {
-				println "Error processing ${file}: ${e.message}"
-				throw e
-			}
+		def file = rootProject.file('gradle.properties')
+		try {
+			modifyModVersion(file, -1)
+		} catch (Exception e) {
+			println "Error processing ${file}: ${e.message}"
+			throw e
 		}
 	}
 }
