@@ -17,7 +17,6 @@ public class RuntimeMixinPlugin extends MixinPlugin {
         List<String> classes = new ArrayList<>();
 
         classes.add("FogRendererMixin");
-        classes.add("DimensionTypeMixin");
         classes.add("SimpleOptionAccessor");
 
         if (ModLoaded.SODIUM) {

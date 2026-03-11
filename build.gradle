@@ -18,10 +18,11 @@ ext {
 	}
 }
 
-allprojects {
+	allprojects {
 	group = rootProject.property("maven_group")
 
 	repositories {
+		mavenCentral()
 		maven {
 			name = "TerraformersMC"
 			url = "https://maven.terraformersmc.com/releases/"
@@ -40,6 +41,11 @@ allprojects {
 		maven {
 			name = "NeoForged"
 			url = "https://maven.neoforged.net/releases"
+			content {
+				includeGroup "net.neoforged"
+				includeGroup "net.neoforged.fancymodloader"
+				includeGroup "cpw.mods"
+			}
 		}
 		maven { url = "https://maven.quiltmc.org/repository/release" }
 		maven { url = "https://maven.bawnorton.com/releases" }

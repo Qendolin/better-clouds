@@ -1,12 +1,76 @@
 plugins {
-	id "base"
+	id "dev.architectury.loom"
+	id "architectury-plugin"
+	id "java"
 }
 
 base {
 	archivesName = "${project.archives_base_name}-common"
 }
 
+def mcVersion = rootProject.ext.mcVersion
+
 version = "${property('mod.version')}+${property('deps.minecraft')}-common"
+
+architectury {
+	compileOnly()
+	minecraft = mcVersion
+}
+
+loom {
+	accessWidenerPath.set(file("src/main/resources/betterclouds.accesswidener"))
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:$mcVersion"
+	mappings loom.layered {
+		it.mappings("net.fabricmc:yarn:${property('loom.yarn')}:v2")
+		if (property("loom.yarn_patch_neoforge") != "") {
+			it.mappings("dev.architectury:yarn-mappings-patch-neoforge:${property('loom.yarn_patch_neoforge')}")
+		}
+		def override = rootProject.file("override.tiny")
+		if (override.exists()) {
+			println("Using mapping overrides: ${override}")
+			it.mappings(override)
+		}
+	}
+
+	annotationProcessor "io.github.llamalad7:mixinextras-common:${property('deps.mixin_extras')}"
+
+	compileOnly "net.fabricmc:sponge-mixin:0.16.5+mixin.0.8.7"
+	compileOnly "net.fabricmc:fabric-loader:${property('loader.fabric')}"
+	modCompileOnly "net.fabricmc.fabric-api:fabric-api:${property('deps.fabric_api')}"
+	compileOnly "com.github.bawnorton.mixinsquared:mixinsquared-common:${property('deps.mixinsquared')}"
+	compileOnly "io.github.llamalad7:mixinextras-common:${property('deps.mixin_extras')}"
+
+	modCompileOnly "com.terraformersmc:modmenu:${property('deps.modmenu')}"
+	modCompileOnly "dev.isxander:yet-another-config-lib:${property('deps.yacl')}-fabric"
+	modCompileOnly "maven.modrinth:PtjYWJkn:${property('deps.sodium_extra_fabric')}"
+	modCompileOnly "maven.modrinth:YL57xq9U:${property('deps.iris_fabric')}"
+	modCompileOnly "maven.modrinth:KJe6y9Eu:${property('deps.fabric_seasons')}"
+	modCompileOnly "maven.modrinth:Es5v4eyq:${property('deps.sodium_options_api_fabric')}"
+	compileOnly "gs.mclo:api:${property('deps.mclo_api')}"
+	modCompileOnly "maven.modrinth:Xs0XTOVv:${property('deps.distanthorizons_api')}"
+	modCompileOnly "maven.modrinth:e0bNACJD:${property('deps.serene_seasons')}"
+	modCompileOnly "maven.modrinth:2rL16t1O:${property('deps.enhanced_celestials')}-fabric"
+	modCompileOnly "maven.modrinth:z2XEADmE:${property('deps.data_anchor')}-fabric"
+	if (!property("deps.sodium").blank) {
+		modCompileOnly "maven.modrinth:AANobbMI:${property('deps.sodium')}-fabric"
+	}
+}
+
+tasks.named("compileJava", JavaCompile) {
+	enabled = false
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 21
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
+}
 
 configurations {
 	commonJava {
@@ -20,6 +84,6 @@ configurations {
 }
 
 artifacts {
-	commonJava file("src/main/java")
-	commonResources file("src/main/resources")
+	commonJava sourceSets.main.java.sourceDirectories.singleFile
+	commonResources sourceSets.main.resources.sourceDirectories.singleFile
 }

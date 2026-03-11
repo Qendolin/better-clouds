@@ -39,7 +39,7 @@
     ],
     "java": ">=21",
     "fabric-api": "*",
-    "yet_another_config_lib_v3": ">=3.9.4"
+    "yet_another_config_lib_v3": ">=3.8.1"
   },
   "recommends": {
     "modmenu": "*",

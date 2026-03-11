@@ -30,7 +30,7 @@ side = "BOTH"
 [[dependencies.betterclouds]]
 modId = "yet_another_config_lib_v3"
 mandatory = true
-versionRange = "[3.9.4,4.0.0)"
+versionRange = "[3.8.1,4.0.0)"
 ordering = "NONE"
 side = "CLIENT"
 

@@ -19,6 +19,7 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.attribute.EnvironmentAttributes;
 import org.joml.Matrix4d;
 import org.joml.Matrix4f;
 import org.joml.Vector3d;
@@ -125,7 +126,7 @@ public class Renderer implements AutoCloseable {
             return PrepareResult.NO_RENDER;
         }
 
-        cloudsHeight = world.getDimension().cloudHeight().orElse(192);
+        cloudsHeight = world.getEnvironmentAttributes().getAttributeValue(EnvironmentAttributes.CLOUD_HEIGHT_VISUAL);
 
         res.generator().bind();
         ShaderParameters currentShaderParameters = createShaderParameters(config);
@@ -446,8 +447,8 @@ public class Renderer implements AutoCloseable {
         RenderHelper.bindTexture(client.getTextureManager().getTexture(Resources.LIGHTING_TEXTURE));
 
         Vector3f effectTint = EffectTintProvider.getEffectTint(client, fog, tickDelta);
-        long skyTime = world.getLunarTime() % 24000;
-        float skyAngleRad = world.getSkyAngleRadians(tickDelta);
+        long skyTime = world.getTimeOfDay() % 24000;
+        float skyAngleRad = (float) Math.toRadians(world.getEnvironmentAttributes().getAttributeValue(EnvironmentAttributes.SUN_ANGLE_VISUAL));
         float sunPathAngleRad = (float) Math.toRadians(config.preset().sunPathAngle);
         float dayNightFactor = MathUtil.interpolateDayNightFactor(skyTime, config.preset().sunriseStartTime, config.preset().sunriseEndTime, config.preset().sunsetStartTime, config.preset().sunsetEndTime);
         float brightness = (1 - dayNightFactor) * config.preset().nightBrightness + dayNightFactor * config.preset().dayBrightness;

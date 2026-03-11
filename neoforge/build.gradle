@@ -73,24 +73,41 @@ dependencies {
 	}
 
 	annotationProcessor "io.github.llamalad7:mixinextras-common:${property('deps.mixin_extras')}"
+	compileOnly "net.fabricmc:sponge-mixin:0.16.5+mixin.0.8.7"
+	annotationProcessor "net.fabricmc:sponge-mixin:0.16.5+mixin.0.8.7"
+	runtimeOnly "net.fabricmc:sponge-mixin:0.16.5+mixin.0.8.7"
+	compileOnly "org.ow2.asm:asm-tree:9.8"
+	runtimeOnly "org.ow2.asm:asm:9.8"
+	runtimeOnly "org.ow2.asm:asm-tree:9.8"
+	runtimeOnly "org.ow2.asm:asm-commons:9.8"
+	runtimeOnly "org.ow2.asm:asm-util:9.8"
+	runtimeOnly "org.ow2.asm:asm-analysis:9.8"
+	annotationProcessor "org.ow2.asm:asm-tree:9.7.1"
+	annotationProcessor "com.google.code.gson:gson:2.13.2"
+	annotationProcessor "com.google.guava:guava:33.5.0-jre"
+	compileOnly "net.fabricmc:fabric-loader:${property('loader.fabric')}"
+	runtimeOnly "net.fabricmc:fabric-loader:${property('loader.fabric')}"
+	compileOnly "net.neoforged.fancymodloader:loader:10.0.36"
+	compileOnly "net.neoforged:bus:8.0.5"
+	compileOnly "org.apache.maven:maven-artifact:3.9.9"
 
 	modImplementation "net.neoforged:neoforge:${property('loader.neoforge')}"
 
-	modImplementation("dev.isxander:yet-another-config-lib:${property('deps.yacl')}-${loader}") {
-		transitive = false
-	}
+	// Compile common GUI code against Yarn-named YACL classes, but run NeoForge with the NeoForge artifact.
+	modCompileOnly "dev.isxander:yet-another-config-lib:${property('deps.yacl')}-fabric"
+	modRuntimeOnly "dev.isxander:yet-another-config-lib:${property('deps.yacl')}-${loader}"
 
 	compileOnly(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-common:${property('deps.mixinsquared')}"))
-	implementation(include("com.github.bawnorton.mixinsquared:mixinsquared-${loader}:${property('deps.mixinsquared')}"))
-	implementation(include("io.github.llamalad7:mixinextras-neoforge:${property('deps.mixin_extras')}"))
+	implementation("com.github.bawnorton.mixinsquared:mixinsquared-${loader}:${property('deps.mixinsquared')}")
+	implementation("io.github.llamalad7:mixinextras-neoforge:${property('deps.mixin_extras')}")
 
 	// These should be included with yacl, but it doesn't work correctly, so adding them here.
 	runtimeOnly "org.quiltmc.parsers:json:0.3.0"
 	runtimeOnly "org.quiltmc.parsers:gson:0.3.0"
 
-	compileOnly "maven.modrinth:YL57xq9U:${property('deps.iris_neoforge')}"
-	compileOnly "maven.modrinth:PtjYWJkn:${property('deps.sodium_extra_neoforge')}"
-	compileOnly "maven.modrinth:Es5v4eyq:${property('deps.sodium_options_api_neoforge')}"
+	compileOnly "maven.modrinth:YL57xq9U:${property('deps.iris_fabric')}"
+	compileOnly "maven.modrinth:PtjYWJkn:${property('deps.sodium_extra_fabric')}"
+	compileOnly "maven.modrinth:Es5v4eyq:${property('deps.sodium_options_api_fabric')}"
 
 	if (!property("deps.terra_firma_craft").blank) {
 		compileOnly "maven.modrinth:JaCEZUhg:${property('deps.terra_firma_craft')}"
@@ -110,19 +127,25 @@ dependencies {
 		}
 	}
 
-	include(implementation("gs.mclo:api:${property('deps.mclo_api')}"))
+	implementation("gs.mclo:api:${property('deps.mclo_api')}")
 	compileOnly "maven.modrinth:Xs0XTOVv:${property('deps.distanthorizons_api')}"
 	compileOnly "maven.modrinth:e0bNACJD:${property('deps.serene_seasons')}"
-	compileOnly "maven.modrinth:2rL16t1O:${property('deps.enhanced_celestials')}-neoforge"
-	compileOnly "maven.modrinth:z2XEADmE:${property('deps.data_anchor')}-neoforge"
+	compileOnly "maven.modrinth:2rL16t1O:${property('deps.enhanced_celestials')}-fabric"
+	compileOnly "maven.modrinth:z2XEADmE:${property('deps.data_anchor')}-fabric"
 	if (!property("deps.sodium").blank) {
-		compileOnly "maven.modrinth:AANobbMI:${property('deps.sodium')}-neoforge"
+		compileOnly "maven.modrinth:AANobbMI:${property('deps.sodium')}-fabric"
 	}
 }
 
 tasks.named("compileJava", JavaCompile) {
 	dependsOn(configurations.commonJava)
-	source(configurations.commonJava)
+	source(configurations.commonJava.asFileTree.matching {
+		exclude(
+			"com/qendolin/betterclouds/compat/EnhancedCelestials2CompatImpl.java",
+			"com/qendolin/betterclouds/compat/IrisCompatImpl.java",
+			"com/qendolin/betterclouds/mixin/runtime/SodiumGameOptionPagesMixin.java"
+		)
+	})
 }
 
 processResources {
@@ -156,6 +179,7 @@ remapJar {
 
 tasks.withType(JavaCompile).configureEach {
 	it.options.release = 21
+	it.options.compilerArgs += ["-proc:none"]
 }
 
 java {

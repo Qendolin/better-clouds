@@ -102,10 +102,11 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
         RenderHelper.setProjectionMatrix(projectionFinalMatrix);
         RenderHelper.setViewMatrix(positionMatrix);
         frustum = new Frustum(positionMatrix, projectionOnlyMatrix);
-        frustum.setPosition(camera.getPos().getX(), camera.getPos().getY(), camera.getPos().getZ());
+        Vec3d cameraPos = camera.getCameraPos();
+        frustum.setPosition(cameraPos.x, cameraPos.y, cameraPos.z);
     }
     @Inject(at = @At("HEAD"), method = "renderClouds", cancellable = true, require = 0)
-    private void renderClouds(FrameGraphBuilder frameGraphBuilder, CloudRenderMode _mode, Vec3d cameraPos, float _ticks, int _color, float _cloudHeight, CallbackInfo ci) {
+    private void renderClouds(FrameGraphBuilder frameGraphBuilder, CloudRenderMode _mode, Vec3d cameraPos, long _seed, float _ticks, int _color, float _cloudHeight, CallbackInfo ci) {
         renderCloudsInternal(frameGraphBuilder, cameraPos, _ticks, ci);
     }
 

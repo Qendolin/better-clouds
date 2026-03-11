@@ -102,6 +102,12 @@ dependencies {
 	productionRuntimeMods "net.fabricmc.fabric-api:fabric-api:${property('deps.fabric_api')}"
 }
 
+tasks.register("runGameTest", net.fabricmc.loom.task.prod.ClientProductionRunTask) {
+	group = "loom"
+	description = "Launches the Fabric client with the Fabric client game test flag."
+	jvmArgs.add("-Dfabric.client.gametest")
+}
+
 tasks.named("compileJava", JavaCompile) {
 	dependsOn(configurations.commonJava)
 	source(configurations.commonJava)

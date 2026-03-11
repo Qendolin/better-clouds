@@ -260,7 +260,7 @@ public class Telemetry implements ITelemetry {
             public MetaInfo(ModVersion modVersion) {
                 this.modVersion = modVersion.getFriendlyString();
                 this.modSemVer = modVersion.asSemVer().orElse(null);
-                this.mcVersion = MinecraftVersion.create().getName();
+                this.mcVersion = MinecraftVersion.create().name();
                 this.mcSemVer = ModVersion.fromString(this.mcVersion).asSemVer().orElse(null);
             }
         }

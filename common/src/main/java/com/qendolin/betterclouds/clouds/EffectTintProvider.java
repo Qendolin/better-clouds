@@ -7,6 +7,7 @@ import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.attribute.EnvironmentAttributes;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -33,8 +34,8 @@ public abstract class EffectTintProvider {
         Vector3f cloudBaseChroma = cloudBaseLuma < 0.0001 ? new Vector3f(1.0f) : new Vector3f(cloudColor).div(cloudBaseLuma);
 
         float cloudLuma = cloudBaseLuma;
-        float moon = MathHelper.clamp(-MathHelper.cos(client.world.getSkyAngle(tickDelta) * 2 * MathHelper.PI), -0.25f, 0.25f) * 2 + 0.5f;
-        float moonSize = client.world.getMoonSize() * EnhancedCelestialsCompat.instance().getMoonSize(client.world);
+        float moon = MathHelper.clamp(-MathHelper.cos(getSunAngleRadians(client.world)), -0.25f, 0.25f) * 2 + 0.5f;
+        float moonSize = EnhancedCelestialsCompat.instance().getMoonSize(client.world);
         cloudLuma += moonSize * moon * 0.65f;
 
         // CrY - Chroma and Luma
@@ -85,7 +86,7 @@ public abstract class EffectTintProvider {
         float rain = world.getRainGradient(tickDelta);
         color.lerp(new Vector3f(color.dot(Y) * 0.6f), rain * 0.95f);
 
-        float sky = world.getSkyAngle(tickDelta);
+        float sky = getSunAngleDegrees(world) / 360.0f;
 
         float sun = MathHelper.cos(sky * (float) (Math.PI * 2)) * 2.0F + 0.5F;
         sun = MathHelper.clamp(sun, 0.0F, 1.0F);
@@ -103,5 +104,13 @@ public abstract class EffectTintProvider {
 
     private static void linearToGamma(Vector3f color) {
         color.set((float) Math.pow(color.x, 1 / 2.2), (float) Math.pow(color.y, 1 / 2.2), (float) Math.pow(color.z, 1 / 2.2));
+    }
+
+    private static float getSunAngleDegrees(ClientWorld world) {
+        return world.getEnvironmentAttributes().getAttributeValue(EnvironmentAttributes.SUN_ANGLE_VISUAL);
+    }
+
+    private static float getSunAngleRadians(ClientWorld world) {
+        return (float) Math.toRadians(getSunAngleDegrees(world));
     }
 }

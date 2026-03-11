@@ -31,15 +31,24 @@ import java.util.function.Function;
 
 public class Commands {
 
-    private static <S> LiteralArgumentBuilder<S> literal(String name) {
+    private static LiteralArgumentBuilder<Object> literal(String name) {
         return LiteralArgumentBuilder.literal(name);
     }
 
-    private static <S, T> RequiredArgumentBuilder<S, T> argument(String name, ArgumentType<T> type) {
+    private static <T> RequiredArgumentBuilder<Object, T> argument(String name, ArgumentType<T> type) {
         return RequiredArgumentBuilder.argument(name, type);
     }
 
-    static <S> void register(CommandDispatcher<S> dispatcher) {
+    static void register(CommandDispatcher<?> dispatcher) {
+        registerImpl(castDispatcher(dispatcher));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static CommandDispatcher<Object> castDispatcher(CommandDispatcher<?> dispatcher) {
+        return (CommandDispatcher<Object>) dispatcher;
+    }
+
+    private static void registerImpl(CommandDispatcher<Object> dispatcher) {
         final MinecraftClient client = MinecraftClient.getInstance();
         dispatcher.register(literal(BetterCloudsStatic.MODID + ":profile")
             .then(argument("interval", IntegerArgumentType.integer(30))
@@ -212,7 +221,7 @@ public class Commands {
         );
     }
 
-    private static <S> LiteralArgumentBuilder<S> renderdocCommands() {
+    private static LiteralArgumentBuilder<Object> renderdocCommands() {
         return literal("renderdoc")
             .then(literal("capture")
                 .executes(context -> {

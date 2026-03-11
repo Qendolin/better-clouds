@@ -13,6 +13,8 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
 import net.neoforged.neoforge.common.NeoForge;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -43,7 +45,7 @@ public class EventHooksImpl extends EventHooks {
     @Override
     public void onClientResourcesReload(Supplier<ResourceReloader> supplier) {
         modEventBus.addListener(AddClientReloadListenersEvent.class, event -> {
-            event.addListener(ShaderPresetLoader.ID, supplier.get());
+            invokeAddReloadListener(event, supplier.get());
         });
     }
 
@@ -58,7 +60,44 @@ public class EventHooksImpl extends EventHooks {
     @Override
     public void onClientCommandRegistration(Consumer<CommandDispatcher<?>> callback) {
         NeoForge.EVENT_BUS.addListener(RegisterClientCommandsEvent.class, event -> {
-            callback.accept(event.getDispatcher());
+            CommandDispatcher<?> dispatcher = invokeCommandDispatcher(event);
+            if (dispatcher != null) {
+                callback.accept(dispatcher);
+            }
         });
+    }
+
+    private static void invokeAddReloadListener(Object event, ResourceReloader reloader) {
+        try {
+            Method method = findMethod(event.getClass(), "addListener", 2);
+            if (method != null) {
+                method.invoke(event, ShaderPresetLoader.ID, reloader);
+            }
+        } catch (IllegalAccessException | InvocationTargetException ignored) {
+        }
+    }
+
+    private static CommandDispatcher<?> invokeCommandDispatcher(Object event) {
+        try {
+            Method method = findMethod(event.getClass(), "getDispatcher", 0);
+            if (method == null) {
+                return null;
+            }
+            Object value = method.invoke(event);
+            if (value instanceof CommandDispatcher<?> dispatcher) {
+                return dispatcher;
+            }
+        } catch (IllegalAccessException | InvocationTargetException ignored) {
+        }
+        return null;
+    }
+
+    private static Method findMethod(Class<?> type, String name, int paramCount) {
+        for (Method method : type.getMethods()) {
+            if (method.getName().equals(name) && method.getParameterCount() == paramCount) {
+                return method;
+            }
+        }
+        return null;
     }
 }

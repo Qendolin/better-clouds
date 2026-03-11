@@ -20,7 +20,7 @@ public abstract class FogRendererMixin {
 
 
     @Inject(
-        method = "applyFog(Lnet/minecraft/client/render/Camera;IZLnet/minecraft/client/render/RenderTickCounter;FLnet/minecraft/client/world/ClientWorld;)Lorg/joml/Vector4f;",
+        method = "applyFog(Lnet/minecraft/client/render/Camera;ILnet/minecraft/client/render/RenderTickCounter;FLnet/minecraft/client/world/ClientWorld;)Lorg/joml/Vector4f;",
         at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/fog/FogRenderer;applyFog(Ljava/nio/ByteBuffer;ILorg/joml/Vector4f;FFFFFF)V", shift = At.Shift.AFTER)
     )
     private void captureFogData(CallbackInfoReturnable<Vector4f> cir, @Local(ordinal = 0) FogData fogData, @Share("fogData") LocalRef<FogData> fogDataRef) {
@@ -28,7 +28,7 @@ public abstract class FogRendererMixin {
     }
 
     @ModifyReturnValue(
-        method = "applyFog(Lnet/minecraft/client/render/Camera;IZLnet/minecraft/client/render/RenderTickCounter;FLnet/minecraft/client/world/ClientWorld;)Lorg/joml/Vector4f;",
+        method = "applyFog(Lnet/minecraft/client/render/Camera;ILnet/minecraft/client/render/RenderTickCounter;FLnet/minecraft/client/world/ClientWorld;)Lorg/joml/Vector4f;",
         at = @At("RETURN")
     )
     private Vector4f captureFogColor(Vector4f color, @Share("fogData") LocalRef<FogData> fogDataRef) {

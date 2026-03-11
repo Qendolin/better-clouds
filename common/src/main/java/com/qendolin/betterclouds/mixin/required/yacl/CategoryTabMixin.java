@@ -10,6 +10,7 @@ import com.qendolin.betterclouds.gui.ConfigScreen;
 import dev.isxander.yacl3.gui.YACLScreen;
 import dev.isxander.yacl3.gui.utils.GuiUtils;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.ClickableWidget;
