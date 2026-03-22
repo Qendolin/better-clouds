@@ -20,6 +20,13 @@ version = rootProject.ext.buildVersionString(
 loom {
 	accessWidenerPath.set(project(":common").file("src/main/resources/betterclouds.accesswidener"))
 
+	mods {
+		betterclouds {
+			sourceSet project(":common").sourceSets.main
+			sourceSet sourceSets.main
+		}
+	}
+
 	runs {
 		client {
 			ideConfigGenerated true
@@ -33,20 +40,8 @@ loom {
 	}
 }
 
-configurations {
-	commonJava {
-		canBeResolved = true
-		canBeConsumed = false
-	}
-	commonResources {
-		canBeResolved = true
-		canBeConsumed = false
-	}
-}
-
 dependencies {
-	commonJava project(path: ":common", configuration: "commonJava")
-	commonResources project(path: ":common", configuration: "commonResources")
+	implementation project(":common")
 
 	minecraft "com.mojang:minecraft:$mcVersion"
 
@@ -79,15 +74,7 @@ tasks.register("runGameTest", net.fabricmc.loom.task.prod.ClientProductionRunTas
 	jvmArgs.add("-Dfabric.client.gametest")
 }
 
-tasks.named("compileJava", JavaCompile) {
-	dependsOn(configurations.commonJava)
-	source(configurations.commonJava)
-}
-
 processResources {
-	dependsOn(configurations.commonResources)
-	from(configurations.commonResources)
-
 	def props = [
 		version: project.version,
 		loader : loader,
@@ -121,9 +108,14 @@ java {
 
 jar {
 	inputs.property "archivesName", project.base.archivesName
+	from(project(":common").sourceSets.main.output)
 	from(rootProject.file("LICENSE").path) {
 		rename { "${it}_${inputs.properties.archivesName}" }
 	}
+}
+
+tasks.named("sourcesJar", Jar) {
+	from(project(":common").sourceSets.main.allSource)
 }
 
 publishMods {
