@@ -8,17 +8,14 @@ on: [ pull_request, push ]
 
 jobs:
   build:
-    name: check_${{ matrix.version }}-${{ matrix.modloader }}
+    name: check_${{ matrix.loader }}
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
-        modloader: [ fabric, forge ]
-        version: [ 1.20.1, 1.20.6, 1.21.1, 1.21.11 ]
+        loader: [ fabric, neoforge ]
     env:
       GRADLE_OPTS: "-Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000"
-      BUILD_TARGET: ${{ matrix.version }}-${{ matrix.modloader }}
-      ORG_GRADLE_PROJECT_modTarget: ${{ matrix.version }}-${{ matrix.modloader }}
     steps:
       - name: checkout repository
         uses: actions/checkout@v4
@@ -35,16 +32,14 @@ jobs:
           distribution: 'microsoft'
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
-      - name: switch stonecutter version
-        run: ./gradlew stonecutterSwitchTo${{ env.BUILD_TARGET }}
-      - name: list gradle projects    # There should only be one project listed in each workflow (hopefully)
+      - name: list gradle projects
         run: ./gradlew -q projects
       - name: build project
-        run: ./gradlew :${{ env.BUILD_TARGET }}:build
+        run: ./gradlew :${{ matrix.loader }}:build
       - name: upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.BUILD_TARGET }}-artifacts
+          name: ${{ matrix.loader }}-artifacts
           path: |
-            versions/${{ env.BUILD_TARGET }}/build/libs/*.jar
+            ${{ matrix.loader }}/build/libs/*.jar
           if-no-files-found: error
