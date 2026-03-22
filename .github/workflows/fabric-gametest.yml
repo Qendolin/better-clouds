@@ -14,4 +14,4 @@ jobs:
           distribution: temurin
           java-version: 25
       - uses: gradle/actions/setup-gradle@v4
-      - run: xvfb-run ./gradlew fabric:runGameTest --stacktrace
+      - run: timeout 3m xvfb-run ./gradlew fabric:runGameTest --stacktrace
