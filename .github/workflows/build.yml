@@ -1,0 +1,50 @@
+# Automatically build the project and run any configured tests for every push
+# and submitted pull request. This can help catch issues that only occur on
+# certain platforms or Java versions, and provides a first line of defence
+# against bad commits.
+
+name: build
+on: [ pull_request, push ]
+
+jobs:
+  build:
+    name: check_${{ matrix.version }}-${{ matrix.modloader }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        modloader: [ fabric, forge ]
+        version: [ 1.20.1, 1.20.6, 1.21.1, 1.21.11 ]
+    env:
+      GRADLE_OPTS: "-Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000"
+      BUILD_TARGET: ${{ matrix.version }}-${{ matrix.modloader }}
+      ORG_GRADLE_PROJECT_modTarget: ${{ matrix.version }}-${{ matrix.modloader }}
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v4
+      - name: validate gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+      - name: setup gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.event_name != 'push' }}
+      - name: setup jdk
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'microsoft'
+      - name: make gradle wrapper executable
+        run: chmod +x ./gradlew
+      - name: switch stonecutter version
+        run: ./gradlew stonecutterSwitchTo${{ env.BUILD_TARGET }}
+      - name: list gradle projects    # There should only be one project listed in each workflow (hopefully)
+        run: ./gradlew -q projects
+      - name: build project
+        run: ./gradlew :${{ env.BUILD_TARGET }}:build
+      - name: upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.BUILD_TARGET }}-artifacts
+          path: |
+            versions/${{ env.BUILD_TARGET }}/build/libs/*.jar
+          if-no-files-found: error
