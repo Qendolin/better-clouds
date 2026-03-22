@@ -1,11 +1,11 @@
 package com.qendolin.betterclouds.compat;
 
-import net.minecraft.util.profiler.Profiler;
-import net.minecraft.util.profiler.Profilers;
+import net.minecraft.util.profiling.Profiler;
+import net.minecraft.util.profiling.ProfilerFiller;
 
 public class ProfilerWrapper {
 
-    public static Profiler getProfiler() {
-        return Profilers.get();
+    public static ProfilerFiller getProfiler() {
+        return Profiler.get();
     }
 }

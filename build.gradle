@@ -1,6 +1,5 @@
 plugins {
-	id "dev.architectury.loom" version "1.13.463" apply false
-	id "architectury-plugin" version "3.4.162" apply false
+	id "net.fabricmc.fabric-loom" version "1.15.5" apply false
 	id "me.modmuss50.mod-publish-plugin" version "1.1.0" apply false
 }
 
@@ -47,7 +46,6 @@ ext {
 				includeGroup "cpw.mods"
 			}
 		}
-		maven { url = "https://maven.quiltmc.org/repository/release" }
 		maven { url = "https://maven.bawnorton.com/releases" }
 	}
 }

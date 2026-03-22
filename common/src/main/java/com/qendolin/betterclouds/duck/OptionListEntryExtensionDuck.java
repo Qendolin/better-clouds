@@ -1,17 +1,17 @@
 package com.qendolin.betterclouds.duck;
 
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.widget.ElementListWidget;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.ContainerObjectSelectionList;
 
 public interface OptionListEntryExtensionDuck {
     @FunctionalInterface
     interface BeforeRenderCallback {
-        void onBeforeRender(ElementListWidget.Entry<?> self, DrawContext context, int x, int y, int width, int height, int mouseX, int mouseY, boolean hovered, float tickDelta);
+        void onBeforeRender(ContainerObjectSelectionList.Entry<?> self, GuiGraphicsExtractor context, int x, int y, int width, int height, int mouseX, int mouseY, boolean hovered, float tickDelta);
     }
 
     @FunctionalInterface
     interface AfterRenderCallback {
-        void onAfterRender(ElementListWidget.Entry<?> self, DrawContext context, int x, int y, int width, int height, int mouseX, int mouseY, boolean hovered, float tickDelta);
+        void onAfterRender(ContainerObjectSelectionList.Entry<?> self, GuiGraphicsExtractor context, int x, int y, int width, int height, int mouseX, int mouseY, boolean hovered, float tickDelta);
     }
 
     void betterclouds$onBeforeRender(BeforeRenderCallback callback);

@@ -2,27 +2,31 @@ package com.qendolin.betterclouds.gui;
 
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.telemetry.ITelemetry;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.*;
-import net.minecraft.client.toast.SystemToast;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.crash.CrashReport;
+import net.minecraft.ChatFormatting;
+import net.minecraft.CrashReport;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.MultiLineTextWidget;
+import net.minecraft.client.gui.components.StringWidget;
+import net.minecraft.client.gui.components.toasts.SystemToast;
+import net.minecraft.client.gui.layouts.GridLayout;
+import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
+import net.minecraft.client.gui.layouts.LayoutSettings;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 
 public class IssueReportScreen extends Screen {
 
-    private static final Text TITLE = Text.translatable("betterclouds.gui.issueReport.title");
-    private static final Text MESSAGE = Text.translatable("betterclouds.gui.issueReport.message");
-    private static final Text TOAST_MESSAGE = Text.translatable("betterclouds.gui.issueReport.toast.sent");
-    private static final SystemToast.Type TOAST_TYPE = new SystemToast.Type();
+    private static final Component TITLE = Component.translatable("betterclouds.gui.issueReport.title");
+    private static final Component MESSAGE = Component.translatable("betterclouds.gui.issueReport.message");
+    private static final Component TOAST_MESSAGE = Component.translatable("betterclouds.gui.issueReport.toast.sent");
+    private static final SystemToast.SystemToastId TOAST_TYPE = new SystemToast.SystemToastId();
 
 
-    private final ThreePartsLayoutWidget layout = new ThreePartsLayoutWidget(this);
+    private final HeaderAndFooterLayout layout = new HeaderAndFooterLayout(this);
     private final String details;
     private final Throwable cause;
-    private MultilineTextWidget messageText;
+    private MultiLineTextWidget messageText;
 
     public IssueReportScreen(Throwable cause, String details) {
         super(TITLE);
@@ -33,41 +37,41 @@ public class IssueReportScreen extends Screen {
     @Override
     protected void init() {
         super.init();
-        assert client != null;
+        assert minecraft != null;
 
-        layout.addHeader(new TextWidget(title, textRenderer));
-        var body = layout.addBody(new GridWidget().setRowSpacing(8));
-        var bodyAdder = body.createAdder(1);
-        Text text = MutableText.of(MESSAGE.getContent())
-            .append(Text.literal("\n\n"))
-            .append(Text.literal(details).styled(style -> style.withColor(Formatting.GRAY)));
-        messageText = bodyAdder.add(new MultilineTextWidget(text, this.textRenderer).setCentered(true));
+        layout.addToHeader(new StringWidget(title, font));
+        var body = layout.addToContents(new GridLayout().rowSpacing(8));
+        var bodyAdder = body.createRowHelper(1);
+        Component text = MutableComponent.create(MESSAGE.getContents())
+            .append(Component.literal("\n\n"))
+            .append(Component.literal(details).withStyle(style -> style.withColor(ChatFormatting.GRAY)));
+        messageText = bodyAdder.addChild(new MultiLineTextWidget(text, this.font).setCentered(true));
 
-        var footer = layout.addFooter(new GridWidget().setColumnSpacing(5).setRowSpacing(5));
-        var footerAdder = footer.createAdder(2);
-        Positioner positioner = footerAdder.copyPositioner().alignHorizontalCenter();
-        footerAdder.add(ButtonWidget.builder(Text.translatable("gui.no"), (btn) -> {
-            close();
+        var footer = layout.addToFooter(new GridLayout().columnSpacing(5).rowSpacing(5));
+        var footerAdder = footer.createRowHelper(2);
+        LayoutSettings positioner = footerAdder.newCellSettings().alignHorizontallyCenter();
+        footerAdder.addChild(Button.builder(Component.translatable("gui.no"), (btn) -> {
+            onClose();
         }).width(100).build(), positioner);
-        footerAdder.add(ButtonWidget.builder(Text.translatable("gui.yes"), (btn) -> {
-            ITelemetry.INSTANCE.sendIssueReport(CrashReport.create(cause, details));
+        footerAdder.addChild(Button.builder(Component.translatable("gui.yes"), (btn) -> {
+            ITelemetry.INSTANCE.sendIssueReport(CrashReport.forThrowable(cause, details));
             // Show success regardless of actual result
-            client.getToastManager().add(
-                SystemToast.create(client, TOAST_TYPE, Text.of("Better Clouds"), TOAST_MESSAGE)
+            minecraft.getToastManager().addToast(
+                SystemToast.multiline(minecraft, TOAST_TYPE, Component.nullToEmpty("Better Clouds"), TOAST_MESSAGE)
             );
-            close();
+            onClose();
         }).width(100).build(), positioner);
 
-        footerAdder.add(ButtonWidget.builder(Text.translatable("betterclouds.gui.issueReport.disable"), (btn) -> {
+        footerAdder.addChild(Button.builder(Component.translatable("betterclouds.gui.issueReport.disable"), (btn) -> {
             ConfigManager.instance().issueReportEnabled = false;
             ConfigManager.handler().save();
-            close();
+            onClose();
         }).width(205).build(), 2, positioner);
 
-        footer.refreshPositions();
+        footer.arrangeElements();
         layout.setFooterHeight(footer.getHeight() + 13);
-        layout.forEachChild(this::addDrawableChild);
-        refreshWidgetPositions();
+        layout.visitWidgets(this::addRenderableWidget);
+        repositionElements();
     }
 
     @Override
@@ -76,14 +80,9 @@ public class IssueReportScreen extends Screen {
     }
 
     @Override
-    protected void refreshWidgetPositions() {
+    protected void repositionElements() {
         messageText.setMaxWidth(this.width - 50);
         messageText.setWidth(this.width - 50);
-        layout.refreshPositions();
-    }
-
-    @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
-        super.render(context, mouseX, mouseY, deltaTicks);
+        layout.arrangeElements();
     }
 }

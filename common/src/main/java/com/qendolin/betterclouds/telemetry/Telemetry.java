@@ -6,10 +6,6 @@ import com.qendolin.betterclouds.BetterClouds;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.compat.GLCompat;
 import com.qendolin.betterclouds.platform.ModVersion;
-import net.minecraft.MinecraftVersion;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.util.crash.CrashReport;
-import net.minecraft.util.crash.ReportType;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -25,6 +21,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.ReentrantLock;
+import net.minecraft.CrashReport;
+import net.minecraft.DetectedVersion;
+import net.minecraft.ReportType;
+import net.minecraft.client.Minecraft;
 
 public class Telemetry implements ITelemetry {
     public static final String ENDPOINT = "https://europe-west3-better-clouds.cloudfunctions.net/collect_telemetry";
@@ -220,11 +220,11 @@ public class Telemetry implements ITelemetry {
     @Override
     public void sendIssueReport(CrashReport report) {
         if (report == null) return;
-        String shortReportText = report.getMessage() + "\n\n" + report.getCauseAsString();
-        String fullReportText = report.asString(ReportType.MINECRAFT_TEST_REPORT);
+        String shortReportText = report.getTitle() + "\n\n" + report.getExceptionMessage();
+        String fullReportText = report.getFriendlyReport(ReportType.TEST);
         new McLogsUploader().upload(fullReportText)
             .thenAccept(logUrl -> {
-                MinecraftClient.getInstance().send(() -> {
+                Minecraft.getInstance().schedule(() -> {
                     sendPayload(shortReportText + "\n\n" + "Full Report at: " + logUrl, Label.AUTO_REPORT);
                 });
             })
@@ -260,7 +260,7 @@ public class Telemetry implements ITelemetry {
             public MetaInfo(ModVersion modVersion) {
                 this.modVersion = modVersion.getFriendlyString();
                 this.modSemVer = modVersion.asSemVer().orElse(null);
-                this.mcVersion = MinecraftVersion.create().name();
+                this.mcVersion = DetectedVersion.tryDetectVersion().name();
                 this.mcSemVer = ModVersion.fromString(this.mcVersion).asSemVer().orElse(null);
             }
         }

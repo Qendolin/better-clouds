@@ -1,7 +1,6 @@
 package com.qendolin.betterclouds.mixin;
 
 import com.qendolin.betterclouds.BetterCloudsStatic;
-import com.qendolin.betterclouds.compat.ModLoaded;
 import com.qendolin.betterclouds.platform.ModLoader;
 
 import java.util.ArrayList;
@@ -18,11 +17,6 @@ public class RuntimeMixinPlugin extends MixinPlugin {
 
         classes.add("FogRendererMixin");
         classes.add("SimpleOptionAccessor");
-
-        if (ModLoaded.SODIUM) {
-            classes.add("SodiumGameOptionPagesMixin");
-            classes.add("SodiumOptionGroupBuilderAccessor");
-        }
 
         classes.add("yacl.OptionListGroupSeparatorEntryMixin");
         classes.add("yacl.OptionListOptionEntryMixin");

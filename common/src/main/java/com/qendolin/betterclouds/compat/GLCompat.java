@@ -2,14 +2,13 @@ package com.qendolin.betterclouds.compat;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
+import com.mojang.blaze3d.platform.DebugMemoryUntracker;
 import com.mojang.blaze3d.platform.GLX;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.BetterClouds;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.telemetry.Telemetry;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.util.Untracker;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWVulkan;
@@ -20,6 +19,7 @@ import org.lwjgl.system.MemoryUtil;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.client.Minecraft;
 
 public class GLCompat {
     public final int GL_VERTEX_ARRAY;
@@ -369,11 +369,17 @@ public class GLCompat {
 
     public void debugMessageCallback(GLDebugMessageCallbackI callback) {
         if (openGl43) {
-            GL43.glDebugMessageCallback(GLX.make(GLDebugMessageCallback.create(callback), Untracker::untrack), 0);
+            GL43.glDebugMessageCallback(GLX.make(() -> {
+                return GLDebugMessageCallback.create(callback);
+            }), 0);
         } else if (arbDebugOutput) {
-            ARBDebugOutput.glDebugMessageCallbackARB(GLX.make(GLDebugMessageARBCallback.create(callback::invoke), Untracker::untrack), 0);
+            ARBDebugOutput.glDebugMessageCallbackARB(GLX.make(() -> {
+                return GLDebugMessageARBCallback.create(callback::invoke);
+            }), 0);
         } else if (khrDebug) {
-            KHRDebug.glDebugMessageCallback(GLX.make(GLDebugMessageCallback.create(callback), Untracker::untrack), 0);
+            KHRDebug.glDebugMessageCallback(GLX.make(() -> {
+                return GLDebugMessageCallback.create(callback);
+            }), 0);
         }
     }
 
@@ -593,7 +599,7 @@ public class GLCompat {
         if (ConfigManager.instance().lastTelemetryVersion >= Telemetry.VERSION) return;
         Telemetry.INSTANCE.sendSystemInfo()
             .whenComplete((success, throwable) -> {
-                MinecraftClient client = MinecraftClient.getInstance();
+                Minecraft client = Minecraft.getInstance();
                 if (success && client != null) {
                     client.execute(() -> {
                         ConfigManager.instance().lastTelemetryVersion = Telemetry.VERSION;

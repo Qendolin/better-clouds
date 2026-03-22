@@ -6,15 +6,15 @@ import dev.isxander.yacl3.api.PlaceholderCategory;
 import dev.isxander.yacl3.api.YetAnotherConfigLib;
 import dev.isxander.yacl3.api.utils.OptionUtils;
 import dev.isxander.yacl3.gui.YACLScreen;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.ScreenRect;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.navigation.ScreenRectangle;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 
 public class ConfigScreen extends YACLScreen {
 
@@ -24,8 +24,8 @@ public class ConfigScreen extends YACLScreen {
 
     @Override
     protected void init() {
-        assert client != null;
-        this.tabArea = new ScreenRect(0, 24, this.width, this.height - 24);
+        assert minecraft != null;
+        this.tabArea = new ScreenRectangle(0, 24, this.width, this.height - 24);
         int currentTab = this.tabNavigationBar != null ? this.tabNavigationBar.getTabs().indexOf(this.tabManager.getCurrentTab()) : 0;
         if (currentTab == -1) {
             currentTab = 0;
@@ -40,9 +40,9 @@ public class ConfigScreen extends YACLScreen {
                 return tab;
             }).toList());
         tabNavigationBar.selectTab(currentTab, false);
-        tabNavigationBar.init();
+        tabNavigationBar.arrangeElements();
         tabManager.setTabArea(tabArea);
-        addDrawableChild(tabNavigationBar);
+        addRenderableWidget(tabNavigationBar);
 
         config.initConsumer().accept(this);
     }
@@ -68,49 +68,49 @@ public class ConfigScreen extends YACLScreen {
             if (!IssueReportManager.handle(e, "An error occurred while processing the config screen: " + e.getMessage())) {
                 throw e;
             }
-            assert client != null;
-            client.execute(() -> client.setScreen(IssueReportManager.popQueuedScreen()));
+            assert minecraft != null;
+            minecraft.execute(() -> minecraft.setScreen(IssueReportManager.popQueuedScreen()));
         }
     }
 
     @Override
-    public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
-        if (client == null || client.world == null) {
-            this.renderPanoramaBackground(context, delta);
-            this.applyBlur(context);
+    public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+        if (minecraft == null || minecraft.level == null) {
+            this.extractPanorama(context, delta);
+            this.extractBlurredBackground(context);
         }
-        this.renderDarkening(context);
+        this.extractMenuBackground(context);
     }
 
     @Override
-    public void renderInGameBackground(DrawContext context) {
-        this.renderDarkening(context);
+    public void extractTransparentBackground(GuiGraphicsExtractor context) {
+        this.extractMenuBackground(context);
     }
 
     @Override
-    protected void renderDarkening(DrawContext context) {
+    protected void extractMenuBackground(GuiGraphicsExtractor context) {
         if (tabArea == null) return;
-        context.fill(width / 3 * 2 + 1, tabArea.getTop(), width, tabArea.getBottom(), 0x6b000000);
+        context.fill(width / 3 * 2 + 1, tabArea.top(), width, tabArea.bottom(), 0x6b000000);
     }
 
     @Override
     public void finishOrSave() {
-        close();
+        onClose();
     }
 
     @Override
-    public void close() {
+    public void onClose() {
         config.saveFunction().run();
-        super.close();
+        super.onClose();
     }
 
     public static class HiddenScreen extends Screen {
-        private final ButtonWidget showButton;
+        private final Button showButton;
 
-        public HiddenScreen(Text title, ButtonWidget showButton) {
+        public HiddenScreen(Component title, Button showButton) {
             super(title);
             this.showButton = showButton;
-            addDrawableChild(showButton);
+            addRenderableWidget(showButton);
         }
 
         @Override
@@ -119,23 +119,23 @@ public class ConfigScreen extends YACLScreen {
         }
 
         @Override
-        public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
+        public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
             // nothing
         }
 
         @Override
-        public void renderInGameBackground(DrawContext context) {
+        public void extractTransparentBackground(GuiGraphicsExtractor context) {
             // nothing
         }
 
         @Override
-        protected void renderDarkening(DrawContext context) {
+        protected void extractMenuBackground(GuiGraphicsExtractor context) {
             // nothing
         }
 
         @Nullable
         @Override
-        public Element getFocused() {
+        public GuiEventListener getFocused() {
             return showButton;
         }
     }

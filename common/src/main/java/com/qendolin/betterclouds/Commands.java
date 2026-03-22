@@ -16,18 +16,17 @@ import com.qendolin.betterclouds.renderdoc.CaptureManager;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import com.qendolin.betterclouds.renderdoc.RenderDocLoader;
 import com.qendolin.betterclouds.util.ChatUtil;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.command.argument.EnumArgumentType;
-import net.minecraft.text.ClickEvent;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.StringIdentifiable;
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.commands.arguments.StringRepresentableArgument;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.StringRepresentable;
 
 public class Commands {
 
@@ -49,7 +48,7 @@ public class Commands {
     }
 
     private static void registerImpl(CommandDispatcher<Object> dispatcher) {
-        final MinecraftClient client = MinecraftClient.getInstance();
+        final Minecraft client = Minecraft.getInstance();
         dispatcher.register(literal(BetterCloudsStatic.MODID + ":profile")
             .then(argument("interval", IntegerArgumentType.integer(30))
                 .executes(context -> {
@@ -83,12 +82,12 @@ public class Commands {
         dispatcher.register(literal(BetterCloudsStatic.MODID + ":frustum")
             .then(literal("capture")
                 .executes(context -> {
-                    client.worldRenderer.captureFrustum();
+                    ChatUtil.debugChatMessage(Component.literal("Frustum capture is not available on Minecraft 26.1"));
                     return 1;
                 }))
             .then(literal("release")
                 .executes(context -> {
-                    client.worldRenderer.killFrustum();
+                    ChatUtil.debugChatMessage(Component.literal("Frustum capture is not available on Minecraft 26.1"));
                     return 1;
                 }))
             .then(literal("debugCulling")
@@ -138,7 +137,7 @@ public class Commands {
             .then(literal("open").executes(context -> {
                 // The chat screen will call setScreen(null) after the command handler
                 // which would override our call, so we delay it
-                client.send(() -> client.setScreen(ConfigGUI.create(null)));
+                client.schedule(() -> client.setScreen(ConfigGUI.create(null)));
                 return 1;
             }))
             .then(literal("reload").executes(context -> {
@@ -170,30 +169,30 @@ public class Commands {
         dispatcher.register(literal(BetterCloudsStatic.MODID + ":dimension")
             .then(literal("enable")
                 .executes(context -> {
-                    if (client.world == null)
+                    if (client.level == null)
                         return 0;
-                    var entry = client.world.getDimensionEntry();
-                    var key = entry.getKey().orElse(null);
+                    var entry = client.level.dimensionTypeRegistration();
+                    var key = entry.unwrapKey().orElse(null);
                     if (key == null)
                         return 0;
                     if (!ConfigManager.instance().enabledDimensions.contains(key)) {
                         ConfigManager.instance().enabledDimensions.add(key);
                     }
                     ConfigManager.handler().save();
-                    ChatUtil.debugChatMessage("dimensionAdded", key.getValue().toString());
+                    ChatUtil.debugChatMessage("dimensionAdded", key.identifier().toString());
                     return 1;
                 }))
             .then(literal("disable")
                 .executes(context -> {
-                    if (client.world == null)
+                    if (client.level == null)
                         return 0;
-                    var entry = client.world.getDimensionEntry();
-                    var key = entry.getKey().orElse(null);
+                    var entry = client.level.dimensionTypeRegistration();
+                    var key = entry.unwrapKey().orElse(null);
                     if (key == null)
                         return 0;
                     ConfigManager.instance().enabledDimensions.remove(key);
                     ConfigManager.handler().save();
-                    ChatUtil.debugChatMessage("dimensionRemoved", key.getValue().toString());
+                    ChatUtil.debugChatMessage("dimensionRemoved", key.identifier().toString());
                     return 1;
                 })));
 
@@ -204,7 +203,7 @@ public class Commands {
                     .executes(context -> {
                         FallbackArgument fallback = FallbackArgumentType.getFallback(context, "name");
                         boolean enabled = fallback.get(GLCompat.glCompat);
-                        ChatUtil.debugChatMessage(Text.literal(String.format("Fallback %s is currently %s", fallback.asString(), enabled ? "enabled" : "disabled")));
+                        ChatUtil.debugChatMessage(Component.literal(String.format("Fallback %s is currently %s", fallback.getSerializedName(), enabled ? "enabled" : "disabled")));
                         return 1;
                     })
                     .then(argument("enable", BoolArgumentType.bool())
@@ -212,8 +211,8 @@ public class Commands {
                             FallbackArgument fallback = FallbackArgumentType.getFallback(context, "name");
                             boolean enable = BoolArgumentType.getBool(context, "enable");
                             fallback.set(GLCompat.glCompat, enable);
-                            client.reloadResources().whenComplete((unused, throwable) -> {
-                                ChatUtil.debugChatMessage(Text.literal(String.format("Fallback %s is now %s", fallback.asString(), enable ? "enabled" : "disabled")));
+                            client.reloadResourcePacks().whenComplete((unused, throwable) -> {
+                                ChatUtil.debugChatMessage(Component.literal(String.format("Fallback %s is now %s", fallback.getSerializedName(), enable ? "enabled" : "disabled")));
                             });
                             return 1;
                         })))
@@ -233,29 +232,29 @@ public class Commands {
                             } else {
                                 Path path = Path.of(result.path());
                                 ChatUtil.debugChatMessage("renderdoc.capture.success",
-                                    Text.literal(path.toAbsolutePath().normalize().toString())
-                                        .styled(style -> style
-                                            .withUnderline(true)
+                                    Component.literal(path.toAbsolutePath().normalize().toString())
+                                        .withStyle(style -> style
+                                            .withUnderlined(true)
                                             .withClickEvent(createOpenFileClickEvent(path.getParent().toString()))
                                         ));
                             }
                         });
                         return 1;
                     } else if (RenderDocLoader.isAvailable()) {
-                        ChatUtil.debugChatMessage(Text.translatable(
+                        ChatUtil.debugChatMessage(Component.translatable(
                             ChatUtil.debugChatMessageKey("renderdoc.prompt.load"),
-                            Text.translatable(ChatUtil.debugChatMessageKey("renderdoc.prompt.load.action"))
-                                .styled(style -> style
-                                    .withUnderline(true)
+                            Component.translatable(ChatUtil.debugChatMessageKey("renderdoc.prompt.load.action"))
+                                .withStyle(style -> style
+                                    .withUnderlined(true)
                                     .withClickEvent(createCommandClickEvent("/betterclouds:debug renderdoc load")))
                         ));
                         return 0;
                     } else {
-                        ChatUtil.debugChatMessage(Text.translatable(
+                        ChatUtil.debugChatMessage(Component.translatable(
                             ChatUtil.debugChatMessageKey("renderdoc.prompt.install"),
-                            Text.translatable(ChatUtil.debugChatMessageKey("renderdoc.prompt.install.action"))
-                                .styled(style -> style
-                                    .withUnderline(true)
+                            Component.translatable(ChatUtil.debugChatMessageKey("renderdoc.prompt.install.action"))
+                                .withStyle(style -> style
+                                    .withUnderlined(true)
                                     .withClickEvent(createCommandClickEvent("/betterclouds:debug renderdoc install")))
                         ));
                         return 0;
@@ -273,9 +272,9 @@ public class Commands {
                     }
                     Path path = RenderDocLoader.libPath();
                     ChatUtil.debugChatMessage("renderdoc.installed",
-                        Text.literal(path.toAbsolutePath().normalize().toString())
-                            .styled(style -> style
-                                .withUnderline(true)
+                        Component.literal(path.toAbsolutePath().normalize().toString())
+                            .withStyle(style -> style
+                                .withUnderlined(true)
                                 .withClickEvent(createOpenFileClickEvent(path.getParent().toString()))));
                 });
                 return 1;
@@ -291,11 +290,11 @@ public class Commands {
             }))
             .then(literal("load").executes(context -> {
                 if (!RenderDocLoader.isAvailable()) {
-                    ChatUtil.debugChatMessage(Text.translatable(
+                    ChatUtil.debugChatMessage(Component.translatable(
                         ChatUtil.debugChatMessageKey("renderdoc.prompt.install"),
-                        Text.translatable(ChatUtil.debugChatMessageKey("renderdoc.prompt.install.action"))
-                            .styled(style -> style
-                                .withUnderline(true)
+                        Component.translatable(ChatUtil.debugChatMessageKey("renderdoc.prompt.install.action"))
+                            .withStyle(style -> style
+                                .withUnderlined(true)
                                 .withClickEvent(createCommandClickEvent("/betterclouds:debug renderdoc install")))
                     ));
                     return 0;
@@ -317,13 +316,13 @@ public class Commands {
             }));
     }
 
-    private enum FallbackArgument implements StringIdentifiable {
+    private enum FallbackArgument implements StringRepresentable {
         BASE_INSTANCE(GLCompat::useBaseInstanceFallback, GLCompat::setUseBaseInstanceFallback),
         STENCIL_TEXTURE(GLCompat::useStencilTextureFallback, GLCompat::setUseStencilTextureFallback),
         TEX_STORAGE(GLCompat::useTexStorageFallback, GLCompat::setUseTexStorageFallback),
         DEPTH_WRITE(GLCompat::useDepthWriteFallback, GLCompat::setUseDepthWriteFallback);
 
-        private static final Codec<FallbackArgument> CODEC = StringIdentifiable.createCodec(FallbackArgument::values);
+        private static final Codec<FallbackArgument> CODEC = StringRepresentable.fromEnum(FallbackArgument::values);
 
         private final Function<GLCompat, Boolean> getter;
         private final BiConsumer<GLCompat, Boolean> setter;
@@ -342,17 +341,17 @@ public class Commands {
         }
 
         @Override
-        public String asString() {
+        public String getSerializedName() {
             return name().toLowerCase();
         }
     }
 
-    private static class FallbackArgumentType extends EnumArgumentType<FallbackArgument> {
+    private static class FallbackArgumentType extends StringRepresentableArgument<FallbackArgument> {
         private FallbackArgumentType() {
             super(FallbackArgument.CODEC, FallbackArgument::values);
         }
 
-        public static EnumArgumentType<FallbackArgument> fallback() {
+        public static StringRepresentableArgument<FallbackArgument> fallback() {
             return new FallbackArgumentType();
         }
 
@@ -364,10 +363,10 @@ public class Commands {
     public static void sendGpuIncompatibleChatMessage() {
         if (!ConfigManager.instance().gpuIncompatibleMessageEnabled) return;
         ChatUtil.debugChatMessage(
-            Text.translatable(ChatUtil.debugChatMessageKey("gpuIncompatible"))
-                .append(Text.literal("\n - "))
-                .append(Text.translatable(ChatUtil.debugChatMessageKey("generic.disable"))
-                    .styled(style -> style.withItalic(true).withUnderline(true).withColor(Formatting.GRAY)
+            Component.translatable(ChatUtil.debugChatMessageKey("gpuIncompatible"))
+                .append(Component.literal("\n - "))
+                .append(Component.translatable(ChatUtil.debugChatMessageKey("generic.disable"))
+                    .withStyle(style -> style.withItalic(true).withUnderlined(true).withColor(ChatFormatting.GRAY)
                         .withClickEvent(createCommandClickEvent(
                             "/betterclouds:config set gpuIncompatibleMessage false")))));
     }
@@ -375,10 +374,10 @@ public class Commands {
     public static void sendGpuPartiallyIncompatibleChatMessage() {
         if (!ConfigManager.instance().gpuIncompatibleMessageEnabled) return;
         ChatUtil.debugChatMessage(
-            Text.translatable(ChatUtil.debugChatMessageKey("gpuPartiallyIncompatible"))
-                .append(Text.literal("\n - "))
-                .append(Text.translatable(ChatUtil.debugChatMessageKey("generic.disable"))
-                    .styled(style -> style.withItalic(true).withUnderline(true).withColor(Formatting.GRAY)
+            Component.translatable(ChatUtil.debugChatMessageKey("gpuPartiallyIncompatible"))
+                .append(Component.literal("\n - "))
+                .append(Component.translatable(ChatUtil.debugChatMessageKey("generic.disable"))
+                    .withStyle(style -> style.withItalic(true).withUnderlined(true).withColor(ChatFormatting.GRAY)
                         .withClickEvent(createCommandClickEvent(
                             "/betterclouds:config set gpuIncompatibleMessage false")))));
     }
@@ -386,10 +385,10 @@ public class Commands {
     public static void sendHardwareMaybeIncompatibleChatMessage() {
         if (!ConfigManager.instance().gpuIncompatibleMessageEnabled) return;
         ChatUtil.debugChatMessage(
-            Text.translatable(ChatUtil.debugChatMessageKey("hwMaybeIncompatible"), GLCompat.getCpuInfo(), GLCompat.getRenderer())
-                .append(Text.literal("\n - "))
-                .append(Text.translatable(ChatUtil.debugChatMessageKey("generic.disable"))
-                    .styled(style -> style.withItalic(true).withUnderline(true).withColor(Formatting.GRAY)
+            Component.translatable(ChatUtil.debugChatMessageKey("hwMaybeIncompatible"), GLCompat.getCpuInfo(), GLCompat.getRenderer())
+                .append(Component.literal("\n - "))
+                .append(Component.translatable(ChatUtil.debugChatMessageKey("generic.disable"))
+                    .withStyle(style -> style.withItalic(true).withUnderlined(true).withColor(ChatFormatting.GRAY)
                         .withClickEvent(createCommandClickEvent(
                             "/betterclouds:config set gpuIncompatibleMessage false")))));
     }

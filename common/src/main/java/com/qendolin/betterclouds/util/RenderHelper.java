@@ -1,21 +1,21 @@
 package com.qendolin.betterclouds.util;
 
 import com.mojang.blaze3d.opengl.GlStateManager;
+import com.mojang.blaze3d.opengl.GlTexture;
 import com.mojang.blaze3d.textures.GpuTexture;
-import net.minecraft.client.texture.AbstractTexture;
-import net.minecraft.client.texture.GlTexture;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL32;
 
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
+import net.minecraft.client.renderer.texture.AbstractTexture;
 
 public abstract class RenderHelper {
 
     private static Matrix4f projectionMatrix = new Matrix4f().identity();
     private static Matrix4f viewMatrix = new Matrix4f().identity();
 
-    public record FogDataAndColor(net.minecraft.client.render.fog.FogData fogData, org.joml.Vector4f color) {
+    public record FogDataAndColor(net.minecraft.client.renderer.fog.FogData fogData, org.joml.Vector4f color) {
     }
 
     private static FogDataAndColor fogDataAndColor = null;
@@ -29,13 +29,13 @@ public abstract class RenderHelper {
     private static final ByteBuffer colorMaskBuffer = ByteBuffer.allocateDirect(4);
 
     public static int getTextureId(AbstractTexture texture) {
-        return getTextureId(texture.getGlTexture());
+        return getTextureId(texture.getTexture());
     }
 
     public static int getTextureId(GpuTexture texture) {
         texture = unwrapValidationTexture(texture);
         if (texture instanceof GlTexture glTexture) {
-            return glTexture.getGlId();
+            return glTexture.glId();
         }
         throw new IllegalStateException("Texture is not a GlTexture");
     }

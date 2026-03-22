@@ -7,13 +7,13 @@ import com.qendolin.betterclouds.clouds.shaders.*;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.telemetry.Telemetry;
 import com.qendolin.betterclouds.util.RenderHelper;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Identifier;
 import com.mojang.blaze3d.opengl.GlStateManager;
 
 import java.io.Closeable;
 import java.io.IOException;
+import net.minecraft.client.Minecraft;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.resources.ResourceManager;
 
 import static com.qendolin.betterclouds.BetterCloudsStatic.getLogger;
 import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
@@ -21,9 +21,9 @@ import static org.lwjgl.opengl.GL32.*;
 
 public class Resources implements Closeable {
     // Texture Unit 5
-    public static final Identifier NOISE_TEXTURE = Identifier.of(BetterCloudsStatic.MODID, "textures/environment/cloud_noise_rgb.png");
+    public static final Identifier NOISE_TEXTURE = Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "textures/environment/cloud_noise_rgb.png");
     // Texture Unit 4
-    public static final Identifier LIGHTING_TEXTURE = Identifier.of(BetterCloudsStatic.MODID, "textures/environment/cloud_light_gradient.png");
+    public static final Identifier LIGHTING_TEXTURE = Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "textures/environment/cloud_light_gradient.png");
 
     private static final int UNASSIGNED = 0;
 
@@ -162,7 +162,7 @@ public class Resources implements Closeable {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
-    public void reloadTextures(MinecraftClient client) {
+    public void reloadTextures(Minecraft client) {
         RenderSystem.assertOnRenderThread();
         int noiseTexture = RenderHelper.getTextureId(client.getTextureManager().getTexture(NOISE_TEXTURE));
         GlStateManager._activeTexture(GL_TEXTURE0);

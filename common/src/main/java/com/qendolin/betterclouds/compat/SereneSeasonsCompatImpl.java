@@ -1,13 +1,12 @@
 package com.qendolin.betterclouds.compat;
 
 import com.qendolin.betterclouds.config.ConfigManager;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Locale;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
 
 public class SereneSeasonsCompatImpl extends SereneSeasonsCompat {
     private static final Api API = Api.load();
@@ -43,7 +42,7 @@ public class SereneSeasonsCompatImpl extends SereneSeasonsCompat {
     }
 
     @Override
-    public float getCloudinessFactor(World world) {
+    public float getCloudinessFactor(Level world) {
         if (API == null) {
             return 1.0f;
         }
@@ -86,7 +85,7 @@ public class SereneSeasonsCompatImpl extends SereneSeasonsCompat {
                 blend = 1.0f - blend;
             }
 
-            return MathHelper.clampedLerp(start, end, blend);
+            return Mth.clampedLerp(start, end, blend);
         } catch (InvocationTargetException | IllegalAccessException e) {
             return 1.0f;
         }

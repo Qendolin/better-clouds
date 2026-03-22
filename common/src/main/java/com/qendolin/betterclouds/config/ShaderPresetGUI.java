@@ -12,13 +12,12 @@ import dev.isxander.yacl3.gui.controllers.TickBoxController;
 import dev.isxander.yacl3.gui.controllers.slider.FloatSliderController;
 import dev.isxander.yacl3.gui.controllers.slider.IntegerSliderController;
 import dev.isxander.yacl3.gui.controllers.string.StringController;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Pair;
-
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.Tuple;
 
 import static com.qendolin.betterclouds.config.ConfigGUI.*;
 
@@ -54,7 +53,7 @@ public class ShaderPresetGUI {
     public final ButtonOption copyPresetButton;
     public final ButtonOption removePresetButton;
 
-    public final List<Pair<OptionGroup.Builder, List<Option<?>>>> shadersCategory = new ArrayList<>();
+    public final List<Tuple<OptionGroup.Builder, List<Option<?>>>> shadersCategory = new ArrayList<>();
 
     public final List<Option<?>> commonShadersGroup = new ArrayList<>();
     public final List<Option<?>> shadersGeneralGroup = new ArrayList<>();
@@ -79,13 +78,13 @@ public class ShaderPresetGUI {
             .customController(opt -> new SelectController<>(opt, config.presets, (i, preset) -> {
                 boolean deleted = presetsToBeDeleted.contains(preset);
                 if (preset.title.isBlank()) {
-                    return Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.untitled")
-                        .styled(style -> style.withColor(Formatting.GRAY).withItalic(true).withStrikethrough(deleted));
+                    return Component.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.untitled")
+                        .withStyle(style -> style.withColor(ChatFormatting.GRAY).withItalic(true).withStrikethrough(deleted));
                 } else if (!preset.editable) {
-                    return Text.literal(preset.title)
-                        .styled(style -> style.withItalic(true));
+                    return Component.literal(preset.title)
+                        .withStyle(style -> style.withItalic(true));
                 } else {
-                    return Text.literal(preset.title).styled(style -> style.withStrikethrough(deleted));
+                    return Component.literal(preset.title).withStyle(style -> style.withStrikethrough(deleted));
                 }
             }))
             .listener((opt, i) -> {
@@ -172,7 +171,7 @@ public class ShaderPresetGUI {
                 () -> Math.max(worldCurvatureValues.indexOf(config.preset().worldCurvatureSize), 0),
                 val -> config.preset().worldCurvatureSize = worldCurvatureValues.get(val))
             .customController(opt -> new IntegerSliderController(opt, 0, worldCurvatureValues.size() - 1, 1,
-                i -> i == 0 ? Text.translatable("options.off") : Text.literal(worldCurvatureValues.get(i).toString())))
+                i -> i == 0 ? Component.translatable("options.off") : Component.literal(worldCurvatureValues.get(i).toString())))
             .build();
         shaderConfigPresetOptions.addAll(List.of(presetTitle,
             saturation,
@@ -192,8 +191,8 @@ public class ShaderPresetGUI {
             worldCurvatureSize));
         shaderConfigPresetOptions.forEach(opt -> opt.setAvailable(config.preset().editable));
 
-        final Text removeButtonRemoveText = Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.remove");
-        final Text removeButtonRestoreText = Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.restore");
+        final Component removeButtonRemoveText = Component.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.remove");
+        final Component removeButtonRestoreText = Component.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.restore");
 
         this.removePresetButton = CustomButtonOption.createBuilder()
             .name(() -> presetsToBeDeleted.contains(config.preset()) ? removeButtonRestoreText : removeButtonRemoveText)
@@ -212,10 +211,10 @@ public class ShaderPresetGUI {
             .build();
         updateNonResponsiveOptions();
         this.copyPresetButton = CustomButtonOption.createBuilder()
-            .name(() -> Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.copy"))
+            .name(() -> Component.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.copy"))
             .action((screen, buttonOption) -> {
                 ShaderPresetConfig preset = new ShaderPresetConfig(config.preset());
-                preset.title = Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.copyOf", config.preset().title).getString();
+                preset.title = Component.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.copyOf", config.preset().title).getString();
                 preset.markAsCopy();
                 config.presets.add(0, preset);
                 selectedPreset.requestSet(0);
@@ -227,7 +226,7 @@ public class ShaderPresetGUI {
             })
             .build();
 
-        this.irisDisclaimer = LabelOption.create(Text.translatable(LANG_KEY_PREFIX + ".text.shaders"));
+        this.irisDisclaimer = LabelOption.create(Component.translatable(LANG_KEY_PREFIX + ".text.shaders"));
         this.irisSupport = createOption(boolean.class, "irisSupport")
             .binding(defaults.irisSupport, () -> config.irisSupport, val -> config.irisSupport = val)
             .customController(TickBoxController::new)
@@ -251,7 +250,7 @@ public class ShaderPresetGUI {
             sunPathAngle
         ));
 
-        shadersCategory.add(new Pair<>(OptionGroup.createBuilder()
+        shadersCategory.add(new Tuple<>(OptionGroup.createBuilder()
             .name(groupLabel("shaders.general")), shadersGeneralGroup));
         shadersGeneralGroup.addAll(List.of(
             irisDisclaimer,
@@ -259,7 +258,7 @@ public class ShaderPresetGUI {
             cloudOverride
         ));
 
-        shadersCategory.add(new Pair<>(OptionGroup.createBuilder()
+        shadersCategory.add(new Tuple<>(OptionGroup.createBuilder()
             .name(groupLabel("shaders.presets")), shadersPresetGroup));
         shadersPresetGroup.addAll(List.of(selectedPreset,
             presetTitle,
@@ -267,7 +266,7 @@ public class ShaderPresetGUI {
             removePresetButton
         ));
 
-        shadersCategory.add(new Pair<>(OptionGroup.createBuilder()
+        shadersCategory.add(new Tuple<>(OptionGroup.createBuilder()
             .name(groupLabel("shaders.color")), shadersColorGroup));
         shadersColorGroup.addAll(List.of(
             gamma,
@@ -277,11 +276,11 @@ public class ShaderPresetGUI {
             tint
         ));
 
-        shadersCategory.add(new Pair<>(OptionGroup.createBuilder()
+        shadersCategory.add(new Tuple<>(OptionGroup.createBuilder()
             .name(groupLabel("shaders.misc")), shadersMiscGroup));
         shadersMiscGroup.add(worldCurvatureSize);
 
-        shadersCategory.add(new Pair<>(OptionGroup.createBuilder()
+        shadersCategory.add(new Tuple<>(OptionGroup.createBuilder()
             .name(groupLabel("shaders.technical")), shadersTechnicalGroup));
         shadersTechnicalGroup.addAll(List.of(
             sunPathAngle,

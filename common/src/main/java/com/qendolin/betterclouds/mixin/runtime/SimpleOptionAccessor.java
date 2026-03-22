@@ -1,13 +1,13 @@
 package com.qendolin.betterclouds.mixin.runtime;
 
-import net.minecraft.client.option.SimpleOption;
+import net.minecraft.client.OptionInstance;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
 @SuppressWarnings("UnusedMixin")
-@Mixin(SimpleOption.class)
+@Mixin(OptionInstance.class)
 public interface SimpleOptionAccessor {
 
     @Accessor
-    <T> T getDefaultValue();
+    <T> T getInitialValue();
 }

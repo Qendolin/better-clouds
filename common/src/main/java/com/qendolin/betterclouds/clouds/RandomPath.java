@@ -1,9 +1,8 @@
 package com.qendolin.betterclouds.clouds;
 
 import com.qendolin.betterclouds.BetterCloudsStatic;
-import net.minecraft.util.math.MathHelper;
-
 import java.nio.ByteBuffer;
+import net.minecraft.util.Mth;
 
 public class RandomPath {
 
@@ -15,8 +14,8 @@ public class RandomPath {
 
     private static double getPathLinear(double time, double travelSpeed, int coordinateIndex) {
         double x = time / TICKS_PER_POINT * travelSpeed;
-        int index = MathHelper.floor(x);
-        double fractionalPart = MathHelper.fractionalPart(x);
+        int index = Mth.floor(x);
+        double fractionalPart = Mth.frac(x);
 
         double p0 = getPointCoordinate(index, coordinateIndex);
         double p1 = getPointCoordinate(index + 1, coordinateIndex);
@@ -26,8 +25,8 @@ public class RandomPath {
 
     private static double getPathSmooth(double time, double travelSpeed, int coordinateIndex) {
         double x = time / TICKS_PER_POINT * travelSpeed;
-        int index = MathHelper.floor(x);
-        double fractionalPart = MathHelper.fractionalPart(x);
+        int index = Mth.floor(x);
+        double fractionalPart = Mth.frac(x);
 
         double p0 = getPointCoordinate(index, coordinateIndex);
         double p1 = getPointCoordinate(index + 1, coordinateIndex);

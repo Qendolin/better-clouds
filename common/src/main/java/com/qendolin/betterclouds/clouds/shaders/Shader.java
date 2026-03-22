@@ -2,9 +2,6 @@ package com.qendolin.betterclouds.clouds.shaders;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.util.RenderHelper;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.InvalidHierarchicalFileException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -12,6 +9,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.ChainedJsonException;
+import net.minecraft.server.packs.resources.ResourceManager;
 
 import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
 import static org.lwjgl.opengl.GL32.*;
@@ -49,12 +49,12 @@ public class Shader implements AutoCloseable {
         RenderSystem.assertOnRenderThread();
         String shaderSrc;
         try {
-            InputStream stream = resMan.getResourceOrThrow(resource).getInputStream();
+            InputStream stream = resMan.getResourceOrThrow(resource).open();
             shaderSrc = IOUtils.toString(stream, StandardCharsets.UTF_8);
             shaderSrc = shaderSrc.strip();
         } catch (IOException ex) {
-            InvalidHierarchicalFileException fileEx = InvalidHierarchicalFileException.wrap(ex);
-            fileEx.addInvalidFile(resource.toString());
+            ChainedJsonException fileEx = ChainedJsonException.forException(ex);
+            fileEx.setFilenameAndFlush(resource.toString());
             throw fileEx;
         }
         for (Map.Entry<String, String> entry : defs.entrySet()) {
@@ -65,8 +65,8 @@ public class Shader implements AutoCloseable {
         glCompileShader(id);
         if (glGetShaderi(id, GL_COMPILE_STATUS) == 0) {
             String log = StringUtils.trim(glGetShaderInfoLog(id, 32768));
-            InvalidHierarchicalFileException parseEx = new InvalidHierarchicalFileException("Couldn't compile shader program (" + resource + "): \n" + log + "\n\nShader Source: \n" + shaderSrc);
-            parseEx.addInvalidFile(resource.toString());
+            ChainedJsonException parseEx = new ChainedJsonException("Couldn't compile shader program (" + resource + "): \n" + log + "\n\nShader Source: \n" + shaderSrc);
+            parseEx.setFilenameAndFlush(resource.toString());
             throw parseEx;
         }
         return id;

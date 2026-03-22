@@ -2,11 +2,14 @@ package com.qendolin.betterclouds.clouds;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.util.RenderHelper;
-import net.minecraft.client.render.*;
-import net.minecraft.util.Pair;
-import net.minecraft.util.math.Box;
+import net.minecraft.util.Tuple;
+import net.minecraft.world.phys.AABB;
 import org.joml.Vector3d;
 import org.lwjgl.opengl.GL32;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 
 import java.nio.ByteBuffer;
@@ -23,7 +26,7 @@ public class Debug {
     public static int animationPause = -1;
     public static boolean generatorForceUpdate = false;
 
-    public static final List<Pair<Box, Boolean>> frustumCulledBoxes = new ArrayList<>();
+    public static final List<Tuple<AABB, Boolean>> frustumCulledBoxes = new ArrayList<>();
 
     private static BuiltBufferRenderer renderer = null;
 
@@ -35,9 +38,9 @@ public class Debug {
         }
     }
 
-    public static void addFrustumCulledBox(Box box, boolean visible) {
+    public static void addFrustumCulledBox(AABB box, boolean visible) {
         if (!frustumCulling) return;
-        frustumCulledBoxes.add(new Pair<>(box, visible));
+        frustumCulledBoxes.add(new Tuple<>(box, visible));
     }
 
     public static void render(Resources res, Vector3d cam) {
@@ -52,17 +55,17 @@ public class Debug {
         }
 
         glCompat.pushDebugGroupDev("Debug Draw");
-        BufferBuilder vertices = Tessellator.getInstance().begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
+        BufferBuilder vertices = Tesselator.getInstance().begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
         drawFrustumCulledBoxes(vertices, cam);
 
         res.debugShader().bind();
         res.debugShader().uModelViewMatrix.setMat4(RenderHelper.getViewMatrix());
         res.debugShader().uProjectionMatrix.setMat4(RenderHelper.getProjectionMatrix());
 
-        var built = vertices.endNullable();
+        var built = vertices.build();
         if (built != null) {
-            ByteBuffer vertexBuffer = built.getBuffer();
-            int vertexCount = built.getDrawParameters().vertexCount();
+            ByteBuffer vertexBuffer = built.vertexBuffer();
+            int vertexCount = built.drawState().vertexCount();
             renderer.render(vertexBuffer, vertexCount);
             built.close();
         }
@@ -72,9 +75,9 @@ public class Debug {
     }
 
     private static void drawFrustumCulledBoxes(VertexConsumer vertices, Vector3d cam) {
-        for (Pair<Box, Boolean> pair : frustumCulledBoxes) {
-            Box box = pair.getLeft();
-            if (pair.getRight()) {
+        for (Tuple<AABB, Boolean> pair : frustumCulledBoxes) {
+            AABB box = pair.getA();
+            if (pair.getB()) {
                 drawBox(cam, vertices, box, 0.6f, 1f, 0.5f, 1f);
             } else {
                 drawBox(cam, vertices, box, 1f, 0.6f, 0.5f, 1f);
@@ -83,7 +86,7 @@ public class Debug {
 
     }
 
-    public static void drawBox(Vector3d cam, VertexConsumer vertices, Box box, float red, float green, float blue, float alpha) {
+    public static void drawBox(Vector3d cam, VertexConsumer vertices, AABB box, float red, float green, float blue, float alpha) {
         float minX = (float) (box.minX - cam.x);
         float minY = (float) (box.minY - cam.y);
         float minZ = (float) (box.minZ - cam.z);
@@ -131,7 +134,7 @@ public class Debug {
     }
 
     private static void addVertex(VertexConsumer vertexConsumer, float x, float y, float z, float nx, float ny, float nz, float red, float green, float blue, float alpha) {
-        vertexConsumer.vertex(x, y, z).color(red, green, blue, alpha);
+        vertexConsumer.addVertex(x, y, z).setColor(red, green, blue, alpha);
     }
 
     private static class BuiltBufferRenderer {

@@ -1,37 +1,37 @@
 package com.qendolin.betterclouds.mixin.required;
 
 import com.qendolin.betterclouds.compat.WorldDuck;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 
 
-@Mixin(value = World.class, priority = 900)
+@Mixin(value = Level.class, priority = 900)
 public abstract class WorldMixin implements WorldDuck {
 
     @Shadow
-    protected float lastRainGradient;
+    protected float oRainLevel;
     @Shadow
-    protected float rainGradient;
+    protected float rainLevel;
 
     @Shadow
-    protected float lastThunderGradient;
+    protected float oThunderLevel;
     @Shadow
-    protected float thunderGradient;
+    protected float thunderLevel;
 
     @Unique
     public float betterclouds$getOriginalRainGradient(float delta) {
         float prev;
-        prev = lastThunderGradient;
-        return MathHelper.lerp(delta, prev, this.thunderGradient) * this.betterclouds$getOriginalThunderGradient(delta);
+        prev = oThunderLevel;
+        return Mth.lerp(delta, prev, this.thunderLevel) * this.betterclouds$getOriginalThunderGradient(delta);
     }
 
     @Unique
     public float betterclouds$getOriginalThunderGradient(float delta) {
         float prev;
-        prev = lastRainGradient;
-        return MathHelper.lerp(delta, prev, this.rainGradient);
+        prev = oRainLevel;
+        return Mth.lerp(delta, prev, this.rainLevel);
     }
 }

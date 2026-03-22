@@ -1,5 +1,6 @@
 package com.qendolin.betterclouds.platform;
 
+import com.qendolin.betterclouds.platform.ModVersion;
 import com.qendolin.betterclouds.platform.fabric.ModVersionImpl;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;

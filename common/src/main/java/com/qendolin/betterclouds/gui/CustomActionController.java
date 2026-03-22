@@ -5,14 +5,13 @@ import dev.isxander.yacl3.api.utils.Dimension;
 import dev.isxander.yacl3.gui.AbstractWidget;
 import dev.isxander.yacl3.gui.YACLScreen;
 import dev.isxander.yacl3.gui.controllers.ActionController;
-import dev.isxander.yacl3.gui.utils.GuiUtils;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.screen.ScreenTexts;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.network.chat.Component;
 
 public class CustomActionController extends ActionController {
     public CustomActionController(ButtonOption option) {
-        super(option, ScreenTexts.EMPTY);
+        super(option, CommonComponents.EMPTY);
     }
 
     @Override
@@ -27,22 +26,22 @@ public class CustomActionController extends ActionController {
         }
 
         @Override
-        public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
             hovered = isMouseOver(mouseX, mouseY);
 
-            Text name = control.option().changed() ? modifiedOptionName : control.option().name();
+            Component name = control.option().changed() ? modifiedOptionName : control.option().name();
 
             drawButtonRect(context, getDimension().x(), getDimension().y(), getDimension().xLimit(), getDimension().yLimit(), isHovered(), isAvailable());
-            float textX = getDimension().x() + getDimension().width() / 2f - textRenderer.getWidth(name) / 2f;
-            context.drawTextWithShadow(textRenderer, name, (int) textX, getTextY(), getValueColor());
+            float textX = getDimension().x() + getDimension().width() / 2f - textRenderer.width(name) / 2f;
+            context.text(textRenderer, name, (int) textX, getTextY(), getValueColor());
 
             if (isHovered()) {
-                drawHoveredControl(context, mouseX, mouseY, delta);
+                extractHoveredControl(context, mouseX, mouseY, delta);
             }
         }
 
         @Override
-        protected void drawValueText(DrawContext context, int mouseX, int mouseY, float delta) {
+        protected void extractValueText(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
 
         }
     }

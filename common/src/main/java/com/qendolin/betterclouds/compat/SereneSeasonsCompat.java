@@ -2,11 +2,10 @@ package com.qendolin.betterclouds.compat;
 
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.SereneSeasonsConfig;
-import net.minecraft.world.World;
-
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
+import net.minecraft.world.level.Level;
 
 public abstract class SereneSeasonsCompat {
     public static final Map<String, Function<SereneSeasonsConfig, Float>> SUB_SEASON_CLOUDINESS_LOOKUP = Map.ofEntries(
@@ -62,7 +61,7 @@ public abstract class SereneSeasonsCompat {
         return instance;
     }
 
-    public abstract float getCloudinessFactor(World world);
+    public abstract float getCloudinessFactor(Level world);
 
     private static class Stub extends SereneSeasonsCompat {
 
@@ -71,7 +70,7 @@ public abstract class SereneSeasonsCompat {
         }
 
         @Override
-        public float getCloudinessFactor(World world) {
+        public float getCloudinessFactor(Level world) {
             return 1.0f;
         }
     }

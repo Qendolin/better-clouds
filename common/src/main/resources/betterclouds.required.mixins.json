@@ -3,7 +3,7 @@
   "minVersion": "0.8",
   "package": "com.qendolin.betterclouds.mixin.required",
   "plugin": "com.qendolin.betterclouds.mixin.RequiredMixinPlugin",
-  "compatibilityLevel": "JAVA_21",
+  "compatibilityLevel": "JAVA_22",
   "mixins": [
   ],
   "client": [

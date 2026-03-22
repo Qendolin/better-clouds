@@ -16,7 +16,7 @@ public abstract class RenderSystemMixin {
         GLCompat.initGlCompat();
     }
 
-    @Inject(method = "flipFrame", at = @At(value = "INVOKE", target = "Lorg/lwjgl/glfw/GLFW;glfwSwapBuffers(J)V", shift = At.Shift.AFTER, remap = false))
+    @Inject(method = "flipFrame", at = @At("TAIL"))
     private static void afterSwapBuffers(CallbackInfo ci) {
         CaptureManager.onSwapBuffers();
     }

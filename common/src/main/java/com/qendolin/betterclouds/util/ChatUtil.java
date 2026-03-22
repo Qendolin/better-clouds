@@ -1,8 +1,8 @@
 package com.qendolin.betterclouds.util;
 
 import com.qendolin.betterclouds.BetterCloudsStatic;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 
 public interface ChatUtil {
     static String debugChatMessageKey(String id) {
@@ -10,12 +10,12 @@ public interface ChatUtil {
     }
 
     static void debugChatMessage(String id, Object... args) {
-        debugChatMessage(Text.translatable(debugChatMessageKey(id), args));
+        debugChatMessage(Component.translatable(debugChatMessageKey(id), args));
     }
 
-    static void debugChatMessage(Text message) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client == null || client.world == null) return;
-        client.inGameHud.getChatHud().addMessage(Text.literal("§e[§bBC§b§e]§r ").append(message));
+    static void debugChatMessage(Component message) {
+        Minecraft client = Minecraft.getInstance();
+        if (client == null || client.level == null) return;
+        client.gui.getChat().addClientSystemMessage(Component.literal("§e[§bBC§b§e]§r ").append(message));
     }
 }

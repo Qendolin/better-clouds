@@ -15,10 +15,6 @@ import com.qendolin.betterclouds.util.DataDirectoryMigration;
 import com.qendolin.betterclouds.util.NamedLogger;
 import com.qendolin.betterclouds.util.PreLaunchGuard;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.ClickEvent;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import org.apache.logging.log4j.LogManager;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,6 +22,10 @@ import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
 
 import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
 
@@ -94,12 +94,12 @@ public class BetterClouds extends BetterCloudsStatic {
                     .execute(() -> client.execute(() -> {
                         URI prismURL = URI.create("https://prismlauncher.org/");
                         URI modrinthURL = URI.create("https://modrinth.com/app");
-                        ChatUtil.debugChatMessage(Text.literal("Lunar Client sucks! Use ")
-                            .append(Text.literal("[Prism]").styled(style -> style.withClickEvent(
-                                new ClickEvent.OpenUrl(prismURL)).withColor(Formatting.GREEN).withUnderline(true)))
-                            .append(Text.literal(" or ")
-                                .append(Text.literal("[Modrinth]").styled(style -> style.withClickEvent(
-                                    new ClickEvent.OpenUrl(modrinthURL)).withColor(Formatting.GREEN).withUnderline(true)))
+                        ChatUtil.debugChatMessage(Component.literal("Lunar Client sucks! Use ")
+                            .append(Component.literal("[Prism]").withStyle(style -> style.withClickEvent(
+                                new ClickEvent.OpenUrl(prismURL)).withColor(ChatFormatting.GREEN).withUnderlined(true)))
+                            .append(Component.literal(" or ")
+                                .append(Component.literal("[Modrinth]").withStyle(style -> style.withClickEvent(
+                                    new ClickEvent.OpenUrl(modrinthURL)).withColor(ChatFormatting.GREEN).withUnderlined(true)))
                                 .append(" instead!"))
                         );
                     }));
@@ -116,9 +116,9 @@ public class BetterClouds extends BetterCloudsStatic {
 
     @Nullable
     public static Renderer getCloudsRenderer() {
-        MinecraftClient client = MinecraftClient.getInstance();
+        Minecraft client = Minecraft.getInstance();
         if (client == null) return null;
-        if (client.worldRenderer instanceof WorldRendererDuck duck) {
+        if (client.levelRenderer instanceof WorldRendererDuck duck) {
             return duck.betterclouds$getRenderer();
         }
         return null;

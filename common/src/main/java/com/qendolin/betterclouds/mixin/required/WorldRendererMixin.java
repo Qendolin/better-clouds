@@ -10,16 +10,22 @@ import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import com.qendolin.betterclouds.telemetry.IssueReportManager;
 import com.qendolin.betterclouds.util.RenderHelper;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.*;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.client.option.CloudRenderMode;
-import net.minecraft.client.util.ObjectAllocator;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import org.jetbrains.annotations.Nullable;
+import com.mojang.blaze3d.framegraph.FrameGraphBuilder;
+import com.mojang.blaze3d.resource.GraphicsResourceAllocator;
+import net.minecraft.client.CloudStatus;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.LevelTargetBundle;
+import net.minecraft.client.renderer.chunk.ChunkSectionsToRender;
+import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
+import org.joml.Matrix4fc;
 import org.joml.Vector3d;
 import org.joml.Vector4f;
 import org.spongepowered.asm.mixin.Final;
@@ -33,7 +39,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
 import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
 
-@Mixin(value = WorldRenderer.class, priority = 900)
+@Mixin(value = LevelRenderer.class, priority = 900)
 public abstract class WorldRendererMixin implements WorldRendererDuck {
 
     @Unique
@@ -47,34 +53,28 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
     @Inject(method = "<init>", at = @At("TAIL"))
     private void init(CallbackInfo ci) {
         if (glCompat.isIncompatible()) return;
-        cloudRenderer = new Renderer(client);
+        cloudRenderer = new Renderer(minecraft);
     }
 
     @Shadow
-    private @Nullable Frustum capturedFrustum;
-
-    @Shadow
-    private @Nullable ClientWorld world;
+    private ClientLevel level;
 
     @Shadow
     private int ticks;
 
     @Shadow
-    public abstract Frustum getCapturedFrustum();
-
-    @Shadow
     @Final
-    private DefaultFramebufferSet framebufferSet;
+    private LevelTargetBundle targets;
 
 
-    @Shadow @Final private MinecraftClient client;
+    @Shadow @Final private Minecraft minecraft;
 
     @Override
     public Renderer betterclouds$getRenderer() {
         return cloudRenderer;
     }
 
-    @Inject(at = @At("TAIL"), method = "reload(Lnet/minecraft/resource/ResourceManager;)V")
+    @Inject(at = @At("TAIL"), method = "onResourceManagerReload(Lnet/minecraft/server/packs/resources/ResourceManager;)V")
     private void onReload(ResourceManager manager, CallbackInfo ci) {
         if (!BetterClouds.isInitialized()) return;
         if (glCompat.isIncompatible()) return;
@@ -87,44 +87,34 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
         }
     }
 
-    @Inject(at = @At("TAIL"), method = "setWorld")
-    private void onSetWorld(ClientWorld world, CallbackInfo ci) {
+    @Inject(at = @At("TAIL"), method = "setLevel")
+    private void onSetWorld(ClientLevel world, CallbackInfo ci) {
         if (cloudRenderer != null) cloudRenderer.setWorld(world);
     }
 
-    @Unique
-    private Vector3d getCapturedFrustumPosition() {
-        return new Vector3d(getCapturedFrustum().x, getCapturedFrustum().y, getCapturedFrustum().z);
+    @Inject(at = @At("HEAD"), method = "renderLevel")
+    private void captureViewAndProjectionMatrix(GraphicsResourceAllocator allocator, DeltaTracker tickCounter, boolean renderBlockOutline, CameraRenderState cameraRenderState, Matrix4fc positionMatrix, GpuBufferSlice fogBuffer, Vector4f fogColor, boolean renderSky, ChunkSectionsToRender chunkSectionsToRender, CallbackInfo ci) {
+        RenderHelper.setProjectionMatrix(new Matrix4f(cameraRenderState.projectionMatrix));
+        RenderHelper.setViewMatrix(new Matrix4f(positionMatrix));
+        frustum = cameraRenderState.cullFrustum;
+        Vec3 cameraPos = cameraRenderState.pos;
+        frustum.prepare(cameraPos.x, cameraPos.y, cameraPos.z);
     }
-
-    @Inject(at = @At("HEAD"), method = "render")
-    private void captureViewAndProjectionMatrix(ObjectAllocator allocator, RenderTickCounter tickCounter, boolean renderBlockOutline, Camera camera, Matrix4f positionMatrix, Matrix4f projectionFinalMatrix, Matrix4f projectionOnlyMatrix, GpuBufferSlice fogBuffer, Vector4f fogColor, boolean renderSky, CallbackInfo ci) {
-        RenderHelper.setProjectionMatrix(projectionFinalMatrix);
-        RenderHelper.setViewMatrix(positionMatrix);
-        frustum = new Frustum(positionMatrix, projectionOnlyMatrix);
-        Vec3d cameraPos = camera.getCameraPos();
-        frustum.setPosition(cameraPos.x, cameraPos.y, cameraPos.z);
-    }
-    @Inject(at = @At("HEAD"), method = "renderClouds", cancellable = true, require = 0)
-    private void renderClouds(FrameGraphBuilder frameGraphBuilder, CloudRenderMode _mode, Vec3d cameraPos, long _seed, float _ticks, int _color, float _cloudHeight, CallbackInfo ci) {
-        renderCloudsInternal(frameGraphBuilder, cameraPos, _ticks, ci);
-    }
-
     @Inject(at = @At("HEAD"), method = "addCloudsPass", cancellable = true, require = 0)
-    private void renderClouds(FrameGraphBuilder frameGraphBuilder, CloudRenderMode _mode, Vec3d cameraPos, float _ticks, int _color, float _cloudHeight, Matrix4f modelViewMatrix, CallbackInfo ci) {
+    private void renderClouds(FrameGraphBuilder frameGraphBuilder, CloudStatus _mode, Vec3 cameraPos, long _seed, float _ticks, int _color, float _cloudHeight, int _cloudRenderMode, CallbackInfo ci) {
         renderCloudsInternal(frameGraphBuilder, cameraPos, _ticks, ci);
     }
 
     @Unique
-    private void renderCloudsInternal(FrameGraphBuilder frameGraphBuilder, Vec3d cameraPos, float ticksInput, CallbackInfo ci) {
+    private void renderCloudsInternal(FrameGraphBuilder frameGraphBuilder, Vec3 cameraPos, float ticksInput, CallbackInfo ci) {
         double camX = cameraPos.x, camY = cameraPos.y, camZ = cameraPos.z;
-        float tickDelta = MathHelper.fractionalPart(ticksInput);
+        float tickDelta = Mth.frac(ticksInput);
         Matrix4f viewMat = RenderHelper.getViewMatrix();
         Matrix4f projMat = RenderHelper.getProjectionMatrix();
         if (cloudRenderer == null) return;
         if (glCompat.isIncompatible()) return;
-        if (world == null) return;
-        if (!ConfigManager.instance().enabledDimensions.contains(world.getDimensionEntry().getKey().orElse(null))) return;
+        if (level == null) return;
+        if (!ConfigManager.instance().enabledDimensions.contains(level.dimensionTypeRegistration().unwrapKey().orElse(null))) return;
         if (!BetterClouds.isEnabled()) return;
 
         getProfiler().push(BetterCloudsStatic.MODID);
@@ -133,11 +123,6 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
         Vector3d cam = tempVector.set(camX, camY, camZ);
         Frustum frustum = this.frustum;
         Vector3d frustumPos = cam;
-        if (capturedFrustum != null) {
-            frustumPos = getCapturedFrustumPosition();
-            frustum = capturedFrustum;
-            frustum.setPosition(frustumPos.x, frustumPos.y, frustumPos.z);
-        }
 
         int ticks = this.ticks;
         if (Debug.animationPause >= 0) {
@@ -156,11 +141,11 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
 
             // Note to self: do not use return
             if (prepareResult == Renderer.PrepareResult.RENDER) {
-                var renderPass = frameGraphBuilder.createPass("clouds");
-                if (framebufferSet.cloudsFramebuffer != null) {
-                    framebufferSet.cloudsFramebuffer = renderPass.transfer(framebufferSet.cloudsFramebuffer);
+                var renderPass = frameGraphBuilder.addPass("clouds");
+                if (targets.clouds != null) {
+                    targets.clouds = renderPass.readsAndWrites(targets.clouds);
                 } else {
-                    framebufferSet.mainFramebuffer = renderPass.transfer(framebufferSet.mainFramebuffer);
+                    targets.main = renderPass.readsAndWrites(targets.main);
                 }
 
                 final var fticks = ticks;
@@ -168,7 +153,7 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
                 final var fcam = cam;
                 final var ffrustumPos = frustumPos;
                 final var ffrustum = frustum;
-                renderPass.setRenderer(() -> {
+                renderPass.executes(() -> {
                     try {
                         getProfiler().push("clouds");
                         glCompat.pushDebugGroupDev("Better Clouds");

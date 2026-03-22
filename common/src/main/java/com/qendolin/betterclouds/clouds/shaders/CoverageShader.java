@@ -2,11 +2,10 @@ package com.qendolin.betterclouds.clouds.shaders;
 
 import com.google.common.collect.ImmutableMap;
 import com.qendolin.betterclouds.BetterCloudsStatic;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Identifier;
-
 import java.io.IOException;
 import java.util.Map;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.resources.ResourceManager;
 
 public class CoverageShader extends Shader {
     public static final String DEF_SIZE_XZ_KEY = "_SIZE_XZ_";
@@ -15,8 +14,8 @@ public class CoverageShader extends Shader {
     public static final String DEF_DISTANT_HORIZONS = "_DISTANT_HORIZONS_";
     public static final String DEF_WORLD_CURVATURE = "_WORLD_CURVATURE_";
 
-    public static final Identifier VERTEX_SHADER_ID = Identifier.of(BetterCloudsStatic.MODID, "shaders/core/betterclouds_coverage.vsh");
-    public static final Identifier FRAGMENT_SHADER_ID = Identifier.of(BetterCloudsStatic.MODID, "shaders/core/betterclouds_coverage.fsh");
+    public static final Identifier VERTEX_SHADER_ID = Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "shaders/core/betterclouds_coverage.vsh");
+    public static final Identifier FRAGMENT_SHADER_ID = Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "shaders/core/betterclouds_coverage.fsh");
 
     public final Uniform uDepthTexture;
     public final Uniform uDhDepthTexture;

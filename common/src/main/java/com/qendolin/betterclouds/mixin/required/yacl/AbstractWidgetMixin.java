@@ -2,8 +2,8 @@ package com.qendolin.betterclouds.mixin.required.yacl;
 
 import com.qendolin.betterclouds.gui.ConfigScreen;
 import dev.isxander.yacl3.gui.AbstractWidget;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -16,12 +16,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class AbstractWidgetMixin {
     @Shadow
     @Final
-    protected MinecraftClient client;
+    protected Minecraft client;
 
     @Inject(method = "drawButtonRect", at = @At("HEAD"), cancellable = true)
-    private void onDrawButtonRect(DrawContext context, int x1, int y1, int x2, int y2, boolean hovered, boolean enabled, CallbackInfo ci) {
+    private void onDrawButtonRect(GuiGraphicsExtractor context, int x1, int y1, int x2, int y2, boolean hovered, boolean enabled, CallbackInfo ci) {
         // This is so hacky, but I don't expect it to break until YACL 4 is released
-        if (client == null || client.world == null || !(client.currentScreen instanceof ConfigScreen)) {
+        if (client == null || client.level == null || !(client.screen instanceof ConfigScreen)) {
             return;
         }
         ci.cancel();
@@ -51,7 +51,7 @@ public abstract class AbstractWidgetMixin {
     }
 
     @Unique
-    private static void betterclouds$drawOutline(DrawContext context, int x1, int y1, int x2, int y2, int width, int color) {
+    private static void betterclouds$drawOutline(GuiGraphicsExtractor context, int x1, int y1, int x2, int y2, int width, int color) {
         context.fill(x1, y1, x2, y1 + width, color);
         context.fill(x2, y1, x2 - width, y2, color);
         context.fill(x1, y2, x2, y2 - width, color);

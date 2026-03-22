@@ -1,13 +1,13 @@
 package com.qendolin.betterclouds.compat;
 
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
 import org.joml.Vector3f;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 
 public class EnhancedCelestials1CompatImpl extends EnhancedCelestialsSharedCompatImpl {
 
@@ -16,7 +16,7 @@ public class EnhancedCelestials1CompatImpl extends EnhancedCelestialsSharedCompa
     private final Method getLunarForecast;
     private final LunarForecastMethods lunarForecastMethods;
     private final LunarEventMethods lunarEventMethods;
-    private final RegistryKey<?> defaultLunarEvent;
+    private final ResourceKey<?> defaultLunarEvent;
 
     private record LunarForecastMethods(
         Method lastLunarEvent,
@@ -47,7 +47,7 @@ public class EnhancedCelestials1CompatImpl extends EnhancedCelestialsSharedCompa
             getLunarContext = classWorldData.getMethod("getLunarContext");
             getLunarForecast = classContext.getMethod("getLunarForecast");
 
-            defaultLunarEvent = (RegistryKey<?>) classDefaultEvents.getField("DEFAULT").get(null);
+            defaultLunarEvent = (ResourceKey<?>) classDefaultEvents.getField("DEFAULT").get(null);
 
             lunarForecastMethods = new LunarForecastMethods(
                 classLunarForecast.getMethod("lastLunarEvent"),
@@ -100,10 +100,10 @@ public class EnhancedCelestials1CompatImpl extends EnhancedCelestialsSharedCompa
     }
 
     private static class LunarEventAccessImpl extends LunarEventAccess {
-        private final RegistryEntry<?> entry;
+        private final Holder<?> entry;
         private final LunarEventMethods methods;
 
-        private LunarEventAccessImpl(RegistryEntry<?> entry, LunarEventMethods methods) {
+        private LunarEventAccessImpl(Holder<?> entry, LunarEventMethods methods) {
             this.entry = entry;
             this.methods = methods;
         }
@@ -128,12 +128,12 @@ public class EnhancedCelestials1CompatImpl extends EnhancedCelestialsSharedCompa
 
         @Override
         protected boolean matches(Identifier id) {
-            return entry.matchesId(id);
+            return entry.is(id);
         }
     }
 
     @Override
-    protected LunarForecastAccess getLunarForecast(World world) {
+    protected LunarForecastAccess getLunarForecast(Level world) {
         if (!classWorldData.isInstance(world)) {
             return null;
         }
@@ -149,6 +149,6 @@ public class EnhancedCelestials1CompatImpl extends EnhancedCelestialsSharedCompa
 
     @Override
     protected Identifier defaultLunarEvent() {
-        return defaultLunarEvent.getValue();
+        return defaultLunarEvent.identifier();
     }
 }

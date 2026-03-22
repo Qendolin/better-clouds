@@ -1,23 +1,22 @@
 package com.qendolin.betterclouds.platform;
 
 import com.mojang.brigadier.CommandDispatcher;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.resource.ResourceReloader;
-
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import net.minecraft.client.Minecraft;
+import net.minecraft.server.packs.resources.PreparableReloadListener;
 
 public abstract class EventHooks {
 
     public static EventHooks instance;
 
-    public abstract void onClientStarted(Consumer<MinecraftClient> callback);
+    public abstract void onClientStarted(Consumer<Minecraft> callback);
 
-    public abstract void onWorldJoin(Consumer<MinecraftClient> callback);
+    public abstract void onWorldJoin(Consumer<Minecraft> callback);
 
-    public abstract void onClientResourcesReload(Supplier<ResourceReloader> supplier);
+    public abstract void onClientResourcesReload(Supplier<PreparableReloadListener> supplier);
 
-    public abstract void onClientTick(Consumer<MinecraftClient> callback);
+    public abstract void onClientTick(Consumer<Minecraft> callback);
 
     public abstract void onClientCommandRegistration(Consumer<CommandDispatcher<?>> callback);
 }

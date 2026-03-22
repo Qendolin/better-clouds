@@ -5,18 +5,18 @@ import com.qendolin.betterclouds.compat.BigGlobeCompat;
 import com.qendolin.betterclouds.compat.MiddleEarthCompat;
 import com.qendolin.betterclouds.util.PreLaunchGuard;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.InvalidIdentifierException;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.dimension.DimensionType;
-import net.minecraft.world.dimension.DimensionTypes;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Type;
 import java.util.*;
+import net.minecraft.IdentifierException;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
+import net.minecraft.world.level.dimension.DimensionType;
 
 public class Config {
 
@@ -140,7 +140,7 @@ public class Config {
     @SerialEntry
     public boolean lunarSucksMessageEnabled = true;
     @SerialEntry
-    public List<RegistryKey<DimensionType>> enabledDimensions = new ArrayList<>(getDefaultDimensions());
+    public List<ResourceKey<DimensionType>> enabledDimensions = new ArrayList<>(getDefaultDimensions());
     @SerialEntry
     public SereneSeasonsConfig sereneSeasonsConfig = new SereneSeasonsConfig();
     @SerialEntry
@@ -181,7 +181,7 @@ public class Config {
         if (presets == null || presets.isEmpty()) {
             addFirstPreset();
         }
-        selectedPreset = MathHelper.clamp(selectedPreset, 0, presets.size() - 1);
+        selectedPreset = Mth.clamp(selectedPreset, 0, presets.size() - 1);
         return presets.get(selectedPreset);
     }
 
@@ -212,35 +212,35 @@ public class Config {
     }
 
     public int blockDistance() {
-        return MinecraftClient.getInstance().options.getCloudRenderDistance().getValue() * 16;
+        return Minecraft.getInstance().options.cloudRange().get() * 16;
     }
 
-    public static List<RegistryKey<DimensionType>> getDefaultDimensions() {
+    public static List<ResourceKey<DimensionType>> getDefaultDimensions() {
         return List.of(
-            DimensionTypes.OVERWORLD,
+            BuiltinDimensionTypes.OVERWORLD,
             BigGlobeCompat.DIMENSION_KEY,
             MiddleEarthCompat.DIMENSION_KEY);
     }
 
-    public static class RegistryKeySerializer implements JsonSerializer<RegistryKey<DimensionType>>, JsonDeserializer<RegistryKey<DimensionType>> {
+    public static class RegistryKeySerializer implements JsonSerializer<ResourceKey<DimensionType>>, JsonDeserializer<ResourceKey<DimensionType>> {
         private RegistryKeySerializer() {
         }
 
         @Override
-        public RegistryKey<DimensionType> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+        public ResourceKey<DimensionType> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
             if (!json.isJsonPrimitive() || !json.getAsJsonPrimitive().isString())
                 throw new JsonParseException("RegistryKey must be a string");
             try {
-                Identifier id = Identifier.of(json.getAsString());
-                return RegistryKey.of(RegistryKeys.DIMENSION_TYPE, id);
-            } catch (InvalidIdentifierException e) {
+                Identifier id = Identifier.parse(json.getAsString());
+                return ResourceKey.create(Registries.DIMENSION_TYPE, id);
+            } catch (IdentifierException e) {
                 throw new JsonParseException("Invalid RegistryKey: " + e.getMessage());
             }
         }
 
         @Override
-        public JsonElement serialize(RegistryKey<DimensionType> src, Type typeOfSrc, JsonSerializationContext context) {
-            return new JsonPrimitive(src.getValue().toString());
+        public JsonElement serialize(ResourceKey<DimensionType> src, Type typeOfSrc, JsonSerializationContext context) {
+            return new JsonPrimitive(src.identifier().toString());
         }
     }
 

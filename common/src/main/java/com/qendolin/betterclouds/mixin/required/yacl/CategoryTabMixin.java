@@ -9,13 +9,6 @@ import com.qendolin.betterclouds.duck.CustomOptionListWidgetDuck;
 import com.qendolin.betterclouds.gui.ConfigScreen;
 import dev.isxander.yacl3.gui.YACLScreen;
 import dev.isxander.yacl3.gui.utils.GuiUtils;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.tooltip.Tooltip;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.screen.ScreenTexts;
-import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -28,14 +21,21 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.function.Consumer;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.network.chat.Component;
 
 @Mixin(value = YACLScreen.CategoryTab.class, remap = false)
 public abstract class CategoryTabMixin implements CustomCategoryTabDuck {
 
     @Shadow @Final private YACLScreen screen;
-    @Shadow @Final public ButtonWidget undoButton;
-    @Shadow @Final public ButtonWidget cancelResetButton;
-    @Shadow @Final public ButtonWidget saveFinishedButton;
+    @Shadow @Final public Button undoButton;
+    @Shadow @Final public Button cancelResetButton;
+    @Shadow @Final public Button saveFinishedButton;
 
     @Shadow public abstract void updateButtons();
 
@@ -43,7 +43,7 @@ public abstract class CategoryTabMixin implements CustomCategoryTabDuck {
     private boolean override;
 
     @Unique
-    private ButtonWidget hideShowButton;
+    private Button hideShowButton;
 
     @Override
     public void betterclouds$applyOverride() {
@@ -63,25 +63,25 @@ public abstract class CategoryTabMixin implements CustomCategoryTabDuck {
             throw new ReflectAccess.IncompatibleModDependencyException("YACL", e);
         }
 
-        MinecraftClient client = MinecraftClient.getInstance();
+        Minecraft client = Minecraft.getInstance();
 
-        hideShowButton = ButtonWidget.builder(Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".hide"),
+        hideShowButton = Button.builder(Component.translatable(ConfigGUI.LANG_KEY_PREFIX + ".hide"),
                 btn -> hideOrShow())
-            .position(undoButton.getX(), undoButton.getY())
+            .pos(undoButton.getX(), undoButton.getY())
             .size(undoButton.getWidth(), undoButton.getHeight())
             .build();
-        hideShowButton.active = client.world != null;
+        hideShowButton.active = client.level != null;
     }
 
     @Unique
     private void hideOrShow() {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.currentScreen == screen) {
-            hideShowButton.setMessage(Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".show"));
+        Minecraft client = Minecraft.getInstance();
+        if (client.screen == screen) {
+            hideShowButton.setMessage(Component.translatable(ConfigGUI.LANG_KEY_PREFIX + ".show"));
             Screen hiddenScreen = new ConfigScreen.HiddenScreen(screen.getTitle(), hideShowButton);
             client.setScreen(hiddenScreen);
         } else {
-            hideShowButton.setMessage(Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".hide"));
+            hideShowButton.setMessage(Component.translatable(ConfigGUI.LANG_KEY_PREFIX + ".hide"));
             client.setScreen(screen);
         }
     }
@@ -95,17 +95,17 @@ public abstract class CategoryTabMixin implements CustomCategoryTabDuck {
 
         boolean pendingChanges = screen.pendingChanges();
 
-        if (MinecraftClient.getInstance().isShiftPressed()) {
+        if (Minecraft.getInstance().hasShiftDown()) {
             cancelResetButton.active = true;
-            cancelResetButton.setTooltip(Tooltip.of(Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".reset.tooltip")));
+            cancelResetButton.setTooltip(Tooltip.create(Component.translatable(ConfigGUI.LANG_KEY_PREFIX + ".reset.tooltip")));
         } else {
             cancelResetButton.active = false;
-            cancelResetButton.setTooltip(Tooltip.of(Text.translatable(ConfigGUI.LANG_KEY_PREFIX + ".reset.tooltip.holdShift")));
+            cancelResetButton.setTooltip(Tooltip.create(Component.translatable(ConfigGUI.LANG_KEY_PREFIX + ".reset.tooltip.holdShift")));
         }
-        cancelResetButton.setMessage(pendingChanges ? GuiUtils.translatableFallback("yacl.gui.cancel", ScreenTexts.CANCEL) : Text.translatable("controls.reset"));
+        cancelResetButton.setMessage(pendingChanges ? GuiUtils.translatableFallback("yacl.gui.cancel", CommonComponents.GUI_CANCEL) : Component.translatable("controls.reset"));
 
-        saveFinishedButton.setMessage(pendingChanges ? Text.translatable("yacl.gui.save") : GuiUtils.translatableFallback("yacl.gui.done", ScreenTexts.DONE));
-        saveFinishedButton.setTooltip(Tooltip.of(pendingChanges ? Text.translatable("yacl.gui.save.tooltip") : Text.translatable("yacl.gui.finished.tooltip")));
+        saveFinishedButton.setMessage(pendingChanges ? Component.translatable("yacl.gui.save") : GuiUtils.translatableFallback("yacl.gui.done", CommonComponents.GUI_DONE));
+        saveFinishedButton.setTooltip(Tooltip.create(pendingChanges ? Component.translatable("yacl.gui.save.tooltip") : Component.translatable("yacl.gui.finished.tooltip")));
     }
 
     @Inject(
@@ -118,8 +118,8 @@ public abstract class CategoryTabMixin implements CustomCategoryTabDuck {
         updateButtons();
     }
 
-    @Inject(method = "forEachChild", at = @At("TAIL"), remap = true)
-    private void onForEachChild(Consumer<ClickableWidget> consumer, CallbackInfo ci) {
+    @Inject(method = "visitChildren", at = @At("TAIL"), remap = true)
+    private void onForEachChild(Consumer<AbstractWidget> consumer, CallbackInfo ci) {
         if (!override) return;
 
         consumer.accept(hideShowButton);

@@ -2,7 +2,6 @@ package com.qendolin.betterclouds.gui;
 
 import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.api.controller.ControllerBuilder;
-import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -10,6 +9,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import net.minecraft.network.chat.Component;
 
 public class YACL36OptionBuilderImpl<T> implements YACLOptionBuilder<T> {
 
@@ -23,7 +23,7 @@ public class YACL36OptionBuilderImpl<T> implements YACLOptionBuilder<T> {
     }
 
     @Override
-    public YACLOptionBuilder<T> name(@NotNull Text name) {
+    public YACLOptionBuilder<T> name(@NotNull Component name) {
         delegate.name(name);
         return this;
     }

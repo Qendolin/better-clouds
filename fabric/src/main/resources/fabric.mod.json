@@ -37,9 +37,9 @@
     "minecraft": [
       $mc_version_range
     ],
-    "java": ">=21",
+    "java": ">=25",
     "fabric-api": "*",
-    "yet_another_config_lib_v3": ">=3.8.1"
+    "yet_another_config_lib_v3": ">=3.9.0"
   },
   "recommends": {
     "modmenu": "*",

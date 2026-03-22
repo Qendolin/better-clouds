@@ -4,10 +4,10 @@ import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.qendolin.betterclouds.BetterClouds;
 import com.qendolin.betterclouds.config.ConfigManager;
-import net.minecraft.world.dimension.DimensionType;
 import org.spongepowered.asm.mixin.Mixin;
 
 import java.util.Optional;
+import net.minecraft.world.level.dimension.DimensionType;
 
 @SuppressWarnings("UnusedMixin")
 @Mixin(DimensionType.class)

@@ -1,8 +1,8 @@
 package com.qendolin.betterclouds.compat;
 
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
 import org.joml.Vector3f;
 
 public abstract class EnhancedCelestialsSharedCompatImpl extends EnhancedCelestialsCompat {
@@ -36,13 +36,13 @@ public abstract class EnhancedCelestialsSharedCompatImpl extends EnhancedCelesti
 
     }
 
-    protected abstract LunarForecastAccess getLunarForecast(World world);
+    protected abstract LunarForecastAccess getLunarForecast(Level world);
 
     protected abstract Identifier defaultLunarEvent();
 
 
     @Override
-    public Vector3f getEventTint(World world) {
+    public Vector3f getEventTint(Level world) {
         var forecast = getLunarForecast(world);
         if (forecast == null)
             return null;
@@ -53,14 +53,14 @@ public abstract class EnhancedCelestialsSharedCompatImpl extends EnhancedCelesti
         var lastColor = lastEvent.getGLSkyLightColor();
         var currColor = currEvent.getGLSkyLightColor();
 
-        float blend = MathHelper.clamp(forecast.getBlend(), 0.0f, 1.0f);
+        float blend = Mth.clamp(forecast.getBlend(), 0.0f, 1.0f);
 
         var delta = currColor.sub(lastColor, new Vector3f());
         return lastColor.add(delta.mul(blend), new Vector3f());
     }
 
     @Override
-    public boolean isEventActive(World world) {
+    public boolean isEventActive(Level world) {
         var forecast = getLunarForecast(world);
         if (forecast == null)
             return false;
@@ -77,7 +77,7 @@ public abstract class EnhancedCelestialsSharedCompatImpl extends EnhancedCelesti
     }
 
     @Override
-    public float getMoonSize(World world) {
+    public float getMoonSize(Level world) {
         var forecast = getLunarForecast(world);
         if (forecast == null)
             return 1.0f;
@@ -88,6 +88,6 @@ public abstract class EnhancedCelestialsSharedCompatImpl extends EnhancedCelesti
         float lastSize = lastEvent.getMoonSize();
         float currSize = currEvent.getMoonSize();
 
-        return MathHelper.clampedLerp(lastSize, currSize, forecast.getBlend()) / 20.0f;
+        return Mth.clampedLerp(lastSize, currSize, forecast.getBlend()) / 20.0f;
     }
 }

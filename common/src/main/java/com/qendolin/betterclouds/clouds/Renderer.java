@@ -13,13 +13,14 @@ import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import com.qendolin.betterclouds.util.ChatUtil;
 import com.qendolin.betterclouds.util.MathUtil;
 import com.qendolin.betterclouds.util.RenderHelper;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.Frustum;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.util.Mth;
 import net.minecraft.world.attribute.EnvironmentAttributes;
+import net.minecraft.world.level.material.FogType;
+import net.minecraft.world.phys.AABB;
 import org.joml.Matrix4d;
 import org.joml.Matrix4f;
 import org.joml.Vector3d;
@@ -28,8 +29,6 @@ import org.joml.Vector3f;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-
-import net.minecraft.block.enums.CameraSubmersionType;
 import com.mojang.blaze3d.opengl.GlStateManager;
 
 import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
@@ -37,8 +36,8 @@ import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
 import static org.lwjgl.opengl.GL32.*;
 
 public class Renderer implements AutoCloseable {
-    private final MinecraftClient client;
-    private ClientWorld world = null;
+    private final Minecraft client;
+    private ClientLevel world = null;
 
     private float cloudsHeight;
     private final Matrix4f mvpMatrix = new Matrix4f();
@@ -53,11 +52,11 @@ public class Renderer implements AutoCloseable {
 
     private final Resources res = new Resources();
 
-    public Renderer(MinecraftClient client) {
+    public Renderer(Minecraft client) {
         this.client = client;
     }
 
-    public void setWorld(ClientWorld world) {
+    public void setWorld(ClientLevel world) {
         this.world = world;
     }
 
@@ -89,16 +88,16 @@ public class Renderer implements AutoCloseable {
     }
 
     private int scaledFramebufferWidth() {
-        return (int) (ConfigManager.instance().preset().upscaleResolutionFactor * client.getFramebuffer().textureWidth);
+        return (int) (ConfigManager.instance().preset().upscaleResolutionFactor * client.getMainRenderTarget().width);
     }
 
     private int scaledFramebufferHeight() {
-        return (int) (ConfigManager.instance().preset().upscaleResolutionFactor * client.getFramebuffer().textureHeight);
+        return (int) (ConfigManager.instance().preset().upscaleResolutionFactor * client.getMainRenderTarget().height);
     }
 
     private ShaderParameters createShaderParameters(Config config) {
         return new ShaderParameters(
-            client.options.getCloudRenderModeValue(),
+            client.options.getCloudStatus(),
             config.blockDistance(), config.sizeXZ, config.sizeY, config.celestialBodyHalo,
             glCompat.useDepthWriteFallback(), glCompat.useStencilTextureFallback(),
             DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled(),
@@ -108,7 +107,7 @@ public class Renderer implements AutoCloseable {
 
     public PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, int ticks, float tickDelta, Vector3d cam) {
         assert RenderSystem.isOnRenderThread();
-        getProfiler().swap("render_setup");
+        getProfiler().popPush("render_setup");
         Config config = ConfigManager.instance();
 
         if (res.failedToLoadCritical()) {
@@ -117,7 +116,7 @@ public class Renderer implements AutoCloseable {
         }
 
         // Rendering clouds when underwater was making them very visible in unloaded chunks
-        if (client.gameRenderer.getCamera().getSubmersionType() != CameraSubmersionType.NONE) {
+        if (client.gameRenderer.getMainCamera().getFluidInCamera() != FogType.NONE) {
             return PrepareResult.NO_RENDER;
         }
 
@@ -126,7 +125,7 @@ public class Renderer implements AutoCloseable {
             return PrepareResult.NO_RENDER;
         }
 
-        cloudsHeight = world.getEnvironmentAttributes().getAttributeValue(EnvironmentAttributes.CLOUD_HEIGHT_VISUAL);
+        cloudsHeight = world.environmentAttributes().getDimensionValue(EnvironmentAttributes.CLOUD_HEIGHT);
 
         res.generator().bind();
         ShaderParameters currentShaderParameters = createShaderParameters(config);
@@ -136,18 +135,18 @@ public class Renderer implements AutoCloseable {
         }
         res.generator().reallocateIfStale(config, useCubeClouds());
 
-        float cloudiness = CloudinessProvider.getCloudiness(client.world, tickDelta);
+        float cloudiness = CloudinessProvider.getCloudiness(client.level, tickDelta);
         res.generator().update(cam, ticks, tickDelta, ConfigManager.instance(), cloudiness);
         if (res.generator().canGenerate() && !res.generator().generating() && !Debug.generatorPause) {
-            getProfiler().swap("generate_clouds");
+            getProfiler().popPush("generate_clouds");
             res.generator().generate();
-            getProfiler().swap("render_setup");
+            getProfiler().popPush("render_setup");
         }
 
         if (res.generator().canSwap()) {
-            getProfiler().swap("swap");
+            getProfiler().popPush("swap");
             res.generator().swap();
-            getProfiler().swap("render_setup");
+            getProfiler().popPush("render_setup");
         }
 
         // This is fixes issue #14, not entirely sure why, but it forces the matrix to be homogenous
@@ -185,7 +184,7 @@ public class Renderer implements AutoCloseable {
         // In 1.21.3 render is called some time after prepare, so this may be false by now
         if (res.failedToLoadCritical()) return;
 
-        getProfiler().swap("render_setup");
+        getProfiler().popPush("render_setup");
         if (Debug.isProfilingEnabled()) {
             if (res.timer() == null)
                 res.reloadTimer();
@@ -206,7 +205,7 @@ public class Renderer implements AutoCloseable {
         FogProvider.Fog fog = FogProvider.instance.getFog(client, config, tickDelta);
 
         // Render clouds to our framebuffer
-        getProfiler().swap("draw_coverage");
+        getProfiler().popPush("draw_coverage");
         GlStateManager._viewport(0, 0, res.fboWidth(), res.fboHeight());
         GlStateManager._glBindFramebuffer(GL_DRAW_FRAMEBUFFER, res.oitFbo());
         glClearColor(0, 0, 0, 0);
@@ -218,15 +217,15 @@ public class Renderer implements AutoCloseable {
         rt.begin();
 
         // Render debug stuff
-        getProfiler().swap("draw_debug");
+        getProfiler().popPush("draw_debug");
         Debug.render(res, cam);
 
         // Resolve and shade clouds
-        getProfiler().swap("draw_shading");
+        getProfiler().popPush("draw_shading");
         drawShading(tickDelta, fog);
 
         // Restore state
-        getProfiler().swap("render_cleanup");
+        getProfiler().popPush("render_cleanup");
         rt.end();
         res.generator().unbind();
         GlStateManager._disableBlend();
@@ -308,7 +307,7 @@ public class Renderer implements AutoCloseable {
         }
 
         GlStateManager._activeTexture(GL_TEXTURE0);
-        RenderHelper.bindTexture(client.getFramebuffer().getDepthAttachment());
+        RenderHelper.bindTexture(client.getMainRenderTarget().getDepthTexture());
 
         // Distant Horizons compat
         if (DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled()) {
@@ -342,7 +341,7 @@ public class Renderer implements AutoCloseable {
 
         setFrustumTo(tempFrustum, frustum);
         Frustum frustumAtOrigin = tempFrustum;
-        frustumAtOrigin.setPosition(frustumPos.x - res.generator().originX(), frustumPos.y, frustumPos.z - res.generator().originZ());
+        frustumAtOrigin.prepare(frustumPos.x - res.generator().originX(), frustumPos.y, frustumPos.z - res.generator().originZ());
 
         if (!res.generator().canRender()) {
             GlStateManager._enableCull();
@@ -372,7 +371,7 @@ public class Renderer implements AutoCloseable {
         int runStart = -1;
         int runCount = 0;
         for (ChunkedGenerator.ChunkIndex chunk : res.generator().chunks()) {
-            Box bounds = chunk.bounds(cloudsHeight, config.sizeXZ, config.sizeY);
+            AABB bounds = chunk.bounds(cloudsHeight, config.sizeXZ, config.sizeY);
             if (!frustumAtOrigin.isVisible(bounds)) {
                 Debug.addFrustumCulledBox(bounds, false);
                 if (runCount != 0) {
@@ -447,15 +446,15 @@ public class Renderer implements AutoCloseable {
         RenderHelper.bindTexture(client.getTextureManager().getTexture(Resources.LIGHTING_TEXTURE));
 
         Vector3f effectTint = EffectTintProvider.getEffectTint(client, fog, tickDelta);
-        long skyTime = world.getTimeOfDay() % 24000;
-        float skyAngleRad = (float) Math.toRadians(world.getEnvironmentAttributes().getAttributeValue(EnvironmentAttributes.SUN_ANGLE_VISUAL));
+        long skyTime = world.getOverworldClockTime() % 24000;
+        float skyAngleRad = (float) Math.toRadians(world.environmentAttributes().getDimensionValue(EnvironmentAttributes.SUN_ANGLE));
         float sunPathAngleRad = (float) Math.toRadians(config.preset().sunPathAngle);
         float dayNightFactor = MathUtil.interpolateDayNightFactor(skyTime, config.preset().sunriseStartTime, config.preset().sunriseEndTime, config.preset().sunsetStartTime, config.preset().sunsetEndTime);
         float brightness = (1 - dayNightFactor) * config.preset().nightBrightness + dayNightFactor * config.preset().dayBrightness;
-        float sunAxisY = MathHelper.sin(sunPathAngleRad);
-        float sunAxisZ = MathHelper.cos(sunPathAngleRad);
-        Vector3f sunDir = tempVector.set(1, 0, 0).rotateAxis(skyAngleRad + MathHelper.HALF_PI, 0, sunAxisY, sunAxisZ);
-        float dayTime = world.getTimeOfDay() % 24000;
+        float sunAxisY = Mth.sin(sunPathAngleRad);
+        float sunAxisZ = Mth.cos(sunPathAngleRad);
+        Vector3f sunDir = tempVector.set(1, 0, 0).rotateAxis(skyAngleRad + Mth.HALF_PI, 0, sunAxisY, sunAxisZ);
+        float dayTime = world.getOverworldClockTime() % 24000;
         float mappedTime = MathUtil.mapTimeOfDay(dayTime, config.preset().sunriseStartTime, config.preset().sunriseEndTime, config.preset().sunsetStartTime, config.preset().sunsetEndTime);
 
         res.shadingShader().bind();
@@ -488,12 +487,12 @@ public class Renderer implements AutoCloseable {
     }
 
     private static void setFrustumTo(Frustum dst, Frustum src) {
-        dst.frustumIntersection = src.frustumIntersection;
-        dst.positionProjectionMatrix.set(src.positionProjectionMatrix);
-        dst.x = src.x;
-        dst.y = src.y;
-        dst.z = src.z;
-        dst.recession = src.recession;
+        dst.intersection = src.intersection;
+        dst.matrix.set(src.matrix);
+        dst.camX = src.camX;
+        dst.camY = src.camY;
+        dst.camZ = src.camZ;
+        dst.viewVector = src.viewVector;
     }
 
     public void close() {

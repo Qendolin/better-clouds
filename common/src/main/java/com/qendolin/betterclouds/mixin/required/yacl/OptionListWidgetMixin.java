@@ -5,11 +5,6 @@ import com.qendolin.betterclouds.duck.CustomOptionListWidgetDuck;
 import dev.isxander.yacl3.api.utils.Dimension;
 import dev.isxander.yacl3.gui.OptionListWidget;
 import dev.isxander.yacl3.gui.controllers.LabelController;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.Selectable;
-import net.minecraft.client.gui.widget.EntryListWidget;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -20,16 +15,21 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.AbstractSelectionList;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.narration.NarratableEntry;
 
 @Mixin(value = OptionListWidget.class)
-public abstract class OptionListWidgetMixin extends EntryListWidget<OptionListWidget.Entry> implements CustomOptionListWidgetDuck   {
+public abstract class OptionListWidgetMixin extends AbstractSelectionList<OptionListWidget.Entry> implements CustomOptionListWidgetDuck   {
 
     @Shadow(remap = false) public abstract void refreshOptions();
 
     @Unique
     private boolean override = false;
 
-    public OptionListWidgetMixin(MinecraftClient client, int width, int height, int y, int itemHeight) {
+    public OptionListWidgetMixin(Minecraft client, int width, int height, int y, int itemHeight) {
         super(client, width, height, y, itemHeight);
     }
 
@@ -47,7 +47,7 @@ public abstract class OptionListWidgetMixin extends EntryListWidget<OptionListWi
             if(child instanceof OptionListWidget.OptionEntry entry && child instanceof OptionListEntryExtensionDuck duck) {
                 if(entry.option.controller() instanceof LabelController) {
                     duck.betterclouds$onBeforeRender((self, context, x, y, width, height, mouseX, mouseY, hovered, tickDelta) -> {
-                        if (client.world == null) return;
+                        if (minecraft.level == null) return;
                         if (!((OptionListWidget.OptionEntry) self).isViewable()) return;
                         Dimension<Integer> dim = ((OptionListWidget.OptionEntry) self).widget.getDimension();
                         context.fill(dim.x(), dim.y(), dim.xLimit(), dim.yLimit(), 0x6b000000);
@@ -56,7 +56,7 @@ public abstract class OptionListWidgetMixin extends EntryListWidget<OptionListWi
             } else if(child instanceof OptionListWidget.GroupSeparatorEntry && child instanceof OptionListEntryExtensionDuck duck) {
                 duck.betterclouds$setYPadding(2);
                 duck.betterclouds$onBeforeRender((self, context, x, y, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta) -> {
-                    if (client.world == null) return;
+                    if (minecraft.level == null) return;
                     if (!((OptionListWidget.GroupSeparatorEntry) self).isViewable()) return;
                     context.fill(x, y + 3, x + entryWidth + 1, y + entryHeight - 2, 0x6b000000);
                 });
@@ -64,21 +64,19 @@ public abstract class OptionListWidgetMixin extends EntryListWidget<OptionListWi
         }
 
         // I cannot believe that this works
-        var padding = ((OptionListWidget) (Object) this).new Entry() {
+        OptionListWidget widget = (OptionListWidget) (Object) this;
+        var padding = widget.new Entry() {
             @Override
-            public List<? extends Element> children() {
+            public List<? extends GuiEventListener> children() {
                 return List.of();
             }
 
             @Override
-            public List<? extends Selectable> selectableChildren() {
+            public List<? extends NarratableEntry> narratables() {
                 return List.of();
             }
 
-            public void render(DrawContext context, int mouseX, int mouseY, boolean hovered, float deltaTicks) {
-            }
-
-            public void render(DrawContext context, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
+            public void extractContent(GuiGraphicsExtractor context, int mouseX, int mouseY, boolean hovered, float deltaTicks) {
             }
 
             public int getItemHeight() {

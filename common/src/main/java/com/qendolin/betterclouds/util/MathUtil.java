@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds.util;
 
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 import org.joml.Matrix4d;
 import org.joml.Vector2d;
 import org.joml.Vector4d;
@@ -48,7 +48,7 @@ public interface MathUtil {
     }
 
     static float smoothstep(float x, float e0, float e1) {
-        x = MathHelper.clamp((x - e0) / (e1 - e0), 0, 1);
+        x = Mth.clamp((x - e0) / (e1 - e0), 0, 1);
         return x * x * (3 - 2 * x);
     }
 

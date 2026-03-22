@@ -1,9 +1,8 @@
 package com.qendolin.betterclouds.clouds;
 
-import net.minecraft.util.math.MathHelper;
-
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.util.Mth;
 
 import static org.lwjgl.opengl.GL33.*;
 
@@ -84,7 +83,7 @@ public class PerfTimer implements AutoCloseable {
             double min = times.get(0);
             double max = times.get(times.size() - 1);
             double mean = times.stream().mapToDouble(d -> d).average().orElse(0);
-            double variance = times.stream().mapToDouble(d -> MathHelper.square(d - mean)).sum() / (times.size() - 1);
+            double variance = times.stream().mapToDouble(d -> Mth.square(d - mean)).sum() / (times.size() - 1);
             if (times.size() == 1) variance = 0.0;
             double stdDev = Math.sqrt(variance);
             return new Stats(min, max, mean, stdDev, q25, median, q75);

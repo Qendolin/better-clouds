@@ -6,8 +6,6 @@ import com.qendolin.betterclouds.platform.ModLoader;
 import com.qendolin.betterclouds.util.PreLaunchGuard;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.util.Identifier;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
@@ -17,10 +15,12 @@ import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 
 public class ConfigManager {
     public static final Path CONFIG_PATH = ModLoader.getConfigDir().resolve("betterclouds-v1.json");
-    public static final Identifier CONFIG_ID = Identifier.of(BetterCloudsStatic.MODID, "betterclouds-v1");
+    public static final Identifier CONFIG_ID = Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "betterclouds-v1");
 
     private static ConfigClassHandler<Config> config;
 
@@ -59,7 +59,7 @@ public class ConfigManager {
                     .setPrettyPrinting()
                     .registerTypeAdapter(Config.class, Config.INSTANCE_CREATOR)
                     .registerTypeAdapter(ShaderPresetConfig.class, ShaderPresetConfig.INSTANCE_CREATOR)
-                    .registerTypeAdapter(RegistryKey.class, Config.REGISTRY_KEY_SERIALIZER))
+                    .registerTypeAdapter(ResourceKey.class, Config.REGISTRY_KEY_SERIALIZER))
                 .setPath(CONFIG_PATH)
                 .setJson5(false)
                 .build())

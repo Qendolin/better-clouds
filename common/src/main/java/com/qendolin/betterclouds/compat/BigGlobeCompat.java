@@ -1,11 +1,11 @@
 package com.qendolin.betterclouds.compat;
 
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.dimension.DimensionType;
 
 public abstract class BigGlobeCompat {
 
-    public static final RegistryKey<DimensionType> DIMENSION_KEY = RegistryKey.of(RegistryKeys.DIMENSION_TYPE, Identifier.of("bigglobe", "overworld"));
+    public static final ResourceKey<DimensionType> DIMENSION_KEY = ResourceKey.create(Registries.DIMENSION_TYPE, Identifier.fromNamespaceAndPath("bigglobe", "overworld"));
 }

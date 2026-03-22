@@ -3,8 +3,8 @@ package com.qendolin.betterclouds.telemetry;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.gui.IssueReportScreen;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 
 public class IssueReportManager {
 
@@ -24,8 +24,8 @@ public class IssueReportManager {
         if(time - lastShowTime < MAX_SHOW_INTERVAL)
             return false;
 
-        MinecraftClient client = MinecraftClient.getInstance();
-        if(client.currentScreen instanceof IssueReportScreen || queuedScreen != null) {
+        Minecraft client = Minecraft.getInstance();
+        if(client.screen instanceof IssueReportScreen || queuedScreen != null) {
             return false;
         }
 
@@ -33,9 +33,9 @@ public class IssueReportManager {
         ConfigManager.instance().enabled = false;
         IssueReportScreen screen = new IssueReportScreen(e, details);
         client.execute(() -> {
-            if(client.currentScreen == null) {
+            if(client.screen == null) {
                 client.setScreen(screen);
-            } else if(!(client.currentScreen instanceof IssueReportScreen)) {
+            } else if(!(client.screen instanceof IssueReportScreen)) {
                 queuedScreen = screen;
             }
         });

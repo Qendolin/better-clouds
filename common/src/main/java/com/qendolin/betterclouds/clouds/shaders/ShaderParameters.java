@@ -1,9 +1,9 @@
 package com.qendolin.betterclouds.clouds.shaders;
 
-import net.minecraft.client.option.CloudRenderMode;
+import net.minecraft.client.CloudStatus;
 
 public record ShaderParameters(
-    CloudRenderMode cloudRenderMode,
+    CloudStatus cloudRenderMode,
     int blockViewDistance,
     float configSizeXZ,
     float configSizeY,

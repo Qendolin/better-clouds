@@ -3,16 +3,16 @@ package com.qendolin.betterclouds.gui;
 import com.google.common.collect.ImmutableSet;
 import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.gui.YACLScreen;
-import net.minecraft.text.Text;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
+import net.minecraft.network.chat.Component;
 
 public class CustomButtonOption implements ButtonOption {
 
-    private final Supplier<Text> name;
+    private final Supplier<Component> name;
     private final OptionDescription description;
     private final BiConsumer<YACLScreen, ButtonOption> action;
     private boolean available;
@@ -22,7 +22,7 @@ public class CustomButtonOption implements ButtonOption {
     private final StateManager<BiConsumer<YACLScreen, ButtonOption>> stateManager;
 
     public CustomButtonOption(
-        @NotNull Supplier<Text> name,
+        @NotNull Supplier<Component> name,
         @NotNull OptionDescription description,
         @NotNull BiConsumer<YACLScreen, ButtonOption> action,
         boolean available
@@ -52,12 +52,12 @@ public class CustomButtonOption implements ButtonOption {
     }
 
     @Override
-    public @NotNull Text name() {
+    public @NotNull Component name() {
         return name.get();
     }
 
     @Override
-    public @NotNull Text tooltip() {
+    public @NotNull Component tooltip() {
         return description().text();
     }
 
@@ -154,12 +154,12 @@ public class CustomButtonOption implements ButtonOption {
     }
 
     public static final class Builder {
-        private Supplier<Text> name;
+        private Supplier<Component> name;
         private OptionDescription description = OptionDescription.EMPTY;
         private boolean available = true;
         private BiConsumer<YACLScreen, ButtonOption> action;
 
-        public com.qendolin.betterclouds.gui.CustomButtonOption.Builder name(@NotNull Supplier<Text> name) {
+        public com.qendolin.betterclouds.gui.CustomButtonOption.Builder name(@NotNull Supplier<Component> name) {
             Validate.notNull(name, "`name` cannot be null");
 
             this.name = name;

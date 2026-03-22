@@ -4,14 +4,14 @@ import dev.isxander.yacl3.api.ListOption;
 import dev.isxander.yacl3.api.Option;
 import dev.isxander.yacl3.api.OptionDescription;
 import dev.isxander.yacl3.api.OptionGroup;
-import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import net.minecraft.network.chat.Component;
 
 public record OptionGroupBuilderWrapper(ListOption.Builder<?> delegate) implements OptionGroup.Builder {
     @Override
-    public OptionGroup.Builder name(@NotNull Text name) {
+    public OptionGroup.Builder name(@NotNull Component name) {
         throw new AssertionError();
     }
 

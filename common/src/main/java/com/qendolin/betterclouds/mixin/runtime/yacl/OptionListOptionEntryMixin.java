@@ -3,8 +3,8 @@ package com.qendolin.betterclouds.mixin.runtime.yacl;
 import com.qendolin.betterclouds.duck.OptionListEntryExtensionDuck;
 import dev.isxander.yacl3.gui.AbstractWidget;
 import dev.isxander.yacl3.gui.OptionListWidget;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.widget.ElementListWidget;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.ContainerObjectSelectionList;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @SuppressWarnings("UnusedMixin")
 @Mixin(value = OptionListWidget.OptionEntry.class, remap = false)
-public abstract class OptionListOptionEntryMixin extends ElementListWidget.Entry<OptionListWidget.Entry> implements OptionListEntryExtensionDuck {
+public abstract class OptionListOptionEntryMixin extends ContainerObjectSelectionList.Entry<OptionListWidget.Entry> implements OptionListEntryExtensionDuck {
 
     @Shadow
     @Final
@@ -38,8 +38,8 @@ public abstract class OptionListOptionEntryMixin extends ElementListWidget.Entry
         this.afterRender = callback;
     }
 
-    @Inject(method = "render", at = @At("HEAD"), remap = true)
-    private void onBeforeRender(DrawContext context, int mouseX, int mouseY, boolean hovered, float tickDelta, CallbackInfo ci) {
+    @Inject(method = "extractContent", at = @At("HEAD"), remap = false)
+    private void onBeforeRender(GuiGraphicsExtractor context, int mouseX, int mouseY, boolean hovered, float tickDelta, CallbackInfo ci) {
         if (beforeRender != null) {
             int x = widget.getDimension().x();
             int y = widget.getDimension().y();
@@ -49,8 +49,8 @@ public abstract class OptionListOptionEntryMixin extends ElementListWidget.Entry
         }
     }
 
-    @Inject(method = "render", at = @At("RETURN"), remap = true)
-    private void onAfterRender(DrawContext context, int mouseX, int mouseY, boolean hovered, float tickDelta, CallbackInfo ci) {
+    @Inject(method = "extractContent", at = @At("RETURN"), remap = false)
+    private void onAfterRender(GuiGraphicsExtractor context, int mouseX, int mouseY, boolean hovered, float tickDelta, CallbackInfo ci) {
         if (afterRender != null) {
             int x = widget.getDimension().x();
             int y = widget.getDimension().y();

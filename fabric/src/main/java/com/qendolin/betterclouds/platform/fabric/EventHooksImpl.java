@@ -11,11 +11,10 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.resource.ResourceReloader;
-import net.minecraft.resource.ResourceType;
-import net.minecraft.util.Identifier;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.PreparableReloadListener;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -23,25 +22,25 @@ import java.util.function.Supplier;
 
 public class EventHooksImpl extends EventHooks {
     @Override
-    public void onClientStarted(Consumer<MinecraftClient> callback) {
+    public void onClientStarted(Consumer<Minecraft> callback) {
         ClientLifecycleEvents.CLIENT_STARTED.register(callback::accept);
     }
 
     @Override
-    public void onWorldJoin(Consumer<MinecraftClient> callback) {
+    public void onWorldJoin(Consumer<Minecraft> callback) {
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> callback.accept(client));
     }
 
     @Override
-    public void onClientResourcesReload(Supplier<ResourceReloader> supplier) {
-        ResourceReloader reloader = supplier.get();
+    public void onClientResourcesReload(Supplier<PreparableReloadListener> supplier) {
+        PreparableReloadListener reloader = supplier.get();
         IdentifiableResourceReloadListener listener;
         if (reloader instanceof IdentifiableResourceReloadListener identifiable) {
             listener = identifiable;
         } else {
             Identifier id = reloader instanceof ShaderPresetLoader
                 ? ShaderPresetLoader.ID
-                : Identifier.of(BetterCloudsStatic.MODID, "resource_reloader");
+                : Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "resource_reloader");
             listener = new IdentifiableResourceReloadListener() {
                 @Override
                 public Identifier getFabricId() {
@@ -49,18 +48,18 @@ public class EventHooksImpl extends EventHooks {
                 }
 
                 @Override
-                public CompletableFuture<Void> reload(Store store, Executor loadExecutor, Synchronizer helper, Executor applyExecutor) {
+                public CompletableFuture<Void> reload(SharedState store, Executor loadExecutor, PreparationBarrier helper, Executor applyExecutor) {
                     return reloader.reload(store, loadExecutor, helper, applyExecutor);
                 }
             };
         }
 
-        ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES)
+        ResourceManagerHelper.get(PackType.CLIENT_RESOURCES)
             .registerReloadListener(listener);
     }
 
     @Override
-    public void onClientTick(Consumer<MinecraftClient> callback) {
+    public void onClientTick(Consumer<Minecraft> callback) {
         ClientTickEvents.END_CLIENT_TICK.register(callback::accept);
     }
 

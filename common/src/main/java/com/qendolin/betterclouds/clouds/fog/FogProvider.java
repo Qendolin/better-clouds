@@ -2,22 +2,22 @@ package com.qendolin.betterclouds.clouds.fog;
 
 import com.qendolin.betterclouds.compat.SodiumExtraCompat;
 import com.qendolin.betterclouds.config.Config;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.Camera;
+import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
 import org.jetbrains.annotations.Nullable;
 
 public interface FogProvider {
     FogProvider instance = new FogProvider1216();
 
-    default Fog getFogInternal(MinecraftClient client, Config config, float tickDelta, Camera camera, float distance) {
+    default Fog getFogInternal(Minecraft client, Config config, float tickDelta, Camera camera, float distance) {
         return null;
     }
 
     @Nullable
-    default Fog getFog(MinecraftClient client, Config config, float tickDelta) {
-        if (client.world == null) return null;
+    default Fog getFog(Minecraft client, Config config, float tickDelta) {
+        if (client.level == null) return null;
 
-        Camera camera = client.gameRenderer.getCamera();
+        Camera camera = client.gameRenderer.getMainCamera();
         float cloudDistance = config.blockDistance();
 
         Fog fog;

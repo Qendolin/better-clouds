@@ -4,13 +4,12 @@ import dev.isxander.yacl3.api.ListOption;
 import dev.isxander.yacl3.api.OptionDescription;
 import dev.isxander.yacl3.api.StateManager;
 import dev.isxander.yacl3.api.controller.StringControllerBuilder;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.dimension.DimensionTypes;
-
 import java.util.List;
 import java.util.Objects;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
 
 import static com.qendolin.betterclouds.config.ConfigGUI.groupDescription;
 import static com.qendolin.betterclouds.config.ConfigGUI.groupLabel;
@@ -26,14 +25,14 @@ public class DimensionsGUI {
     public DimensionsGUI(Config defaults, Config config) {
         this.config = config;
 
-        values = config.enabledDimensions.stream().map(key -> key.getValue().toString()).toList();
+        values = config.enabledDimensions.stream().map(key -> key.identifier().toString()).toList();
 
         compatDimensionsListGroup = ListOption.<String>createBuilder()
             .name(groupLabel("compat.dimensions"))
             .description(OptionDescription.of(groupDescription("compat.dimensions")))
             // Instant doesn't really work, probably a YACL bug
             .state(StateManager.createInstant(
-                defaults.enabledDimensions.stream().map(key -> key.getValue().toString()).toList(),
+                defaults.enabledDimensions.stream().map(key -> key.identifier().toString()).toList(),
                 () -> values,
                 this::setValues
             ))
@@ -41,7 +40,7 @@ public class DimensionsGUI {
                 option.applyValue();
             })
             .controller(StringControllerBuilder::create)
-            .initial(DimensionTypes.OVERWORLD.getValue().toString());
+            .initial(BuiltinDimensionTypes.OVERWORLD.identifier().toString());
     }
 
     private void setValues(List<String> values) {
@@ -53,7 +52,7 @@ public class DimensionsGUI {
             })
             .filter(Objects::nonNull)
             .distinct()
-            .map(value -> RegistryKey.of(RegistryKeys.DIMENSION_TYPE, value))
+            .map(value -> ResourceKey.create(Registries.DIMENSION_TYPE, value))
             .toList();
     }
 }

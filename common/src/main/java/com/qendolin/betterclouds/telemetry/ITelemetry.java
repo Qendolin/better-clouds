@@ -1,10 +1,9 @@
 package com.qendolin.betterclouds.telemetry;
 
 import com.qendolin.betterclouds.BetterCloudsStatic;
-import net.minecraft.util.crash.CrashReport;
-
 import java.net.URL;
 import java.util.concurrent.CompletableFuture;
+import net.minecraft.CrashReport;
 
 public interface ITelemetry {
     ITelemetry INSTANCE = create();

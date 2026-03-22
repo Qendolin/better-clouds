@@ -4,11 +4,10 @@ import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.FabricSeasonsConfig;
 import com.qendolin.betterclouds.platform.ModLoader;
 import com.qendolin.betterclouds.platform.ModVersion;
-import net.minecraft.world.World;
-
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
+import net.minecraft.world.level.Level;
 
 public abstract class FabricSeasonsCompat {
     public static final Map<String, Function<FabricSeasonsConfig, Float>> SEASON_CLOUDINESS_LOOKUP = Map.ofEntries(
@@ -42,17 +41,8 @@ public abstract class FabricSeasonsCompat {
             return;
         }
 
-        try {
-            instance = new FabricSeasonsCompatImpl();
-        } catch (Throwable e) {
-            BetterCloudsStatic.getLogger().error("FabricSeasons version not compatible", e);
-        }
-
-        if (instance == null) {
-            instance = new Stub();
-        } else {
-            FabricSeasonsCompat.isActive = true;
-        }
+        BetterCloudsStatic.getLogger().warn("FabricSeasons compat is temporarily disabled on Minecraft 26.1 until an official-mappings build is available");
+        instance = new Stub();
     }
 
     public static boolean isActive() {
@@ -63,7 +53,7 @@ public abstract class FabricSeasonsCompat {
         return instance;
     }
 
-    public abstract float getCloudinessFactor(World world);
+    public abstract float getCloudinessFactor(Level world);
 
     protected static class Stub extends FabricSeasonsCompat {
 
@@ -72,7 +62,7 @@ public abstract class FabricSeasonsCompat {
         }
 
         @Override
-        public float getCloudinessFactor(World world) {
+        public float getCloudinessFactor(Level world) {
             return 1.0f;
         }
     }

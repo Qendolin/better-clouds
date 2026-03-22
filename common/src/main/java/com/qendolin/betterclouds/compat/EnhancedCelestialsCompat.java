@@ -1,10 +1,10 @@
 package com.qendolin.betterclouds.compat;
 
 import com.qendolin.betterclouds.BetterCloudsStatic;
-import net.minecraft.world.World;
 import org.joml.Vector3f;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import net.minecraft.world.level.Level;
 
 public abstract class EnhancedCelestialsCompat {
 
@@ -23,50 +23,8 @@ public abstract class EnhancedCelestialsCompat {
 
         BetterCloudsStatic.getLogger().info("EnhancedCelestials: initializing compat");
 
-        int version = 0;
-        boolean v1devPackage = true;
-        try {
-            Class.forName("dev.corgitaco.enhancedcelestials.lunarevent.EnhancedCelestialsLunarForecastWorldData");
-            version = 2;
-        } catch (ClassNotFoundException ignored) {
-        }
-
-        if (version == 0) {
-            try {
-                Class.forName("corgitaco.enhancedcelestials.EnhancedCelestialsWorldData");
-                version = 1;
-                v1devPackage = false;
-            } catch (ClassNotFoundException ignored) {
-            }
-        }
-
-        if (version == 0) {
-            try {
-                Class.forName("dev.corgitaco.enhancedcelestials.EnhancedCelestialsWorldData");
-                version = 1;
-            } catch (ClassNotFoundException ignored) {
-            }
-        }
-
-        try {
-            if (version == 1) {
-                BetterCloudsStatic.getLogger().info("Using EnhancedCelestials 1 compat");
-                instance = new EnhancedCelestials1CompatImpl(v1devPackage);
-            } else if (version == 2) {
-                BetterCloudsStatic.getLogger().info("Using EnhancedCelestials 2 compat");
-                instance = new EnhancedCelestials2CompatImpl();
-            } else {
-                BetterCloudsStatic.getLogger().error("EnhancedCelestials version not compatible");
-            }
-        } catch (Throwable e) {
-            BetterCloudsStatic.getLogger().error("EnhancedCelestials version not compatible", e);
-        }
-
-        if (instance == null) {
-            instance = new Stub();
-        } else {
-            EnhancedCelestialsCompat.isActive = true;
-        }
+        BetterCloudsStatic.getLogger().warn("EnhancedCelestials compat is temporarily disabled on Minecraft 26.1 until an official-mappings build is available");
+        instance = new Stub();
     }
 
     public static boolean isActive() {
@@ -77,11 +35,11 @@ public abstract class EnhancedCelestialsCompat {
         return instance;
     }
 
-    public abstract Vector3f getEventTint(World world);
+    public abstract Vector3f getEventTint(Level world);
 
-    public abstract boolean isEventActive(World world);
+    public abstract boolean isEventActive(Level world);
 
-    public abstract float getMoonSize(World world);
+    public abstract float getMoonSize(Level world);
 
     private static class Stub extends EnhancedCelestialsCompat {
         static {
@@ -89,17 +47,17 @@ public abstract class EnhancedCelestialsCompat {
         }
         
         @Override
-        public Vector3f getEventTint(World world) {
+        public Vector3f getEventTint(Level world) {
             return new Vector3f(1.0f, 1.0f, 1.0f);
         }
 
         @Override
-        public boolean isEventActive(World world) {
+        public boolean isEventActive(Level world) {
             return false;
         }
 
         @Override
-        public float getMoonSize(World world) {
+        public float getMoonSize(Level world) {
             return 1;
         }
     }
