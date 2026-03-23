@@ -160,19 +160,7 @@ public class ChunkedGenerator implements AutoCloseable {
             int prevChunkX = prevTask.chunkX();
             int prevChunkZ = prevTask.chunkZ();
             boolean chunkChanged = prevChunkX != chunkX || prevChunkZ != chunkZ;
-
-            Config prevOptions = prevTask.options();
-            boolean optionsChanged = options.fuzziness != prevOptions.fuzziness
-                                     || options.chunkSize != prevOptions.chunkSize
-                                     || options.yRange != prevOptions.yRange
-                                     || options.sparsity != prevOptions.sparsity
-                                     || options.spacing != prevOptions.spacing
-                                     || options.randomPlacement != prevOptions.randomPlacement
-                                     || options.samplingScale != prevOptions.samplingScale
-                                     || options.shuffle != prevOptions.shuffle;
-
-            optionsChanged |= prevTask.distance() != distance;
-
+            boolean optionsChanged = !options.equals(prevTask.options);
             float prevCloudiness = prevTask.cloudiness();
             boolean cloudinessChanged = Math.ceil(cloudiness * 100) != Math.ceil(prevCloudiness * 100);
 
@@ -436,7 +424,7 @@ public class ChunkedGenerator implements AutoCloseable {
 
                     float x = (float) (sampleX - this.chunkX * options.chunkSize + sampler.randomOffsetX(sampleX, sampleZ) * options.randomPlacement * spacing);
                     // TODO: cloudPointiness value
-                    float y = options.yRange * value * value;
+                    float y = options.yRange * value * value + options.yOffset;
                     float z = (float) (sampleZ - this.chunkZ * options.chunkSize + sampler.randomOffsetZ(sampleX, sampleZ) * options.randomPlacement * spacing);
 
                     if (bounds == null) {

@@ -32,47 +32,9 @@ public class Config {
     public Config() {
     }
 
+    @SuppressWarnings("CopyConstructorMissesField")
     public Config(Config other) {
-        this.migrationVersion = other.migrationVersion;
-        this.randomPlacement = other.randomPlacement;
-        this.fuzziness = other.fuzziness;
-        this.shuffle = other.shuffle;
-        this.yRange = other.yRange;
-        this.yOffset = other.yOffset;
-        this.sparsity = other.sparsity;
-        this.spacing = other.spacing;
-        this.sizeXZ = other.sizeXZ;
-        this.sizeY = other.sizeY;
-        this.travelSpeed = other.travelSpeed;
-        this.windEffectFactor = other.windEffectFactor;
-        this.windSpeedFactor = other.windSpeedFactor;
-        this.colorVariationFactor = other.colorVariationFactor;
-        this.chunkSize = other.chunkSize;
-        this.samplingScale = other.samplingScale;
-        this.scaleFalloffMin = other.scaleFalloffMin;
-        this.fogRangeFactor = other.fogRangeFactor;
-        this.fogEndFactor = other.fogEndFactor;
-        this.usePersistentBuffers = other.usePersistentBuffers;
-        this.irisSupport = other.irisSupport;
-        this.enabled = other.enabled;
-        this.cloudOverride = other.cloudOverride;
-        this.useIrisFBO = other.useIrisFBO;
-        this.selectedPreset = other.selectedPreset;
-        //noinspection IncompleteCopyConstructor
-        this.presets = other.presets == null ? new ArrayList<>() : new ArrayList<>(other.presets);
-        this.presets.replaceAll(ShaderPresetConfig::new);
-        this.lastTelemetryVersion = other.lastTelemetryVersion;
-        this.gpuIncompatibleMessageEnabled = other.gpuIncompatibleMessageEnabled;
-        this.issueReportEnabled = other.issueReportEnabled;
-        //noinspection IncompleteCopyConstructor
-        this.enabledDimensions = other.enabledDimensions == null ? new ArrayList<>() : new ArrayList<>(other.enabledDimensions);
-        this.celestialBodyHalo = other.celestialBodyHalo;
-        this.useFrustumCulling = other.useFrustumCulling;
-        this.lunarSucksMessageEnabled = other.lunarSucksMessageEnabled;
-        //noinspection IncompleteCopyConstructor
-        this.sereneSeasonsConfig = new SereneSeasonsConfig(other.sereneSeasonsConfig);
-        //noinspection IncompleteCopyConstructor
-        this.fabricSeasonsConfig = new FabricSeasonsConfig(other.fabricSeasonsConfig);
+        SerialEntryReflection.copyInto(this, other);
     }
 
     @SerialEntry
@@ -132,11 +94,7 @@ public class Config {
     @SerialEntry
     public List<ShaderPresetConfig> presets = new ArrayList<>();
     @SerialEntry
-    public int lastTelemetryVersion = 0;
-    @SerialEntry
     public boolean gpuIncompatibleMessageEnabled = true;
-    @SerialEntry
-    public boolean issueReportEnabled = true;
     @SerialEntry
     public boolean lunarSucksMessageEnabled = true;
     @SerialEntry
@@ -214,6 +172,18 @@ public class Config {
 
     public int blockDistance() {
         return Minecraft.getInstance().options.cloudRange().get() * 16;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Config))
+            return false;
+        return SerialEntryReflection.serialEntriesEqual(this, obj);
+    }
+
+    @Override
+    public int hashCode() {
+        return SerialEntryReflection.serialEntryHashCode(this);
     }
 
     public static List<ResourceKey<DimensionType>> getDefaultDimensions() {

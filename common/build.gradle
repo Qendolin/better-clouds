@@ -28,10 +28,19 @@ dependencies {
 	compileOnly "maven.modrinth:1eAoo2KR:${property('deps.yacl')}"
 	compileOnly "gs.mclo:api:${property('deps.mclo_api')}"
 	compileOnly "maven.modrinth:Xs0XTOVv:${property('deps.distanthorizons_api')}"
+
+	testImplementation platform("org.junit:junit-bom:5.12.2")
+	testImplementation "org.junit.jupiter:junit-jupiter"
+	testImplementation "maven.modrinth:1eAoo2KR:${property('deps.yacl')}"
+	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }
 
 tasks.withType(JavaCompile).configureEach {
 	it.options.release = 25
+}
+
+tasks.withType(Test).configureEach {
+	useJUnitPlatform()
 }
 
 java {
