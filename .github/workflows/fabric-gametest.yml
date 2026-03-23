@@ -1,0 +1,17 @@
+name: Fabric Game Test
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  fabric-gametest:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+      - uses: gradle/actions/setup-gradle@v4
+      - run: timeout 3m xvfb-run ./gradlew fabric:runGameTest --stacktrace

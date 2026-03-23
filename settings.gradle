@@ -4,55 +4,11 @@ pluginManagement {
             name = 'Fabric'
             url = 'https://maven.fabricmc.net/'
         }
-        maven {
-            name = "Forge"
-            url = "https://maven.minecraftforge.net"
-        }
-        maven {
-            name = "NeoForged"
-            url = "https://maven.neoforged.net/releases"
-        }
-        maven {
-            name = "Kikugie Releases"
-            url = "https://maven.kikugie.dev/releases"
-        }
-        maven {
-            name = "Kikugie Snapshots"
-            url = "https://maven.kikugie.dev/snapshots"
-        }
-        maven {
-            name = "Architectury"
-            url = "https://maven.architectury.dev/"
-        }
         mavenCentral()
         gradlePluginPortal()
     }
 }
 
-plugins {
-    id "dev.kikugie.stonecutter" version "0.7"
-}
-
-stonecutter {
-    shared {
-        def mc = { String version, String... loaders ->
-            loaders.each { loader ->
-                vers("$version-$loader", version)
-            }
-        }
-
-        // The topmost version is considered the "default" and activated with "Reset active project"
-        mc("1.21.10", "fabric", "forge")
-        mc("1.21.8", "fabric", "forge")
-        mc("1.21.5", "fabric", "forge")
-        mc("1.21.4", "fabric", "forge")
-        mc("1.21.3", "fabric", "forge")
-        mc("1.21.1", "fabric", "forge")
-        mc("1.20.6", "fabric", "forge")
-        mc("1.20.4", "fabric", "forge")
-        mc("1.20.1", "fabric", "forge")
-    }
-
-    create rootProject
-}
 rootProject.name = "better-clouds"
+include("common")
+include("fabric")

@@ -1,0 +1,45 @@
+# Automatically build the project and run any configured tests for every push
+# and submitted pull request. This can help catch issues that only occur on
+# certain platforms or Java versions, and provides a first line of defence
+# against bad commits.
+
+name: build
+on: [ pull_request, push ]
+
+jobs:
+  build:
+    name: build_${{ matrix.loader }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        loader: [ fabric, neoforge ]
+    env:
+      GRADLE_OPTS: "-Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000"
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v4
+      - name: validate gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+      - name: setup gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.event_name != 'push' }}
+      - name: setup jdk
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+      - name: make gradle wrapper executable
+        run: chmod +x ./gradlew
+      - name: list gradle projects
+        run: ./gradlew -q projects
+      - name: build project
+        run: ./gradlew :${{ matrix.loader }}:build
+      - name: upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.loader }}-artifacts
+          path: |
+            ${{ matrix.loader }}/build/libs/*.jar
+          if-no-files-found: error

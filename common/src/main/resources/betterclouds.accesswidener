@@ -1,0 +1,13 @@
+accessWidener	v1	official
+mutable	field	net/minecraft/client/renderer/culling/Frustum	intersection	Lorg/joml/FrustumIntersection;
+accessible	field	net/minecraft/client/renderer/culling/Frustum	intersection	Lorg/joml/FrustumIntersection;
+mutable	field	net/minecraft/client/renderer/culling/Frustum	matrix	Lorg/joml/Matrix4f;
+accessible	field	net/minecraft/client/renderer/culling/Frustum	matrix	Lorg/joml/Matrix4f;
+mutable	field	net/minecraft/client/renderer/culling/Frustum	viewVector	Lorg/joml/Vector4f;
+accessible	field	net/minecraft/client/renderer/culling/Frustum	viewVector	Lorg/joml/Vector4f;
+mutable	field	net/minecraft/client/renderer/culling/Frustum	camX	D
+accessible	field	net/minecraft/client/renderer/culling/Frustum	camX	D
+mutable	field	net/minecraft/client/renderer/culling/Frustum	camY	D
+accessible	field	net/minecraft/client/renderer/culling/Frustum	camY	D
+mutable	field	net/minecraft/client/renderer/culling/Frustum	camZ	D
+accessible	field	net/minecraft/client/renderer/culling/Frustum	camZ	D
