@@ -52,7 +52,7 @@ public abstract class EffectTintProvider {
         float saturation = (float) Math.pow(cry.w, 1 / 2.2);
         Vector3f gray = new Vector3f(cry.w);
         Vector3f desaturated = new Vector3f(cry.x, cry.y, cry.z).mul(saturation)
-            .add(new Vector3f(gray).mul(1 - saturation));
+                .add(new Vector3f(gray).mul(1 - saturation));
 
         Vector3f result = new Vector3f(desaturated).mul(cry.w).min(new Vector3f(1.0f));
         linearToGamma(result);
@@ -71,10 +71,10 @@ public abstract class EffectTintProvider {
         Vector3f chroma = luma < 0.0001 ? new Vector3f(1.0f) : new Vector3f(color).div(luma);
 
         cry.set(
-            Mth.sqrt(chroma.x * cry.x),
-            Mth.sqrt(chroma.y * cry.y),
-            Mth.sqrt(chroma.z * cry.z),
-            Mth.square(Mth.sqrt(luma) + Mth.sqrt(cry.w)) / 4
+                Mth.sqrt(chroma.x * cry.x),
+                Mth.sqrt(chroma.y * cry.y),
+                Mth.sqrt(chroma.z * cry.z),
+                Mth.square(Mth.sqrt(luma) + Mth.sqrt(cry.w)) / 4
         );
     }
 

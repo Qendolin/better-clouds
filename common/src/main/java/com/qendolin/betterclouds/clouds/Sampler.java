@@ -1,11 +1,12 @@
 package com.qendolin.betterclouds.clouds;
 
 import com.google.common.collect.ImmutableList;
-import java.util.List;
 import net.minecraft.world.level.levelgen.LegacyRandomSource;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
 import net.minecraft.world.level.levelgen.synth.PerlinSimplexNoise;
 import net.minecraft.world.level.levelgen.synth.SimplexNoise;
+
+import java.util.List;
 
 public class Sampler {
     private final WorldgenRandom RANDOM = new WorldgenRandom(new LegacyRandomSource(1337));

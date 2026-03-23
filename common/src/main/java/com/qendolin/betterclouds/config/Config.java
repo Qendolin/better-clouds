@@ -5,10 +5,6 @@ import com.qendolin.betterclouds.compat.BigGlobeCompat;
 import com.qendolin.betterclouds.compat.MiddleEarthCompat;
 import com.qendolin.betterclouds.util.PreLaunchGuard;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
-import org.jetbrains.annotations.NotNull;
-
-import java.lang.reflect.Type;
-import java.util.*;
 import net.minecraft.IdentifierException;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
@@ -17,6 +13,10 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
 import net.minecraft.world.level.dimension.DimensionType;
+import org.jetbrains.annotations.NotNull;
+
+import java.lang.reflect.Type;
+import java.util.*;
 
 public class Config {
 
@@ -26,15 +26,6 @@ public class Config {
 
     static {
         PreLaunchGuard.check();
-    }
-
-    @SuppressWarnings("unused")
-    public Config() {
-    }
-
-    @SuppressWarnings("CopyConstructorMissesField")
-    public Config(Config other) {
-        SerialEntryReflection.copyInto(this, other);
     }
 
     @SerialEntry
@@ -104,6 +95,32 @@ public class Config {
     @SerialEntry
     public FabricSeasonsConfig fabricSeasonsConfig = new FabricSeasonsConfig();
 
+    @SuppressWarnings("unused")
+    public Config() {
+    }
+
+    @SuppressWarnings("CopyConstructorMissesField")
+    public Config(Config other) {
+        SerialEntryReflection.copyInto(this, other);
+    }
+
+    private static boolean isPresetEqualToEmpty(ShaderPresetConfig preset) {
+        if (preset == null) return true;
+        String title = preset.title;
+        // The title does not matter
+        preset.title = ShaderPresetConfig.EMPTY_PRESET.title;
+        boolean equal = preset.isEqualTo(ShaderPresetConfig.EMPTY_PRESET);
+        preset.title = title;
+        return equal;
+    }
+
+    public static List<ResourceKey<DimensionType>> getDefaultDimensions() {
+        return List.of(
+                BuiltinDimensionTypes.OVERWORLD,
+                BigGlobeCompat.DIMENSION_KEY,
+                MiddleEarthCompat.DIMENSION_KEY);
+    }
+
     public void loadDefaultPresets() {
         // Remember which default preset was selected, if any
         String selectedDefaultPreset = preset().key;
@@ -116,8 +133,8 @@ public class Config {
         if (selectedDefaultPreset != null) {
             // Restore the selected default preset
             presets.stream()
-                .filter(preset -> selectedDefaultPreset.equals(preset.key)).findFirst()
-                .ifPresentOrElse(prevSelectedPreset -> selectedPreset = presets.indexOf(prevSelectedPreset), () -> selectedPreset = 0);
+                    .filter(preset -> selectedDefaultPreset.equals(preset.key)).findFirst()
+                    .ifPresentOrElse(prevSelectedPreset -> selectedPreset = presets.indexOf(prevSelectedPreset), () -> selectedPreset = 0);
         }
 
         if (missingDefault) {
@@ -144,22 +161,12 @@ public class Config {
         return presets.get(selectedPreset);
     }
 
-    private static boolean isPresetEqualToEmpty(ShaderPresetConfig preset) {
-        if (preset == null) return true;
-        String title = preset.title;
-        // The title does not matter
-        preset.title = ShaderPresetConfig.EMPTY_PRESET.title;
-        boolean equal = preset.isEqualTo(ShaderPresetConfig.EMPTY_PRESET);
-        preset.title = title;
-        return equal;
-    }
-
     public void sortPresets() {
         ShaderPresetConfig selected = preset();
         Comparator<ShaderPresetConfig> comparator = Comparator.
-            <ShaderPresetConfig, Boolean>comparing(preset -> !preset.editable)
-            .thenComparing(preset -> !DEFAULT_PRESET_KEY.equals(preset.key))
-            .thenComparing(preset -> preset.title);
+                <ShaderPresetConfig, Boolean>comparing(preset -> !preset.editable)
+                .thenComparing(preset -> !DEFAULT_PRESET_KEY.equals(preset.key))
+                .thenComparing(preset -> preset.title);
         presets.sort(comparator);
         selectedPreset = presets.indexOf(selected);
     }
@@ -184,13 +191,6 @@ public class Config {
     @Override
     public int hashCode() {
         return SerialEntryReflection.serialEntryHashCode(this);
-    }
-
-    public static List<ResourceKey<DimensionType>> getDefaultDimensions() {
-        return List.of(
-            BuiltinDimensionTypes.OVERWORLD,
-            BigGlobeCompat.DIMENSION_KEY,
-            MiddleEarthCompat.DIMENSION_KEY);
     }
 
     public static class RegistryKeySerializer implements JsonSerializer<ResourceKey<DimensionType>>, JsonDeserializer<ResourceKey<DimensionType>> {

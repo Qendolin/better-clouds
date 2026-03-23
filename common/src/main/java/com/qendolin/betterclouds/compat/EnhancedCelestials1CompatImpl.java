@@ -1,13 +1,13 @@
 package com.qendolin.betterclouds.compat;
 
-import org.joml.Vector3f;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
+import org.joml.Vector3f;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 public class EnhancedCelestials1CompatImpl extends EnhancedCelestialsSharedCompatImpl {
 
@@ -17,22 +17,6 @@ public class EnhancedCelestials1CompatImpl extends EnhancedCelestialsSharedCompa
     private final LunarForecastMethods lunarForecastMethods;
     private final LunarEventMethods lunarEventMethods;
     private final ResourceKey<?> defaultLunarEvent;
-
-    private record LunarForecastMethods(
-        Method lastLunarEvent,
-        Method currentLunarEvent,
-        Method getBlend,
-        Method switchingEvents
-    ) {
-    }
-
-    private record LunarEventMethods(
-        Method getClientSettings,
-        Method colorSettings,
-        Method getGLSkyLightColor,
-        Method moonSize
-    ) {
-    }
 
     public EnhancedCelestials1CompatImpl(boolean devPackage) {
         try {
@@ -50,21 +34,57 @@ public class EnhancedCelestials1CompatImpl extends EnhancedCelestialsSharedCompa
             defaultLunarEvent = (ResourceKey<?>) classDefaultEvents.getField("DEFAULT").get(null);
 
             lunarForecastMethods = new LunarForecastMethods(
-                classLunarForecast.getMethod("lastLunarEvent"),
-                classLunarForecast.getMethod("currentLunarEvent"),
-                classLunarForecast.getMethod("getBlend"),
-                classLunarForecast.getMethod("switchingEvents")
+                    classLunarForecast.getMethod("lastLunarEvent"),
+                    classLunarForecast.getMethod("currentLunarEvent"),
+                    classLunarForecast.getMethod("getBlend"),
+                    classLunarForecast.getMethod("switchingEvents")
             );
 
             lunarEventMethods = new LunarEventMethods(
-                classLunarEvent.getMethod("getClientSettings"),
-                classClientSettings.getMethod("colorSettings"),
-                classColorSettings.getMethod("getGLSkyLightColor"),
-                classClientSettings.getMethod("moonSize")
+                    classLunarEvent.getMethod("getClientSettings"),
+                    classClientSettings.getMethod("colorSettings"),
+                    classColorSettings.getMethod("getGLSkyLightColor"),
+                    classClientSettings.getMethod("moonSize")
             );
         } catch (NoSuchFieldException | NoSuchMethodException | ClassNotFoundException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    protected LunarForecastAccess getLunarForecast(Level world) {
+        if (!classWorldData.isInstance(world)) {
+            return null;
+        }
+        try {
+            Object ctx = getLunarContext.invoke(world);
+            if (ctx == null) return null;
+            Object forecast = getLunarForecast.invoke(ctx);
+            return new LunarForecastAccessImpl(forecast, lunarForecastMethods, lunarEventMethods);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException("Your versions of Better Clouds and EnhancedCelestials are not compatible!", e);
+        }
+    }
+
+    @Override
+    protected Identifier defaultLunarEvent() {
+        return defaultLunarEvent.identifier();
+    }
+
+    private record LunarForecastMethods(
+            Method lastLunarEvent,
+            Method currentLunarEvent,
+            Method getBlend,
+            Method switchingEvents
+    ) {
+    }
+
+    private record LunarEventMethods(
+            Method getClientSettings,
+            Method colorSettings,
+            Method getGLSkyLightColor,
+            Method moonSize
+    ) {
     }
 
     private static class LunarForecastAccessImpl extends LunarForecastAccess {
@@ -130,25 +150,5 @@ public class EnhancedCelestials1CompatImpl extends EnhancedCelestialsSharedCompa
         protected boolean matches(Identifier id) {
             return entry.is(id);
         }
-    }
-
-    @Override
-    protected LunarForecastAccess getLunarForecast(Level world) {
-        if (!classWorldData.isInstance(world)) {
-            return null;
-        }
-        try {
-            Object ctx = getLunarContext.invoke(world);
-            if (ctx == null) return null;
-            Object forecast = getLunarForecast.invoke(ctx);
-            return new LunarForecastAccessImpl(forecast, lunarForecastMethods, lunarEventMethods);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException("Your versions of Better Clouds and EnhancedCelestials are not compatible!", e);
-        }
-    }
-
-    @Override
-    protected Identifier defaultLunarEvent() {
-        return defaultLunarEvent.identifier();
     }
 }

@@ -4,16 +4,16 @@ import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.config.Config;
+import net.minecraft.client.Minecraft;
+
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.function.Supplier;
-import net.minecraft.client.Minecraft;
 
 public class VanillaRenderTarget {
 
-    private final Minecraft client;
     private static final Supplier<String> RENDER_PASS_LABEL = () -> "BetterClouds";
-
+    private final Minecraft client;
     private final boolean useIris;
     private RenderPass renderPass = null;
 
@@ -33,8 +33,8 @@ public class VanillaRenderTarget {
             framebuffer = client.getMainRenderTarget();
 
         renderPass = RenderSystem.getDevice()
-            .createCommandEncoder()
-            .createRenderPass(RENDER_PASS_LABEL, framebuffer.getColorTextureView(), OptionalInt.empty(), framebuffer.getDepthTextureView(), OptionalDouble.empty());
+                .createCommandEncoder()
+                .createRenderPass(RENDER_PASS_LABEL, framebuffer.getColorTextureView(), OptionalInt.empty(), framebuffer.getDepthTextureView(), OptionalDouble.empty());
     }
 
     public void end() {

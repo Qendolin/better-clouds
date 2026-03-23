@@ -1,10 +1,15 @@
 package com.qendolin.betterclouds.mixin.required.yacl;
 
-import com.qendolin.betterclouds.duck.OptionListEntryExtensionDuck;
 import com.qendolin.betterclouds.duck.CustomOptionListWidgetDuck;
+import com.qendolin.betterclouds.duck.OptionListEntryExtensionDuck;
 import dev.isxander.yacl3.api.utils.Dimension;
 import dev.isxander.yacl3.gui.OptionListWidget;
 import dev.isxander.yacl3.gui.controllers.LabelController;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.AbstractSelectionList;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.narration.NarratableEntry;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -15,16 +20,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.components.AbstractSelectionList;
-import net.minecraft.client.gui.components.events.GuiEventListener;
-import net.minecraft.client.gui.narration.NarratableEntry;
 
 @Mixin(value = OptionListWidget.class)
-public abstract class OptionListWidgetMixin extends AbstractSelectionList<OptionListWidget.Entry> implements CustomOptionListWidgetDuck   {
-
-    @Shadow(remap = false) public abstract void refreshOptions();
+public abstract class OptionListWidgetMixin extends AbstractSelectionList<OptionListWidget.Entry> implements CustomOptionListWidgetDuck {
 
     @Unique
     private boolean override = false;
@@ -33,19 +31,22 @@ public abstract class OptionListWidgetMixin extends AbstractSelectionList<Option
         super(client, width, height, y, itemHeight);
     }
 
+    @Shadow(remap = false)
+    public abstract void refreshOptions();
+
     @Override
     public void betterclouds$applyOverride() {
         override = true;
         refreshOptions();
     }
 
-    @Inject(method = "refreshOptions", at=@At("TAIL"), remap = false)
+    @Inject(method = "refreshOptions", at = @At("TAIL"), remap = false)
     private void onRefreshOptions(CallbackInfo ci) {
         if (!override) return;
 
         for (OptionListWidget.Entry child : children()) {
-            if(child instanceof OptionListWidget.OptionEntry entry && child instanceof OptionListEntryExtensionDuck duck) {
-                if(entry.option.controller() instanceof LabelController) {
+            if (child instanceof OptionListWidget.OptionEntry entry && child instanceof OptionListEntryExtensionDuck duck) {
+                if (entry.option.controller() instanceof LabelController) {
                     duck.betterclouds$onBeforeRender((self, context, x, y, width, height, mouseX, mouseY, hovered, tickDelta) -> {
                         if (minecraft.level == null) return;
                         if (!((OptionListWidget.OptionEntry) self).isViewable()) return;
@@ -53,7 +54,7 @@ public abstract class OptionListWidgetMixin extends AbstractSelectionList<Option
                         context.fill(dim.x(), dim.y(), dim.xLimit(), dim.yLimit(), 0x6b000000);
                     });
                 }
-            } else if(child instanceof OptionListWidget.GroupSeparatorEntry && child instanceof OptionListEntryExtensionDuck duck) {
+            } else if (child instanceof OptionListWidget.GroupSeparatorEntry && child instanceof OptionListEntryExtensionDuck duck) {
                 duck.betterclouds$setYPadding(2);
                 duck.betterclouds$onBeforeRender((self, context, x, y, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta) -> {
                     if (minecraft.level == null) return;

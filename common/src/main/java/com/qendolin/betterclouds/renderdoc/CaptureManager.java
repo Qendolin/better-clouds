@@ -41,7 +41,7 @@ public class CaptureManager {
     }
 
     public static LaunchConfig readLaunchConfig() {
-        if(!Files.exists(LAUNCH_CONFIG_PATH))
+        if (!Files.exists(LAUNCH_CONFIG_PATH))
             return new LaunchConfig(false, false, 0);
 
         try (Reader reader = Files.newBufferedReader(LAUNCH_CONFIG_PATH, StandardCharsets.UTF_8)) {
@@ -78,9 +78,9 @@ public class CaptureManager {
     }
 
     public record LaunchConfig(
-        boolean load,
-        boolean once,
-        long expires
+            boolean load,
+            boolean once,
+            long expires
     ) {
         public boolean isExpired() {
             return System.currentTimeMillis() >= expires;

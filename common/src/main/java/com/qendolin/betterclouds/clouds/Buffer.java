@@ -16,11 +16,10 @@ public class Buffer implements AutoCloseable {
     private final boolean fancy;
 
     private final int vaoId;
-    private int drawBufferId;
-    private int writeBufferId;
     private final int meshId;
     private final int instanceVertexCount;
-
+    private int drawBufferId;
+    private int writeBufferId;
     // The draw buffer is null if usePersistent is false
     private FloatBuffer drawBuffer;
     private FloatBuffer writeBuffer;

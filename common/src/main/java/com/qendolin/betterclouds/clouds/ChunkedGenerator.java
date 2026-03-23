@@ -16,12 +16,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ChunkedGenerator implements AutoCloseable {
+    private final Sampler sampler = new Sampler();
     private double originX;
     private double originZ;
-
     private Buffer buffer;
-    private final Sampler sampler = new Sampler();
-
     @Nullable
     private Task queuedTask;
     @Nullable
@@ -30,6 +28,20 @@ public class ChunkedGenerator implements AutoCloseable {
     private Task completedTask;
     @Nullable
     private Task swappedTask;
+
+    private static int calcBufferSize(Config options) {
+        int distance = options.blockDistance();
+        int size = Mth.floor(distance / options.spacing)
+                + Mth.ceil(distance / options.spacing);
+        if (size <= 0) {
+            return 8 * 16;
+        }
+        return size;
+    }
+
+    private static int floorCloudChunk(double coord, int chunkSize) {
+        return (int) Math.floor(coord / chunkSize);
+    }
 
     public synchronized boolean canGenerate() {
         return queuedTask != null;
@@ -115,16 +127,6 @@ public class ChunkedGenerator implements AutoCloseable {
         return false;
     }
 
-    private static int calcBufferSize(Config options) {
-        int distance = options.blockDistance();
-        int size = Mth.floor(distance / options.spacing)
-                   + Mth.ceil(distance / options.spacing);
-        if (size <= 0) {
-            return 8 * 16;
-        }
-        return size;
-    }
-
     public synchronized void clear() {
         queuedTask = null;
         if (runningTask != null) runningTask.cancel();
@@ -181,10 +183,6 @@ public class ChunkedGenerator implements AutoCloseable {
         }
     }
 
-    private static int floorCloudChunk(double coord, int chunkSize) {
-        return (int) Math.floor(coord / chunkSize);
-    }
-
     public synchronized void generate() {
         if (queuedTask == null) {
             BetterCloudsStatic.getLogger().warn("generate called with no queued task");
@@ -202,28 +200,28 @@ public class ChunkedGenerator implements AutoCloseable {
 
         final Task boundTask = runningTask;
         CompletableFuture.runAsync(runningTask::run)
-            .whenComplete((unused, throwable) -> {
-                synchronized (this) {
-                    if (throwable != null) {
-                        BetterCloudsStatic.getLogger().error("Generator task #{} ran with error", runningTask.id(), throwable);
-                    }
+                .whenComplete((unused, throwable) -> {
+                    synchronized (this) {
+                        if (throwable != null) {
+                            BetterCloudsStatic.getLogger().error("Generator task #{} ran with error", runningTask.id(), throwable);
+                        }
 
-                    if (boundTask != runningTask) {
-                        if (boundTask.completed()) {
-                            BetterCloudsStatic.getLogger().warn("Generator task #{} completed but task #{} was expected", boundTask.id(), runningTask.id());
-                        } else if (!boundTask.cancelled() && throwable == null) {
-                            BetterCloudsStatic.getLogger().warn("Generator task #{} ran without error, completion or cancellation", boundTask.id());
+                        if (boundTask != runningTask) {
+                            if (boundTask.completed()) {
+                                BetterCloudsStatic.getLogger().warn("Generator task #{} completed but task #{} was expected", boundTask.id(), runningTask.id());
+                            } else if (!boundTask.cancelled() && throwable == null) {
+                                BetterCloudsStatic.getLogger().warn("Generator task #{} ran without error, completion or cancellation", boundTask.id());
+                            }
+                        } else {
+                            if (boundTask.completed()) {
+                                completedTask = runningTask;
+                            } else if (!boundTask.cancelled() && throwable == null) {
+                                BetterCloudsStatic.getLogger().warn("Generator task #{} ran without error, completion or cancellation", boundTask.id());
+                            }
+                            runningTask = null;
                         }
-                    } else {
-                        if (boundTask.completed()) {
-                            completedTask = runningTask;
-                        } else if (!boundTask.cancelled() && throwable == null) {
-                            BetterCloudsStatic.getLogger().warn("Generator task #{} ran without error, completion or cancellation", boundTask.id());
-                        }
-                        runningTask = null;
                     }
-                }
-            });
+                });
     }
 
     public synchronized void swap() {
@@ -388,7 +386,7 @@ public class ChunkedGenerator implements AutoCloseable {
                             }
 
                             int pointIndex = (gridX - chunkGridMinX) + chunkGridLengthX * (gridZ - chunkGridMinZ);
-                            chunkGridPoints[chunkIndex][pointIndex] = new int[]{gridX, gridZ};
+                            chunkGridPoints[chunkIndex][pointIndex] = new int[] { gridX, gridZ };
                         }
                     }
                 }
@@ -428,7 +426,7 @@ public class ChunkedGenerator implements AutoCloseable {
                     float z = (float) (sampleZ - this.chunkZ * options.chunkSize + sampler.randomOffsetZ(sampleX, sampleZ) * options.randomPlacement * spacing);
 
                     if (bounds == null) {
-                        bounds = new float[]{x, y, z, x, y, z};
+                        bounds = new float[] { x, y, z, x, y, z };
                     } else {
                         if (x < bounds[0]) bounds[0] = x;
                         if (y < bounds[1]) bounds[1] = y;
@@ -444,7 +442,7 @@ public class ChunkedGenerator implements AutoCloseable {
 
                 if (chunkCloudIndex != cloudCount && bounds != null) {
                     AABB boundingBox = new AABB(bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5])
-                        .move(this.chunkX * options.chunkSize, 0, this.chunkZ * options.chunkSize);
+                            .move(this.chunkX * options.chunkSize, 0, this.chunkZ * options.chunkSize);
                     chunks.add(new ChunkIndex(chunkCloudIndex, cloudCount - chunkCloudIndex, boundingBox));
                 }
 

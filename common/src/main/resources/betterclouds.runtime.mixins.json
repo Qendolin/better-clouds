@@ -1,14 +1,14 @@
 {
-  "required": true,
-  "minVersion": "0.8",
-  "package": "com.qendolin.betterclouds.mixin.runtime",
-  "plugin": "com.qendolin.betterclouds.mixin.RuntimeMixinPlugin",
-  "compatibilityLevel": "JAVA_22",
-  "mixins": [
+  "required" : true,
+  "minVersion" : "0.8",
+  "package" : "com.qendolin.betterclouds.mixin.runtime",
+  "plugin" : "com.qendolin.betterclouds.mixin.RuntimeMixinPlugin",
+  "compatibilityLevel" : "JAVA_22",
+  "mixins" : [
   ],
-  "client": [
+  "client" : [
   ],
-  "injectors": {
-    "defaultRequire": 1
+  "injectors" : {
+    "defaultRequire" : 1
   }
 }

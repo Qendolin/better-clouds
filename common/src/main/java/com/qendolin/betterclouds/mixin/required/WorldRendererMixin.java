@@ -3,25 +3,36 @@ package com.qendolin.betterclouds.mixin.required;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.framegraph.FrameGraphBuilder;
 import com.mojang.blaze3d.resource.GraphicsResourceAllocator;
-import com.qendolin.betterclouds.*;
-import com.qendolin.betterclouds.clouds.*;
+import com.qendolin.betterclouds.BetterClouds;
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.clouds.Debug;
+import com.qendolin.betterclouds.clouds.Renderer;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.duck.WorldRendererDuck;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import com.qendolin.betterclouds.util.RenderHelper;
-import net.minecraft.client.*;
+import net.minecraft.client.CloudStatus;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.*;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.LevelTargetBundle;
 import net.minecraft.client.renderer.chunk.ChunkSectionsToRender;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
-import org.joml.*;
-import org.spongepowered.asm.mixin.*;
-import org.spongepowered.asm.mixin.injection.*;
+import org.joml.Matrix4f;
+import org.joml.Matrix4fc;
+import org.joml.Vector3d;
+import org.joml.Vector4f;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
@@ -37,27 +48,22 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
     private Renderer better_clouds$cloudRenderer;
     @Unique
     private Frustum better_clouds$frustum;
+    @Shadow
+    private ClientLevel level;
+    @Shadow
+    private int ticks;
+    @Shadow
+    @Final
+    private LevelTargetBundle targets;
+    @Shadow
+    @Final
+    private Minecraft minecraft;
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void init(CallbackInfo ci) {
         if (glCompat.isIncompatible()) return;
         better_clouds$cloudRenderer = new Renderer(minecraft);
     }
-
-    @Shadow
-    private ClientLevel level;
-
-    @Shadow
-    private int ticks;
-
-    @Shadow
-    @Final
-    private LevelTargetBundle targets;
-
-
-    @Shadow
-    @Final
-    private Minecraft minecraft;
 
     @Override
     public Renderer betterclouds$getRenderer() {

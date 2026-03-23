@@ -1,10 +1,10 @@
 package com.qendolin.betterclouds.compat;
 
 import com.qendolin.betterclouds.BetterCloudsStatic;
+import net.minecraft.world.level.Level;
 import org.joml.Vector3f;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import net.minecraft.world.level.Level;
 
 public abstract class EnhancedCelestialsCompat {
 
@@ -45,7 +45,7 @@ public abstract class EnhancedCelestialsCompat {
         static {
             EnhancedCelestialsCompat.instance = new Stub();
         }
-        
+
         @Override
         public Vector3f getEventTint(Level world) {
             return new Vector3f(1.0f, 1.0f, 1.0f);

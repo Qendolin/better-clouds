@@ -1,64 +1,64 @@
 ext.modifyModVersion = { File file, int delta ->
-	def versionPattern = ~/mod\.version\s*=\s*(\d+)\.(\d+)\.(\d+)(-.+)?/
-	def content = file.text
+    def versionPattern = ~/mod\.version\s*=\s*(\d+)\.(\d+)\.(\d+)(-.+)?/
+    def content = file.text
 
-	// Detect line ending from the file
-	def lineEnding = content.contains('\r\n') ? '\r\n' : '\n'
-	def lines = content.split(/\r?\n/)
+    // Detect line ending from the file
+    def lineEnding = content.contains('\r\n') ? '\r\n' : '\n'
+    def lines = content.split(/\r?\n/)
 
-	def matches = lines.findAll { line -> versionPattern.matcher(line).find() }
-	if (matches.size() != 1) {
-		throw new GradleException("Expected exactly one mod.version in ${file}, found ${matches.size()}")
-	}
+    def matches = lines.findAll { line -> versionPattern.matcher(line).find() }
+    if (matches.size() != 1) {
+        throw new GradleException("Expected exactly one mod.version in ${file}, found ${matches.size()}")
+    }
 
-	def updatedLines = lines.collect { line ->
-		def matcher = versionPattern.matcher(line)
-		if (matcher.find()) {
-			def major = matcher.group(1).toInteger()
-			def minor = matcher.group(2).toInteger()
-			def patch = matcher.group(3).toInteger()
-			def suffix = matcher.group(4) ?: ''
+    def updatedLines = lines.collect { line ->
+        def matcher = versionPattern.matcher(line)
+        if (matcher.find()) {
+            def major = matcher.group(1).toInteger()
+            def minor = matcher.group(2).toInteger()
+            def patch = matcher.group(3).toInteger()
+            def suffix = matcher.group(4) ?: ''
 
-			def newPatch = patch + delta
-			if (newPatch < 0) {
-				throw new GradleException("Patch version underflow in ${file}: cannot decrement below zero")
-			}
+            def newPatch = patch + delta
+            if (newPatch < 0) {
+                throw new GradleException("Patch version underflow in ${file}: cannot decrement below zero")
+            }
 
-			def newVersion = "${major}.${minor}.${newPatch}${suffix}"
-			println "Updated ${file} from ${matcher.group(0)} to mod.version=${newVersion}"
-			return line.replaceFirst(versionPattern, "mod.version=${newVersion}")
-		} else {
-			return line
-		}
-	}
+            def newVersion = "${major}.${minor}.${newPatch}${suffix}"
+            println "Updated ${file} from ${matcher.group(0)} to mod.version=${newVersion}"
+            return line.replaceFirst(versionPattern, "mod.version=${newVersion}")
+        } else {
+            return line
+        }
+    }
 
-	file.text = updatedLines.join(lineEnding)
+    file.text = updatedLines.join(lineEnding)
 }
 
 tasks.register('incrementModVersions') {
-	group = 'publishing'
-	description = 'Increments the patch version of mod.version in gradle.properties.'
-	doLast {
-		def file = rootProject.file('gradle.properties')
-		try {
-			modifyModVersion(file, 1)
-		} catch (Exception e) {
-			println "Error processing ${file}: ${e.message}"
-			throw e
-		}
-	}
+    group = 'publishing'
+    description = 'Increments the patch version of mod.version in gradle.properties.'
+    doLast {
+        def file = rootProject.file('gradle.properties')
+        try {
+            modifyModVersion(file, 1)
+        } catch (Exception e) {
+            println "Error processing ${file}: ${e.message}"
+            throw e
+        }
+    }
 }
 
 tasks.register('decrementModVersions') {
-	group = 'publishing'
-	description = 'Decrements the patch version of mod.version in gradle.properties.'
-	doLast {
-		def file = rootProject.file('gradle.properties')
-		try {
-			modifyModVersion(file, -1)
-		} catch (Exception e) {
-			println "Error processing ${file}: ${e.message}"
-			throw e
-		}
-	}
+    group = 'publishing'
+    description = 'Decrements the patch version of mod.version in gradle.properties.'
+    doLast {
+        def file = rootProject.file('gradle.properties')
+        try {
+            modifyModVersion(file, -1)
+        } catch (Exception e) {
+            println "Error processing ${file}: ${e.message}"
+            throw e
+        }
+    }
 }

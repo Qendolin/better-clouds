@@ -19,7 +19,7 @@ public abstract class CloudSettingMixin {
     private OptionInstance<CloudStatus> cloudStatus;
 
     @SuppressWarnings("UnresolvedMixinReference")
-    @WrapMethod(method = {"getCloudStatus", "method_1632", "m_92174_"}, remap = false)
+    @WrapMethod(method = { "getCloudStatus", "method_1632", "m_92174_" }, remap = false)
     private CloudStatus overrideCloudRenderMode(Operation<CloudStatus> original) {
         if (BetterClouds.isEnabled() && ConfigManager.instance().cloudOverride) {
             return cloudStatus.get();

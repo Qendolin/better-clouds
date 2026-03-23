@@ -13,12 +13,12 @@ public class Migrations {
 
     static {
         MIGRATIONS.add(config -> {
-            if(!config.enabledDimensions.contains(BigGlobeCompat.DIMENSION_KEY)) {
+            if (!config.enabledDimensions.contains(BigGlobeCompat.DIMENSION_KEY)) {
                 config.enabledDimensions.add(BigGlobeCompat.DIMENSION_KEY);
             }
         });
         MIGRATIONS.add(config -> {
-            if(!config.enabledDimensions.contains(MiddleEarthCompat.DIMENSION_KEY)) {
+            if (!config.enabledDimensions.contains(MiddleEarthCompat.DIMENSION_KEY)) {
                 config.enabledDimensions.add(MiddleEarthCompat.DIMENSION_KEY);
             }
         });

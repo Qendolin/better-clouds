@@ -6,6 +6,11 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.qendolin.betterclouds.BetterCloudsStatic;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.resources.PreparableReloadListener;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
+
 import java.io.BufferedReader;
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -13,21 +18,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import net.minecraft.resources.Identifier;
-import net.minecraft.server.packs.resources.PreparableReloadListener;
-import net.minecraft.server.packs.resources.Resource;
-import net.minecraft.server.packs.resources.ResourceManager;
 
 public class ShaderPresetLoader implements PreparableReloadListener {
-    private static final Gson GSON = new GsonBuilder()
-        .setLenient()
-        .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-        .registerTypeAdapter(ShaderPresetConfig.class, ShaderPresetConfig.INSTANCE_CREATOR)
-        .create();
     public static final Identifier ID = Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "shader_presets");
     public static final Identifier RESOURCE_ID = Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "betterclouds/shader_presets.json");
     public static final ShaderPresetLoader INSTANCE = new ShaderPresetLoader();
-
+    private static final Gson GSON = new GsonBuilder()
+            .setLenient()
+            .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+            .registerTypeAdapter(ShaderPresetConfig.class, ShaderPresetConfig.INSTANCE_CREATOR)
+            .create();
     private Map<String, ShaderPresetConfig> presets = null;
 
     public Map<String, ShaderPresetConfig> presets() {
@@ -39,7 +39,7 @@ public class ShaderPresetLoader implements PreparableReloadListener {
     public CompletableFuture<Void> reload(SharedState store, Executor loadExecutor, PreparationBarrier helper, Executor applyExecutor) {
         ResourceManager manager = store.resourceManager();
         return load(manager, loadExecutor).thenCompose(helper::wait).thenCompose(
-            (o) -> apply(o, manager, applyExecutor)
+                (o) -> apply(o, manager, applyExecutor)
         );
     }
 
@@ -55,11 +55,11 @@ public class ShaderPresetLoader implements PreparableReloadListener {
                     mergedPresets.putAll(presets);
                 } catch (Exception exception) {
                     BetterCloudsStatic.getLogger().warn(
-                        "Failed to parse shader presets {} in pack '{}' ({})",
-                        RESOURCE_ID,
-                        resource.source().location().title(),
-                        resource.source().packId(),
-                        exception
+                            "Failed to parse shader presets {} in pack '{}' ({})",
+                            RESOURCE_ID,
+                            resource.source().location().title(),
+                            resource.source().packId(),
+                            exception
                     );
                 }
             }

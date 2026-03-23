@@ -12,7 +12,7 @@
 
 #define DISTANT_HORIZONS _DISTANT_HORIZONS_
 
-layout(location = 0) in vec3 in_pos; // instanced per cloud cube
+layout(location = 0) in vec3 in_pos;// instanced per cloud cube
 layout(location = 1) in vec3 in_vert;
 layout(location = 2) in vec3 in_normal;
 
@@ -51,9 +51,9 @@ float linearFogFade(float distance, float fog_start, float fog_end) {
 }
 
 void main() {
-    vec3 localWorldPosition = in_pos - u_origin_offset; // in world space but anchored to the camera
+    vec3 localWorldPosition = in_pos - u_origin_offset;// in world space but anchored to the camera
     float scaleFalloff = mix(1.0, u_miscellaneous.x, pow(length(localWorldPosition.xz), 2.0) / pow(u_bounding_box.z, 2.0));
-    vec3 cloudPos = in_pos; // in world space but anchored to the chunk grid
+    vec3 cloudPos = in_pos;// in world space but anchored to the chunk grid
     cloudPos.y *= scaleFalloff;
 
     pass_opacity = smoothstep(NEAR_VISIBILITY_START, NEAR_VISIBILITY_END, length(localWorldPosition));
@@ -73,24 +73,24 @@ void main() {
     // Due to the limited max depth this can sometimes result in issues but they're barely visible
     pass_color.r = linearFogFade(length(localWorldVertexPos.xyz), u_fog_range.x, u_fog_range.y);
 
-#if POSITIONAL_COLORING
+    #if POSITIONAL_COLORING
     pass_color.g = (scale.y * 0.625 * (in_vert.y+0.375) + in_pos.y) / (u_bounding_box.w);
-#else
+    #else
     pass_color.g = 1.0;
-#endif
+    #endif
     pass_color.b = texture(u_noise_texture, localWorldPosition.xz / 1024.0).g;
 
 
-#if WORLD_CURVATURE != 0
+    #if WORLD_CURVATURE != 0
     vertexPos.y -= dot(localWorldVertexPos, localWorldVertexPos) / WORLD_CURVATURE;
-#endif
+    #endif
 
-#if DISTANT_HORIZONS
+    #if DISTANT_HORIZONS
     vec4 localPos = u_mv_matrix * vec4(vertexPos, 1.0);
     gl_Position = u_mc_p_matrix * localPos;
     vec4 dhPos = u_dh_p_matrix * localPos;
     pass_dh_depth = (dhPos.z/dhPos.w) * 0.5 + 0.5;
-#else
+    #else
     gl_Position = u_mvp_matrix * vec4(vertexPos, 1.0);
-#endif
+    #endif
 }

@@ -3,29 +3,28 @@ package com.qendolin.betterclouds.gui;
 import com.google.common.collect.ImmutableSet;
 import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.gui.YACLScreen;
+import net.minecraft.network.chat.Component;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
-import net.minecraft.network.chat.Component;
 
 public class CustomButtonOption implements ButtonOption {
 
     private final Supplier<Component> name;
     private final OptionDescription description;
     private final BiConsumer<YACLScreen, ButtonOption> action;
-    private boolean available;
     private final Controller<BiConsumer<YACLScreen, ButtonOption>> controller;
     private final Binding<BiConsumer<YACLScreen, ButtonOption>> binding;
-
     private final StateManager<BiConsumer<YACLScreen, ButtonOption>> stateManager;
+    private boolean available;
 
     public CustomButtonOption(
-        @NotNull Supplier<Component> name,
-        @NotNull OptionDescription description,
-        @NotNull BiConsumer<YACLScreen, ButtonOption> action,
-        boolean available
+            @NotNull Supplier<Component> name,
+            @NotNull OptionDescription description,
+            @NotNull BiConsumer<YACLScreen, ButtonOption> action,
+            boolean available
     ) {
         this.name = name;
         this.description = description;

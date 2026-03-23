@@ -19,6 +19,14 @@ public abstract class AbstractWidgetMixin {
     @Final
     protected Minecraft client;
 
+    @Unique
+    private static void betterclouds$drawOutline(GuiGraphicsExtractor context, int x1, int y1, int x2, int y2, int width, int color) {
+        context.fill(x1, y1, x2, y1 + width, color);
+        context.fill(x2, y1, x2 - width, y2, color);
+        context.fill(x1, y2, x2, y2 - width, color);
+        context.fill(x1, y1, x1 + width, y2, color);
+    }
+
     @Inject(method = "drawButtonRect", at = @At("HEAD"), cancellable = true)
     private void onDrawButtonRect(GuiGraphicsExtractor context, int x1, int y1, int x2, int y2, boolean hovered, boolean enabled, CallbackInfo ci) {
         if (!betterclouds$useTranslucentTheme()) {
@@ -56,13 +64,5 @@ public abstract class AbstractWidgetMixin {
             return ((PopupControllerScreenAccessor) popupScreen).getBackgroundYaclScreen() instanceof ConfigScreen;
         }
         return false;
-    }
-
-    @Unique
-    private static void betterclouds$drawOutline(GuiGraphicsExtractor context, int x1, int y1, int x2, int y2, int width, int color) {
-        context.fill(x1, y1, x2, y1 + width, color);
-        context.fill(x2, y1, x2 - width, y2, color);
-        context.fill(x1, y2, x2, y2 - width, color);
-        context.fill(x1, y1, x1 + width, y2, color);
     }
 }

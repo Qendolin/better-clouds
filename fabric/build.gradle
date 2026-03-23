@@ -1,217 +1,217 @@
 plugins {
-	id "net.fabricmc.fabric-loom"
-	id "me.modmuss50.mod-publish-plugin"
+    id "net.fabricmc.fabric-loom"
+    id "me.modmuss50.mod-publish-plugin"
 }
 
 base {
-	archivesName = project.archives_base_name
+    archivesName = project.archives_base_name
 }
 
 def loader = "fabric"
 def mcVersion = rootProject.ext.mcVersion
 
 version = rootProject.ext.buildVersionString(
-	property("mod.version").toString(),
-	property("mod.release").toString().toLowerCase(),
-	mcVersion,
-	loader
+        property("mod.version").toString(),
+        property("mod.release").toString().toLowerCase(),
+        mcVersion,
+        loader
 )
 
 loom {
-	accessWidenerPath.set(project(":common").file("src/main/resources/betterclouds.accesswidener"))
+    accessWidenerPath.set(project(":common").file("src/main/resources/betterclouds.accesswidener"))
 
-	mods {
-		betterclouds {
-			sourceSet project(":common").sourceSets.main
-			sourceSet sourceSets.main
-		}
-	}
+    mods {
+        betterclouds {
+            sourceSet project(":common").sourceSets.main
+            sourceSet sourceSets.main
+        }
+    }
 
-	runs {
-		client {
-			ideConfigGenerated true
-			runDir "../run"
-			vmArgs "-XX:+AllowEnhancedClassRedefinition"
-		}
+    runs {
+        client {
+            ideConfigGenerated true
+            runDir "../run"
+            vmArgs "-XX:+AllowEnhancedClassRedefinition"
+        }
 
-		server {
-			ideConfigGenerated false
-			runDir "../run"
-			vmArgs "-XX:+AllowEnhancedClassRedefinition"
-		}
-	}
+        server {
+            ideConfigGenerated false
+            runDir "../run"
+            vmArgs "-XX:+AllowEnhancedClassRedefinition"
+        }
+    }
 }
 
 dependencies {
-	implementation project(":common")
+    implementation project(":common")
 
-	minecraft "com.mojang:minecraft:$mcVersion"
+    minecraft "com.mojang:minecraft:$mcVersion"
 
-	annotationProcessor "io.github.llamalad7:mixinextras-common:${property('deps.mixin_extras')}"
+    annotationProcessor "io.github.llamalad7:mixinextras-common:${property('deps.mixin_extras')}"
 
-	implementation "net.fabricmc:fabric-loader:${property('loader.fabric')}"
-	implementation "net.fabricmc.fabric-api:fabric-api:${property('deps.fabric_api')}"
+    implementation "net.fabricmc:fabric-loader:${property('loader.fabric')}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${property('deps.fabric_api')}"
 
-	implementation "com.terraformersmc:modmenu:${property('deps.modmenu')}"
-	implementation "maven.modrinth:1eAoo2KR:${property('deps.yacl')}"
+    implementation "com.terraformersmc:modmenu:${property('deps.modmenu')}"
+    implementation "maven.modrinth:1eAoo2KR:${property('deps.yacl')}"
 
-	compileOnly "maven.modrinth:KJe6y9Eu:${property('deps.fabric_seasons')}"
+    compileOnly "maven.modrinth:KJe6y9Eu:${property('deps.fabric_seasons')}"
 
-	include(implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-fabric:${property('deps.mixinsquared')}")))
-	implementation(include("io.github.llamalad7:mixinextras-fabric:${property('deps.mixin_extras')}"))
+    include(implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-fabric:${property('deps.mixinsquared')}")))
+    implementation(include("io.github.llamalad7:mixinextras-fabric:${property('deps.mixin_extras')}"))
 
-	include(implementation("gs.mclo:api:${property('deps.mclo_api')}"))
-	compileOnly "maven.modrinth:Xs0XTOVv:${property('deps.distanthorizons_api')}"
-	compileOnly "maven.modrinth:e0bNACJD:${property('deps.serene_seasons')}"
-	compileOnly "maven.modrinth:2rL16t1O:${property('deps.enhanced_celestials')}-fabric"
-	compileOnly "maven.modrinth:z2XEADmE:${property('deps.data_anchor')}-fabric"
+    include(implementation("gs.mclo:api:${property('deps.mclo_api')}"))
+    compileOnly "maven.modrinth:Xs0XTOVv:${property('deps.distanthorizons_api')}"
+    compileOnly "maven.modrinth:e0bNACJD:${property('deps.serene_seasons')}"
+    compileOnly "maven.modrinth:2rL16t1O:${property('deps.enhanced_celestials')}-fabric"
+    compileOnly "maven.modrinth:z2XEADmE:${property('deps.data_anchor')}-fabric"
 
-	productionRuntimeMods "maven.modrinth:1eAoo2KR:${property('deps.yacl')}"
-	productionRuntimeMods "net.fabricmc.fabric-api:fabric-api:${property('deps.fabric_api')}"
+    productionRuntimeMods "maven.modrinth:1eAoo2KR:${property('deps.yacl')}"
+    productionRuntimeMods "net.fabricmc.fabric-api:fabric-api:${property('deps.fabric_api')}"
 }
 
 tasks.register("runGameTest", net.fabricmc.loom.task.prod.ClientProductionRunTask) {
-	group = "loom"
-	description = "Launches the Fabric client with the Fabric client game test flag."
-	jvmArgs.add("-Dfabric.client.gametest")
+    group = "loom"
+    description = "Launches the Fabric client with the Fabric client game test flag."
+    jvmArgs.add("-Dfabric.client.gametest")
 }
 
 processResources {
-	def props = [
-		version: project.version,
-		loader : loader,
-	]
-	props["mc_version_range"] = findProperty("deps.minecraft").toString()
-		.replace("-rc-", "-rc.")
-		.replace("-pre-", "-pre.")
-		.split(",").collect {
-		"\"=$it\""
-	}.join(", ")
+    def props = [
+            version: project.version,
+            loader : loader,
+    ]
+    props["mc_version_range"] = findProperty("deps.minecraft").toString()
+            .replace("-rc-", "-rc.")
+            .replace("-pre-", "-pre.")
+            .split(",").collect {
+        "\"=$it\""
+    }.join(", ")
 
-	props.forEach(inputs::property)
+    props.forEach(inputs::property)
 
-	filesMatching(["fabric.mod.json"]) {
-		expand props
-	}
+    filesMatching(["fabric.mod.json"]) {
+        expand props
+    }
 
-	exclude("assets/**/*.ase")
-	exclude("assets/**/*.xcf")
+    exclude("assets/**/*.ase")
+    exclude("assets/**/*.xcf")
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.release = 25
+    it.options.release = 25
 }
 
 java {
-	withSourcesJar()
-	sourceCompatibility = JavaVersion.VERSION_25
-	targetCompatibility = JavaVersion.VERSION_25
+    withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 
 jar {
-	inputs.property "archivesName", project.base.archivesName
-	from(project(":common").sourceSets.main.output)
-	from(rootProject.file("LICENSE").path) {
-		rename { "${it}_${inputs.properties.archivesName}" }
-	}
+    inputs.property "archivesName", project.base.archivesName
+    from(project(":common").sourceSets.main.output)
+    from(rootProject.file("LICENSE").path) {
+        rename { "${it}_${inputs.properties.archivesName}" }
+    }
 }
 
 tasks.named("sourcesJar", Jar) {
-	from(project(":common").sourceSets.main.allSource)
+    from(project(":common").sourceSets.main.allSource)
 }
 
 publishMods {
-	def secrets = new Properties()
-	def secretsFile = rootProject.file("secrets.properties")
-	if (secretsFile.exists()) {
-		secretsFile.withInputStream { secrets.load(it) }
-	} else if (gradle.startParameter.taskNames.any { it.toLowerCase().contains("publish") }) {
-		throw new GradleException("Missing secrets.properties for publishMods")
-	}
+    def secrets = new Properties()
+    def secretsFile = rootProject.file("secrets.properties")
+    if (secretsFile.exists()) {
+        secretsFile.withInputStream { secrets.load(it) }
+    } else if (gradle.startParameter.taskNames.any { it.toLowerCase().contains("publish") }) {
+        throw new GradleException("Missing secrets.properties for publishMods")
+    }
 
-	def releaseType = property("mod.release").toString()
-	def releaseName = releaseType.capitalize()
-	def releaseTypeEnum = [
-		"release": "STABLE",
-		"stable" : "STABLE",
-		"beta"   : "BETA",
-		"alpha"  : "ALPHA"
-	][releaseType.toLowerCase()]
-	if (!releaseTypeEnum) {
-		throw new GradleException("Unknown release type: ${releaseType}")
-	}
+    def releaseType = property("mod.release").toString()
+    def releaseName = releaseType.capitalize()
+    def releaseTypeEnum = [
+            "release": "STABLE",
+            "stable" : "STABLE",
+            "beta"   : "BETA",
+            "alpha"  : "ALPHA"
+    ][releaseType.toLowerCase()]
+    if (!releaseTypeEnum) {
+        throw new GradleException("Unknown release type: ${releaseType}")
+    }
 
-	def releaseLetter = releaseType.substring(0, 1).toLowerCase()
-	def loaderName = "Fabric"
-	def modVersion = property("mod.version").toString()
-	def mcVersions = findProperty("deps.minecraft").toString().split(",").collect { it.trim().replace(".0", "") }
+    def releaseLetter = releaseType.substring(0, 1).toLowerCase()
+    def loaderName = "Fabric"
+    def modVersion = property("mod.version").toString()
+    def mcVersions = findProperty("deps.minecraft").toString().split(",").collect { it.trim().replace(".0", "") }
 
-	def changelogProvider = provider {
-		def file = rootProject.file("changelog.txt")
-		def lock = rootProject.file("changelog.txt.lock")
-		if (lock.createNewFile()) {
-			println("Opening changelog in notepad")
-			file.createNewFile()
-			def process = new ProcessBuilder("notepad", file.absolutePath).start()
-			process.waitFor()
-			lock.delete()
-		} else {
-			println("Waiting for changelog lock...")
-			while (lock.exists()) {
-				sleep(100)
-			}
-		}
+    def changelogProvider = provider {
+        def file = rootProject.file("changelog.txt")
+        def lock = rootProject.file("changelog.txt.lock")
+        if (lock.createNewFile()) {
+            println("Opening changelog in notepad")
+            file.createNewFile()
+            def process = new ProcessBuilder("notepad", file.absolutePath).start()
+            process.waitFor()
+            lock.delete()
+        } else {
+            println("Waiting for changelog lock...")
+            while (lock.exists()) {
+                sleep(100)
+            }
+        }
 
-		def changelog = file.getText("UTF-8")
-		if (changelog.isBlank()) {
-			file.delete()
-			throw new GradleException("Changelog was blank")
-		}
+        def changelog = file.getText("UTF-8")
+        if (changelog.isBlank()) {
+            file.delete()
+            throw new GradleException("Changelog was blank")
+        }
 
-		return changelog
-	}
+        return changelog
+    }
 
-	file = jar.archiveFile
-	changelog = changelogProvider
-	version = "${modVersion}+${mcVersion}-${loader}-${releaseLetter}"
-	type = releaseTypeEnum
-	displayName = "${releaseName} ${modVersion} for ${mcVersion} ${loaderName}"
-	modLoaders.add(loader)
+    file = jar.archiveFile
+    changelog = changelogProvider
+    version = "${modVersion}+${mcVersion}-${loader}-${releaseLetter}"
+    type = releaseTypeEnum
+    displayName = "${releaseName} ${modVersion} for ${mcVersion} ${loaderName}"
+    modLoaders.add(loader)
 
-	modrinth {
-		accessToken = providers.provider { secrets.getProperty("MODRINTH") }
-		projectId = "5srFLIaK"
-		minecraftVersions.addAll(mcVersions)
+    modrinth {
+        accessToken = providers.provider { secrets.getProperty("MODRINTH") }
+        projectId = "5srFLIaK"
+        minecraftVersions.addAll(mcVersions)
 
-		requires("yacl")
-		requires("fabric-api")
-		optional("modmenu")
-		incompatible("vulkanmod")
-		incompatible("immersiveportals")
-		optional("sodium")
-		optional("iris")
+        requires("yacl")
+        requires("fabric-api")
+        optional("modmenu")
+        incompatible("vulkanmod")
+        incompatible("immersiveportals")
+        optional("sodium")
+        optional("iris")
 
-		projectDescription = providers.fileContents(rootProject.layout.projectDirectory.file("README.md")).asText
-	}
+        projectDescription = providers.fileContents(rootProject.layout.projectDirectory.file("README.md")).asText
+    }
 
-	curseforge {
-		accessToken = providers.provider { secrets.getProperty("CURSEFORGE") }
-		projectId = "1285973"
-		projectSlug = "better-clouds"
-		minecraftVersions.addAll(mcVersions)
+    curseforge {
+        accessToken = providers.provider { secrets.getProperty("CURSEFORGE") }
+        projectId = "1285973"
+        projectSlug = "better-clouds"
+        minecraftVersions.addAll(mcVersions)
 
-		changelogType = "markdown"
+        changelogType = "markdown"
 
-		javaVersions.add(JavaVersion.VERSION_25)
-		clientRequired = true
-		serverRequired = false
+        javaVersions.add(JavaVersion.VERSION_25)
+        clientRequired = true
+        serverRequired = false
 
-		requires("yacl")
-		requires("fabric-api")
-		optional("modmenu")
-		incompatible("vulkanmod")
-		incompatible("immersive-portals-mod")
-		optional("sodium")
-		optional("irisshaders")
-	}
+        requires("yacl")
+        requires("fabric-api")
+        optional("modmenu")
+        incompatible("vulkanmod")
+        incompatible("immersive-portals-mod")
+        optional("sodium")
+        optional("irisshaders")
+    }
 }

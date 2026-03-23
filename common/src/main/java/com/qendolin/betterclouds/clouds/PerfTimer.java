@@ -1,8 +1,9 @@
 package com.qendolin.betterclouds.clouds;
 
+import net.minecraft.util.Mth;
+
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.util.Mth;
 
 import static org.lwjgl.opengl.GL33.*;
 
@@ -71,7 +72,7 @@ public class PerfTimer implements AutoCloseable {
     }
 
     public void close() {
-        glDeleteQueries(new int[]{query, queryWaiting});
+        glDeleteQueries(new int[] { query, queryWaiting });
     }
 
     public record Stats(double min, double max, double mean, double sd, double q25, double median, double q75) {

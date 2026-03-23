@@ -1,7 +1,9 @@
 package com.qendolin.betterclouds.clouds.shaders;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.qendolin.betterclouds.util.RenderHelper;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.ChainedJsonException;
+import net.minecraft.server.packs.resources.ResourceManager;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -9,9 +11,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import net.minecraft.resources.Identifier;
-import net.minecraft.server.ChainedJsonException;
-import net.minecraft.server.packs.resources.ResourceManager;
 
 import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
 import static org.lwjgl.opengl.GL32.*;

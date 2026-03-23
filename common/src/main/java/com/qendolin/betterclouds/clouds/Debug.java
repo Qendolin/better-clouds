@@ -1,16 +1,11 @@
 package com.qendolin.betterclouds.clouds;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.*;
 import com.qendolin.betterclouds.util.RenderHelper;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.phys.AABB;
 import org.joml.Vector3d;
 import org.lwjgl.opengl.GL32;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.blaze3d.vertex.VertexFormat;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -19,15 +14,13 @@ import java.util.List;
 import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
 
 public class Debug {
+    public static final List<Tuple<AABB, Boolean>> frustumCulledBoxes = new ArrayList<>();
     public static int profileInterval = 0;
     public static boolean frustumCulling = false;
     public static boolean generatorPause = false;
     // -1 to disable, 0 to initialize, paused tick otherwise
     public static int animationPause = -1;
     public static boolean generatorForceUpdate = false;
-
-    public static final List<Tuple<AABB, Boolean>> frustumCulledBoxes = new ArrayList<>();
-
     private static BuiltBufferRenderer renderer = null;
 
     private static void clearFrustumCulledBoxes() {
@@ -137,10 +130,14 @@ public class Debug {
         vertexConsumer.addVertex(x, y, z).setColor(red, green, blue, alpha);
     }
 
+    public static boolean isProfilingEnabled() {
+        return profileInterval > 0;
+    }
+
     private static class BuiltBufferRenderer {
         private final int vboId;
-        private int vboSize = 0;
         private final int vaoId;
+        private int vboSize = 0;
 
         public BuiltBufferRenderer() {
             int prevVao = GL32.glGetInteger(GL32.GL_VERTEX_ARRAY_BINDING);
@@ -181,9 +178,5 @@ public class Debug {
             GL32.glDrawArrays(GL32.GL_LINES, 0, vertexCount);
             GL32.glBindVertexArray(prevVao);
         }
-    }
-
-    public static boolean isProfilingEnabled() {
-        return profileInterval > 0;
     }
 }

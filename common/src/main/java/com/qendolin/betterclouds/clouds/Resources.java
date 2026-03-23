@@ -1,18 +1,18 @@
 package com.qendolin.betterclouds.clouds;
 
+import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.Commands;
 import com.qendolin.betterclouds.clouds.shaders.*;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.util.RenderHelper;
-import com.mojang.blaze3d.opengl.GlStateManager;
-
-import java.io.Closeable;
-import java.io.IOException;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
+
+import java.io.Closeable;
+import java.io.IOException;
 
 import static com.qendolin.betterclouds.BetterCloudsStatic.getLogger;
 import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
@@ -51,6 +51,14 @@ public class Resources implements Closeable {
     private int fboHeight;
 
     private PerfTimer timer;
+
+    public static void unbindVao() {
+        glBindVertexArray(0);
+    }
+
+    public static void unbindVbo() {
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
 
     public ChunkedGenerator generator() {
         return generator;
@@ -153,14 +161,6 @@ public class Resources implements Closeable {
         cubeVao = UNASSIGNED;
     }
 
-    public static void unbindVao() {
-        glBindVertexArray(0);
-    }
-
-    public static void unbindVbo() {
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-    }
-
     public void reloadTextures(Minecraft client) {
         RenderSystem.assertOnRenderThread();
         int noiseTexture = RenderHelper.getTextureId(client.getTextureManager().getTexture(NOISE_TEXTURE));
@@ -218,11 +218,11 @@ public class Resources implements Closeable {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, oitDataTexture, 0);
-        glDrawBuffers(new int[]{GL_COLOR_ATTACHMENT0});
+        glDrawBuffers(new int[] { GL_COLOR_ATTACHMENT0 });
 
         boolean useStencilTextureFallback = glCompat.useStencilTextureFallback();
         boolean useDepthWriteFallback = glCompat.useDepthWriteFallback();
-        boolean[][] configurations = {{false, false}, {true, false}, {true, true}};
+        boolean[][] configurations = { { false, false }, { true, false }, { true, true } };
         int configurationIndex = -1;
 
         while (true) {
@@ -259,7 +259,7 @@ public class Resources implements Closeable {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, oitCoverageTexture, 0);
-            glDrawBuffers(new int[]{GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1});
+            glDrawBuffers(new int[] { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
 
             oitCoverageDepthTexture = glGenTextures();
             glBindTexture(GL_TEXTURE_2D, oitCoverageDepthTexture);
@@ -329,11 +329,11 @@ public class Resources implements Closeable {
         glCompat.objectLabelDev(glCompat.GL_PROGRAM, depthShader.glId(), "depth");
 
         coverageShader = CoverageShader.create(manager,
-            shaderParameters.configSizeXZ(),
-            shaderParameters.configSizeY(),
-            shaderParameters.useStencilTextureFallback(),
-            shaderParameters.useDistantHorizonsCompat(),
-            shaderParameters.worldCurvatureSize());
+                shaderParameters.configSizeXZ(),
+                shaderParameters.configSizeY(),
+                shaderParameters.useStencilTextureFallback(),
+                shaderParameters.useDistantHorizonsCompat(),
+                shaderParameters.worldCurvatureSize());
         coverageShader.bind();
         coverageShader.uDepthTexture.setInt(0);
         coverageShader.uNoiseTexture.setInt(5);
@@ -341,9 +341,9 @@ public class Resources implements Closeable {
         glCompat.objectLabelDev(glCompat.GL_PROGRAM, coverageShader.glId(), "coverage");
 
         shadingShader = ShadingShader.create(manager,
-            shaderParameters.useDepthWriteFallback(),
-            shaderParameters.useStencilTextureFallback(),
-            shaderParameters.configCelestialBodyHalo());
+                shaderParameters.useDepthWriteFallback(),
+                shaderParameters.useStencilTextureFallback(),
+                shaderParameters.configCelestialBodyHalo());
         shadingShader.bind();
         shadingShader.uDepthTexture.setInt(1);
         shadingShader.uDataTexture.setInt(2);

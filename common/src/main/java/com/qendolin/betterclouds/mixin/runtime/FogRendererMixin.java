@@ -13,8 +13,8 @@ import org.spongepowered.asm.mixin.injection.At;
 public abstract class FogRendererMixin {
 
     @ModifyReturnValue(
-        method = "setupFog(Lnet/minecraft/client/Camera;ILnet/minecraft/client/DeltaTracker;FLnet/minecraft/client/multiplayer/ClientLevel;)Lnet/minecraft/client/renderer/fog/FogData;",
-        at = @At("RETURN")
+            method = "setupFog(Lnet/minecraft/client/Camera;ILnet/minecraft/client/DeltaTracker;FLnet/minecraft/client/multiplayer/ClientLevel;)Lnet/minecraft/client/renderer/fog/FogData;",
+            at = @At("RETURN")
     )
     private FogData captureFogData(FogData fogData) {
         Vector4f color = fogData.color == null ? null : new Vector4f(fogData.color);

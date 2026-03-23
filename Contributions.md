@@ -1,44 +1,45 @@
 ## Special Thanks
 
 - tassimo99
-   - Gave me valuable feedback during development
-   - Created the cloud light gradient texture
+    - Gave me valuable feedback during development
+    - Created the cloud light gradient texture
 
 ## Code Contributions
 
- - AeiouEnigma
-   - Fix `mixins.json` name – [#1](https://github.com/Qendolin/better-clouds/pull/1)
- - helpimnotdrowning
-   - Migrate to 1.18.2 – [#10](https://github.com/Qendolin/better-clouds/pull/10)
- - Cccc-owo
-   - Provide simplified chinese translation – [#20](https://github.com/Qendolin/better-clouds/pull/20)
- - Myuui
-   - Provide french translation – [#60](https://github.com/Qendolin/better-clouds/pull/60)
- - Merhaf
-   - Provide korean translation – [#91](https://github.com/Qendolin/better-clouds/pull/91)
- - yichifauzi
-   - Provide traditional chinese translation – [#115](https://github.com/Qendolin/better-clouds/pull/115)
- - Tarteroycc
-   - Provide ukrainian translation – [#132](https://github.com/Qendolin/better-clouds/pull/132)
- - mpustovoi
-   - Provide russian translation – [#212](https://github.com/Qendolin/better-clouds/pull/212)
+- AeiouEnigma
+    - Fix `mixins.json` name – [#1](https://github.com/Qendolin/better-clouds/pull/1)
+- helpimnotdrowning
+    - Migrate to 1.18.2 – [#10](https://github.com/Qendolin/better-clouds/pull/10)
+- Cccc-owo
+    - Provide simplified chinese translation – [#20](https://github.com/Qendolin/better-clouds/pull/20)
+- Myuui
+    - Provide french translation – [#60](https://github.com/Qendolin/better-clouds/pull/60)
+- Merhaf
+    - Provide korean translation – [#91](https://github.com/Qendolin/better-clouds/pull/91)
+- yichifauzi
+    - Provide traditional chinese translation – [#115](https://github.com/Qendolin/better-clouds/pull/115)
+- Tarteroycc
+    - Provide ukrainian translation – [#132](https://github.com/Qendolin/better-clouds/pull/132)
+- mpustovoi
+    - Provide russian translation – [#212](https://github.com/Qendolin/better-clouds/pull/212)
 - justliliandev
-   - Fix Ars Nouveau flickering issue – [#222](https://github.com/Qendolin/better-clouds/pull/222)
+    - Fix Ars Nouveau flickering issue – [#222](https://github.com/Qendolin/better-clouds/pull/222)
 
 ... got a PR accepted
- 
+
 ## Fixing Issues
 
- - AeiouEnigma
-   - Rendering issue when picking up items – [#4](https://github.com/Qendolin/better-clouds/issues/4)
- - wilebaldo
-   - Support for Apple M1 GPUs – [#24](https://github.com/Qendolin/better-clouds/issues/24)
- - Spittys
-   - Rendering issue where stencil buffers where used inappropriately – [#28](https://github.com/Qendolin/better-clouds/issues/28)
+- AeiouEnigma
+    - Rendering issue when picking up items – [#4](https://github.com/Qendolin/better-clouds/issues/4)
+- wilebaldo
+    - Support for Apple M1 GPUs – [#24](https://github.com/Qendolin/better-clouds/issues/24)
+- Spittys
+    - Rendering issue where stencil buffers where used
+      inappropriately – [#28](https://github.com/Qendolin/better-clouds/issues/28)
 
 ... were especially helpful when troubleshooting errors
 
 ## Third Party Licensed Code
 
- - RenderDoc Api Java Bindings
-   - From owo-lib, developed by "glisco"
+- RenderDoc Api Java Bindings
+    - From owo-lib, developed by "glisco"

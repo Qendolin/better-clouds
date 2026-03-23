@@ -46,17 +46,17 @@ void main() {
 
     // r,g,b = fog fade, positional coloring, noise
     vec3 cloudData = texelFetch(u_data_texture, ivec2(gl_FragCoord), 0).rgb;
-#if BLIT_DEPTH
-    if(cloudData == vec3(0.0)) discard;
-#else
-    if(cloudData == vec3(0.0)) return;
-#endif
+    #if BLIT_DEPTH
+    if (cloudData == vec3(0.0)) discard;
+    #else
+    if (cloudData == vec3(0.0)) return;
+    #endif
 
-#if UINT_COVERAGE
+    #if UINT_COVERAGE
     float coverage = float(texelFetch(u_coverage_texture, ivec2(gl_FragCoord), 0).r);
-#else
+    #else
     float coverage = texelFetch(u_coverage_texture, ivec2(gl_FragCoord), 0).r * 255.0;
-#endif
+    #endif
     // This is the "correct" formula
     // frag_color.a = 1.0 - pow((1.0-u_opacity.x), coverage);
     out_color.a = pow(coverage, u_opacity.z) / (1.0/(u_opacity.x)+pow(coverage, u_opacity.z)-1.0);
@@ -70,25 +70,25 @@ void main() {
     // if sunDir.z is always 0, this can be optimized, but who cares
     float sphere = dot(sun_dir, frag_dir);
 
-#if CELESTIAL_BODY_HALO
+    #if CELESTIAL_BODY_HALO
     // TODO: document how I arrived at this formula
     float superellipse_falloff = dot(sun_dir, frag_dir);
     // Higher values -> smaller size
     const float superellipse_size = 3.0;
     float superellipse = (
-        (1.0 + (1.0/3.0) * (pow(sin(2.0*proj_angle + pi/2.0), 2.0)))
-        * (superellipse_size-abs(superellipse_falloff)*superellipse_size) - 1.0
+    (1.0 + (1.0/3.0) * (pow(sin(2.0*proj_angle + pi/2.0), 2.0)))
+    * (superellipse_size-abs(superellipse_falloff)*superellipse_size) - 1.0
     ) * sign(-superellipse_falloff);
     float light_uv_x = mix(sphere, superellipse, smoothstep(0.75, 1.0, abs(sphere)));
-#else
+    #else
     // FIXME: This is a dirty hack
     float light_uv_x = sphere * 0.9;
-#endif
+    #endif
 
     // (1, 0) to (0.5, 1)
-    if(light_uv_x > 0.5) light_uv_x = (-2.0 * light_uv_x + 2.0) * 0.375;
+    if (light_uv_x > 0.5) light_uv_x = (-2.0 * light_uv_x + 2.0) * 0.375;
     // (0.5, 0) to (-0.5, 1)
-    else if(light_uv_x > -0.5) light_uv_x = 0.375 + (-1.0 * light_uv_x + 0.5) * 0.25;
+    else if (light_uv_x > -0.5) light_uv_x = 0.375 + (-1.0 * light_uv_x + 0.5) * 0.25;
     // (-0.5, 0) to (-1, 1)
     else light_uv_x = 0.625 + (-2.0 * light_uv_x - 1.0) * 0.375;
 
@@ -113,7 +113,7 @@ void main() {
     out_color.a *= u_opacity.y;
     out_color.a *= cloudData.r;
 
-#if BLIT_DEPTH
+    #if BLIT_DEPTH
     gl_FragDepth = texelFetch(u_depth_texture, ivec2(gl_FragCoord.xy), 0).r;
-#endif
+    #endif
 }

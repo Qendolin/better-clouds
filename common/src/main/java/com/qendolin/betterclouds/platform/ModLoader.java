@@ -36,8 +36,8 @@ public final class ModLoader {
 
     private static Backend loadBackend() {
         return instantiate("com.qendolin.betterclouds.platform.fabric.ModLoaderImpl")
-            .or(() -> instantiate("com.qendolin.betterclouds.platform.neoforge.ModLoaderImpl"))
-            .orElseThrow(() -> new IllegalStateException("No platform ModLoader implementation found"));
+                .or(() -> instantiate("com.qendolin.betterclouds.platform.neoforge.ModLoaderImpl"))
+                .orElseThrow(() -> new IllegalStateException("No platform ModLoader implementation found"));
     }
 
     private static java.util.Optional<Backend> instantiate(String className) {
@@ -46,7 +46,8 @@ public final class ModLoader {
             return java.util.Optional.of((Backend) clazz.getDeclaredConstructor().newInstance());
         } catch (ClassNotFoundException e) {
             return java.util.Optional.empty();
-        } catch (ClassCastException | InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+        } catch (ClassCastException | InstantiationException | IllegalAccessException | InvocationTargetException |
+                 NoSuchMethodException e) {
             throw new IllegalStateException("Failed to initialize platform ModLoader backend: " + className, e);
         }
     }

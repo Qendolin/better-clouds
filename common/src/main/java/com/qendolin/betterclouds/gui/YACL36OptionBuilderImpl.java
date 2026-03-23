@@ -2,6 +2,7 @@ package com.qendolin.betterclouds.gui;
 
 import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.api.controller.ControllerBuilder;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -9,7 +10,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import net.minecraft.network.chat.Component;
 
 public class YACL36OptionBuilderImpl<T> implements YACLOptionBuilder<T> {
 
@@ -63,10 +63,10 @@ public class YACL36OptionBuilderImpl<T> implements YACLOptionBuilder<T> {
     @Override
     public YACLOptionBuilder<T> listeners(@NotNull Collection<BiConsumer<Option<T>, T>> listeners) {
         delegate.addListeners(listeners.stream()
-            .map(listener ->
-                (OptionEventListener<T>) (opt, event) ->
-                    listener.accept(opt, opt.pendingValue())
-            ).toList()
+                .map(listener ->
+                        (OptionEventListener<T>) (opt, event) ->
+                                listener.accept(opt, opt.pendingValue())
+                ).toList()
         );
         return this;
     }

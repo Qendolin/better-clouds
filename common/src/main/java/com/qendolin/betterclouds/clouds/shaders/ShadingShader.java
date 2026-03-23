@@ -1,10 +1,11 @@
 package com.qendolin.betterclouds.clouds.shaders;
 
 import com.qendolin.betterclouds.BetterCloudsStatic;
-import java.io.IOException;
-import java.util.Map;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
+
+import java.io.IOException;
+import java.util.Map;
 
 public class ShadingShader extends Shader {
     public static final Identifier VERTEX_SHADER_ID = Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "shaders/core/betterclouds_shading.vsh");
@@ -44,9 +45,9 @@ public class ShadingShader extends Shader {
 
     public static ShadingShader create(ResourceManager manager, boolean depthWriteFallback, boolean stencilFallback, boolean enableCelestialBodyHalo) throws IOException {
         Map<String, String> defs = Map.ofEntries(
-            Map.entry(ShadingShader.DEF_BLIT_DEPTH_KEY, depthWriteFallback ? "0" : "1"),
-            Map.entry(ShadingShader.DEF_UINT_COVERAGE_KEY, stencilFallback ? "0" : "1"),
-            Map.entry(ShadingShader.DEF_CELESTIAL_BODY_HALO_KEY, enableCelestialBodyHalo ? "1" : "0")
+                Map.entry(ShadingShader.DEF_BLIT_DEPTH_KEY, depthWriteFallback ? "0" : "1"),
+                Map.entry(ShadingShader.DEF_UINT_COVERAGE_KEY, stencilFallback ? "0" : "1"),
+                Map.entry(ShadingShader.DEF_CELESTIAL_BODY_HALO_KEY, enableCelestialBodyHalo ? "1" : "0")
         );
         return new ShadingShader(manager, defs);
     }

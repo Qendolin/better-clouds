@@ -1,51 +1,51 @@
 plugins {
-	id "net.fabricmc.fabric-loom" version "1.15.5" apply false
-	id "me.modmuss50.mod-publish-plugin" version "1.1.0" apply false
+    id "net.fabricmc.fabric-loom" version "1.15.5" apply false
+    id "me.modmuss50.mod-publish-plugin" version "1.1.0" apply false
 }
 
 apply from: rootProject.file("common.gradle").path
 
 ext {
-	mcVersion = providers.gradleProperty("deps.minecraft").get()
-	buildVersionString = { String modVersion, String releaseType, String minecraftVersion, String loader ->
-		def semver = modVersion
-		def isPrerelease = releaseType != "release"
-		if (isPrerelease) semver += "-" + releaseType
-		semver += "+" + minecraftVersion + "-" + loader
-		if (isPrerelease) semver += ".rev." + "git rev-parse --short HEAD".execute().text.trim()
-		return semver
-	}
+    mcVersion = providers.gradleProperty("deps.minecraft").get()
+    buildVersionString = { String modVersion, String releaseType, String minecraftVersion, String loader ->
+        def semver = modVersion
+        def isPrerelease = releaseType != "release"
+        if (isPrerelease) semver += "-" + releaseType
+        semver += "+" + minecraftVersion + "-" + loader
+        if (isPrerelease) semver += ".rev." + "git rev-parse --short HEAD".execute().text.trim()
+        return semver
+    }
 }
 
-	allprojects {
-	group = rootProject.property("maven_group")
+allprojects {
+    group = rootProject.property("maven_group")
 
-	repositories {
-		mavenCentral()
-		maven {
-			name = "TerraformersMC"
-			url = "https://maven.terraformersmc.com/releases/"
-		}
-		maven {
-			name = "Modrinth"
-			url = "https://api.modrinth.com/maven"
-			content {
-				includeGroup "maven.modrinth"
-			}
-		}
-		maven {
-			name = "Xander"
-			url = "https://maven.isxander.dev/releases"
-		}
-		maven {
-			name = "NeoForged"
-			url = "https://maven.neoforged.net/releases"
-			content {
-				includeGroup "net.neoforged"
-				includeGroup "net.neoforged.fancymodloader"
-				includeGroup "cpw.mods"
-			}
-		}
-		maven { url = "https://maven.bawnorton.com/releases" }
-	}
+    repositories {
+        mavenCentral()
+        maven {
+            name = "TerraformersMC"
+            url = "https://maven.terraformersmc.com/releases/"
+        }
+        maven {
+            name = "Modrinth"
+            url = "https://api.modrinth.com/maven"
+            content {
+                includeGroup "maven.modrinth"
+            }
+        }
+        maven {
+            name = "Xander"
+            url = "https://maven.isxander.dev/releases"
+        }
+        maven {
+            name = "NeoForged"
+            url = "https://maven.neoforged.net/releases"
+            content {
+                includeGroup "net.neoforged"
+                includeGroup "net.neoforged.fancymodloader"
+                includeGroup "cpw.mods"
+            }
+        }
+        maven { url = "https://maven.bawnorton.com/releases" }
+    }
 }

@@ -1,5 +1,6 @@
 package com.qendolin.betterclouds.clouds;
 
+import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.clouds.fog.FogProvider;
@@ -29,7 +30,6 @@ import org.joml.Vector3f;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import com.mojang.blaze3d.opengl.GlStateManager;
 
 import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
 import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
@@ -37,9 +37,6 @@ import static org.lwjgl.opengl.GL32.*;
 
 public class Renderer implements AutoCloseable {
     private final Minecraft client;
-    private ClientLevel world = null;
-
-    private float cloudsHeight;
     private final Matrix4f mvpMatrix = new Matrix4f();
     private final Matrix4f mvMatrix = new Matrix4f();
     private final Matrix4f pMatrix = new Matrix4f();
@@ -48,12 +45,22 @@ public class Renderer implements AutoCloseable {
     private final Matrix4f tempMatrix = new Matrix4f();
     private final Vector3f tempVector = new Vector3f();
     private final Frustum tempFrustum = new Frustum(new Matrix4f().identity(), new Matrix4f().identity());
-    private ShaderParameters shaderParameters = null;
-
     private final Resources res = new Resources();
+    private ClientLevel world = null;
+    private float cloudsHeight;
+    private ShaderParameters shaderParameters = null;
 
     public Renderer(Minecraft client) {
         this.client = client;
+    }
+
+    private static void setFrustumTo(Frustum dst, Frustum src) {
+        dst.intersection = src.intersection;
+        dst.matrix.set(src.matrix);
+        dst.camX = src.camX;
+        dst.camY = src.camY;
+        dst.camZ = src.camZ;
+        dst.viewVector = src.viewVector;
     }
 
     public void setWorld(ClientLevel world) {
@@ -97,11 +104,11 @@ public class Renderer implements AutoCloseable {
 
     private ShaderParameters createShaderParameters(Config config) {
         return new ShaderParameters(
-            client.options.getCloudStatus(),
-            config.blockDistance(), config.sizeXZ, config.sizeY, config.celestialBodyHalo,
-            glCompat.useDepthWriteFallback(), glCompat.useStencilTextureFallback(),
-            DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled(),
-            config.preset().worldCurvatureSize
+                client.options.getCloudStatus(),
+                config.blockDistance(), config.sizeXZ, config.sizeY, config.celestialBodyHalo,
+                glCompat.useDepthWriteFallback(), glCompat.useStencilTextureFallback(),
+                DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled(),
+                config.preset().worldCurvatureSize
         );
     }
 
@@ -484,15 +491,6 @@ public class Renderer implements AutoCloseable {
         Config config = res.generator().config();
         if (config != null) return config;
         return ConfigManager.instance();
-    }
-
-    private static void setFrustumTo(Frustum dst, Frustum src) {
-        dst.intersection = src.intersection;
-        dst.matrix.set(src.matrix);
-        dst.camX = src.camX;
-        dst.camY = src.camY;
-        dst.camZ = src.camZ;
-        dst.viewVector = src.viewVector;
     }
 
     public void close() {

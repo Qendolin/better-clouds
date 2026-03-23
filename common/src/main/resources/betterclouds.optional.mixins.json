@@ -1,10 +1,10 @@
 {
-  "required": false,
-  "minVersion": "0.8",
-  "package": "com.qendolin.betterclouds.mixin.optional",
-  "plugin": "com.qendolin.betterclouds.mixin.OptionalMixinPlugin",
-  "compatibilityLevel": "JAVA_22",
-  "client": [
+  "required" : false,
+  "minVersion" : "0.8",
+  "package" : "com.qendolin.betterclouds.mixin.optional",
+  "plugin" : "com.qendolin.betterclouds.mixin.OptionalMixinPlugin",
+  "compatibilityLevel" : "JAVA_22",
+  "client" : [
     "ArsNouveauSkyTextureHandlerMixin"
   ]
 }

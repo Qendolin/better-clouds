@@ -15,8 +15,8 @@ public class ArsNouveauSkyTextureHandlerMixin {
 
     @SuppressWarnings("UnresolvedMixinReference")
     @WrapOperation(method = "renderSky", at = @At(
-        value = "INVOKE",
-        target = "Lnet/minecraft/client/renderer/LevelRenderer;renderClouds(Lcom/mojang/blaze3d/vertex/PoseStack;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;FDDD)V"))
+            value = "INVOKE",
+            target = "Lnet/minecraft/client/renderer/LevelRenderer;renderClouds(Lcom/mojang/blaze3d/vertex/PoseStack;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;FDDD)V"))
     private static void onRenderClouds(@Coerce Object instance, @Coerce Object poseStack, Matrix4f frustumMatrix, Matrix4f projectionMatrix, float partialTick, double camX, double camY, double camZ, Operation<Void> original) {
         try {
             ArsNouveauCompat.IS_SKY_TEXTURE_CLOUDS_RENDERING.set(true);

@@ -7,68 +7,56 @@
 [<img src="https://i.imgur.com/Ol1Tcf8.png" alt="Requires Fabric API" height="20" width="60">](https://modrinth.com/mod/fabric-api)
 [![modrinth](https://img.shields.io/badge/modrinth--brightgreen?color=5da545&%20&query=downloads&style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMSAxMSIgd2lkdGg9IjE0LjY2NyIgaGVpZ2h0PSIxNC42NjciICB4bWxuczp2PSJodHRwczovL3ZlY3RhLmlvL25hbm8iPjxkZWZzPjxjbGlwUGF0aCBpZD0iQSI+PHBhdGggZD0iTTAgMGgxMXYxMUgweiIvPjwvY2xpcFBhdGg+PC9kZWZzPjxnIGNsaXAtcGF0aD0idXJsKCNBKSI+PHBhdGggZD0iTTEuMzA5IDcuODU3YTQuNjQgNC42NCAwIDAgMS0uNDYxLTEuMDYzSDBDLjU5MSA5LjIwNiAyLjc5NiAxMSA1LjQyMiAxMWMxLjk4MSAwIDMuNzIyLTEuMDIgNC43MTEtMi41NTZoMGwtLjc1LS4zNDVjLS44NTQgMS4yNjEtMi4zMSAyLjA5Mi0zLjk2MSAyLjA5MmE0Ljc4IDQuNzggMCAwIDEtMy4wMDUtMS4wNTVsMS44MDktMS40NzQuOTg0Ljg0NyAxLjkwNS0xLjAwM0w4LjE3NCA1LjgybC0uMzg0LS43ODYtMS4xMTYuNjM1LS41MTYuNjk0LS42MjYuMjM2LS44NzMtLjM4N2gwbC0uMjEzLS45MS4zNTUtLjU2Ljc4Ny0uMzcuODQ1LS45NTktLjcwMi0uNTEtMS44NzQuNzEzLTEuMzYyIDEuNjUxLjY0NSAxLjA5OC0xLjgzMSAxLjQ5MnptOS42MTQtMS40NEE1LjQ0IDUuNDQgMCAwIDAgMTEgNS41QzExIDIuNDY0IDguNTAxIDAgNS40MjIgMCAyLjc5NiAwIC41OTEgMS43OTQgMCA0LjIwNmguODQ4QzEuNDE5IDIuMjQ1IDMuMjUyLjgwOSA1LjQyMi44MDljMi42MjYgMCA0Ljc1OCAyLjEwMiA0Ljc1OCA0LjY5MSAwIC4xOS0uMDEyLjM3Ni0uMDM0LjU2bC43NzcuMzU3aDB6IiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGZpbGw9IiM1ZGE0MjYiLz48L2c+PC9zdmc+)](https://modrinth.com/mod/better-clouds)
 
-**Please, feel free to [report](https://github.com/Qendolin/better-clouds/issues/new) any issues** 
+**Please, feel free to [report](https://github.com/Qendolin/better-clouds/issues/new) any issues**
 
-&nbsp;  
-&nbsp;  
-&nbsp;  
-
-# ⚠️ DISCONTINUED ⚠️
-
-This mod is discontinued and will not recive any more updates!
-
-I'm open to pass on maintainership if anyone wants to.
-
-&nbsp;  
-&nbsp;  
-&nbsp; 
+> hi everyone, i'm the new maintainer now. the mod is no longer discontinued. cheers  
+> -orangishcat
 
 ---
 
 **Introducing "Better Clouds"** - Enhancing the Skies of Minecraft! 🌤️
 
-- Are you tired of lackluster clouds in Minecraft? 😞  
-- Do they seem like mere distractions? 😫  
+- Are you tired of lackluster clouds in Minecraft? 😞
+- Do they seem like mere distractions? 😫
 - Perhaps you've tried realistic shader clouds, but they just don't fit Minecraft's aesthetic. 🤔
 
-I have the ✨**perfect solution**✨ for you! 😍  
+I have the ✨**perfect solution**✨ for you! 😍
 
-**Better Clouds** is a meticulously crafted mod designed to transform your Minecraft experience with stunning skies. Developed with love and care, this mod is here to enhance your game like never before.
+**Better Clouds** is a meticulously crafted mod designed to transform your Minecraft experience with stunning skies.
+Developed with love and care, this mod is here to enhance your game like never before.
 
 ### Key Features:
 
-🌩️ **Customization at Your Fingertips**: 
-With over 35 settings to choose from, you have complete control over the appearance of clouds. 
+🌩️ **Customization at Your Fingertips**:
+With over 35 settings to choose from, you have complete control over the appearance of clouds.
 Tailor them to your preferences and make your Minecraft world truly unique.
 
-🌈 **Compatibility with Shader Packs**: 
-Worried about compatibility? Fear not! Better Clouds seamlessly integrates with many shader packs, 
+🌈 **Compatibility with Shader Packs**:
+Worried about compatibility? Fear not! Better Clouds seamlessly integrates with many shader packs,
 allowing you to combine our mod with your favorite visual enhancements.
 
-🎨 **Presets and Personalization**: 
-I understand that not everyone wants to tinker with settings. 
-That's why I offer presets for common shaders, making it easier than ever to achieve breathtaking cloudscapes. 
+🎨 **Presets and Personalization**:
+I understand that not everyone wants to tinker with settings.
+That's why I offer presets for common shaders, making it easier than ever to achieve breathtaking cloudscapes.
 And if you're feeling creative, go ahead and create your very own presets.
 
-⚡ **Optimized Performance**: 
-Performance concerns? I've got you covered. Extensive testing has shown that Better Clouds has little to no impact on performance, 
+⚡ **Optimized Performance**:
+Performance concerns? I've got you covered. Extensive testing has shown that Better Clouds has little to no impact on
+performance,
 and in some cases, it may even improve it. Enjoy enhanced visuals without compromising your gameplay.
 
-🖌️ **Fine-Tuned Color Customization**: 
-Want to set the perfect atmospheric tone? Better Clouds allows you to finely tune the colors with resource packs. 
+🖌️ **Fine-Tuned Color Customization**:
+Want to set the perfect atmospheric tone? Better Clouds allows you to finely tune the colors with resource packs.
 Create any ambiance you desire and immerse yourself in a world with skies that match your vision.
 
 💖 **Made with Love and Care**:
-Better Clouds is a labor of love, meticulously crafted by me to elevate your Minecraft experience. 
+Better Clouds is a labor of love, meticulously crafted by me to elevate your Minecraft experience.
 
 🚀 **Elevate Your Minecraft Sky**!  
-Don't settle for lackluster clouds any longer. Upgrade to Better Clouds and transform the way you experience Minecraft's sky.
+Don't settle for lackluster clouds any longer. Upgrade to Better Clouds and transform the way you experience Minecraft's
+sky.
 
 #### [Download now](https://modrinth.com/mod/better-clouds)
-[![modrinth](https://img.shields.io/badge/modrinth--brightgreen?color=5da545&%20&query=downloads&style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMSAxMSIgd2lkdGg9IjE0LjY2NyIgaGVpZ2h0PSIxNC42NjciICB4bWxuczp2PSJodHRwczovL3ZlY3RhLmlvL25hbm8iPjxkZWZzPjxjbGlwUGF0aCBpZD0iQSI+PHBhdGggZD0iTTAgMGgxMXYxMUgweiIvPjwvY2xpcFBhdGg+PC9kZWZzPjxnIGNsaXAtcGF0aD0idXJsKCNBKSI+PHBhdGggZD0iTTEuMzA5IDcuODU3YTQuNjQgNC42NCAwIDAgMS0uNDYxLTEuMDYzSDBDLjU5MSA5LjIwNiAyLjc5NiAxMSA1LjQyMiAxMWMxLjk4MSAwIDMuNzIyLTEuMDIgNC43MTEtMi41NTZoMGwtLjc1LS4zNDVjLS44NTQgMS4yNjEtMi4zMSAyLjA5Mi0zLjk2MSAyLjA5MmE0Ljc4IDQuNzggMCAwIDEtMy4wMDUtMS4wNTVsMS44MDktMS40NzQuOTg0Ljg0NyAxLjkwNS0xLjAwM0w4LjE3NCA1LjgybC0uMzg0LS43ODYtMS4xMTYuNjM1LS41MTYuNjk0LS42MjYuMjM2LS44NzMtLjM4N2gwbC0uMjEzLS45MS4zNTUtLjU2Ljc4Ny0uMzcuODQ1LS45NTktLjcwMi0uNTEtMS44NzQuNzEzLTEuMzYyIDEuNjUxLjY0NSAxLjA5OC0xLjgzMSAxLjQ5MnptOS42MTQtMS40NEE1LjQ0IDUuNDQgMCAwIDAgMTEgNS41QzExIDIuNDY0IDguNTAxIDAgNS40MjIgMCAyLjc5NiAwIC41OTEgMS43OTQgMCA0LjIwNmguODQ4QzEuNDE5IDIuMjQ1IDMuMjUyLjgwOSA1LjQyMi44MDljMi42MjYgMCA0Ljc1OCAyLjEwMiA0Ljc1OCA0LjY5MSAwIC4xOS0uMDEyLjM3Ni0uMDM0LjU2bC43NzcuMzU3aDB6IiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGZpbGw9IiM1ZGE0MjYiLz48L2c+PC9zdmc+)](https://modrinth.com/mod/better-clouds)
-
-This mods collects some anonymous, unattributable telementry, you can read more about it [here](https://github.com/Qendolin/better-clouds/blob/main/Telemetry.md).
-If you are unhappy about that, please simply don't use the mod.
 
 ## Contributions
 
@@ -83,12 +71,15 @@ Check it out [here](https://github.com/Qendolin/better-clouds/wiki).
 ## License
 
 This software is licensed under [MPL 2.0](https://www.mozilla.org/en-US/MPL/2.0/FAQ/).  
-The assets, except for the logo, are under [CC BY-SA](https://creativecommons.org/licenses/by-sa/4.0/).  
+The assets, except for the logo, are under [CC BY-SA](https://creativecommons.org/licenses/by-sa/4.0/).
 
 ### Restrictions on Name and Logo use
+
 I **do not grant permission** for the use of the name "Better Clouds" or its logo for publication of derivative works.  
-Derivative works **must have a clearly distinct name and logo** to avoid confusion with the official "Better Clouds".  
+Derivative works **must have a clearly distinct name and logo** to avoid confusion with the official "Better Clouds".
+
 #### Examples
- - "Better Clouds Forge", is too similar and can be confused as an official publication for Forge.
- - "Better Clouds Reforged", this is fine, as "Reforged" is a common term for unofficial ports to Forge.
- - "Better Clouds (Unofficial)", if this is where your imagination ends, this is also fine.
+
+- "Better Clouds Forge", is too similar and can be confused as an official publication for Forge.
+- "Better Clouds Reforged", this is fine, as "Reforged" is a common term for unofficial ports to Forge.
+- "Better Clouds (Unofficial)", if this is where your imagination ends, this is also fine.

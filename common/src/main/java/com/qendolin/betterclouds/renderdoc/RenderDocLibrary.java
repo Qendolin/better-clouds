@@ -29,10 +29,10 @@ public interface RenderDocLibrary extends Library {
 
     @SuppressWarnings("unused")
     @Structure.FieldOrder({
-        "GetAPIVersion", "SetCaptureOptionU32", "SetCaptureOptionF32", "GetCaptureOptionU32", "GetCaptureOptionF32", "SetFocusToggleKeys",
-        "SetCaptureKeys", "GetOverlayBits", "MaskOverlayBits", "RemoveHooks", "UnloadCrashHandler", "SetCaptureFilePathTemplate", "GetCaptureFilePathTemplate",
-        "GetNumCaptures", "GetCapture", "TriggerCapture", "IsTargetControlConnected", "LaunchReplayUI", "SetActiveWindow", "StartFrameCapture",
-        "IsFrameCapturing", "EndFrameCapture", "TriggerMultiFrameCapture", "SetCaptureFileComments", "DiscardFrameCapture", "ShowReplayUI", "SetCaptureTitle"
+            "GetAPIVersion", "SetCaptureOptionU32", "SetCaptureOptionF32", "GetCaptureOptionU32", "GetCaptureOptionF32", "SetFocusToggleKeys",
+            "SetCaptureKeys", "GetOverlayBits", "MaskOverlayBits", "RemoveHooks", "UnloadCrashHandler", "SetCaptureFilePathTemplate", "GetCaptureFilePathTemplate",
+            "GetNumCaptures", "GetCapture", "TriggerCapture", "IsTargetControlConnected", "LaunchReplayUI", "SetActiveWindow", "StartFrameCapture",
+            "IsFrameCapturing", "EndFrameCapture", "TriggerMultiFrameCapture", "SetCaptureFileComments", "DiscardFrameCapture", "ShowReplayUI", "SetCaptureTitle"
     })
     class RenderdocApi extends Structure {
 

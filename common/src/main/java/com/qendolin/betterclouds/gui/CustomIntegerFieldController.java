@@ -2,8 +2,9 @@ package com.qendolin.betterclouds.gui;
 
 import dev.isxander.yacl3.api.Option;
 import dev.isxander.yacl3.gui.controllers.string.number.IntegerFieldController;
-import java.util.function.Function;
 import net.minecraft.network.chat.Component;
+
+import java.util.function.Function;
 
 public class CustomIntegerFieldController extends IntegerFieldController {
     public CustomIntegerFieldController(Option<Integer> option, int min, int max, Function<Integer, Component> formatter) {

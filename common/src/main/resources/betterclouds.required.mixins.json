@@ -1,12 +1,12 @@
 {
-  "required": true,
-  "minVersion": "0.8",
-  "package": "com.qendolin.betterclouds.mixin.required",
-  "plugin": "com.qendolin.betterclouds.mixin.RequiredMixinPlugin",
-  "compatibilityLevel": "JAVA_22",
-  "mixins": [
+  "required" : true,
+  "minVersion" : "0.8",
+  "package" : "com.qendolin.betterclouds.mixin.required",
+  "plugin" : "com.qendolin.betterclouds.mixin.RequiredMixinPlugin",
+  "compatibilityLevel" : "JAVA_22",
+  "mixins" : [
   ],
-  "client": [
+  "client" : [
     "CloudSettingMixin",
     "GameRendererAccessor",
     "RenderSystemMixin",
@@ -18,7 +18,7 @@
     "yacl.OptionListWidgetMixin",
     "yacl.PopupControllerScreenAccessor"
   ],
-  "injectors": {
-    "defaultRequire": 1
+  "injectors" : {
+    "defaultRequire" : 1
   }
 }

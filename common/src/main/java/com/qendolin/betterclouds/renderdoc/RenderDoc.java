@@ -31,14 +31,13 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.EnumSet;
 
-@SuppressWarnings({"unused", "UnusedReturnValue"})
+@SuppressWarnings({ "unused", "UnusedReturnValue" })
 public final class RenderDoc {
     public static final NamedLogger LOGGER = new NamedLogger(LogManager.getLogger("BetterClouds RenderDoc"), false);
+    private static RenderDocLibrary.RenderdocApi renderdoc;
 
     private RenderDoc() {
     }
-
-    private static RenderDocLibrary.RenderdocApi renderdoc;
 
     public static void init(RenderDocLibrary renderdocLibrary) {
         if (renderdoc != null) return;
@@ -197,19 +196,19 @@ public final class RenderDoc {
     }
 
     /**
-     * Set the template used to generate new capture file names
-     */
-    public static void setCaptureFilePathTemplate(String template) {
-        if (renderdoc == null) return;
-        renderdoc.SetCaptureFilePathTemplate.call(template);
-    }
-
-    /**
      * @return the template used to generate new capture file names
      */
     public static String getCaptureFilePathTemplate() {
         if (renderdoc == null) return null;
         return renderdoc.GetCaptureFilePathTemplate.call();
+    }
+
+    /**
+     * Set the template used to generate new capture file names
+     */
+    public static void setCaptureFilePathTemplate(String template) {
+        if (renderdoc == null) return;
+        renderdoc.SetCaptureFilePathTemplate.call(template);
     }
 
     /**
@@ -319,32 +318,6 @@ public final class RenderDoc {
         renderdoc.SetCaptureFileComments.call(capture.path, comments);
     }
 
-    public static final class CaptureOption<T> {
-        public static final CaptureOption<Boolean> ALLOW_VSYNC = new CaptureOption<>(0, Boolean.class);
-        public static final CaptureOption<Boolean> ALLOW_FULLSCREEN = new CaptureOption<>(1, Boolean.class);
-        public static final CaptureOption<Boolean> API_VALIDATION = new CaptureOption<>(2, Boolean.class);
-        public static final CaptureOption<Boolean> CAPTURE_CALLSTACKS = new CaptureOption<>(3, Boolean.class);
-        public static final CaptureOption<Boolean> CAPTURE_CALLSTACKS_ONLY_DRAWS = new CaptureOption<>(4, Boolean.class);
-        public static final CaptureOption<Integer> DELAY_FOR_DEBUGGER = new CaptureOption<>(5, Integer.class);
-        public static final CaptureOption<Boolean> VERIFY_BUFFER_ACCESS = new CaptureOption<>(6, Boolean.class);
-        public static final CaptureOption<Boolean> HOOK_INTO_CHILDREN = new CaptureOption<>(7, Boolean.class);
-        public static final CaptureOption<Boolean> REF_ALL_RESOURCES = new CaptureOption<>(8, Boolean.class);
-        public static final CaptureOption<Boolean> SAVE_ALL_INITIALS = new CaptureOption<>(9, Boolean.class);
-        public static final CaptureOption<Boolean> CAPTURE_ALL_CMD_LISTS = new CaptureOption<>(10, Boolean.class);
-        public static final CaptureOption<Boolean> DEBUG_OUTPUT_MUTE = new CaptureOption<>(11, Boolean.class);
-
-        @Deprecated
-        public static final CaptureOption<?> ALLOW_UNSUPPORTED_VENDOR_EXTENSIONS = new CaptureOption<>(12, Void.class);
-
-        public final int idx;
-        private final Class<T> type;
-
-        CaptureOption(int idx, Class<T> type) {
-            this.idx = idx;
-            this.type = type;
-        }
-    }
-
     public enum Key {
         // '0' - '9' matches ASCII values
         ZERO(0x30, GLFW.GLFW_KEY_0),
@@ -420,6 +393,15 @@ public final class RenderDoc {
         PRINT_SCREEN(0x119, GLFW.GLFW_KEY_PRINT_SCREEN),
         PAUSE(0x11a, GLFW.GLFW_KEY_PAUSE);
 
+        private static final Int2ObjectMap<Key> GLFW_MAPPINGS = new Int2ObjectOpenHashMap<>();
+
+        static {
+            for (var key : values()) {
+                if (key.glfw < 0) continue;
+                GLFW_MAPPINGS.put(key.glfw, key);
+            }
+        }
+
         private final int keycode;
         private final int glfw;
 
@@ -428,17 +410,8 @@ public final class RenderDoc {
             this.glfw = glfw;
         }
 
-        private static final Int2ObjectMap<Key> GLFW_MAPPINGS = new Int2ObjectOpenHashMap<>();
-
         public static @Nullable Key fromGLFW(int glfw) {
             return GLFW_MAPPINGS.getOrDefault(glfw, null);
-        }
-
-        static {
-            for (var key : values()) {
-                if (key.glfw < 0) continue;
-                GLFW_MAPPINGS.put(key.glfw, key);
-            }
         }
     }
 
@@ -455,6 +428,32 @@ public final class RenderDoc {
 
         OverlayOption(int mask) {
             this.mask = mask;
+        }
+    }
+
+    public static final class CaptureOption<T> {
+        public static final CaptureOption<Boolean> ALLOW_VSYNC = new CaptureOption<>(0, Boolean.class);
+        public static final CaptureOption<Boolean> ALLOW_FULLSCREEN = new CaptureOption<>(1, Boolean.class);
+        public static final CaptureOption<Boolean> API_VALIDATION = new CaptureOption<>(2, Boolean.class);
+        public static final CaptureOption<Boolean> CAPTURE_CALLSTACKS = new CaptureOption<>(3, Boolean.class);
+        public static final CaptureOption<Boolean> CAPTURE_CALLSTACKS_ONLY_DRAWS = new CaptureOption<>(4, Boolean.class);
+        public static final CaptureOption<Integer> DELAY_FOR_DEBUGGER = new CaptureOption<>(5, Integer.class);
+        public static final CaptureOption<Boolean> VERIFY_BUFFER_ACCESS = new CaptureOption<>(6, Boolean.class);
+        public static final CaptureOption<Boolean> HOOK_INTO_CHILDREN = new CaptureOption<>(7, Boolean.class);
+        public static final CaptureOption<Boolean> REF_ALL_RESOURCES = new CaptureOption<>(8, Boolean.class);
+        public static final CaptureOption<Boolean> SAVE_ALL_INITIALS = new CaptureOption<>(9, Boolean.class);
+        public static final CaptureOption<Boolean> CAPTURE_ALL_CMD_LISTS = new CaptureOption<>(10, Boolean.class);
+        public static final CaptureOption<Boolean> DEBUG_OUTPUT_MUTE = new CaptureOption<>(11, Boolean.class);
+
+        @Deprecated
+        public static final CaptureOption<?> ALLOW_UNSUPPORTED_VENDOR_EXTENSIONS = new CaptureOption<>(12, Void.class);
+
+        public final int idx;
+        private final Class<T> type;
+
+        CaptureOption(int idx, Class<T> type) {
+            this.idx = idx;
+            this.type = type;
         }
     }
 

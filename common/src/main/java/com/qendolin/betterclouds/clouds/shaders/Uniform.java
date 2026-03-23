@@ -129,7 +129,7 @@ public abstract class Uniform {
     }
 
     public static class Cached extends Uniform {
-        private final float[] cache = {-1, -1, -1, -1};
+        private final float[] cache = { -1, -1, -1, -1 };
 
         protected Cached(String name, int location) {
             super(name, location);

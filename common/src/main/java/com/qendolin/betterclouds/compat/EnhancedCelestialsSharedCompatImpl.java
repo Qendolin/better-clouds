@@ -7,39 +7,9 @@ import org.joml.Vector3f;
 
 public abstract class EnhancedCelestialsSharedCompatImpl extends EnhancedCelestialsCompat {
 
-    protected static abstract class LunarForecastAccess extends ReflectAccess {
-        public LunarForecastAccess() {
-            super("Enhanced Celestials");
-        }
-
-        public abstract LunarEventAccess lastLunarEvent();
-
-        public abstract LunarEventAccess currentLunarEvent();
-
-        public abstract float getBlend();
-
-        public abstract boolean switchingEvents();
-
-    }
-
-    protected static abstract class LunarEventAccess extends ReflectAccess {
-        public LunarEventAccess() {
-            super("Enhanced Celestials");
-        }
-
-        public abstract Vector3f getGLSkyLightColor();
-
-        public abstract float getMoonSize();
-
-        @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-        protected abstract boolean matches(Identifier id);
-
-    }
-
     protected abstract LunarForecastAccess getLunarForecast(Level world);
 
     protected abstract Identifier defaultLunarEvent();
-
 
     @Override
     public Vector3f getEventTint(Level world) {
@@ -89,5 +59,34 @@ public abstract class EnhancedCelestialsSharedCompatImpl extends EnhancedCelesti
         float currSize = currEvent.getMoonSize();
 
         return Mth.clampedLerp(lastSize, currSize, forecast.getBlend()) / 20.0f;
+    }
+
+    protected static abstract class LunarForecastAccess extends ReflectAccess {
+        public LunarForecastAccess() {
+            super("Enhanced Celestials");
+        }
+
+        public abstract LunarEventAccess lastLunarEvent();
+
+        public abstract LunarEventAccess currentLunarEvent();
+
+        public abstract float getBlend();
+
+        public abstract boolean switchingEvents();
+
+    }
+
+    protected static abstract class LunarEventAccess extends ReflectAccess {
+        public LunarEventAccess() {
+            super("Enhanced Celestials");
+        }
+
+        public abstract Vector3f getGLSkyLightColor();
+
+        public abstract float getMoonSize();
+
+        @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+        protected abstract boolean matches(Identifier id);
+
     }
 }

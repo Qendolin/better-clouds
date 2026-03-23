@@ -1,28 +1,33 @@
 ## Use of telemetry data
 
-As a developer of a mod designed to enhance gaming experiences, I want to explain why I collect anonymous telemetry data. 
-By gathering this information, I aim to improve compatibility with different GPUs and GPU drivers. 
-I understand the importance of privacy, and I want to assure you that I take it seriously. 
+As a developer of a mod designed to enhance gaming experiences, I want to explain why I collect anonymous telemetry
+data.
+By gathering this information, I aim to improve compatibility with different GPUs and GPU drivers.
+I understand the importance of privacy, and I want to assure you that I take it seriously.
 I only collect necessary data, and it is never sent regularly or used for any other purpose than enhancing the mod.
 
-The anonymous telemetry data I collect provides valuable insights into the diverse hardware configurations and software environments that players use. 
-This data helps me identify patterns and compatibility issues, allowing me to optimize the mod accordingly. 
-Understanding which GPUs and drivers are commonly used enables me to prioritize testing and development efforts, ensuring the mod works seamlessly for a wide range of players.
+The anonymous telemetry data I collect provides valuable insights into the diverse hardware configurations and software
+environments that players use.
+This data helps me identify patterns and compatibility issues, allowing me to optimize the mod accordingly.
+Understanding which GPUs and drivers are commonly used enables me to prioritize testing and development efforts,
+ensuring the mod works seamlessly for a wide range of players.
 
-I want to emphasize that your privacy is respected. I collect only the information that is essential for improving compatibility, 
+I want to emphasize that your privacy is respected. I collect only the information that is essential for improving
+compatibility,
 and I make sure the telemetry data remains anonymous.
 
 ## When is telemetry data collected
 
-The mod collects `SYSTEM_INFORMATION` telemetry during the initial launch of the game with the mod loaded. 
+The mod collects `SYSTEM_INFORMATION` telemetry during the initial launch of the game with the mod loaded.
 Please note that if you upgrade to a newer version of the mod, this information may be retransmitted.
 
-Additionally, `SHADER_COMPILE_ERROR` telemetry is collected when a shader fails to compile. 
+Additionally, `SHADER_COMPILE_ERROR` telemetry is collected when a shader fails to compile.
 This allows me to identify and address any issues related to shader compilation promptly.
 
 ## What information is included in the telemetry dta
 
 `META_INFORMATION` includes:
+
 - `modVersion` The version of this mod
 - `modSemVer` The version of this mod, but more detailed
 - `mcVersion` The version of the game
@@ -56,8 +61,7 @@ This allows me to identify and address any issues related to shader compilation 
 - `mods` A list of all loaded mod ids
 - `SYSTEM_INFORMATION`
 
-
-Additionally, by the nature of HTTP requests your IP address is transmitted to the collection server, 
+Additionally, by the nature of HTTP requests your IP address is transmitted to the collection server,
 but it is not stored.
 
 ## Where is the telemetry data stored

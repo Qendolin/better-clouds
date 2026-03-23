@@ -27,35 +27,35 @@ public class FabricSeasonsGUI {
         info = LabelOption.create(optionLabel("fabricSeasons.info"));
 
         transitionDays = createOption(float.class, "fabricSeasons.transitionDays", true)
-            .binding(defaults.transitionDays, () -> config.transitionDays, val -> config.transitionDays = val)
-            .customController(opt -> new FloatFieldController(opt, 0, Float.MAX_VALUE, ConfigGUI::formatAsDays))
-            .build();
+                .binding(defaults.transitionDays, () -> config.transitionDays, val -> config.transitionDays = val)
+                .customController(opt -> new FloatFieldController(opt, 0, Float.MAX_VALUE, ConfigGUI::formatAsDays))
+                .build();
 
         springCloudiness = createOption(float.class, "fabricSeasons.springCloudiness", false)
-            .binding(defaults.springCloudiness, () -> config.springCloudiness, val -> config.springCloudiness = val)
-            .customController(opt -> new FloatSliderController(opt, 0, 2, 0.1f, ConfigGUI::formatAsTimes))
-            .build();
+                .binding(defaults.springCloudiness, () -> config.springCloudiness, val -> config.springCloudiness = val)
+                .customController(opt -> new FloatSliderController(opt, 0, 2, 0.1f, ConfigGUI::formatAsTimes))
+                .build();
         summerCloudiness = createOption(float.class, "fabricSeasons.summerCloudiness", false)
-            .binding(defaults.summerCloudiness, () -> config.summerCloudiness, val -> config.summerCloudiness = val)
-            .customController(opt -> new FloatSliderController(opt, 0, 2, 0.1f, ConfigGUI::formatAsTimes))
-            .build();
+                .binding(defaults.summerCloudiness, () -> config.summerCloudiness, val -> config.summerCloudiness = val)
+                .customController(opt -> new FloatSliderController(opt, 0, 2, 0.1f, ConfigGUI::formatAsTimes))
+                .build();
         fallCloudiness = createOption(float.class, "fabricSeasons.fallCloudiness", false)
-            .binding(defaults.fallCloudiness, () -> config.fallCloudiness, val -> config.fallCloudiness = val)
-            .customController(opt -> new FloatSliderController(opt, 0, 2, 0.1f, ConfigGUI::formatAsTimes))
-            .build();
+                .binding(defaults.fallCloudiness, () -> config.fallCloudiness, val -> config.fallCloudiness = val)
+                .customController(opt -> new FloatSliderController(opt, 0, 2, 0.1f, ConfigGUI::formatAsTimes))
+                .build();
         winterCloudiness = createOption(float.class, "fabricSeasons.winterCloudiness", false)
-            .binding(defaults.winterCloudiness, () -> config.winterCloudiness, val -> config.winterCloudiness = val)
-            .customController(opt -> new FloatSliderController(opt, 0, 2, 0.1f, ConfigGUI::formatAsTimes))
-            .build();
+                .binding(defaults.winterCloudiness, () -> config.winterCloudiness, val -> config.winterCloudiness = val)
+                .customController(opt -> new FloatSliderController(opt, 0, 2, 0.1f, ConfigGUI::formatAsTimes))
+                .build();
 
         compatFabricSeasonsGroup.add(info);
 
         var options = List.of(
-            transitionDays,
-            springCloudiness,
-            summerCloudiness,
-            fallCloudiness,
-            winterCloudiness
+                transitionDays,
+                springCloudiness,
+                summerCloudiness,
+                fallCloudiness,
+                winterCloudiness
         );
         compatFabricSeasonsGroup.addAll(options);
         for (var opt : options) {

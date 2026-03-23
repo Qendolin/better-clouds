@@ -1,15 +1,23 @@
 package com.qendolin.betterclouds.compat;
 
 import com.qendolin.betterclouds.config.ConfigManager;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Locale;
-import net.minecraft.util.Mth;
-import net.minecraft.world.level.Level;
 
 public class SereneSeasonsCompatImpl extends SereneSeasonsCompat {
     private static final Api API = Api.load();
+
+    private static String seasonName(Object season) {
+        if (season instanceof Enum<?> enumSeason) {
+            return enumSeason.name();
+        }
+        return season == null ? "" : season.toString();
+    }
 
     private Object getRelativeSeason(Object season, int d) {
         if (d == 0) {
@@ -29,7 +37,7 @@ public class SereneSeasonsCompatImpl extends SereneSeasonsCompat {
     private float getSeasonCloudiness(Object season) {
         String key = seasonName(season).toLowerCase(Locale.ROOT);
         return SUB_SEASON_CLOUDINESS_LOOKUP.getOrDefault(key, config -> 1.0f)
-            .apply(ConfigManager.instance().sereneSeasonsConfig);
+                .apply(ConfigManager.instance().sereneSeasonsConfig);
     }
 
     private int getSubSeasonTicks(Object state) throws InvocationTargetException, IllegalAccessException {
@@ -91,13 +99,6 @@ public class SereneSeasonsCompatImpl extends SereneSeasonsCompat {
         }
     }
 
-    private static String seasonName(Object season) {
-        if (season instanceof Enum<?> enumSeason) {
-            return enumSeason.name();
-        }
-        return season == null ? "" : season.toString();
-    }
-
     private static final class Api {
         private final Method getSeasonState;
         private final Method getSubSeason;
@@ -119,25 +120,26 @@ public class SereneSeasonsCompatImpl extends SereneSeasonsCompat {
             try {
                 Class<?> seasonHelperClass = Class.forName("sereneseasons.api.season.SeasonHelper");
                 Method getSeasonState = Arrays.stream(seasonHelperClass.getMethods())
-                    .filter(method -> method.getName().equals("getSeasonState") && method.getParameterCount() == 1)
-                    .findFirst()
-                    .orElseThrow(NoSuchMethodException::new);
+                        .filter(method -> method.getName().equals("getSeasonState") && method.getParameterCount() == 1)
+                        .findFirst()
+                        .orElseThrow(NoSuchMethodException::new);
 
                 Class<?> seasonStateClass = Class.forName("sereneseasons.api.season.ISeasonState");
                 Method getSubSeason = seasonStateClass.getMethod("getSubSeason");
                 Method getSeasonCycleTicks = seasonStateClass.getMethod("getSeasonCycleTicks");
                 Method getSubSeasonDuration = seasonStateClass.getMethod("getSubSeasonDuration");
                 Method getDayDuration = Arrays.stream(seasonStateClass.getMethods())
-                    .filter(method -> method.getName().equals("getDayDuration") && method.getParameterCount() == 0)
-                    .findFirst()
-                    .orElse(null);
+                        .filter(method -> method.getName().equals("getDayDuration") && method.getParameterCount() == 0)
+                        .findFirst()
+                        .orElse(null);
 
                 Class<?> subSeasonClass = Class.forName("sereneseasons.api.season.Season$SubSeason");
                 Method values = subSeasonClass.getMethod("values");
                 Object[] subSeasons = (Object[]) values.invoke(null);
 
                 return new Api(getSeasonState, getSubSeason, getSeasonCycleTicks, getSubSeasonDuration, getDayDuration, subSeasons);
-            } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
+            } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException |
+                     InvocationTargetException ignored) {
                 return null;
             }
         }

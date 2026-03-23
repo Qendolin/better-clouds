@@ -10,16 +10,15 @@ import dev.isxander.yacl3.gui.YACLScreen;
 import dev.isxander.yacl3.gui.controllers.ControllerPopupWidget;
 import dev.isxander.yacl3.gui.controllers.ControllerWidget;
 import dev.isxander.yacl3.gui.utils.GuiUtils;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.BiFunction;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
-import net.minecraft.sounds.SoundEvents;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BiFunction;
 
 public class SelectDropdownController<T> implements Controller<Integer> {
 
@@ -229,16 +228,15 @@ public class SelectDropdownController<T> implements Controller<Integer> {
 
         private final SelectDropdownController<T> dropdownController;
         private final SelectDropdownElement<T> parentElement;
-
-        private int firstVisibleIndex = 0;
         private final int itemHeight;
         private final Dimension<Integer> popupDimension;
+        private int firstVisibleIndex = 0;
 
         public SelectDropdownPopup(
-            SelectDropdownController<T> control,
-            YACLScreen screen,
-            Dimension<Integer> dim,
-            SelectDropdownElement<T> parentElement
+                SelectDropdownController<T> control,
+                YACLScreen screen,
+                Dimension<Integer> dim,
+                SelectDropdownElement<T> parentElement
         ) {
             super(control, screen, dim, parentElement);
             this.dropdownController = control;
@@ -259,10 +257,10 @@ public class SelectDropdownController<T> implements Controller<Integer> {
             }
 
             return Dimension.ofInt(
-                anchorDim.x().intValue(),
-                Math.max(0, popupY),
-                anchorDim.width().intValue(),
-                popupHeight
+                    anchorDim.x().intValue(),
+                    Math.max(0, popupY),
+                    anchorDim.width().intValue(),
+                    popupHeight
             );
         }
 
@@ -330,9 +328,9 @@ public class SelectDropdownController<T> implements Controller<Integer> {
 
         private boolean isMouseOverItem(double mouseX, double mouseY, int itemY) {
             return mouseX >= popupDimension.x().intValue()
-                && mouseX <= popupDimension.xLimit().intValue()
-                && mouseY >= itemY
-                && mouseY < itemY + itemHeight;
+                    && mouseX <= popupDimension.xLimit().intValue()
+                    && mouseY >= itemY
+                    && mouseY < itemY + itemHeight;
         }
 
         @Override

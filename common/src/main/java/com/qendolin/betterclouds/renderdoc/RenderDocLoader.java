@@ -22,14 +22,6 @@ public class RenderDocLoader {
     public static final Path LIB_LINUX_PATH = BetterCloudsStatic.getDataDirectory().resolve("librenderdoc.so");
     public static final Path LIB_WINDOWS_PATH = BetterCloudsStatic.getDataDirectory().resolve("renderdoc.dll");
 
-    private enum OperatingSystem {
-        UNKNOWN,
-        LINUX,
-        SOLARIS,
-        WINDOWS,
-        OSX
-    }
-
     private static String getOperatingSystemName() {
         return System.getProperty("os.name").toLowerCase(Locale.ROOT);
     }
@@ -82,7 +74,6 @@ public class RenderDocLoader {
             throw new RuntimeException(exception);
         }
     }
-
 
     public static boolean isAvailable() {
         OperatingSystem os = getOperatingSystem();
@@ -187,5 +178,13 @@ public class RenderDocLoader {
         } else {
             throw new RuntimeException("Unsupported OS: " + getOperatingSystemName());
         }
+    }
+
+    private enum OperatingSystem {
+        UNKNOWN,
+        LINUX,
+        SOLARIS,
+        WINDOWS,
+        OSX
     }
 }

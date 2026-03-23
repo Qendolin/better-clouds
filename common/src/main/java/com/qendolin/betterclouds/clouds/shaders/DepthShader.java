@@ -1,10 +1,11 @@
 package com.qendolin.betterclouds.clouds.shaders;
 
 import com.qendolin.betterclouds.BetterCloudsStatic;
-import java.io.IOException;
-import java.util.Map;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
+
+import java.io.IOException;
+import java.util.Map;
 
 public class DepthShader extends Shader {
     public static final Identifier VERTEX_SHADER_ID = Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "shaders/core/betterclouds_depth.vsh");

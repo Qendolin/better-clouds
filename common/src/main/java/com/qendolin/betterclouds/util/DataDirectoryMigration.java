@@ -12,14 +12,14 @@ public interface DataDirectoryMigration {
     @SuppressWarnings("ResultOfMethodCallIgnored")
     static void runMigration() {
         File oldDir = ModLoader.getGameDir().resolve("better-clouds").toFile();
-        if(!oldDir.exists() || !oldDir.isDirectory()) return;
+        if (!oldDir.exists() || !oldDir.isDirectory()) return;
 
         File newDir = BetterCloudsStatic.getDataDirectory().toFile();
-        if(newDir.exists()) return;
+        if (newDir.exists()) return;
 
         newDir.mkdirs();
         var entries = oldDir.listFiles();
-        if(entries == null) return;
+        if (entries == null) return;
 
         BetterCloudsStatic.getLogger().info("Migrating old data directory 'better-clouds' to new directory 'data/betterclouds'");
 
@@ -32,7 +32,7 @@ public interface DataDirectoryMigration {
             }
         }
 
-        if(!anyError) {
+        if (!anyError) {
             FileUtils.deleteQuietly(oldDir);
         } else {
             BetterCloudsStatic.getLogger().info("Some files could not be moved, keeping old directory");

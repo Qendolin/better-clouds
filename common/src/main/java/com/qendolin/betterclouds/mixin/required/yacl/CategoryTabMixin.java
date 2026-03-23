@@ -9,6 +9,13 @@ import com.qendolin.betterclouds.duck.CustomOptionListWidgetDuck;
 import com.qendolin.betterclouds.gui.ConfigScreen;
 import dev.isxander.yacl3.gui.YACLScreen;
 import dev.isxander.yacl3.gui.utils.GuiUtils;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -21,29 +28,29 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.function.Consumer;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.CommonComponents;
-import net.minecraft.network.chat.Component;
 
 @Mixin(value = YACLScreen.CategoryTab.class, remap = false)
 public abstract class CategoryTabMixin implements CustomCategoryTabDuck {
 
-    @Shadow @Final private YACLScreen screen;
-    @Shadow @Final public Button undoButton;
-    @Shadow @Final public Button cancelResetButton;
-    @Shadow @Final public Button saveFinishedButton;
-
-    @Shadow public abstract void updateButtons();
-
+    @Shadow
+    @Final
+    public Button undoButton;
+    @Shadow
+    @Final
+    public Button cancelResetButton;
+    @Shadow
+    @Final
+    public Button saveFinishedButton;
+    @Shadow
+    @Final
+    private YACLScreen screen;
     @Unique
     private boolean override;
-
     @Unique
     private Button hideShowButton;
+
+    @Shadow
+    public abstract void updateButtons();
 
     @Override
     public void betterclouds$applyOverride() {
@@ -66,10 +73,10 @@ public abstract class CategoryTabMixin implements CustomCategoryTabDuck {
         Minecraft client = Minecraft.getInstance();
 
         hideShowButton = Button.builder(Component.translatable(ConfigGUI.LANG_KEY_PREFIX + ".hide"),
-                btn -> hideOrShow())
-            .pos(undoButton.getX(), undoButton.getY())
-            .size(undoButton.getWidth(), undoButton.getHeight())
-            .build();
+                        btn -> hideOrShow())
+                .pos(undoButton.getX(), undoButton.getY())
+                .size(undoButton.getWidth(), undoButton.getHeight())
+                .build();
         hideShowButton.active = client.level != null;
     }
 
@@ -109,8 +116,8 @@ public abstract class CategoryTabMixin implements CustomCategoryTabDuck {
     }
 
     @Inject(
-        method = "tick",
-        at = @At("TAIL")
+            method = "tick",
+            at = @At("TAIL")
     )
     private void onTick(CallbackInfo ci) {
         if (!override) return;

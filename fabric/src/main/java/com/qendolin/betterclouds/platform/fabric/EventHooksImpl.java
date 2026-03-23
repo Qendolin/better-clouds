@@ -5,7 +5,6 @@ import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.ShaderPresetLoader;
 import com.qendolin.betterclouds.platform.EventHooks;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
-import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -15,6 +14,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -39,8 +39,8 @@ public class EventHooksImpl extends EventHooks {
             listener = identifiable;
         } else {
             Identifier id = reloader instanceof ShaderPresetLoader
-                ? ShaderPresetLoader.ID
-                : Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "resource_reloader");
+                    ? ShaderPresetLoader.ID
+                    : Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "resource_reloader");
             listener = new IdentifiableResourceReloadListener() {
                 @Override
                 public Identifier getFabricId() {
@@ -55,7 +55,7 @@ public class EventHooksImpl extends EventHooks {
         }
 
         ResourceManagerHelper.get(PackType.CLIENT_RESOURCES)
-            .registerReloadListener(listener);
+                .registerReloadListener(listener);
     }
 
     @Override

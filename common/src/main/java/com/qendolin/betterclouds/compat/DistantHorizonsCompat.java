@@ -12,10 +12,10 @@ public abstract class DistantHorizonsCompat {
     // Used when DH is enabled, but some other issue prevents it from working as intended
     // The matrix just maps everything to the near plane
     public static final Matrix4f NOOP_MATRIX = new Matrix4f(
-        new Vector4f(0, 0, 0, 0),
-        new Vector4f(0, 0, 0, 0),
-        new Vector4f(0, 0, 0, 0),
-        new Vector4f(0, 0, -1, 1)
+            new Vector4f(0, 0, 0, 0),
+            new Vector4f(0, 0, 0, 0),
+            new Vector4f(0, 0, 0, 0),
+            new Vector4f(0, 0, -1, 1)
     );
 
     private static final AtomicBoolean initialized = new AtomicBoolean(false);

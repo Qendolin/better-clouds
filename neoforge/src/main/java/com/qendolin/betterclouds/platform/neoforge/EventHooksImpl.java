@@ -27,6 +27,40 @@ public class EventHooksImpl extends EventHooks {
         this.modEventBus = modEventBus;
     }
 
+    private static void invokeAddReloadListener(Object event, ResourceReloader reloader) {
+        try {
+            Method method = findMethod(event.getClass(), "addListener", 2);
+            if (method != null) {
+                method.invoke(event, ShaderPresetLoader.ID, reloader);
+            }
+        } catch (IllegalAccessException | InvocationTargetException ignored) {
+        }
+    }
+
+    private static CommandDispatcher<?> invokeCommandDispatcher(Object event) {
+        try {
+            Method method = findMethod(event.getClass(), "getDispatcher", 0);
+            if (method == null) {
+                return null;
+            }
+            Object value = method.invoke(event);
+            if (value instanceof CommandDispatcher<?> dispatcher) {
+                return dispatcher;
+            }
+        } catch (IllegalAccessException | InvocationTargetException ignored) {
+        }
+        return null;
+    }
+
+    private static Method findMethod(Class<?> type, String name, int paramCount) {
+        for (Method method : type.getMethods()) {
+            if (method.getName().equals(name) && method.getParameterCount() == paramCount) {
+                return method;
+            }
+        }
+        return null;
+    }
+
     @Override
     public void onClientStarted(Consumer<MinecraftClient> callback) {
         modEventBus.addListener(FMLLoadCompleteEvent.class, event -> {
@@ -65,39 +99,5 @@ public class EventHooksImpl extends EventHooks {
                 callback.accept(dispatcher);
             }
         });
-    }
-
-    private static void invokeAddReloadListener(Object event, ResourceReloader reloader) {
-        try {
-            Method method = findMethod(event.getClass(), "addListener", 2);
-            if (method != null) {
-                method.invoke(event, ShaderPresetLoader.ID, reloader);
-            }
-        } catch (IllegalAccessException | InvocationTargetException ignored) {
-        }
-    }
-
-    private static CommandDispatcher<?> invokeCommandDispatcher(Object event) {
-        try {
-            Method method = findMethod(event.getClass(), "getDispatcher", 0);
-            if (method == null) {
-                return null;
-            }
-            Object value = method.invoke(event);
-            if (value instanceof CommandDispatcher<?> dispatcher) {
-                return dispatcher;
-            }
-        } catch (IllegalAccessException | InvocationTargetException ignored) {
-        }
-        return null;
-    }
-
-    private static Method findMethod(Class<?> type, String name, int paramCount) {
-        for (Method method : type.getMethods()) {
-            if (method.getName().equals(name) && method.getParameterCount() == paramCount) {
-                return method;
-            }
-        }
-        return null;
     }
 }

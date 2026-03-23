@@ -10,18 +10,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(GlDebug.class)
 public class GlDebugMixin {
     @Inject(
-        method = "printDebugLog",
-        at = @At("TAIL")
+            method = "printDebugLog",
+            at = @At("TAIL")
     )
     private void onDebugMessage(
-        int source,
-        int type,
-        int id,
-        int severity,
-        int length,
-        long message,
-        long l,
-        CallbackInfo ci) {
+            int source,
+            int type,
+            int id,
+            int severity,
+            int length,
+            long message,
+            long l,
+            CallbackInfo ci) {
 
         new Exception("Debug Message Stacktrace").printStackTrace();
     }

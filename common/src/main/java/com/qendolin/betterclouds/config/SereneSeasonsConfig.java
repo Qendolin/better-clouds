@@ -4,25 +4,6 @@ import dev.isxander.yacl3.config.v2.api.SerialEntry;
 
 public class SereneSeasonsConfig {
 
-    public SereneSeasonsConfig() {
-    }
-
-    public SereneSeasonsConfig(SereneSeasonsConfig other) {
-        this.transitionDays = other.transitionDays;
-        this.earlySpringCloudiness = other.earlySpringCloudiness;
-        this.midSpringCloudiness = other.midSpringCloudiness;
-        this.lateSpringCloudiness = other.lateSpringCloudiness;
-        this.earlySummerCloudiness = other.earlySummerCloudiness;
-        this.midSummerCloudiness = other.midSummerCloudiness;
-        this.lateSummerCloudiness = other.lateSummerCloudiness;
-        this.earlyAutumnCloudiness = other.earlyAutumnCloudiness;
-        this.midAutumnCloudiness = other.midAutumnCloudiness;
-        this.lateAutumnCloudiness = other.lateAutumnCloudiness;
-        this.earlyWinterCloudiness = other.earlyWinterCloudiness;
-        this.midWinterCloudiness = other.midWinterCloudiness;
-        this.lateWinterCloudiness = other.lateWinterCloudiness;
-    }
-
     @SerialEntry
     public float transitionDays = 2f;
     @SerialEntry
@@ -49,4 +30,23 @@ public class SereneSeasonsConfig {
     public float midWinterCloudiness = 1.4f;
     @SerialEntry
     public float lateWinterCloudiness = 1.3f;
+
+    public SereneSeasonsConfig() {
+    }
+
+    public SereneSeasonsConfig(SereneSeasonsConfig other) {
+        this.transitionDays = other.transitionDays;
+        this.earlySpringCloudiness = other.earlySpringCloudiness;
+        this.midSpringCloudiness = other.midSpringCloudiness;
+        this.lateSpringCloudiness = other.lateSpringCloudiness;
+        this.earlySummerCloudiness = other.earlySummerCloudiness;
+        this.midSummerCloudiness = other.midSummerCloudiness;
+        this.lateSummerCloudiness = other.lateSummerCloudiness;
+        this.earlyAutumnCloudiness = other.earlyAutumnCloudiness;
+        this.midAutumnCloudiness = other.midAutumnCloudiness;
+        this.lateAutumnCloudiness = other.lateAutumnCloudiness;
+        this.earlyWinterCloudiness = other.earlyWinterCloudiness;
+        this.midWinterCloudiness = other.midWinterCloudiness;
+        this.lateWinterCloudiness = other.lateWinterCloudiness;
+    }
 }

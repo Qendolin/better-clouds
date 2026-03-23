@@ -36,7 +36,7 @@ public final class ModLoaderImpl implements ModLoader.Backend {
     @Override
     public ModVersion getModVersion(String modId) {
         return FabricLoader.getInstance().getModContainer(modId)
-            .map(container -> (ModVersion) new ModVersionImpl(container.getMetadata().getVersion()))
-            .orElse(ModVersion.NONE);
+                .map(container -> (ModVersion) new ModVersionImpl(container.getMetadata().getVersion()))
+                .orElse(ModVersion.NONE);
     }
 }

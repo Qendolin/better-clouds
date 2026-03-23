@@ -1,10 +1,11 @@
 package com.qendolin.betterclouds.platform;
 
 import com.mojang.brigadier.CommandDispatcher;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 import net.minecraft.client.Minecraft;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
+
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public abstract class EventHooks {
 

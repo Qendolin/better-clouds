@@ -2,10 +2,11 @@ package com.qendolin.betterclouds.clouds.shaders;
 
 import com.google.common.collect.ImmutableMap;
 import com.qendolin.betterclouds.BetterCloudsStatic;
-import java.io.IOException;
-import java.util.Map;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
+
+import java.io.IOException;
+import java.util.Map;
 
 public class CoverageShader extends Shader {
     public static final String DEF_SIZE_XZ_KEY = "_SIZE_XZ_";
@@ -50,11 +51,11 @@ public class CoverageShader extends Shader {
 
     public static CoverageShader create(ResourceManager manager, float sizeXZ, float sizeY, boolean stencilFallback, boolean dhCompat, int worldCurvatureSize) throws IOException {
         Map<String, String> defs = ImmutableMap.ofEntries(
-            Map.entry(CoverageShader.DEF_SIZE_XZ_KEY, Float.toString(sizeXZ)),
-            Map.entry(CoverageShader.DEF_SIZE_Y_KEY, Float.toString(sizeY)),
-            Map.entry(CoverageShader.DEF_POSITIONAL_COLORING, stencilFallback ? "0" : "1"),
-            Map.entry(CoverageShader.DEF_DISTANT_HORIZONS, dhCompat ? "1" : "0"),
-            Map.entry(CoverageShader.DEF_WORLD_CURVATURE, Integer.toString(worldCurvatureSize))
+                Map.entry(CoverageShader.DEF_SIZE_XZ_KEY, Float.toString(sizeXZ)),
+                Map.entry(CoverageShader.DEF_SIZE_Y_KEY, Float.toString(sizeY)),
+                Map.entry(CoverageShader.DEF_POSITIONAL_COLORING, stencilFallback ? "0" : "1"),
+                Map.entry(CoverageShader.DEF_DISTANT_HORIZONS, dhCompat ? "1" : "0"),
+                Map.entry(CoverageShader.DEF_WORLD_CURVATURE, Integer.toString(worldCurvatureSize))
         );
         return new CoverageShader(manager, defs);
     }

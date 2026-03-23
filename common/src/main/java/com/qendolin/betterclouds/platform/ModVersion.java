@@ -7,8 +7,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public abstract class ModVersion {
-    private static final Pattern SEMVER_PATTERN = Pattern.compile("^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$");
-
     public static final ModVersion NONE = new ModVersion() {
         @Override
         public String getFriendlyString() {
@@ -25,27 +23,10 @@ public abstract class ModVersion {
             return false;
         }
     };
+    private static final Pattern SEMVER_PATTERN = Pattern.compile("^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$");
 
     public static ModVersion fromString(String version) {
         return new StringVersion(version);
-    }
-
-    private static final class StringVersion extends ModVersion {
-        final String version;
-
-        private StringVersion(String version) {
-            this.version = version;
-        }
-
-        @Override
-        public boolean isPresent() {
-            return version != null;
-        }
-
-        @Override
-        public String getFriendlyString() {
-            return version;
-        }
     }
 
     public abstract boolean isPresent();
@@ -68,6 +49,24 @@ public abstract class ModVersion {
             return Optional.of(new SemVer(major, minor, patch, buildmetadata, prerelease));
         } catch (Exception e) {
             return Optional.empty();
+        }
+    }
+
+    private static final class StringVersion extends ModVersion {
+        final String version;
+
+        private StringVersion(String version) {
+            this.version = version;
+        }
+
+        @Override
+        public boolean isPresent() {
+            return version != null;
+        }
+
+        @Override
+        public String getFriendlyString() {
+            return version;
         }
     }
 
@@ -97,12 +96,12 @@ public abstract class ModVersion {
 
         @Override
         public int compareTo(@NotNull ModVersion.SemVer o) {
-            if(major < o.major) return -1;
-            if(major > o.major) return 1;
-            if(minor < o.minor) return -1;
-            if(minor > o.minor) return 1;
-            if(patch < o.patch) return -1;
-            if(patch > o.patch) return 1;
+            if (major < o.major) return -1;
+            if (major > o.major) return 1;
+            if (minor < o.minor) return -1;
+            if (minor > o.minor) return 1;
+            if (patch < o.patch) return -1;
+            if (patch > o.patch) return 1;
             return 0;
         }
 

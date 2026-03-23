@@ -3,21 +3,18 @@ package com.qendolin.betterclouds.util;
 import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.opengl.GlTexture;
 import com.mojang.blaze3d.textures.GpuTexture;
+import net.minecraft.client.renderer.texture.AbstractTexture;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL32;
 
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
-import net.minecraft.client.renderer.texture.AbstractTexture;
 
 public abstract class RenderHelper {
 
+    private static final ByteBuffer colorMaskBuffer = ByteBuffer.allocateDirect(4);
     private static Matrix4f projectionMatrix = new Matrix4f().identity();
     private static Matrix4f viewMatrix = new Matrix4f().identity();
-
-    public record FogDataAndColor(net.minecraft.client.renderer.fog.FogData fogData, org.joml.Vector4f color) {
-    }
-
     private static FogDataAndColor fogDataAndColor = null;
     private static int savedShaderId = 0;
 
@@ -26,7 +23,6 @@ public abstract class RenderHelper {
     private static boolean savedColorMaskBlue = true;
     private static boolean savedColorMaskAlpha = true;
     private static boolean savedDepthMask = true;
-    private static final ByteBuffer colorMaskBuffer = ByteBuffer.allocateDirect(4);
 
     public static int getTextureId(AbstractTexture texture) {
         return getTextureId(texture.getTexture());
@@ -97,24 +93,24 @@ public abstract class RenderHelper {
         return projectionMatrix;
     }
 
-    public static Matrix4f getViewMatrix() {
-        return viewMatrix;
-    }
-
     public static void setProjectionMatrix(Matrix4f matrix) {
         projectionMatrix = matrix;
+    }
+
+    public static Matrix4f getViewMatrix() {
+        return viewMatrix;
     }
 
     public static void setViewMatrix(Matrix4f matrix) {
         viewMatrix = matrix;
     }
 
-    public static void setFogDataAndColor(FogDataAndColor data) {
-        fogDataAndColor = data;
-    }
-
     public static FogDataAndColor getFogDataAndColor() {
         return fogDataAndColor;
+    }
+
+    public static void setFogDataAndColor(FogDataAndColor data) {
+        fogDataAndColor = data;
     }
 
     private static GpuTexture unwrapValidationTexture(GpuTexture texture) {
@@ -133,5 +129,8 @@ public abstract class RenderHelper {
         } catch (ReflectiveOperationException ignored) {
         }
         return texture;
+    }
+
+    public record FogDataAndColor(net.minecraft.client.renderer.fog.FogData fogData, org.joml.Vector4f color) {
     }
 }
