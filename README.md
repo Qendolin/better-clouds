@@ -18,10 +18,10 @@
 goal is simple: make the sky look dramatically better without drifting into a style that clashes with the rest of the
 game.
 
-### Features
+## Features
 
-- **Vanilla-friendly volumetric clouds:** Adds layered, sculpted cloud formations that preserve Minecraft's overall look
-  instead of replacing it with hyper-realistic skies.
+- **Vanilla-friendly volumetric clouds:** Adds layered, sculpted cloud formations that matches Minecraft's overall
+  visual style.
 - **Deep visual customization:** Tune cloud size, height, spacing, sparsity, fuzziness, opacity, travel speed, wind
   response, halo effects, fog fade, brightness, saturation, tint, and more.
 - **Preset-driven workflow:** Start with built-in presets, switch quickly between looks, restore defaults when needed,
