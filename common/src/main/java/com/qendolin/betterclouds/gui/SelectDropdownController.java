@@ -350,7 +350,7 @@ public class SelectDropdownController<T> implements Controller<Integer> {
 
                 if (clickedIndex >= 0 && clickedIndex < dropdownController.getValueCount()) {
                     dropdownController.option().requestSet(clickedIndex);
-                    Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.value(), 1.0F));
+                    playDownSound();
                 }
 
                 close();

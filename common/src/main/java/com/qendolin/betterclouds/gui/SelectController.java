@@ -267,7 +267,7 @@ public class SelectController<T> implements Controller<Integer> {
         }
 
         public void cycle(int direction) {
-            Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.value(), 2.0F, 0.1f));
+            playDownSound();
             control.cycle(direction);
         }
 
