@@ -16,7 +16,8 @@
     "WorldRendererMixin",
     "yacl.AbstractWidgetMixin",
     "yacl.CategoryTabMixin",
-    "yacl.OptionListWidgetMixin"
+    "yacl.OptionListWidgetMixin",
+    "yacl.PopupControllerScreenAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
