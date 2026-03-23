@@ -2,13 +2,8 @@ package com.qendolin.betterclouds.compat;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
-import com.mojang.blaze3d.platform.DebugMemoryUntracker;
 import com.mojang.blaze3d.platform.GLX;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.qendolin.betterclouds.BetterClouds;
 import com.qendolin.betterclouds.BetterCloudsStatic;
-import com.qendolin.betterclouds.config.ConfigManager;
-import com.qendolin.betterclouds.telemetry.Telemetry;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWVulkan;
@@ -19,7 +14,6 @@ import org.lwjgl.system.MemoryUtil;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.client.Minecraft;
 
 public class GLCompat {
     public final int GL_VERTEX_ARRAY;
@@ -553,12 +547,7 @@ public class GLCompat {
 
     public static void initGlCompat() {
         BetterCloudsStatic.getLogger().info("Initializing OpenGL compat");
-        try {
-            glCompat = new GLCompat(BetterCloudsStatic.IS_DEV);
-        } catch (Exception e) {
-            Telemetry.INSTANCE.sendUnhandledException(e);
-            throw e;
-        }
+        glCompat = new GLCompat(BetterCloudsStatic.IS_DEV);
 
         if (glCompat.isIncompatible()) {
             BetterCloudsStatic.getLogger().warn("Your GPU (or configuration) is not compatible with Better Clouds. Try updating your drivers?");
@@ -581,7 +570,7 @@ public class GLCompat {
         byte[] sourceBytes = source.getBytes(Charsets.UTF_8);
         ByteBuffer buffer = MemoryUtil.memAlloc(sourceBytes.length + 1);
         buffer.put(sourceBytes);
-        buffer.put((byte)0);
+        buffer.put((byte) 0);
         buffer.flip();
 
         try (MemoryStack memorystack = MemoryStack.stackPush()) {
@@ -593,19 +582,4 @@ public class GLCompat {
         }
     }
 
-    private static void sendSystemDetailsTelemetry() {
-        if (!BetterClouds.isInitialized() || glCompat == null) return;
-
-        if (ConfigManager.instance().lastTelemetryVersion >= Telemetry.VERSION) return;
-        Telemetry.INSTANCE.sendSystemInfo()
-            .whenComplete((success, throwable) -> {
-                Minecraft client = Minecraft.getInstance();
-                if (success && client != null) {
-                    client.execute(() -> {
-                        ConfigManager.instance().lastTelemetryVersion = Telemetry.VERSION;
-                        ConfigManager.handler().save();
-                    });
-                }
-            });
-    }
 }

@@ -5,7 +5,6 @@ import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.Commands;
 import com.qendolin.betterclouds.clouds.shaders.*;
 import com.qendolin.betterclouds.config.ConfigManager;
-import com.qendolin.betterclouds.telemetry.Telemetry;
 import com.qendolin.betterclouds.util.RenderHelper;
 import com.mojang.blaze3d.opengl.GlStateManager;
 
@@ -316,7 +315,6 @@ public class Resources implements Closeable {
         } catch (Exception e) {
             Commands.sendGpuIncompatibleChatMessage();
             BetterCloudsStatic.getLogger().error(e);
-            Telemetry.INSTANCE.sendShaderCompileError(e.toString());
             deleteShaders();
         }
         RenderHelper.restoreShader();

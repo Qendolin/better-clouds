@@ -9,7 +9,6 @@
   "client": [
     "CloudSettingMixin",
     "GameRendererAccessor",
-    "MinecraftClientMixin",
     "RenderSystemMixin",
     "TabNavigationWidgetMixin",
     "WorldMixin",
