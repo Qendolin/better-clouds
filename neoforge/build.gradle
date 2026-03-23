@@ -34,6 +34,7 @@ loom {
 		client {
 			ideConfigGenerated true
 			runDir "../run"
+			vmArgs "-XX:+AllowEnhancedClassRedefinition"
 		}
 
 		server {

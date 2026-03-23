@@ -216,7 +216,7 @@ public class ShaderPresetGUI {
                 ShaderPresetConfig preset = new ShaderPresetConfig(config.preset());
                 preset.title = Component.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.copyOf", config.preset().title).getString();
                 preset.markAsCopy();
-                config.presets.add(0, preset);
+                config.presets.addFirst(preset);
                 selectedPreset.requestSet(0);
                 //noinspection rawtypes
                 if (selectedPreset.controller() instanceof SelectDropdownController select) {

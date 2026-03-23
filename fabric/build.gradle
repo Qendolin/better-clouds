@@ -31,11 +31,13 @@ loom {
 		client {
 			ideConfigGenerated true
 			runDir "../run"
+			vmArgs "-XX:+AllowEnhancedClassRedefinition"
 		}
 
 		server {
 			ideConfigGenerated false
 			runDir "../run"
+			vmArgs "-XX:+AllowEnhancedClassRedefinition"
 		}
 	}
 }

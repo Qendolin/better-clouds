@@ -149,7 +149,8 @@ public class Config {
     public void loadDefaultPresets() {
         // Remember which default preset was selected, if any
         String selectedDefaultPreset = preset().key;
-        Map<String, ShaderPresetConfig> defaults = new HashMap<>(ShaderPresetLoader.INSTANCE.presets());
+        Map<String, ShaderPresetConfig> defaults = new HashMap<>();
+        ShaderPresetLoader.INSTANCE.presets().forEach((key, preset) -> defaults.put(key, new ShaderPresetConfig(preset)));
         boolean missingDefault = presets.stream().noneMatch(preset -> DEFAULT_PRESET_KEY.equals(preset.key));
         presets.removeIf(preset -> preset.key != null && !preset.editable && defaults.containsKey(preset.key));
         presets.addAll(defaults.values());
