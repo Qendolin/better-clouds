@@ -351,7 +351,8 @@ public class ConfigGUI {
     static <T> YACLOptionBuilder<T> createOption(Class<T> typeClass, String key, boolean hasDescription) {
         YACLOptionBuilder<T> builder = YACLOptionBuilder.create(Option.<T>createBuilder())
             .name(optionLabel(key))
-            .instant(true);
+            .instant(false)
+            .listener((opt, _) -> opt.applyValue());
         if (hasDescription) builder.description(OptionDescription.of(optionDescription(key)));
         return builder;
     }

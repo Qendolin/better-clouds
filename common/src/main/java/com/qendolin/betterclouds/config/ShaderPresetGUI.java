@@ -297,12 +297,6 @@ public class ShaderPresetGUI {
         if (removePresetButton != null) {
             removePresetButton.setAvailable(config.preset().editable && config.presets.size() > 1);
         }
-        if (presetTitle != null) {
-            // Yacl issue #263
-            String title = config.preset().title;
-            presetTitle.stateManager().set(title + " "); // some value that is not equal
-            presetTitle.stateManager().set(title);
-        }
     }
 
     public void onSave() {
