@@ -14,59 +14,44 @@
 
 ---
 
-**Introducing "Better Clouds"** - Enhancing the Skies of Minecraft! 🌤️
+**Better Clouds** replaces Minecraft's flat cloud layer with volumetric skies that still feel at home in vanilla. The
+goal is simple: make the sky look dramatically better without drifting into a style that clashes with the rest of the
+game.
 
-- Are you tired of lackluster clouds in Minecraft? 😞
-- Do they seem like mere distractions? 😫
-- Perhaps you've tried realistic shader clouds, but they just don't fit Minecraft's aesthetic. 🤔
+### Features
 
-I have the ✨**perfect solution**✨ for you! 😍
+- **Vanilla-friendly volumetric clouds:** Adds layered, sculpted cloud formations that preserve Minecraft's overall look
+  instead of replacing it with hyper-realistic skies.
+- **Deep visual customization:** Tune cloud size, height, spacing, sparsity, fuzziness, opacity, travel speed, wind
+  response, halo effects, fog fade, brightness, saturation, tint, and more.
+- **Preset-driven workflow:** Start with built-in presets, switch quickly between looks, restore defaults when needed,
+  or create and duplicate your own presets for different worlds and shader packs.
+- **Shader-aware rendering:** Includes Iris-focused support, options for cloud rendering when shaders are active, preset
+  compatibility work, and controls such as depth writing, sun path angle, world curvature, and upscale resolution.
+- **Performance-conscious options:** Adjust generation chunk size, view distance scaling, frustum culling, persistent
+  buffers, ordering behavior, and other rendering settings to fit your hardware and modpack.
+- **Resource-pack styling:** Cloud gradients, noise textures, and preset data can be supplied through resource packs,
+  making it possible to build custom sky looks without changing the mod itself.
+- **Season and dimension interop:** Supports dimension-based activation and integrates with seasonal mods such as Fabric
+  Seasons and Serene Seasons so cloud coverage can shift throughout the in-game year.
+- **Broad mod compatibility:** Includes compatibility layers for common visual and world mods, including shader tooling
+  and distant-horizon-style rendering setups.
+- **Cross-loader and accessibility support:** Available for Fabric and NeoForge, integrates with Mod Menu on Fabric, and
+  ships with multiple language translations.
 
-**Better Clouds** is a meticulously crafted mod designed to transform your Minecraft experience with stunning skies.
-Developed with love and care, this mod is here to enhance your game like never before.
+## Download
 
-### Key Features:
-
-🌩️ **Customization at Your Fingertips**:
-With over 35 settings to choose from, you have complete control over the appearance of clouds.
-Tailor them to your preferences and make your Minecraft world truly unique.
-
-🌈 **Compatibility with Shader Packs**:
-Worried about compatibility? Fear not! Better Clouds seamlessly integrates with many shader packs,
-allowing you to combine our mod with your favorite visual enhancements.
-
-🎨 **Presets and Personalization**:
-I understand that not everyone wants to tinker with settings.
-That's why I offer presets for common shaders, making it easier than ever to achieve breathtaking cloudscapes.
-And if you're feeling creative, go ahead and create your very own presets.
-
-⚡ **Optimized Performance**:
-Performance concerns? I've got you covered. Extensive testing has shown that Better Clouds has little to no impact on
-performance,
-and in some cases, it may even improve it. Enjoy enhanced visuals without compromising your gameplay.
-
-🖌️ **Fine-Tuned Color Customization**:
-Want to set the perfect atmospheric tone? Better Clouds allows you to finely tune the colors with resource packs.
-Create any ambiance you desire and immerse yourself in a world with skies that match your vision.
-
-💖 **Made with Love and Care**:
-Better Clouds is a labor of love, meticulously crafted by me to elevate your Minecraft experience.
-
-🚀 **Elevate Your Minecraft Sky**!  
-Don't settle for lackluster clouds any longer. Upgrade to Better Clouds and transform the way you experience Minecraft's
-sky.
-
-#### [Download now](https://modrinth.com/mod/better-clouds)
+[Download Better Clouds on Modrinth](https://modrinth.com/mod/better-clouds)
 
 ## Contributions
 
-Thanks to all who contributed to this Project!
-Check them out [here](https://github.com/Qendolin/better-clouds/blob/main/Contributions.md).
+Thanks to everyone who has contributed to the project.  
+See the full list [here](https://github.com/Qendolin/better-clouds/blob/main/Contributions.md).
 
 ## Wiki
 
-The wiki documents all settings, how to create presets and features a list of compatible shaders.  
-Check it out [here](https://github.com/Qendolin/better-clouds/wiki).
+The wiki documents every setting, explains how to create presets, and includes a list of compatible shaders.  
+Read it [here](https://github.com/Qendolin/better-clouds/wiki).
 
 ## License
 
