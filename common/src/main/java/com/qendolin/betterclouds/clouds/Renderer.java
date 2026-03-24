@@ -55,12 +55,7 @@ public class Renderer implements AutoCloseable {
     }
 
     private static void setFrustumTo(Frustum dst, Frustum src) {
-        dst.intersection = src.intersection;
-        dst.matrix.set(src.matrix);
-        dst.camX = src.camX;
-        dst.camY = src.camY;
-        dst.camZ = src.camZ;
-        dst.viewVector = src.viewVector;
+        dst.set(src);
     }
 
     public void setWorld(ClientLevel world) {
@@ -406,8 +401,8 @@ public class Renderer implements AutoCloseable {
     private void drawCloudsWithoutFrustumCulling() {
         List<ChunkedGenerator.ChunkIndex> chunks = res.generator().chunks();
         if (chunks.isEmpty()) return;
-        ChunkedGenerator.ChunkIndex first = chunks.get(0);
-        ChunkedGenerator.ChunkIndex last = chunks.get(chunks.size() - 1);
+        ChunkedGenerator.ChunkIndex first = chunks.getFirst();
+        ChunkedGenerator.ChunkIndex last = chunks.getLast();
         int start = first.start();
         int count = last.start() + last.count();
         if (glCompat.useBaseInstanceFallback()) {

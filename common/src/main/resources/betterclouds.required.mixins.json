@@ -3,6 +3,7 @@
   "minVersion" : "0.8",
   "package" : "com.qendolin.betterclouds.mixin.required",
   "plugin" : "com.qendolin.betterclouds.mixin.RequiredMixinPlugin",
+  "refmap" : "betterclouds.refmap.json",
   "compatibilityLevel" : "JAVA_22",
   "mixins" : [
   ],

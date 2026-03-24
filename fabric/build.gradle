@@ -1,3 +1,5 @@
+import net.fabricmc.loom.task.prod.ClientProductionRunTask
+
 plugins {
     id "net.fabricmc.fabric-loom"
     id "me.modmuss50.mod-publish-plugin"
@@ -30,13 +32,13 @@ loom {
     runs {
         client {
             ideConfigGenerated true
-            runDir "../run"
+            runDir "../run/fabric-client"
             vmArgs "-XX:+AllowEnhancedClassRedefinition"
         }
 
         server {
             ideConfigGenerated false
-            runDir "../run"
+            runDir "../run/fabric-server"
             vmArgs "-XX:+AllowEnhancedClassRedefinition"
         }
     }
@@ -70,7 +72,7 @@ dependencies {
     productionRuntimeMods "net.fabricmc.fabric-api:fabric-api:${property('deps.fabric_api')}"
 }
 
-tasks.register("runGameTest", net.fabricmc.loom.task.prod.ClientProductionRunTask) {
+tasks.register("runGameTest", ClientProductionRunTask) {
     group = "loom"
     description = "Launches the Fabric client with the Fabric client game test flag."
     jvmArgs.add("-Dfabric.client.gametest")

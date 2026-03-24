@@ -1,10 +1,10 @@
 package com.qendolin.betterclouds.compat;
 
-import net.minecraft.world.World;
+import net.minecraft.world.level.Level;
 
 public class FabricSeasonsCompatImpl extends FabricSeasonsCompat.Stub {
     @Override
-    public float getCloudinessFactor(World world) {
+    public float getCloudinessFactor(Level world) {
         return 1.0f;
     }
 }

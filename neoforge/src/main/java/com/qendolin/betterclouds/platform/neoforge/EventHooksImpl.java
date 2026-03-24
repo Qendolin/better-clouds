@@ -3,8 +3,8 @@ package com.qendolin.betterclouds.platform.neoforge;
 import com.mojang.brigadier.CommandDispatcher;
 import com.qendolin.betterclouds.config.ShaderPresetLoader;
 import com.qendolin.betterclouds.platform.EventHooks;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.resource.ResourceReloader;
+import net.minecraft.client.Minecraft;
+import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;
@@ -27,7 +27,7 @@ public class EventHooksImpl extends EventHooks {
         this.modEventBus = modEventBus;
     }
 
-    private static void invokeAddReloadListener(Object event, ResourceReloader reloader) {
+    private static void invokeAddReloadListener(Object event, PreparableReloadListener reloader) {
         try {
             Method method = findMethod(event.getClass(), "addListener", 2);
             if (method != null) {
@@ -62,31 +62,27 @@ public class EventHooksImpl extends EventHooks {
     }
 
     @Override
-    public void onClientStarted(Consumer<MinecraftClient> callback) {
-        modEventBus.addListener(FMLLoadCompleteEvent.class, event -> {
-            MinecraftClient client = MinecraftClient.getInstance();
+    public void onClientStarted(Consumer<Minecraft> callback) {
+        modEventBus.addListener(FMLLoadCompleteEvent.class, _ -> {
+            Minecraft client = Minecraft.getInstance();
             client.execute(() -> callback.accept(client));
         });
     }
 
     @Override
-    public void onWorldJoin(Consumer<MinecraftClient> callback) {
-        NeoForge.EVENT_BUS.addListener(ClientPlayerNetworkEvent.LoggingIn.class, event -> {
-            callback.accept(MinecraftClient.getInstance());
-        });
+    public void onWorldJoin(Consumer<Minecraft> callback) {
+        NeoForge.EVENT_BUS.addListener(ClientPlayerNetworkEvent.LoggingIn.class, _ -> callback.accept(Minecraft.getInstance()));
     }
 
     @Override
-    public void onClientResourcesReload(Supplier<ResourceReloader> supplier) {
-        modEventBus.addListener(AddClientReloadListenersEvent.class, event -> {
-            invokeAddReloadListener(event, supplier.get());
-        });
+    public void onClientResourcesReload(Supplier<PreparableReloadListener> supplier) {
+        modEventBus.addListener(AddClientReloadListenersEvent.class, event -> invokeAddReloadListener(event, supplier.get()));
     }
 
     @Override
-    public void onClientTick(Consumer<MinecraftClient> callback) {
-        NeoForge.EVENT_BUS.addListener(ClientTickEvent.Post.class, event -> {
-            MinecraftClient client = MinecraftClient.getInstance();
+    public void onClientTick(Consumer<Minecraft> callback) {
+        NeoForge.EVENT_BUS.addListener(ClientTickEvent.Post.class, _ -> {
+            Minecraft client = Minecraft.getInstance();
             client.execute(() -> callback.accept(client));
         });
     }

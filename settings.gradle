@@ -4,6 +4,14 @@ pluginManagement {
             name = 'Fabric'
             url = 'https://maven.fabricmc.net/'
         }
+        maven {
+            name = "NeoForged"
+            url = "https://maven.neoforged.net/releases"
+        }
+        maven {
+            name = "Architectury"
+            url = "https://maven.architectury.dev/"
+        }
         mavenCentral()
         gradlePluginPortal()
     }
@@ -12,3 +20,4 @@ pluginManagement {
 rootProject.name = "better-clouds"
 include("common")
 include("fabric")
+include("neoforge")
