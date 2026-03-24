@@ -7,6 +7,179 @@ plugins {
 
 apply from: rootProject.file("common.gradle").path
 
+def publishTargetDefinitions = [
+        fabric  : [
+                projectPath: ":fabric",
+                loader     : "fabric",
+                loaderName : "Fabric",
+                modrinth   : [
+                        requires    : ["yacl", "fabric-api"],
+                        optional    : ["modmenu", "sodium", "iris"],
+                        incompatible: ["vulkanmod", "immersiveportals"],
+                ],
+                curseforge : [
+                        requires    : ["yacl", "fabric-api"],
+                        optional    : ["modmenu", "sodium", "irisshaders"],
+                        incompatible: ["vulkanmod", "immersive-portals-mod"],
+                ],
+        ],
+        neoforge: [
+                projectPath: ":neoforge",
+                loader     : "neoforge",
+                loaderName : "NeoForge",
+                modrinth   : [
+                        requires    : ["yacl"],
+                        optional    : ["sodium", "iris"],
+                        incompatible: [],
+                ],
+                curseforge : [
+                        requires    : ["yacl"],
+                        optional    : ["sodium", "irisshaders"],
+                        incompatible: [],
+                ],
+        ],
+]
+
+def parseBooleanGradleProperty = { String name, boolean defaultValue ->
+    providers.gradleProperty(name).map { value ->
+        def normalized = value.trim().toLowerCase(Locale.ROOT)
+        if (!(normalized in ["true", "false"])) {
+            throw new GradleException("Property ${name} must be either true or false, got '${value}'.")
+        }
+        normalized == "true"
+    }.orElse(defaultValue)
+}
+
+def isPublishTargetEnabled = { String target ->
+    parseBooleanGradleProperty("publish.${target}", true).get()
+}
+
+def selectedPublishTargets = {
+    publishTargetDefinitions.keySet().findAll(isPublishTargetEnabled)
+}
+
+def requirePublishConfirmation = {
+    println ""
+    println "WARNING: publish.fabric=${isPublishTargetEnabled("fabric")}, publish.neoforge=${isPublishTargetEnabled("neoforge")}"
+    println "Publishing without both loaders enabled."
+    println "Press Enter to continue, or Ctrl+C to cancel."
+
+    def console = System.console()
+    if (console != null) {
+        console.readLine()
+        return
+    }
+
+    def line = new BufferedReader(new InputStreamReader(System.in)).readLine()
+    if (line == null) {
+        throw new GradleException("Interactive confirmation required. Re-run this publish command in a console and press Enter to continue.")
+    }
+}
+
+def changelogFile = layout.projectDirectory.file("changelog.md").asFile
+def maxChangelogAgeMs = 60L * 60L * 1000L
+
+def validatePublishChangelog = {
+    if (!changelogFile.exists()) {
+        throw new GradleException("Missing changelog.md. Update it within the last hour before publishing.")
+    }
+
+    def changelog = changelogFile.getText("UTF-8")
+    if (changelog.isBlank()) {
+        throw new GradleException("changelog.md was blank")
+    }
+
+    def changelogAgeMs = System.currentTimeMillis() - changelogFile.lastModified()
+    if (changelogAgeMs > maxChangelogAgeMs) {
+        def modifiedAt = new Date(changelogFile.lastModified())
+        throw new GradleException("changelog.md must be updated within the last hour before publishing. Last modified: ${modifiedAt}.")
+    }
+}
+
+def loadPublishSecrets = {
+    def secrets = new Properties()
+    def secretsFile = rootProject.file("secrets.properties")
+    if (!secretsFile.exists()) {
+        throw new GradleException("Missing secrets.properties for publishing")
+    }
+
+    secretsFile.withInputStream { secrets.load(it) }
+    return secrets
+}
+
+def releaseTypeEnum = {
+    def releaseType = property("mod.release").toString()
+    def normalizedReleaseType = releaseType.toLowerCase(Locale.ROOT)
+    def releaseTypeEnum = [
+            "release": "STABLE",
+            "stable" : "STABLE",
+            "beta"   : "BETA",
+            "alpha"  : "ALPHA"
+    ][normalizedReleaseType]
+    if (!releaseTypeEnum) {
+        throw new GradleException("Unknown release type: ${releaseType}")
+    }
+    return releaseTypeEnum
+}
+
+def configurePublishProject = { String target, Map<String, ?> targetConfig ->
+    def targetProject = project(targetConfig.projectPath)
+    targetProject.pluginManager.withPlugin("me.modmuss50.mod-publish-plugin") {
+        targetProject.publishMods {
+            def releaseType = property("mod.release").toString()
+            def releaseName = releaseType.capitalize()
+            def releaseLetter = releaseType.substring(0, 1).toLowerCase(Locale.ROOT)
+            def modVersion = property("mod.version").toString()
+            def mcVersions = findProperty("deps.minecraft").toString().split(",").collect { it.trim().replace(".0", "") }
+
+            file = targetProject.tasks.named("jar", Jar).flatMap { it.archiveFile }
+            changelog = rootProject.providers.fileContents(rootProject.layout.projectDirectory.file("changelog.md")).asText
+            version = "${modVersion}+${mcVersion}-${targetConfig.loader}-${releaseLetter}"
+            type = releaseTypeEnum()
+            displayName = "${releaseName} ${modVersion} for ${mcVersion} ${targetConfig.loaderName}"
+            modLoaders.add(targetConfig.loader)
+
+            modrinth {
+                accessToken = rootProject.providers.provider { loadPublishSecrets().getProperty("MODRINTH") }
+                projectId = "5srFLIaK"
+                minecraftVersions.addAll(mcVersions)
+
+                targetConfig.modrinth.requires.each { slug -> requires(slug) }
+                targetConfig.modrinth.optional.each { slug -> optional(slug) }
+                targetConfig.modrinth.incompatible.each { slug -> incompatible(slug) }
+
+                projectDescription = rootProject.providers.fileContents(rootProject.layout.projectDirectory.file("README.md")).asText
+            }
+
+            curseforge {
+                accessToken = rootProject.providers.provider { loadPublishSecrets().getProperty("CURSEFORGE") }
+                projectId = "1285973"
+                projectSlug = "better-clouds"
+                minecraftVersions.addAll(mcVersions)
+
+                changelogType = "markdown"
+
+                javaVersions.add(JavaVersion.VERSION_25)
+                clientRequired = true
+                serverRequired = false
+
+                targetConfig.curseforge.requires.each { slug -> requires(slug) }
+                targetConfig.curseforge.optional.each { slug -> optional(slug) }
+                targetConfig.curseforge.incompatible.each { slug -> incompatible(slug) }
+            }
+        }
+
+        ["publishMods", "publishModrinth", "publishCurseforge"].each { taskName ->
+            targetProject.tasks.named(taskName).configure {
+                onlyIf { isPublishTargetEnabled(target) }
+                doFirst {
+                    validatePublishChangelog()
+                }
+            }
+        }
+    }
+}
+
 ext {
     mcVersion = providers.gradleProperty("deps.minecraft").get()
     buildVersionString = { String modVersion, String releaseType, String minecraftVersion, String loader ->
@@ -53,5 +226,28 @@ allprojects {
             }
         }
         maven { url = "https://maven.bawnorton.com/releases" }
+    }
+}
+
+publishTargetDefinitions.each(configurePublishProject)
+
+tasks.register("validatePublishChangelog") {
+    group = "publishing"
+    description = "Validates that changelog.md exists, is non-blank, and was updated within the last hour."
+    doLast {
+        validatePublishChangelog()
+    }
+}
+
+def requestedPublishTaskNames = gradle.startParameter.taskNames.findAll { requestedTaskName ->
+    requestedTaskName.tokenize(":").last() in ["publishMods", "publishModrinth", "publishCurseforge"]
+}
+
+if (!requestedPublishTaskNames.isEmpty()) {
+    if (selectedPublishTargets().size() != publishTargetDefinitions.size()) {
+        requirePublishConfirmation()
+    }
+    if (selectedPublishTargets().isEmpty()) {
+        throw new GradleException("No publish targets are enabled. Set publish.fabric=true and/or publish.neoforge=true.")
     }
 }
