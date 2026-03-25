@@ -1,4 +1,4 @@
-# ![Better Clouds](./assets/panorama_sm.webp)
+# ![Better Clouds](https://github.com/Qendolin/better-clouds/raw/development/assets/panorama_sm.webp)
 
 > *"Beautiful clouds in touch with the vanilla style"*
 
