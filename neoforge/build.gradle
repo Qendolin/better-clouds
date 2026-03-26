@@ -32,6 +32,7 @@ neoForge {
             client()
             sourceSet = sourceSets.main
             gameDirectory = layout.projectDirectory.dir("../run")
+            systemProperty "forge.logging.console.level", "debug"
             ideName = "Minecraft Client (NeoForge)"
         }
 
@@ -58,6 +59,7 @@ configurations {
 dependencies {
     commonJava project(path: ":common", configuration: "commonJava")
     commonResources project(path: ":common", configuration: "commonResources")
+    implementation project(":common")           // for ide syntax highlighting, so it can discover :common
 
     annotationProcessor "io.github.llamalad7:mixinextras-common:${property('deps.mixin_extras')}"
     compileOnly "net.fabricmc:sponge-mixin:0.16.5+mixin.0.8.7"

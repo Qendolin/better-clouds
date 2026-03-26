@@ -22,6 +22,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.world.level.material.FogType;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4d;
 import org.joml.Matrix4f;
 import org.joml.Vector3d;
@@ -108,6 +109,7 @@ public class Renderer implements AutoCloseable {
     }
 
     public PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, int ticks, float tickDelta, Vector3d cam) {
+        BetterCloudsStatic.getLogger().info("Rendering clouds");
         assert RenderSystem.isOnRenderThread();
         getProfiler().popPush("render_setup");
         Config config = ConfigManager.instance();
@@ -127,7 +129,7 @@ public class Renderer implements AutoCloseable {
             return PrepareResult.NO_RENDER;
         }
 
-        cloudsHeight = world.environmentAttributes().getDimensionValue(EnvironmentAttributes.CLOUD_HEIGHT);
+        cloudsHeight = world.environmentAttributes().getValue(EnvironmentAttributes.CLOUD_HEIGHT, new Vec3(cam.x, cam.y, cam.z));
 
         res.generator().bind();
         ShaderParameters currentShaderParameters = createShaderParameters(config);
@@ -224,7 +226,7 @@ public class Renderer implements AutoCloseable {
 
         // Resolve and shade clouds
         getProfiler().popPush("draw_shading");
-        drawShading(tickDelta, fog);
+        drawShading(tickDelta, fog, cam);
 
         // Restore state
         getProfiler().popPush("render_cleanup");
@@ -411,7 +413,7 @@ public class Renderer implements AutoCloseable {
         glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), count, start);
     }
 
-    private void drawShading(float tickDelta, FogProvider.Fog fog) {
+    private void drawShading(float tickDelta, FogProvider.Fog fog, Vector3d cam) {
         Config config = ConfigManager.instance();
         GlStateManager._depthFunc(GL_LEQUAL);
 
@@ -447,10 +449,10 @@ public class Renderer implements AutoCloseable {
         GlStateManager._activeTexture(GL_TEXTURE4);
         RenderHelper.bindTexture(client.getTextureManager().getTexture(Resources.LIGHTING_TEXTURE));
 
-        Vector3f effectTint = EffectTintProvider.getEffectTint(client, fog, tickDelta);
+        Vector3f effectTint = EffectTintProvider.getEffectTint(client, fog, tickDelta, cam);
         long skyTime = world.getOverworldClockTime() % 24000;
-        float skyAngleRad = (float) Math.toRadians(world.environmentAttributes().getDimensionValue(EnvironmentAttributes.SUN_ANGLE));
-        float sunPathAngleRad = (float) Math.toRadians(config.preset().sunPathAngle);
+        float skyAngleRad = EffectTintProvider.getSunAngleRadians(client.level, cam);
+        float sunPathAngleRad = config.preset().sunPathAngle * Mth.DEG_TO_RAD;
         float dayNightFactor = MathUtil.interpolateDayNightFactor(skyTime, config.preset().sunriseStartTime, config.preset().sunriseEndTime, config.preset().sunsetStartTime, config.preset().sunsetEndTime);
         float brightness = (1 - dayNightFactor) * config.preset().nightBrightness + dayNightFactor * config.preset().dayBrightness;
         float sunAxisY = Mth.sin(sunPathAngleRad);

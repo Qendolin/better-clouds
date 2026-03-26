@@ -92,8 +92,24 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
         better_clouds$frustum.prepare(cameraPos.x, cameraPos.y, cameraPos.z);
     }
 
-    @Inject(at = @At("HEAD"), method = "addCloudsPass", cancellable = true, require = 0)
+    @Inject(
+            at = @At("HEAD"),
+            method = "addCloudsPass(Lcom/mojang/blaze3d/framegraph/FrameGraphBuilder;Lnet/minecraft/client/CloudStatus;Lnet/minecraft/world/phys/Vec3;JFIFI)V",
+            cancellable = true
+    )
     private void renderClouds(FrameGraphBuilder frameGraphBuilder, CloudStatus _mode, Vec3 cameraPos, long _seed, float _ticks, int _color, float _cloudHeight, int _cloudRenderMode, CallbackInfo ci) {
+        better_clouds$renderCloudsInternal(frameGraphBuilder, cameraPos, _ticks, ci);
+    }
+
+    // NF calls a different overload of addCloudsPass that isn't even in the decompiled source. Like HOW
+    @SuppressWarnings("MixinAnnotationTarget")
+    @Inject(
+            at = @At("HEAD"),
+            method = "addCloudsPass(Lcom/mojang/blaze3d/framegraph/FrameGraphBuilder;Lnet/minecraft/client/CloudStatus;Lnet/minecraft/world/phys/Vec3;JFIFILorg/joml/Matrix4fc;)V",
+            cancellable = true,
+            require = 0     // silently fail if not neoforge
+    )
+    private void renderCloudsNeoForge(FrameGraphBuilder frameGraphBuilder, CloudStatus _mode, Vec3 cameraPos, long _seed, float _ticks, int _color, float _cloudHeight, int _cloudRenderMode, Matrix4fc _viewMatrix, CallbackInfo ci) {
         better_clouds$renderCloudsInternal(frameGraphBuilder, cameraPos, _ticks, ci);
     }
 

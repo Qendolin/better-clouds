@@ -1,11 +1,13 @@
 package com.qendolin.betterclouds;
 
+import com.qendolin.betterclouds.config.ConfigGUI;
 import com.qendolin.betterclouds.platform.EventHooks;
 import com.qendolin.betterclouds.platform.neoforge.EventHooksImpl;
-import net.minecraft.client.Minecraft;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 
 @Mod(BetterCloudsStatic.MODID)
 public final class Entrypoint {
@@ -15,6 +17,13 @@ public final class Entrypoint {
         BetterClouds.initializeClientEarly();
         BetterClouds.initializeClientEvents();
 
-        modEventBus.addListener(FMLClientSetupEvent.class, _ -> Minecraft.getInstance().execute(BetterClouds::initializeClient));
+        modEventBus.addListener(AddClientReloadListenersEvent.class, _ -> BetterClouds.initializeClient());
+
+        if (BetterCloudsStatic.IS_CLIENT) {
+            ModLoadingContext.get().registerExtensionPoint(
+                    IConfigScreenFactory.class,
+                    () -> (_, parent) -> ConfigGUI.create(parent)
+            );
+        }
     }
 }

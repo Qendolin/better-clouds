@@ -8,19 +8,21 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3d;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 public abstract class EffectTintProvider {
 
-    private static final Vector3f Y = new Vector3f(0.299f, 0.587f, 0.114f);
+    public static final Vector3f Y = new Vector3f(0.299f, 0.587f, 0.114f);
 
-    public static Vector3f getEffectTint(Minecraft client, @Nullable FogProvider.Fog fog, float tickDelta) {
+    public static Vector3f getEffectTint(Minecraft client, @Nullable FogProvider.Fog fog, float tickDelta, Vector3d cameraPos) {
         if (client.level == null || client.player == null)
             return new Vector3f(1.0f, 1.0f, 1.0f);
 
-        Vector3f cloudColor = getCloudsColor(client.level, tickDelta);
+        Vector3f cloudColor = getCloudsColor(client.level, tickDelta, cameraPos);
 
         if (EnhancedCelestialsCompat.instance().isEventActive(client.level)) {
             Vector3f tint = EnhancedCelestialsCompat.instance().getEventTint(client.level);
@@ -34,7 +36,7 @@ public abstract class EffectTintProvider {
         Vector3f cloudBaseChroma = cloudBaseLuma < 0.0001 ? new Vector3f(1.0f) : new Vector3f(cloudColor).div(cloudBaseLuma);
 
         float cloudLuma = cloudBaseLuma;
-        float moon = Mth.clamp(-Mth.cos(getSunAngleRadians(client.level)), -0.25f, 0.25f) * 2 + 0.5f;
+        float moon = Mth.clamp(-Mth.cos(getSunAngleRadians(client.level, cameraPos)), -0.25f, 0.25f) * 2 + 0.5f;
         float moonSize = EnhancedCelestialsCompat.instance().getMoonSize(client.level);
         cloudLuma += moonSize * moon * 0.65f;
 
@@ -64,7 +66,7 @@ public abstract class EffectTintProvider {
         return result;
     }
 
-    private static void compositeColor(Vector3f color, Vector4f cry) {
+    public static void compositeColor(Vector3f color, Vector4f cry) {
         gammaToLinear(color);
 
         float luma = color.dot(Y);
@@ -78,7 +80,7 @@ public abstract class EffectTintProvider {
         );
     }
 
-    private static Vector3f getCloudsColor(ClientLevel world, float tickDelta) {
+    public static Vector3f getCloudsColor(ClientLevel world, float tickDelta, Vector3d cameraPos) {
         final Vector3f Y = new Vector3f(0.299f, 0.587f, 0.114f);
 
         // this is from ClientWorld#getCloudsColor
@@ -86,7 +88,7 @@ public abstract class EffectTintProvider {
         float rain = world.getRainLevel(tickDelta);
         color.lerp(new Vector3f(color.dot(Y) * 0.6f), rain * 0.95f);
 
-        float sky = getSunAngleDegrees(world) / 360.0f;
+        float sky = getSunAngleDegrees(world, cameraPos) / 360.0f;
 
         float sun = Mth.cos(sky * (float) (Math.PI * 2)) * 2.0F + 0.5F;
         sun = Mth.clamp(sun, 0.0F, 1.0F);
@@ -98,19 +100,19 @@ public abstract class EffectTintProvider {
         return color;
     }
 
-    private static void gammaToLinear(Vector3f color) {
+    public static void gammaToLinear(Vector3f color) {
         color.set((float) Math.pow(color.x, 2.2), (float) Math.pow(color.y, 2.2), (float) Math.pow(color.z, 2.2));
     }
 
-    private static void linearToGamma(Vector3f color) {
+    public static void linearToGamma(Vector3f color) {
         color.set((float) Math.pow(color.x, 1 / 2.2), (float) Math.pow(color.y, 1 / 2.2), (float) Math.pow(color.z, 1 / 2.2));
     }
 
-    private static float getSunAngleDegrees(ClientLevel world) {
-        return world.environmentAttributes().getDimensionValue(EnvironmentAttributes.SUN_ANGLE);
+    public static float getSunAngleDegrees(ClientLevel world, Vector3d cameraPos) {
+        return world.environmentAttributes().getValue(EnvironmentAttributes.SUN_ANGLE, new Vec3(cameraPos.x, cameraPos.y, cameraPos.z));
     }
 
-    private static float getSunAngleRadians(ClientLevel world) {
-        return (float) Math.toRadians(getSunAngleDegrees(world));
+    public static float getSunAngleRadians(ClientLevel world, Vector3d cameraPos) {
+        return getSunAngleDegrees(world, cameraPos) * Mth.DEG_TO_RAD;
     }
 }
