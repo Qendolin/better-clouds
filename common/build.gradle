@@ -26,6 +26,7 @@ dependencies {
     annotationProcessor "io.github.llamalad7:mixinextras-common:${property('deps.mixin_extras')}"
 
     compileOnly "maven.modrinth:1eAoo2KR:${property('deps.yacl')}"
+    compileOnly "maven.modrinth:YL57xq9U:${property('deps.iris_fabric')}"
     compileOnly "gs.mclo:api:${property('deps.mclo_api')}"
     compileOnly "maven.modrinth:Xs0XTOVv:${property('deps.distanthorizons_api')}"
 

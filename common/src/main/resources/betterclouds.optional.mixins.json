@@ -6,6 +6,8 @@
   "refmap" : "betterclouds.refmap.json",
   "compatibilityLevel" : "JAVA_22",
   "client" : [
-    "ArsNouveauSkyTextureHandlerMixin"
+    "ArsNouveauSkyTextureHandlerMixin",
+    "ExtendedShaderAccessor",
+    "FallbackShaderAccessor"
   ]
 }

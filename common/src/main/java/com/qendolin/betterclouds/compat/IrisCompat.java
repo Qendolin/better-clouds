@@ -18,8 +18,28 @@ public abstract class IrisCompat {
 
         BetterCloudsStatic.getLogger().info("Iris: initializing compat");
 
-        BetterCloudsStatic.getLogger().warn("Iris compat is temporarily disabled on Minecraft 26.1 until an official-mappings build is available");
-        instance = new Stub();
+        boolean irisshadersPackage = false;
+        try {
+            Class.forName("net.irisshaders.iris.Iris");
+            irisshadersPackage = true;
+        } catch (ClassNotFoundException ignored) {
+        }
+
+        try {
+            if (irisshadersPackage) {
+                instance = new IrisCompatImpl();
+            } else {
+                throw new RuntimeException("net.irisshaders.iris package not found");
+            }
+        } catch (Throwable e) {
+            BetterCloudsStatic.getLogger().error("Iris version not compatible", e);
+        }
+
+        if (instance == null) {
+            instance = new Stub();
+        } else {
+            IrisCompat.isActive = true;
+        }
     }
 
     public static boolean isActive() {

@@ -111,7 +111,6 @@ tasks.named("compileJava", JavaCompile) {
     source(configurations.commonJava.asFileTree.matching {
         exclude(
                 "com/qendolin/betterclouds/compat/EnhancedCelestials2CompatImpl.java",
-                "com/qendolin/betterclouds/compat/IrisCompatImpl.java",
                 "com/qendolin/betterclouds/mixin/runtime/SodiumGameOptionPagesMixin.java"
         )
     })
