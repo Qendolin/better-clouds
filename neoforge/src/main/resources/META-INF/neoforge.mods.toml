@@ -7,7 +7,7 @@ license = "MPL-2.0"
 modId = "betterclouds"
 version = "${version}"
 displayName = "Better Clouds"
-authors = "Qendolin"
+authors = "Qendolin, orangishcat"
 description = '''
 Beautiful clouds in touch with the vanilla style.
 '''
