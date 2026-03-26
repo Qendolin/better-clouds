@@ -109,7 +109,6 @@ public class Renderer implements AutoCloseable {
     }
 
     public PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, int ticks, float tickDelta, Vector3d cam) {
-        BetterCloudsStatic.getLogger().info("Rendering clouds");
         assert RenderSystem.isOnRenderThread();
         getProfiler().popPush("render_setup");
         Config config = ConfigManager.instance();
