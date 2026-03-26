@@ -15,6 +15,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -114,7 +115,7 @@ public class SelectDropdownController<T> implements Controller<Integer> {
         @Override
         protected Component getValueText() {
             Component valueText = control.formatValue();
-            int maxWidth = Math.max(0, getDimension().width().intValue() - getControlWidth() - getXPadding());
+            int maxWidth = Math.max(0, getDimension().width() - getControlWidth() - getXPadding());
             String shortened = GuiUtils.shortenString(valueText.getString(), textRenderer, maxWidth, "...");
 
             return Component.literal(shortened).setStyle(valueText.getStyle());
@@ -152,17 +153,7 @@ public class SelectDropdownController<T> implements Controller<Integer> {
         }
 
         @Override
-        public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-            if (isMouseOver(mouseX, mouseY) && isAvailable() && verticalAmount != 0) {
-                control.cycle(verticalAmount > 0 ? -1 : 1);
-                return true;
-            }
-
-            return false;
-        }
-
-        @Override
-        public boolean keyPressed(KeyEvent event) {
+        public boolean keyPressed(@NonNull KeyEvent event) {
             if (!isFocused()) {
                 return false;
             }
@@ -247,19 +238,19 @@ public class SelectDropdownController<T> implements Controller<Integer> {
         }
 
         private Dimension<Integer> calculateDimensions(Dimension<Integer> anchorDim) {
-            int visibleCount = Math.max(1, Math.min(MAX_VISIBLE_ITEMS, dropdownController.getValueCount()));
+            int visibleCount = Math.clamp(dropdownController.getValueCount(), 1, MAX_VISIBLE_ITEMS);
             int popupHeight = visibleCount * itemHeight + 2;
-            int popupY = anchorDim.yLimit().intValue() + 1;
+            int popupY = anchorDim.yLimit() + 1;
             int screenHeight = client.getWindow().getGuiScaledHeight();
 
             if (popupY + popupHeight > screenHeight) {
-                popupY = anchorDim.y().intValue() - popupHeight - 1;
+                popupY = anchorDim.y() - popupHeight - 1;
             }
 
             return Dimension.ofInt(
-                    anchorDim.x().intValue(),
+                    anchorDim.x(),
                     Math.max(0, popupY),
-                    anchorDim.width().intValue(),
+                    anchorDim.width(),
                     popupHeight
             );
         }
@@ -287,18 +278,18 @@ public class SelectDropdownController<T> implements Controller<Integer> {
 
             hovered = isMouseOver(mouseX, mouseY);
 
-            int x = popupDimension.x().intValue();
-            int y = popupDimension.y().intValue();
-            int xLimit = popupDimension.xLimit().intValue();
-            int yLimit = popupDimension.yLimit().intValue();
+            int x = popupDimension.x();
+            int y = popupDimension.y();
+            int xLimit = popupDimension.xLimit();
+            int yLimit = popupDimension.yLimit();
 
             context.fill(x, y, xLimit, yLimit, 0xFF202020);
-            context.outline(x, y, popupDimension.width().intValue(), popupDimension.height().intValue(), 0xFFAAAAAA);
+            context.outline(x, y, popupDimension.width(), popupDimension.height(), 0xFFAAAAAA);
 
             int count = Math.min(MAX_VISIBLE_ITEMS, dropdownController.getValueCount());
             int startY = y + 1;
             int selectedIndex = dropdownController.option().pendingValue();
-            int maxTextWidth = Math.max(0, popupDimension.width().intValue() - 8);
+            int maxTextWidth = Math.max(0, popupDimension.width() - 8);
 
             for (int i = 0; i < count; i++) {
                 int itemIndex = firstVisibleIndex + i;
@@ -327,8 +318,8 @@ public class SelectDropdownController<T> implements Controller<Integer> {
         }
 
         private boolean isMouseOverItem(double mouseX, double mouseY, int itemY) {
-            return mouseX >= popupDimension.x().intValue()
-                    && mouseX <= popupDimension.xLimit().intValue()
+            return mouseX >= popupDimension.x()
+                    && mouseX <= popupDimension.xLimit()
                     && mouseY >= itemY
                     && mouseY < itemY + itemHeight;
         }
@@ -343,7 +334,7 @@ public class SelectDropdownController<T> implements Controller<Integer> {
             double mouseY = event.y();
 
             if (popupDimension.isPointInside((int) mouseX, (int) mouseY)) {
-                int relativeY = (int) mouseY - (popupDimension.y().intValue() + 1);
+                int relativeY = (int) mouseY - (popupDimension.y() + 1);
                 int clickedIndex = (relativeY / itemHeight) + firstVisibleIndex;
 
                 if (clickedIndex >= 0 && clickedIndex < dropdownController.getValueCount()) {
