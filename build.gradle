@@ -58,10 +58,8 @@ def selectedPublishTargets = {
     publishTargetDefinitions.keySet().findAll(isPublishTargetEnabled)
 }
 
-def requirePublishConfirmation = {
-    println ""
-    println "WARNING: publish.fabric=${isPublishTargetEnabled("fabric")}, publish.neoforge=${isPublishTargetEnabled("neoforge")}"
-    println "Publishing without both loaders enabled."
+def requirePublishConfirmation = { List<String> warningLines ->
+    warningLines.each { warningLine -> println warningLine }
     println "Press Enter to continue, or Ctrl+C to cancel."
 
     def console = System.console()
@@ -243,11 +241,23 @@ def requestedPublishTaskNames = gradle.startParameter.taskNames.findAll { reques
     requestedTaskName.tokenize(":").last() in ["publishMods", "publishModrinth", "publishCurseforge"]
 }
 
+def requestedPublishModsTaskNames = requestedPublishTaskNames.findAll { requestedTaskName ->
+    requestedTaskName.tokenize(":").last() == "publishMods"
+}
+
 if (!requestedPublishTaskNames.isEmpty()) {
-    if (selectedPublishTargets().size() != publishTargetDefinitions.size()) {
-        requirePublishConfirmation()
-    }
     if (selectedPublishTargets().isEmpty()) {
         throw new GradleException("No publish targets are enabled. Set publish.fabric=true and/or publish.neoforge=true.")
+    }
+    if (!requestedPublishModsTaskNames.isEmpty()) {
+        requirePublishConfirmation([
+                "Requested publish task(s): ${requestedPublishModsTaskNames.join(", ")}",
+                "publish.fabric=${isPublishTargetEnabled("fabric")}, publish.neoforge=${isPublishTargetEnabled("neoforge")}",
+        ])
+    } else if (selectedPublishTargets().size() != publishTargetDefinitions.size()) {
+        requirePublishConfirmation([
+                "WARNING: publish.fabric=${isPublishTargetEnabled("fabric")}, publish.neoforge=${isPublishTargetEnabled("neoforge")}",
+                "Publishing without both loaders enabled.",
+        ])
     }
 }
