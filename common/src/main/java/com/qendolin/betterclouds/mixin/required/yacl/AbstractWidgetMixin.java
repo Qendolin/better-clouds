@@ -48,7 +48,7 @@ public abstract class AbstractWidgetMixin {
         int color = enabled ? 0xffa09fa0 : 0xffa0a0a0;
         if (hovered) color = -1;
 
-        context.fill(x1, y1, x2, y2, 0xa0000000);
+        context.fill(x1, y1, x2, y2, 0x60000000);
         betterclouds$drawOutline(context, x1, y1, x2, y2, 1, color);
     }
 

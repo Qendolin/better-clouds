@@ -10,6 +10,7 @@
   "client" : [
     "CloudSettingMixin",
     "GameRendererAccessor",
+    "GameRendererMixin",
     "RenderSystemMixin",
     "TabNavigationWidgetMixin",
     "WorldMixin",

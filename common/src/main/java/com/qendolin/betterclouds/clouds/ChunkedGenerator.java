@@ -169,16 +169,16 @@ public class ChunkedGenerator implements AutoCloseable {
             boolean bufferCleared = buffer.swapCount() == 0 && queuedTask == null && runningTask == null && (completedTask == null || completedTask == swappedTask);
 
             if (optionsChanged)
-                BetterCloudsStatic.getLogger().info("Configuration changed, updating geometry");
+                BetterCloudsStatic.getLogger().debug("Configuration changed, updating geometry");
             updateGeometry = chunkChanged || optionsChanged || cloudinessChanged || bufferCleared;
         } else {
-            BetterCloudsStatic.getLogger().info("No tasks, updating geometry");
+            BetterCloudsStatic.getLogger().debug("No tasks, updating geometry");
             updateGeometry = true;
         }
 
         if (Debug.generatorForceUpdate) {
             Debug.generatorForceUpdate = false;
-            BetterCloudsStatic.getLogger().info("Forcibly updating geometry");
+            BetterCloudsStatic.getLogger().debug("Forcibly updating geometry");
             updateGeometry = true;
         }
 
@@ -204,7 +204,7 @@ public class ChunkedGenerator implements AutoCloseable {
 
         final Task boundTask = runningTask;
         CompletableFuture.runAsync(runningTask::run)
-                .whenComplete((unused, throwable) -> {
+                .whenComplete((_, throwable) -> {
                     synchronized (this) {
                         if (throwable != null) {
                             BetterCloudsStatic.getLogger().error("Generator task #{} ran with error", runningTask.id(), throwable);
@@ -425,8 +425,7 @@ public class ChunkedGenerator implements AutoCloseable {
                     if (value <= 0) continue;
 
                     float x = (float) (sampleX - this.chunkX * options.chunkSize + sampler.randomOffsetX(sampleX, sampleZ) * options.randomPlacement * spacing);
-                    // TODO: cloudPointiness value
-                    float y = options.yRange * value * value + options.yOffset;
+                    float y = (float) (options.yRange * Math.pow(value, 5 - options.pointiness) + options.yOffset);
                     float z = (float) (sampleZ - this.chunkZ * options.chunkSize + sampler.randomOffsetZ(sampleX, sampleZ) * options.randomPlacement * spacing);
 
                     if (bounds == null) {

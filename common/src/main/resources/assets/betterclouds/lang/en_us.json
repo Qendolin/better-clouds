@@ -101,6 +101,8 @@
   "betterclouds.config.entry.randomPlacement.description" : "Random offset to the individual cloud cubes",
   "betterclouds.config.entry.yRange" : "Height Range",
   "betterclouds.config.entry.yRange.description" : "Vertical distance between individual cloud cubes",
+  "betterclouds.config.entry.pointiness" : "Pointiness",
+  "betterclouds.config.entry.pointiness.description" : "How much the clouds' y height are increased towards the center",
   "betterclouds.config.entry.yOffset" : "Height Offset",
   "betterclouds.config.entry.yOffset.description" : "Adjusts the y level of the clouds",
   "betterclouds.config.entry.travelSpeed" : "Travel Speed",

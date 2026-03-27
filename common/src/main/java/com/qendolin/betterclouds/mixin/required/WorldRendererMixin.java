@@ -85,8 +85,6 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
 
     @Inject(at = @At("HEAD"), method = "renderLevel")
     private void captureViewAndProjectionMatrix(GraphicsResourceAllocator allocator, DeltaTracker tickCounter, boolean renderBlockOutline, CameraRenderState cameraRenderState, Matrix4fc positionMatrix, GpuBufferSlice fogBuffer, Vector4f fogColor, boolean renderSky, ChunkSectionsToRender chunkSectionsToRender, CallbackInfo ci) {
-        RenderHelper.setProjectionMatrix(new Matrix4f(cameraRenderState.projectionMatrix));
-        RenderHelper.setViewMatrix(new Matrix4f(positionMatrix));
         better_clouds$frustum = cameraRenderState.cullFrustum;
         Vec3 cameraPos = cameraRenderState.pos;
         better_clouds$frustum.prepare(cameraPos.x, cameraPos.y, cameraPos.z);
@@ -119,6 +117,8 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
         float tickDelta = Mth.frac(ticksInput);
         Matrix4f viewMat = RenderHelper.getViewMatrix();
         Matrix4f projMat = RenderHelper.getProjectionMatrix();
+        RenderHelper.setProjectionMatrix(new Matrix4f(projMat));
+        RenderHelper.setViewMatrix(new Matrix4f(viewMat));
         if (better_clouds$cloudRenderer == null) return;
         if (glCompat.isIncompatible()) return;
         if (level == null) return;

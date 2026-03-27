@@ -43,6 +43,8 @@ public class Config {
     @SerialEntry
     public float yOffset = 0f;
     @SerialEntry
+    public float pointiness = 3f;
+    @SerialEntry
     public float sparsity = 0f;
     @SerialEntry
     public float spacing = 5.25f;

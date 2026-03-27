@@ -37,6 +37,7 @@ public class ConfigGUI {
     public final Option<Float> randomPlacement;
     public final Option<Float> yRange;
     public final Option<Float> yOffset;
+    public final Option<Float> pointiness;
     public final Option<Float> samplingScale;
     public final Option<Float> sizeXZ;
     public final Option<Float> sizeY;
@@ -122,6 +123,10 @@ public class ConfigGUI {
         this.yOffset = createOption(float.class, "yOffset")
                 .binding(defaults.yOffset, () -> config.yOffset, val -> config.yOffset = val)
                 .customController(opt -> new FloatSliderController(opt, -384, 256, 8))
+                .build();
+        this.pointiness = createOption(float.class, "pointiness")
+                .binding(defaults.pointiness, () -> config.pointiness, val -> config.pointiness = val)
+                .customController(opt -> new FloatSliderController(opt, 0.5f, 5f, 0.1f))
                 .build();
         this.samplingScale = createOption(float.class, "samplingScale")
                 .binding(defaults.samplingScale, () -> config.samplingScale, val -> config.samplingScale = val)
@@ -225,6 +230,7 @@ public class ConfigGUI {
                 sparsity,
                 yRange,
                 yOffset,
+                pointiness,
                 spacing,
                 samplingScale,
                 shuffle
