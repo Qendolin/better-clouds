@@ -1,6 +1,6 @@
 #version 330 core
 
-#extension GL_ARB_separate_shader_objects : enable
+#extension GL_ARB_separate_shader_objects: enable
 
 // Geometry attributes
 #define SIZE vec3(_SIZE_XZ_, _SIZE_Y_, _SIZE_XZ_)
@@ -12,9 +12,9 @@
 
 #define DISTANT_HORIZONS _DISTANT_HORIZONS_
 
-layout(location = 0) in vec3 in_pos;// instanced per cloud cube
-layout(location = 1) in vec3 in_vert;
-layout(location = 2) in vec3 in_normal;
+layout (location = 0) in vec3 in_pos;// instanced per cloud cube
+layout (location = 1) in vec3 in_vert;
+layout (location = 2) in vec3 in_normal;
 
 uniform sampler2D u_noise_texture;
 #if DISTANT_HORIZONS
@@ -63,7 +63,7 @@ void main() {
     float waveScale = texture(u_noise_texture, (localWorldPosition.xz + u_bounding_box.xy) / 4000.0 + vec2(u_miscellaneous.z * u_time / 800.0)).r;
     float smallWaves = texture(u_noise_texture, (localWorldPosition.zx + u_bounding_box.yx) / 1000.0 + vec2(u_miscellaneous.z * u_time / 200.0)).r * 1.8 - 0.9;
     waveScale = mix(mix(waveScale, 1.0, max(smallWaves, 0.0)), 0.0, max(-smallWaves, 0.0));
-    float fDynScale = 1.0 - smoothstep(0.0, u_bounding_box.w / 4.0, in_pos.y+0.5);
+    float fDynScale = 1.0 - smoothstep(0.0, u_bounding_box.w / 4.0, in_pos.y + 0.5);
     float dynScale = mix(1.0, waveScale, fDynScale * u_miscellaneous.y);
     vec3 scale = SIZE * dynScale * scaleFalloff;
 
@@ -74,7 +74,7 @@ void main() {
     pass_color.r = linearFogFade(length(localWorldVertexPos.xyz), u_fog_range.x, u_fog_range.y);
 
     #if POSITIONAL_COLORING
-    pass_color.g = (scale.y * 0.625 * (in_vert.y+0.375) + in_pos.y) / (u_bounding_box.w);
+    pass_color.g = (scale.y * 0.625 * (in_vert.y + 0.375) + in_pos.y) / (u_bounding_box.w);
     #else
     pass_color.g = 1.0;
     #endif
@@ -89,7 +89,7 @@ void main() {
     vec4 localPos = u_mv_matrix * vec4(vertexPos, 1.0);
     gl_Position = u_mc_p_matrix * localPos;
     vec4 dhPos = u_dh_p_matrix * localPos;
-    pass_dh_depth = (dhPos.z/dhPos.w) * 0.5 + 0.5;
+    pass_dh_depth = (dhPos.z / dhPos.w) * 0.5 + 0.5;
     #else
     gl_Position = u_mvp_matrix * vec4(vertexPos, 1.0);
     #endif

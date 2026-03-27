@@ -1,5 +1,6 @@
 package com.qendolin.betterclouds.compat;
 
+import com.mojang.blaze3d.opengl.GlProgram;
 import com.qendolin.betterclouds.mixin.optional.ExtendedShaderAccessor;
 import com.qendolin.betterclouds.mixin.optional.FallbackShaderAccessor;
 import net.irisshaders.iris.Iris;
@@ -8,7 +9,6 @@ import net.irisshaders.iris.pipeline.IrisRenderingPipeline;
 import net.irisshaders.iris.pipeline.WorldRenderingPipeline;
 import net.irisshaders.iris.pipeline.programs.ExtendedShader;
 import net.irisshaders.iris.pipeline.programs.FallbackShader;
-import com.mojang.blaze3d.opengl.GlProgram;
 import net.irisshaders.iris.pipeline.programs.ShaderKey;
 
 public class IrisCompatImpl extends IrisCompat {

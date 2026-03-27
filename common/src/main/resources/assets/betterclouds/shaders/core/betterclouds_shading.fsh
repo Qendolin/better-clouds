@@ -1,6 +1,6 @@
 #version 330 core
 
-#extension GL_ARB_separate_shader_objects : enable
+#extension GL_ARB_separate_shader_objects: enable
 
 #define BLIT_DEPTH _BLIT_DEPTH_
 #define UINT_COVERAGE _UINT_COVERAGE_
@@ -8,7 +8,7 @@
 
 in vec3 pass_dir;
 
-layout (location=0) out vec4 out_color;
+layout (location = 0) out vec4 out_color;
 
 #if BLIT_DEPTH
 uniform sampler2D u_depth_texture;
@@ -59,7 +59,7 @@ void main() {
     #endif
     // This is the "correct" formula
     // frag_color.a = 1.0 - pow((1.0-u_opacity.x), coverage);
-    out_color.a = pow(coverage, u_opacity.z) / (1.0/(u_opacity.x)+pow(coverage, u_opacity.z)-1.0);
+    out_color.a = pow(coverage, u_opacity.z) / (1.0 / (u_opacity.x) + pow(coverage, u_opacity.z) - 1.0);
 
     vec3 sun_dir = u_sun_direction.xyz;
     vec3 frag_dir = normalize(pass_dir);
@@ -76,8 +76,8 @@ void main() {
     // Higher values -> smaller size
     const float superellipse_size = 3.0;
     float superellipse = (
-    (1.0 + (1.0/3.0) * (pow(sin(2.0*proj_angle + pi/2.0), 2.0)))
-    * (superellipse_size-abs(superellipse_falloff)*superellipse_size) - 1.0
+    (1.0 + (1.0 / 3.0) * (pow(sin(2.0 * proj_angle + pi / 2.0), 2.0)))
+    * (superellipse_size - abs(superellipse_falloff) * superellipse_size) - 1.0
     ) * sign(-superellipse_falloff);
     float light_uv_x = mix(sphere, superellipse, smoothstep(0.75, 1.0, abs(sphere)));
     #else

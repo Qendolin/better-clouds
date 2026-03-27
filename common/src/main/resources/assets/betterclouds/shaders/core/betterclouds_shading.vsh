@@ -1,8 +1,8 @@
 #version 330 core
 
-#extension GL_ARB_separate_shader_objects : enable
+#extension GL_ARB_separate_shader_objects: enable
 
-layout(location = 0) in vec3 in_vert;
+layout (location = 0) in vec3 in_vert;
 
 out vec3 pass_dir;
 

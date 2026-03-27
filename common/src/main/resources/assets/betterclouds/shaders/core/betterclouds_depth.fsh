@@ -2,7 +2,7 @@
 
 uniform sampler2D u_depth_texture;
 
-layout (location=0) out vec4 out_color;
+layout (location = 0) out vec4 out_color;
 
 void main() {
     out_color = vec4(0.0);// write color, just for safety

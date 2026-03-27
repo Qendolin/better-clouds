@@ -1,6 +1,6 @@
 #version 330 core
 
-#extension GL_ARB_separate_shader_objects : enable
+#extension GL_ARB_separate_shader_objects: enable
 
 #define DISTANT_HORIZONS _DISTANT_HORIZONS_
 
@@ -15,8 +15,8 @@ const float dither_matrix[16] = float[](
 flat in float pass_opacity;
 in vec3 pass_color;
 
-layout (location=0) out vec3 out_color;
-layout (location=1) out float out_one;
+layout (location = 0) out vec3 out_color;
+layout (location = 1) out float out_one;
 
 uniform sampler2D u_depth_texture;
 
