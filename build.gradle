@@ -132,7 +132,7 @@ def configurePublishProject = { String target, Map<String, ?> targetConfig ->
             file = targetProject.tasks.named("jar", Jar).flatMap { it.archiveFile }
             changelog = rootProject.providers.fileContents(rootProject.layout.projectDirectory.file("changelog.md")).asText
             displayName = "${releaseName} ${modVersion} for ${mcVersion} ${targetConfig.loaderName}"
-            version = buildVersionString(targetConfig.loader)
+            version = "${modVersion}+${mcVersion}-${targetConfig.loader}-${releaseType}"
             type = releaseTypeEnum()
             modLoaders.add(targetConfig.loader)
 
