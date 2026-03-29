@@ -16,13 +16,17 @@
 
 Better Clouds adds volumetric clouds to Minecraft, in a simple, blocky style that matches the rest of the game.
 
+Often, shaders and resource packs add hyper-realistic clouds to the game, which look good but don't match with
+Minecraft's style. This mod aims to fix that, adding volumetric, multi-layered clouds that don't clash with the style of
+Minecraft.
+
 ## Features
 
 - Adds simple volumetric clouds that doesn't clash with the style of the rest of the game.
 - Cloud appearance is highly customizable; practically every option can be changed. Go wild!
 - Built-in shader presets to make the clouds look good. Supports Complementary, BSL, Chocapic, Kappa, Rethinking Voxels,
   and Solas.
-- Cloud generation customizable via resource packs.
+- Cloud generation is customizable via resource packs.
 - Built-in compatibility with visual mods, such as Iris, Serene Seasons, and more!
 - Performs just as well or potentially even better than vanilla cloud rendering.
 - Available for Fabric and NeoForge.
