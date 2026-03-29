@@ -41,7 +41,6 @@ loom {
 
 dependencies {
     implementation project(":common")
-
     minecraft "com.mojang:minecraft:$mcVersion"
 
     annotationProcessor "io.github.llamalad7:mixinextras-common:${property('deps.mixin_extras')}"
