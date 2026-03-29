@@ -9,14 +9,9 @@ base {
 }
 
 def loader = "neoforge"
-def mcVersion = rootProject.ext.mcVersion
+def mcVersion = property('deps.minecraft')
 
-version = rootProject.ext.buildVersionString(
-        property("mod.version").toString(),
-        property("mod.release").toString().toLowerCase(),
-        mcVersion,
-        loader
-)
+version = rootProject.ext.buildVersionString(mcVersion)
 
 neoForge {
     version = property("loader.neoforge").toString()

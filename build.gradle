@@ -178,9 +178,9 @@ def configurePublishProject = { String target, Map<String, ?> targetConfig ->
 }
 
 ext {
-    def releaseType = property("mod.release").toString()
-    def modVersion = property("mod.version").toString()
-    def mcVersion = findProperty("deps.minecraft")
+    releaseType = property("mod.release").toString()
+    modVersion = property("mod.version").toString()
+    mcVersion = findProperty("deps.minecraft")
 
     buildVersionString = { String loader ->
         def semver = modVersion

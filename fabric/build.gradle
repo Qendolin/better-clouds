@@ -12,12 +12,7 @@ base {
 def loader = "fabric"
 def mcVersion = rootProject.ext.mcVersion
 
-version = rootProject.ext.buildVersionString(
-        property("mod.version").toString(),
-        property("mod.release").toString().toLowerCase(),
-        mcVersion,
-        loader
-)
+version = rootProject.ext.buildVersionString(loader)
 
 loom {
     accessWidenerPath.set(project(":common").file("src/main/resources/betterclouds.accesswidener"))
