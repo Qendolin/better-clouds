@@ -14,30 +14,18 @@
 
 ---
 
-**Better Clouds** replaces Minecraft's flat cloud layer with volumetric skies that still feel at home in vanilla. The
-goal is simple: make the sky look dramatically better without drifting into a style that clashes with the rest of the
-game.
+Better Clouds adds volumetric clouds to Minecraft, in a simple, blocky style that matches the rest of the game.
 
 ## Features
 
-- **Vanilla-friendly volumetric clouds:** Adds layered, sculpted cloud formations that matches Minecraft's overall
-  visual style.
-- **Deep visual customization:** Tune cloud size, height, spacing, sparsity, fuzziness, opacity, travel speed, wind
-  response, halo effects, fog fade, brightness, saturation, tint, and more.
-- **Preset-driven workflow:** Start with built-in presets, switch quickly between looks, restore defaults when needed,
-  or create and duplicate your own presets for different worlds and shader packs.
-- **Shader-aware rendering:** Includes Iris-focused support, options for cloud rendering when shaders are active, preset
-  compatibility work, and controls such as depth writing, sun path angle, world curvature, and upscale resolution.
-- **Performance-conscious options:** Adjust generation chunk size, view distance scaling, frustum culling, persistent
-  buffers, ordering behavior, and other rendering settings to fit your hardware and modpack.
-- **Resource-pack styling:** Cloud gradients, noise textures, and preset data can be supplied through resource packs,
-  making it possible to build custom sky looks without changing the mod itself.
-- **Season and dimension interop:** Supports dimension-based activation and integrates with seasonal mods such as Fabric
-  Seasons and Serene Seasons so cloud coverage can shift throughout the in-game year.
-- **Broad mod compatibility:** Includes compatibility layers for common visual and world mods, including shader tooling
-  and distant-horizon-style rendering setups.
-- **Cross-loader and accessibility support:** Available for Fabric and NeoForge, integrates with Mod Menu on Fabric, and
-  ships with multiple language translations.
+- Adds simple volumetric clouds that doesn't clash with the style of the rest of the game.
+- Cloud appearance is highly customizable; practically every option can be changed. Go wild!
+- Built-in shader presets to make the clouds look good. Supports Complementary, BSL, Chocapic, Kappa, Rethinking Voxels,
+  and Solas.
+- Cloud generation customizable via resource packs.
+- Built-in compatibility with visual mods, such as Iris, Serene Seasons, and more!
+- Performs just as well or potentially even better than vanilla cloud rendering.
+- Available for Fabric and NeoForge.
 
 ## Download
 
@@ -45,7 +33,7 @@ game.
 
 ## Contributions
 
-Thanks to everyone who has contributed to the project.  
+Thanks to everyone who has contributed to the project!  
 See the full list [here](https://github.com/Qendolin/better-clouds/blob/main/Contributions.md).
 
 ## Wiki
