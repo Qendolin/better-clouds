@@ -122,7 +122,7 @@ processResources {
             loader : loader,
     ]
     props["mc_version_range"] = findProperty("deps.minecraft").toString().split(",").collect {
-        "[$it,]"
+        "[$it,)"
     }.join(",")
     props["neoforge_version_range"] = findProperty("deps.neoforge").toString()
 
