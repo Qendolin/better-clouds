@@ -81,7 +81,7 @@ processResources {
             .replace("-rc-", "-rc.")
             .replace("-pre-", "-pre.")
             .split(",").collect {
-        "\">=$it\""
+        "\"~$it\""
     }.join(", ")
 
     props.forEach(inputs::property)
