@@ -172,6 +172,10 @@ def configurePublishProject = { String target, Map<String, ?> targetConfig ->
                 doFirst {
                     validatePublishChangelog()
                 }
+                doLast {
+                    // Clear changelog if publish successful
+                    changelogFile.write("", "UTF-8")
+                }
             }
         }
     }
