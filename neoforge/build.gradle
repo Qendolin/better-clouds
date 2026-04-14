@@ -9,7 +9,7 @@ base {
 }
 
 def loader = "neoforge"
-def mcVersion = property('deps.minecraft')
+def mcVersion = rootProject.ext.mcVersion
 
 version = rootProject.ext.buildVersionString(loader)
 
@@ -18,7 +18,8 @@ neoForge {
 
     mods {
         betterclouds {
-            sourceSet(sourceSets.main)
+            sourceSet project(":common").sourceSets.main
+            sourceSet sourceSets.main
         }
     }
 
@@ -57,9 +58,6 @@ dependencies {
     implementation project(":common")           // for ide syntax highlighting, so it can discover :common
 
     annotationProcessor "io.github.llamalad7:mixinextras-common:${property('deps.mixin_extras')}"
-    compileOnly "net.fabricmc:sponge-mixin:0.16.5+mixin.0.8.7"
-    annotationProcessor "net.fabricmc:sponge-mixin:0.16.5+mixin.0.8.7"
-    runtimeOnly "net.fabricmc:sponge-mixin:0.16.5+mixin.0.8.7"
     compileOnly "org.ow2.asm:asm-tree:9.8"
     runtimeOnly "org.ow2.asm:asm:9.8"
     runtimeOnly "org.ow2.asm:asm-tree:9.8"
@@ -69,8 +67,6 @@ dependencies {
     annotationProcessor "org.ow2.asm:asm-tree:9.7.1"
     annotationProcessor "com.google.code.gson:gson:2.13.2"
     annotationProcessor "com.google.guava:guava:33.5.0-jre"
-    compileOnly "net.fabricmc:fabric-loader:${property('loader.fabric')}"
-    runtimeOnly "net.fabricmc:fabric-loader:${property('loader.fabric')}"
     compileOnly "org.apache.maven:maven-artifact:3.9.9"
 
     // Compile common GUI code against Yarn-named YACL classes, but run NeoForge with the NeoForge artifact.
@@ -78,15 +74,15 @@ dependencies {
     runtimeOnly "maven.modrinth:1eAoo2KR:${property('deps.yacl_neoforge')}"
 
     compileOnly(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-common:${property('deps.mixinsquared')}"))
-    implementation("com.github.bawnorton.mixinsquared:mixinsquared-${loader}:${property('deps.mixinsquared')}")
+    implementation(jarJar("com.github.bawnorton.mixinsquared:mixinsquared-neoforge:0.3.7-beta.1"))
     implementation("io.github.llamalad7:mixinextras-neoforge:${property('deps.mixin_extras')}")
 
     // These should be included with yacl, but it doesn't work correctly, so adding them here.
     runtimeOnly "org.quiltmc.parsers:json:0.3.0"
     runtimeOnly "org.quiltmc.parsers:gson:0.3.0"
 
-    compileOnly "maven.modrinth:YL57xq9U:${property('deps.iris_fabric')}"
-    compileOnly "maven.modrinth:PtjYWJkn:${property('deps.sodium_extra_fabric')}"
+    compileOnly "maven.modrinth:YL57xq9U:${property('deps.iris')}-neoforge"
+    compileOnly "maven.modrinth:PtjYWJkn:${property('deps.sodium_extra')}+neoforge"
     compileOnly "maven.modrinth:Es5v4eyq:${property('deps.sodium_options_api_fabric')}"
 
     if (!property("deps.terra_firma_craft").blank) {
@@ -96,10 +92,10 @@ dependencies {
     implementation("gs.mclo:api:${property('deps.mclo_api')}")
     compileOnly "maven.modrinth:Xs0XTOVv:${property('deps.distanthorizons_api')}"
     compileOnly "maven.modrinth:e0bNACJD:${property('deps.serene_seasons')}"
-    compileOnly "maven.modrinth:2rL16t1O:${property('deps.enhanced_celestials')}-fabric"
-    compileOnly "maven.modrinth:z2XEADmE:${property('deps.data_anchor')}-fabric"
+    compileOnly "maven.modrinth:2rL16t1O:${property('deps.enhanced_celestials')}-neoforge"
+    compileOnly "maven.modrinth:z2XEADmE:${property('deps.data_anchor')}-neoforge"
     if (!property("deps.sodium").blank) {
-        compileOnly "maven.modrinth:AANobbMI:${property('deps.sodium')}-fabric"
+        compileOnly "maven.modrinth:AANobbMI:${property('deps.sodium')}-neoforge"
     }
 }
 

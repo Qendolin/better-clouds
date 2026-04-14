@@ -53,7 +53,7 @@ dependencies {
 
     compileOnly "maven.modrinth:KJe6y9Eu:${property('deps.fabric_seasons')}"
 
-    include(implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-fabric:${property('deps.mixinsquared')}")))
+    include(implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-${loader}:${property('deps.mixinsquared')}")))
     implementation(include("io.github.llamalad7:mixinextras-fabric:${property('deps.mixin_extras')}"))
 
     include(implementation("gs.mclo:api:${property('deps.mclo_api')}"))
