@@ -425,7 +425,7 @@ public class ChunkedGenerator implements AutoCloseable {
                     if (value <= 0) continue;
 
                     float x = (float) (sampleX - this.chunkX * options.chunkSize + sampler.randomOffsetX(sampleX, sampleZ) * options.randomPlacement * spacing);
-                    float y = (float) (options.yRange * Math.pow(value, 5 - options.pointiness) + options.yOffset);
+                    float y = options.yRange * value * value * options.pointiness * 0.3f + options.yOffset;
                     float z = (float) (sampleZ - this.chunkZ * options.chunkSize + sampler.randomOffsetZ(sampleX, sampleZ) * options.randomPlacement * spacing);
 
                     if (bounds == null) {

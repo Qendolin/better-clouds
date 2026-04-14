@@ -126,7 +126,7 @@ public class ConfigGUI {
                 .build();
         this.pointiness = createOption(float.class, "pointiness")
                 .binding(defaults.pointiness, () -> config.pointiness, val -> config.pointiness = val)
-                .customController(opt -> new FloatSliderController(opt, 0.5f, 5f, 0.1f))
+                .customController(opt -> new FloatSliderController(opt, 0.5f, 10f, 0.1f))
                 .build();
         this.samplingScale = createOption(float.class, "samplingScale")
                 .binding(defaults.samplingScale, () -> config.samplingScale, val -> config.samplingScale = val)
