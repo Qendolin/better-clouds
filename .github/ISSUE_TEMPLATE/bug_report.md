@@ -3,7 +3,7 @@ name: Bug report
 about: Report a general issue with this mod
 title: ''
 labels: bug
-assignees: ''
+assignees: orangishcat
 
 ---
 

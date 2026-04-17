@@ -3,7 +3,7 @@ name: Critical error report
 about: Report a game crash, shader compile error or visual issue
 title: ''
 labels: bug
-assignees: Qendolin
+assignees: orangishcat
 
 ---
 
