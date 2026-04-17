@@ -66,7 +66,6 @@ public class ShaderPresetGUI {
         config.sortPresets();
 
         // FIXME: defaults.preset() gives default values defined in the code, not from the `default` preset
-
         this.selectedPreset = createOption(int.class, "shaderPreset")
                 .binding(defaults.selectedPreset, () -> config.selectedPreset, val -> config.selectedPreset = val)
                 .customController(opt -> new SelectDropdownController<>(opt, config.presets, (i, preset) -> {

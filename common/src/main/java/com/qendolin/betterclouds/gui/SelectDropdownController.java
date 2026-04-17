@@ -15,6 +15,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
@@ -82,20 +83,8 @@ public class SelectDropdownController<T> implements Controller<Integer> {
             return;
         }
 
-        int index = option.pendingValue();
-        if (index < 0 || index >= count) {
-            index = 0;
-        }
-
-        if (direction > 0) {
-            index = (index + 1) % count;
-        } else if (direction < 0) {
-            index = index - 1;
-            if (index < 0) {
-                index = count - 1;
-            }
-        }
-
+        int index = Mth.clamp(option.pendingValue(), 0, count - 1);
+        index = (index + direction + count) % count;
         option.requestSet(index);
     }
 
