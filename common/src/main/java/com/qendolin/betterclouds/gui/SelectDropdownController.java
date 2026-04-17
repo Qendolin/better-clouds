@@ -78,10 +78,9 @@ public class SelectDropdownController<T> implements Controller<Integer> {
     }
 
     public void cycle(int direction) {
-        int count = values.size();
-        if (count == 0) {
+        int count = getValueCount();
+        if (count == 0)
             return;
-        }
 
         int index = Mth.clamp(option.pendingValue(), 0, count - 1);
         index = (index + direction + count) % count;
