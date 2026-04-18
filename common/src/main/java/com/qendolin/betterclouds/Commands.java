@@ -22,6 +22,7 @@ import net.minecraft.commands.arguments.StringRepresentableArgument;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.StringRepresentable;
+import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -68,7 +69,7 @@ public class Commands {
                             return 1;
                         }))
                 .then(literal("stop")
-                        .executes(context -> {
+                        .executes(_ -> {
                             ChatUtil.debugChatMessage("profiling.disabled");
                             Debug.profileInterval = 0;
                             var renderer = BetterClouds.getCloudsRenderer();
@@ -82,12 +83,12 @@ public class Commands {
         );
         dispatcher.register(literal(BetterCloudsStatic.MODID + ":frustum")
                 .then(literal("capture")
-                        .executes(context -> {
+                        .executes(_ -> {
                             ChatUtil.debugChatMessage(Component.literal("Frustum capture is not available on Minecraft 26.1"));
                             return 1;
                         }))
                 .then(literal("release")
-                        .executes(context -> {
+                        .executes(_ -> {
                             ChatUtil.debugChatMessage(Component.literal("Frustum capture is not available on Minecraft 26.1"));
                             return 1;
                         }))
@@ -99,25 +100,25 @@ public class Commands {
                                 }))));
         dispatcher.register(literal(BetterCloudsStatic.MODID + ":generator")
                 .then(literal("pause")
-                        .executes(context -> {
+                        .executes(_ -> {
                             Debug.generatorPause = true;
                             ChatUtil.debugChatMessage("generatorPaused");
                             return 1;
                         }))
                 .then(literal("resume")
-                        .executes(context -> {
+                        .executes(_ -> {
                             Debug.generatorPause = false;
                             ChatUtil.debugChatMessage("generatorResumed");
                             return 1;
                         }))
                 .then(literal("update")
-                        .executes(context -> {
+                        .executes(_ -> {
                             Debug.generatorForceUpdate = true;
                             return 1;
                         })));
         dispatcher.register(literal(BetterCloudsStatic.MODID + ":animation")
                 .then(literal("pause")
-                        .executes(context -> {
+                        .executes(_ -> {
                             Debug.animationPause = 0;
                             ChatUtil.debugChatMessage("animationPaused");
                             return 1;
@@ -129,19 +130,19 @@ public class Commands {
                                     return 1;
                                 })))
                 .then(literal("resume")
-                        .executes(context -> {
+                        .executes(_ -> {
                             Debug.animationPause = -1;
                             ChatUtil.debugChatMessage("animationResumed");
                             return 1;
                         })));
         dispatcher.register(literal(BetterCloudsStatic.MODID + ":config")
-                .then(literal("open").executes(context -> {
+                .then(literal("open").executes(_ -> {
                     // The chat screen will call setScreen(null) after the command handler
                     // which would override our call, so we delay it
                     client.schedule(() -> client.setScreen(ConfigGUI.create(null)));
                     return 1;
                 }))
-                .then(literal("reload").executes(context -> {
+                .then(literal("reload").executes(_ -> {
                     ChatUtil.debugChatMessage("reloadingConfig");
                     ConfigManager.handler().load();
                     ChatUtil.debugChatMessage("configReloaded");
@@ -163,7 +164,7 @@ public class Commands {
         );
         dispatcher.register(literal(BetterCloudsStatic.MODID + ":dimension")
                 .then(literal("enable")
-                        .executes(context -> {
+                        .executes(_ -> {
                             if (client.level == null)
                                 return 0;
                             var entry = client.level.dimensionTypeRegistration();
@@ -178,7 +179,7 @@ public class Commands {
                             return 1;
                         }))
                 .then(literal("disable")
-                        .executes(context -> {
+                        .executes(_ -> {
                             if (client.level == null)
                                 return 0;
                             var entry = client.level.dimensionTypeRegistration();
@@ -206,9 +207,7 @@ public class Commands {
                                             FallbackArgument fallback = FallbackArgumentType.getFallback(context, "name");
                                             boolean enable = BoolArgumentType.getBool(context, "enable");
                                             fallback.set(GLCompat.glCompat, enable);
-                                            client.reloadResourcePacks().whenComplete((unused, throwable) -> {
-                                                ChatUtil.debugChatMessage(Component.literal(String.format("Fallback %s is now %s", fallback.getSerializedName(), enable ? "enabled" : "disabled")));
-                                            });
+                                            client.reloadResourcePacks().whenComplete((_, _) -> ChatUtil.debugChatMessage(Component.literal(String.format("Fallback %s is now %s", fallback.getSerializedName(), enable ? "enabled" : "disabled"))));
                                             return 1;
                                         })))
                 )
@@ -218,7 +217,7 @@ public class Commands {
     private static LiteralArgumentBuilder<Object> renderdocCommands() {
         return literal("renderdoc")
                 .then(literal("capture")
-                        .executes(context -> {
+                        .executes(_ -> {
                             if (RenderDoc.isAvailable()) {
                                 ChatUtil.debugChatMessage("renderdoc.capture.trigger");
                                 CaptureManager.capture(result -> {
@@ -255,7 +254,7 @@ public class Commands {
                                 return 0;
                             }
                         }))
-                .then(literal("install").executes(context -> {
+                .then(literal("install").executes(_ -> {
                     CompletableFuture.runAsync(() -> {
                         if (!RenderDoc.isAvailable() && !RenderDocLoader.isAvailable()) {
                             ChatUtil.debugChatMessage("renderdoc.downloading");
@@ -274,7 +273,7 @@ public class Commands {
                     });
                     return 1;
                 }))
-                .then(literal("uninstall").executes(context -> {
+                .then(literal("uninstall").executes(_ -> {
                     try {
                         RenderDocLoader.uninstall();
                     } catch (Exception e) {
@@ -283,7 +282,7 @@ public class Commands {
                     }
                     return 1;
                 }))
-                .then(literal("load").executes(context -> {
+                .then(literal("load").executes(_ -> {
                     if (!RenderDocLoader.isAvailable()) {
                         ChatUtil.debugChatMessage(Component.translatable(
                                 ChatUtil.debugChatMessageKey("renderdoc.prompt.install"),
@@ -377,7 +376,7 @@ public class Commands {
         }
 
         @Override
-        public String getSerializedName() {
+        public @NonNull String getSerializedName() {
             return name().toLowerCase();
         }
     }

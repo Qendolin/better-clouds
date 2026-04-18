@@ -56,10 +56,6 @@ public abstract class RenderHelper {
         GL32.glUseProgram(savedShaderId);
     }
 
-    public static void unbindShader() {
-        // No-op on 1.21.6+
-    }
-
     public static void colorMask(boolean red, boolean green, boolean blue, boolean alpha) {
         GL32.glColorMask(red, green, blue, alpha);
     }

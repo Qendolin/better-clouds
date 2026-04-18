@@ -12,7 +12,6 @@ public class RuntimeMixinPlugin extends MixinPlugin {
     public List<String> getMixins() {
         if (!ModLoader.isClientEnvironment()) return null;
 
-        //noinspection MismatchedQueryAndUpdateOfCollection
         List<String> classes = new ArrayList<>();
 
         classes.add("FogRendererMixin");

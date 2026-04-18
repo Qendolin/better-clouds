@@ -21,7 +21,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
 
@@ -66,13 +65,12 @@ public class BetterClouds extends BetterCloudsStatic {
     }
 
     public static void initializeClientEvents() {
-        EventHooks.instance.onClientStarted(client -> {
+        EventHooks.instance.onClientStarted(_ -> {
             if (glCompat == null) {
                 throw new IllegalStateException("OpenGL compat not initialized yet. This should not happen!");
             }
             glCompat.enableDebugOutputSynchronousDev();
         });
-        AtomicBoolean firstJoin = new AtomicBoolean(true);
         EventHooks.instance.onWorldJoin(client -> {
             if (glCompat.isIncompatible()) {
                 CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
@@ -88,8 +86,6 @@ public class BetterClouds extends BetterCloudsStatic {
             if (RenderDoc.isAvailable()) {
                 ChatUtil.debugChatMessage("renderdoc.load.ready", RenderDoc.getAPIVersion());
             }
-
-            firstJoin.set(false);
         });
         EventHooks.instance.onClientResourcesReload(() -> ShaderPresetLoader.INSTANCE);
         EventHooks.instance.onClientCommandRegistration(Commands::register);
