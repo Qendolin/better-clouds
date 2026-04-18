@@ -382,7 +382,7 @@ public class ChunkedGenerator implements AutoCloseable {
                     // The outer loop generates sample points
                     for (int gridX = chunkGridMinX; gridX < chunkGridMaxX; gridX++) {
                         for (int gridZ = chunkGridMinZ; gridZ < chunkGridMaxZ; gridZ++) {
-                            if (options.sparsity > 0 && hashToFloat(11, gridX + gridOriginX, gridZ + gridOriginZ) < options.sparsity)
+                            if (options.sparsity > 0 && Sampler.hashToFloat(11, gridX + gridOriginX, gridZ + gridOriginZ) < options.sparsity)
                                 continue;
                             if (gridX * gridX + gridZ * gridZ >= gridVisibilityRadiusSquared) {
                                 // The point is outside the visible range
@@ -402,7 +402,7 @@ public class ChunkedGenerator implements AutoCloseable {
                     for (int s = 0; s < gridPoints.length; s++) {
                         int[] tmp = gridPoints[s];
                         if (tmp == null) continue;
-                        int d = hash(13, tmp[0] + gridOriginX, tmp[1] + gridOriginZ) % gridPoints.length;
+                        int d = Sampler.hash(13, tmp[0] + gridOriginX, tmp[1] + gridOriginZ) % gridPoints.length;
                         if (d < 0) d = -d;
                         gridPoints[s] = gridPoints[d];
                         gridPoints[d] = tmp;
@@ -466,33 +466,6 @@ public class ChunkedGenerator implements AutoCloseable {
             } else {
                 return (n - base + 1) / base * base;
             }
-        }
-
-        // https://stackoverflow.com/a/17479300/7448536
-        // Distribution is very uniform from my testing
-        private float hashToFloat(int prime, int... values) {
-            int hash = hash(prime, values);
-
-            int ieeeMantissa = 0x007FFFFF;
-            int ieeeOne = 0x3F800000;
-
-            hash &= ieeeMantissa;
-            hash |= ieeeOne;
-            float f = Float.intBitsToFloat(hash);
-            return f - 1;
-        }
-
-        private int hash(int prime, int... values) {
-            int hash = prime;
-            for (int value : values) {
-                hash += value;
-                hash += hash << 10;
-                hash ^= hash >> 6;
-            }
-            hash += hash << 3;
-            hash ^= hash >> 11;
-            hash += hash << 15;
-            return hash;
         }
     }
 

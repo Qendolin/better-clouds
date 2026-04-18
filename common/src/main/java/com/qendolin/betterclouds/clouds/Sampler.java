@@ -1,6 +1,7 @@
 package com.qendolin.betterclouds.clouds;
 
 import com.google.common.collect.ImmutableList;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.levelgen.LegacyRandomSource;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
 import net.minecraft.world.level.levelgen.synth.PerlinSimplexNoise;
@@ -19,14 +20,25 @@ public class Sampler {
     private final PerlinSimplexNoise NOISE = new PerlinSimplexNoise(RANDOM, OCTAVES);
     private final SimplexNoise BIG_NOISE = new SimplexNoise(RANDOM);
 
-    public float randomOffsetX(int x, int z) {
-        return hashToFloat(x, z, 'X');
+    // Jenkins hash function (seed does not have to be prime)
+    // TODO: test this
+    public static int hash(int seed, int... values) {
+        int hash = seed;
+        for (int value : values) {
+            hash += value;
+            hash += hash << 10;
+            hash ^= hash >>> 6;
+        }
+        hash += hash << 3;
+        hash ^= hash >> 11;
+        hash += hash << 15;
+        return hash;
     }
 
     // https://stackoverflow.com/a/17479300/7448536
     // Distribution is very uniform from my testing
-    private float hashToFloat(int... values) {
-        int hash = hash(values);
+    public static float hashToFloat(int prime, int... values) {
+        int hash = hash(prime, values);
 
         int ieeeMantissa = 0x007FFFFF;
         int ieeeOne = 0x3F800000;
@@ -37,22 +49,12 @@ public class Sampler {
         return f - 1;
     }
 
-    // Jenkins hash function
-    private int hash(int... values) {
-        int hash = 0;
-        for (int value : values) {
-            hash += value;
-            hash += hash << 10;
-            hash ^= hash >> 6;
-        }
-        hash += hash << 3;
-        hash ^= hash >> 11;
-        hash += hash << 15;
-        return hash;
+    public float randomOffsetX(int x, int z) {
+        return hashToFloat(0, x, z, 'X');
     }
 
     public float randomOffsetZ(int x, int z) {
-        return hashToFloat(x, z, 'Z');
+        return hashToFloat(0, x, z, 'Z');
     }
 
     public float sample(int x, int z, float cloudiness, float fuzziness, float scale) {
@@ -72,7 +74,7 @@ public class Sampler {
     // https://stackoverflow.com/a/50815919/7448536
     double smoothstep(double edge0, double edge1, double x) {
         // Scale, bias and saturate x to 0..1 range
-        x = Math.min(Math.max((x - edge0) / (edge1 - edge0), 0.0f), 1.0f);
+        x = Mth.clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
         // Evaluate polynomial
         return x * x * (3 - 2 * x);
     }
