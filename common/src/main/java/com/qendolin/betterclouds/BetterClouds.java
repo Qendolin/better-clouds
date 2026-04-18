@@ -15,14 +15,10 @@ import com.qendolin.betterclouds.util.DataDirectoryMigration;
 import com.qendolin.betterclouds.util.NamedLogger;
 import com.qendolin.betterclouds.util.PreLaunchGuard;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.ClickEvent;
-import net.minecraft.network.chat.Component;
 import org.apache.logging.log4j.LogManager;
 import org.jetbrains.annotations.Nullable;
 
-import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -89,21 +85,6 @@ public class BetterClouds extends BetterCloudsStatic {
                 CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
                         .execute(() -> client.execute(Commands::sendHardwareMaybeIncompatibleChatMessage));
             }
-            if (ModLoaded.LUNAR && ConfigManager.instance().lunarSucksMessageEnabled && firstJoin.get()) {
-                CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
-                        .execute(() -> client.execute(() -> {
-                            URI prismURL = URI.create("https://prismlauncher.org/");
-                            URI modrinthURL = URI.create("https://modrinth.com/app");
-                            ChatUtil.debugChatMessage(Component.literal("Lunar Client sucks! Use ")
-                                    .append(Component.literal("[Prism]").withStyle(style -> style.withClickEvent(
-                                            new ClickEvent.OpenUrl(prismURL)).withColor(ChatFormatting.GREEN).withUnderlined(true)))
-                                    .append(Component.literal(" or ")
-                                            .append(Component.literal("[Modrinth]").withStyle(style -> style.withClickEvent(
-                                                    new ClickEvent.OpenUrl(modrinthURL)).withColor(ChatFormatting.GREEN).withUnderlined(true)))
-                                            .append(" instead!"))
-                            );
-                        }));
-            }
             if (RenderDoc.isAvailable()) {
                 ChatUtil.debugChatMessage("renderdoc.load.ready", RenderDoc.getAPIVersion());
             }
@@ -117,7 +98,6 @@ public class BetterClouds extends BetterCloudsStatic {
     @Nullable
     public static Renderer getCloudsRenderer() {
         Minecraft client = Minecraft.getInstance();
-        if (client == null) return null;
         if (client.levelRenderer instanceof WorldRendererDuck duck) {
             return duck.betterclouds$getRenderer();
         }
@@ -128,8 +108,7 @@ public class BetterClouds extends BetterCloudsStatic {
         if (!ConfigManager.isInitialized()) return false;
         Config config = ConfigManager.instance();
         if (!config.enabled) return false;
-        if (!config.irisSupport && IrisCompat.instance().isShadersEnabled()) return false;
-        return true;
+        return config.irisSupport || !IrisCompat.instance().isShadersEnabled();
     }
 
     @Deprecated
