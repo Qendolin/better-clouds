@@ -98,6 +98,16 @@ public class Renderer implements AutoCloseable {
         return (int) (ConfigManager.instance().preset().upscaleResolutionFactor * client.getMainRenderTarget().height);
     }
 
+    private long getCloudTicks(int rendererTicks) {
+        Config config = ConfigManager.instance();
+        if (client.level == null) return rendererTicks;
+        return switch (config.timeSource) {
+            case WORLD -> client.level.getOverworldClockTime();
+            case PLAYTIME -> client.level.getGameTime();
+            case RENDERER -> rendererTicks;
+        };
+    }
+
     private ShaderParameters createShaderParameters(Config config) {
         return new ShaderParameters(
                 client.options.getCloudStatus(),
@@ -139,7 +149,7 @@ public class Renderer implements AutoCloseable {
         res.generator().reallocateIfStale(config, useCubeClouds());
 
         float cloudiness = CloudinessProvider.getCloudiness(client.level, tickDelta);
-        res.generator().update(cam, ticks, tickDelta, ConfigManager.instance(), cloudiness);
+        res.generator().update(cam, getCloudTicks(ticks), tickDelta, ConfigManager.instance(), cloudiness);
         if (res.generator().canGenerate() && !res.generator().generating() && !Debug.generatorPause) {
             getProfiler().popPush("generate_clouds");
             res.generator().generate();

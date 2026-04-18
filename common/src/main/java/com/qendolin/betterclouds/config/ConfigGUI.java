@@ -8,6 +8,7 @@ import com.qendolin.betterclouds.mixin.runtime.SimpleOptionAccessor;
 import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.gui.controllers.BooleanController;
 import dev.isxander.yacl3.gui.controllers.TickBoxController;
+import dev.isxander.yacl3.gui.controllers.cycling.EnumController;
 import dev.isxander.yacl3.gui.controllers.slider.FloatSliderController;
 import dev.isxander.yacl3.gui.controllers.slider.IntegerSliderController;
 import net.minecraft.client.Minecraft;
@@ -23,6 +24,7 @@ import java.util.function.Supplier;
 
 public class ConfigGUI {
     public static final String LANG_KEY_PREFIX = BetterCloudsStatic.MODID + ".config";
+
     public final ShaderPresetGUI shaderPresetGUI;
     public final SereneSeasonsGUI sereneSeasonsCompatGUI;
     public final FabricSeasonsGUI fabricSeasonsCompatGUI;
@@ -37,6 +39,7 @@ public class ConfigGUI {
     public final Option<Float> randomPlacement;
     public final Option<Float> yRange;
     public final Option<Float> yOffset;
+    public final Option<Config.TimeSource> timeSource;
     public final Option<Float> pointiness;
     public final Option<Float> samplingScale;
     public final Option<Float> sizeXZ;
@@ -123,6 +126,10 @@ public class ConfigGUI {
         this.yOffset = createOption(float.class, "yOffset")
                 .binding(defaults.yOffset, () -> config.yOffset, val -> config.yOffset = val)
                 .customController(opt -> new FloatSliderController(opt, -384, 256, 8))
+                .build();
+        this.timeSource = createOption(Config.TimeSource.class, "timeSource")
+                .binding(defaults.timeSource, () -> config.timeSource, val -> config.timeSource = val)
+                .customController(opt -> new EnumController<>(opt, Config.TimeSource.class))
                 .build();
         this.pointiness = createOption(float.class, "pointiness")
                 .binding(defaults.pointiness, () -> config.pointiness, val -> config.pointiness = val)
@@ -230,6 +237,7 @@ public class ConfigGUI {
                 sparsity,
                 yRange,
                 yOffset,
+                timeSource,
                 pointiness,
                 spacing,
                 samplingScale,

@@ -4,10 +4,12 @@ import com.google.gson.*;
 import com.qendolin.betterclouds.compat.BigGlobeCompat;
 import com.qendolin.betterclouds.compat.MiddleEarthCompat;
 import com.qendolin.betterclouds.util.PreLaunchGuard;
+import dev.isxander.yacl3.api.NameableEnum;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
 import net.minecraft.IdentifierException;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.Mth;
@@ -72,6 +74,8 @@ public class Config {
     public float fogRangeFactor = 1f;
     @SerialEntry
     public float fogEndFactor = 1f;
+    @SerialEntry
+    public TimeSource timeSource = TimeSource.WORLD;
     @SerialEntry
     public boolean usePersistentBuffers = true;
     @SerialEntry
@@ -193,6 +197,15 @@ public class Config {
     @Override
     public int hashCode() {
         return SerialEntryReflection.serialEntryHashCode(this);
+    }
+
+    public enum TimeSource implements NameableEnum {
+        WORLD, PLAYTIME, RENDERER;
+
+        @Override
+        public Component getDisplayName() {
+            return Component.translatable("betterclouds.config.entry.timeSource.option." + name().toLowerCase());
+        }
     }
 
     public static class RegistryKeySerializer implements JsonSerializer<ResourceKey<DimensionType>>, JsonDeserializer<ResourceKey<DimensionType>> {

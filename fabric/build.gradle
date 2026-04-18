@@ -28,13 +28,13 @@ loom {
         client {
             ideConfigGenerated true
             runDir "../run/fabric-client"
-            vmArgs "-XX:+AllowEnhancedClassRedefinition -Xmx2560M"
+            vmArgs "-XX:+AllowEnhancedClassRedefinition", "-Xmx2560M"
         }
 
         server {
             ideConfigGenerated false
             runDir "../run/fabric-server"
-            vmArgs "-XX:+AllowEnhancedClassRedefinition -Xmx2560M"
+            vmArgs "-XX:+AllowEnhancedClassRedefinition", "-Xmx2560M"
         }
     }
 }
