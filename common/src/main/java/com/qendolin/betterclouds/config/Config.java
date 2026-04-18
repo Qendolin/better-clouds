@@ -21,9 +21,8 @@ import java.lang.reflect.Type;
 import java.util.*;
 
 public class Config {
-
     public static final String DEFAULT_PRESET_KEY = "default";
-    public static final InstanceCreator<Config> INSTANCE_CREATOR = type -> new Config();
+    public static final InstanceCreator<Config> INSTANCE_CREATOR = _ -> new Config();
     public static final RegistryKeySerializer REGISTRY_KEY_SERIALIZER = new RegistryKeySerializer();
 
     static {
@@ -107,7 +106,7 @@ public class Config {
 
     @SuppressWarnings("CopyConstructorMissesField")
     public Config(Config other) {
-        SerialEntryReflection.copyInto(this, other);
+        Configs.copy(this, other);
     }
 
     private static boolean isPresetEqualToEmpty(ShaderPresetConfig preset) {
@@ -191,12 +190,12 @@ public class Config {
     public boolean equals(Object obj) {
         if (!(obj instanceof Config))
             return false;
-        return SerialEntryReflection.serialEntriesEqual(this, obj);
+        return Configs.equal(this, obj);
     }
 
     @Override
     public int hashCode() {
-        return SerialEntryReflection.serialEntryHashCode(this);
+        return Configs.hashCode(this);
     }
 
     public enum TimeSource implements NameableEnum {

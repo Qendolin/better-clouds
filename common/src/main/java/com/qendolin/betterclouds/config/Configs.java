@@ -10,14 +10,14 @@ import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-final class SerialEntryReflection {
+public final class Configs {
     private static final MethodHandles.Lookup METHOD_LOOKUP = MethodHandles.lookup();
     private static final ConcurrentHashMap<Class<?>, List<SerialField>> FIELD_CACHE = new ConcurrentHashMap<>();
 
-    private SerialEntryReflection() {
+    private Configs() {
     }
 
-    public static void copyInto(Object target, Object source) {
+    public static void copy(Object target, Object source) {
         Objects.requireNonNull(target, "target");
         Objects.requireNonNull(source, "source");
         if (!target.getClass().equals(source.getClass())) {
@@ -29,7 +29,7 @@ final class SerialEntryReflection {
         }
     }
 
-    public static boolean serialEntriesEqual(Object left, Object right) {
+    public static boolean equal(Object left, Object right) {
         if (left == right) {
             return true;
         }
@@ -44,7 +44,7 @@ final class SerialEntryReflection {
         return true;
     }
 
-    public static int serialEntryHashCode(Object object) {
+    public static int hashCode(Object object) {
         if (object == null) {
             return 0;
         }
@@ -74,7 +74,7 @@ final class SerialEntryReflection {
             return value;
         }
         Object copy = instantiate(valueClass);
-        copyInto(copy, value);
+        copy(copy, value);
         return copy;
     }
 
@@ -95,7 +95,7 @@ final class SerialEntryReflection {
             return listEquals(declaredType, leftList, rightList);
         }
         if (!serialFields(left.getClass()).isEmpty()) {
-            return serialEntriesEqual(left, right);
+            return equal(left, right);
         }
         return Objects.equals(left, right);
     }
@@ -138,20 +138,20 @@ final class SerialEntryReflection {
             return result;
         }
         if (!serialFields(value.getClass()).isEmpty()) {
-            return serialEntryHashCode(value);
+            return hashCode(value);
         }
         return value.hashCode();
     }
 
     private static List<SerialField> serialFields(Class<?> type) {
-        return FIELD_CACHE.computeIfAbsent(type, SerialEntryReflection::createSerialFields);
+        return FIELD_CACHE.computeIfAbsent(type, Configs::createSerialFields);
     }
 
     private static List<SerialField> createSerialFields(Class<?> type) {
         return Arrays.stream(type.getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(SerialEntry.class))
                 .sorted(Comparator.comparing(Field::getName))
-                .map(SerialEntryReflection::createSerialField)
+                .map(Configs::createSerialField)
                 .toList();
     }
 
