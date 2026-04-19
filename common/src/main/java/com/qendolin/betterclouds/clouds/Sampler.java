@@ -1,6 +1,5 @@
 package com.qendolin.betterclouds.clouds;
 
-import com.google.common.collect.ImmutableList;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.levelgen.LegacyRandomSource;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
@@ -10,15 +9,27 @@ import net.minecraft.world.level.levelgen.synth.SimplexNoise;
 import java.util.List;
 
 public class Sampler {
-    private final WorldgenRandom RANDOM = new WorldgenRandom(new LegacyRandomSource(1337));
-    // -1, 0, 1, 2     - Default with frequent clumps of clouds
-    // -3, -1, 0, 1, 2 - Pretty big, sparse fields of clouds and fields of clear sky, maybe to big for
-    //                   32 Chunks of render distance
-    // -2, 0, 1, 2     - Medium heaps of clouds with fields of clear sky, no problem for 32 Chunks
-    // 0, 1, 2         - Many spots of small clouds with some medium holes of clear sky
-    private final List<Integer> OCTAVES = ImmutableList.of(-1, 0, 1, 2);
-    private final PerlinSimplexNoise NOISE = new PerlinSimplexNoise(RANDOM, OCTAVES);
-    private final SimplexNoise BIG_NOISE = new SimplexNoise(RANDOM);
+    /**
+     * -1, 0, 1, 2     - Default with frequent clumps of clouds<br>
+     * -3, -1, 0, 1, 2 - Pretty big, sparse fields of clouds and fields of clear sky, maybe too big for 32 Chunks of render distance<br>
+     * -2, 0, 1, 2     - Medium heaps of clouds with fields of clear sky, no problem for 32 Chunks<br>
+     * 0, 1, 2         - Many spots of small clouds with some medium holes of clear sky<br>
+     */
+    public static final List<Integer>[] OCTAVE_OPTIONS = new List[] {
+            List.of(-1, 0, 1, 2),
+            List.of(-3, -1, 0, 1, 2),
+            List.of(-2, 0, 1, 2),
+            List.of(0, 1, 2)
+    };
+
+    private final PerlinSimplexNoise NOISE;
+    private final SimplexNoise BIG_NOISE;
+
+    public Sampler(int seed) {
+        WorldgenRandom random = new WorldgenRandom(new LegacyRandomSource(seed));
+        NOISE = new PerlinSimplexNoise(random, OCTAVE_OPTIONS[0]);
+        BIG_NOISE = new SimplexNoise(random);
+    }
 
     // Jenkins hash function (seed does not have to be prime)
     // TODO: test this
@@ -37,8 +48,8 @@ public class Sampler {
 
     // https://stackoverflow.com/a/17479300/7448536
     // Distribution is very uniform from my testing
-    public static float hashToFloat(int prime, int... values) {
-        int hash = hash(prime, values);
+    public static float hashToFloat(int seed, int... values) {
+        int hash = hash(seed, values);
 
         int ieeeMantissa = 0x007FFFFF;
         int ieeeOne = 0x3F800000;
