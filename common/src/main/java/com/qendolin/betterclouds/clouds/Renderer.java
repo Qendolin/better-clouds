@@ -69,7 +69,7 @@ public class Renderer implements AutoCloseable {
         shaderParameters = createShaderParameters(ConfigManager.instance());
         res.reloadShaders(manager, shaderParameters);
         BetterCloudsStatic.getLogger().debug("[2/6] Reloading generator");
-        res.reloadGenerator(useCubeClouds());
+        res.reloadGenerator(1337, useCubeClouds());
         BetterCloudsStatic.getLogger().debug("[3/6] Reloading textures");
         res.reloadTextures(client);
         BetterCloudsStatic.getLogger().debug("[4/6] Reloading primitive meshes");

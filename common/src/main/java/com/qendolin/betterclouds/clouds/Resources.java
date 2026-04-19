@@ -182,10 +182,10 @@ public class Resources implements Closeable {
         GlStateManager._bindTexture(0);
     }
 
-    public void reloadGenerator(boolean fancy) {
+    public void reloadGenerator(int seed, boolean fancy) {
         deleteGenerator();
 
-        generator = new ChunkedGenerator();
+        generator = new ChunkedGenerator(seed);
         generator.allocate(ConfigManager.instance(), fancy);
         generator.clear();
         generator.unbind();

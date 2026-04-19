@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ChunkedGenerator implements AutoCloseable {
-    private final Sampler sampler = new Sampler();
+    private final Sampler sampler;
     private double originX;
     private double originZ;
     private Buffer buffer;
@@ -28,6 +28,10 @@ public class ChunkedGenerator implements AutoCloseable {
     private Task completedTask;
     @Nullable
     private Task swappedTask;
+
+    public ChunkedGenerator(int seed) {
+        sampler = new Sampler(seed);
+    }
 
     private static int calcBufferSize(Config options) {
         int distance = options.blockDistance();
