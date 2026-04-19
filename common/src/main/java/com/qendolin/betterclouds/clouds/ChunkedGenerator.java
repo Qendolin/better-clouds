@@ -17,7 +17,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ChunkedGenerator implements AutoCloseable {
     private final Sampler sampler;
-    private long seed;
     private double originX;
     private double originZ;
     private Buffer buffer;
@@ -32,7 +31,6 @@ public class ChunkedGenerator implements AutoCloseable {
 
     public ChunkedGenerator(long seed) {
         sampler = new Sampler(seed);
-        this.seed = seed;
     }
 
     private static int calcBufferSize(Config options) {
