@@ -10,6 +10,7 @@ import com.qendolin.betterclouds.compat.DistantHorizonsCompat;
 import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
+import com.qendolin.betterclouds.duck.BiomeManagerDuck;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import com.qendolin.betterclouds.util.ChatUtil;
 import com.qendolin.betterclouds.util.MathUtil;
@@ -63,13 +64,18 @@ public class Renderer implements AutoCloseable {
         this.world = world;
     }
 
+    public long getWorldSeed() {
+        if (client.level == null) return 0;
+        return ((BiomeManagerDuck) client.level.getBiomeManager()).better_clouds$biomeSeed();
+    }
+
     public void reload(ResourceManager manager) {
         BetterCloudsStatic.getLogger().info("Reloading cloud renderer...");
         BetterCloudsStatic.getLogger().debug("[1/6] Reloading shaders");
         shaderParameters = createShaderParameters(ConfigManager.instance());
         res.reloadShaders(manager, shaderParameters);
         BetterCloudsStatic.getLogger().debug("[2/6] Reloading generator");
-        res.reloadGenerator(1337, useCubeClouds());
+        res.reloadGenerator(getWorldSeed(), useCubeClouds());
         BetterCloudsStatic.getLogger().debug("[3/6] Reloading textures");
         res.reloadTextures(client);
         BetterCloudsStatic.getLogger().debug("[4/6] Reloading primitive meshes");

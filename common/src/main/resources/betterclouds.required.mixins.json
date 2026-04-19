@@ -8,6 +8,7 @@
   "mixins" : [
   ],
   "client" : [
+    "BiomeManagerMixin",
     "CloudSettingMixin",
     "GameRendererAccessor",
     "GameRendererMixin",

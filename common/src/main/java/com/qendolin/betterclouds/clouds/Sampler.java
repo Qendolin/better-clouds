@@ -22,11 +22,11 @@ public class Sampler {
             List.of(0, 1, 2)
     };
 
-    private final int seed;
+    private final long seed;
     private final PerlinSimplexNoise NOISE;
     private final SimplexNoise BIG_NOISE;
 
-    public Sampler(int seed) {
+    public Sampler(long seed) {
         WorldgenRandom random = new WorldgenRandom(new LegacyRandomSource(seed));
         this.seed = seed;
         NOISE = new PerlinSimplexNoise(random, OCTAVE_OPTIONS[0]);
@@ -35,8 +35,8 @@ public class Sampler {
 
     // Jenkins hash function (seed does not have to be prime)
     // TODO: test this
-    public static int hash(int seed, int... values) {
-        int hash = seed;
+    public static long hash(long seed, int... values) {
+        long hash = seed;
         for (int value : values) {
             hash += value;
             hash += hash << 10;
@@ -50,8 +50,8 @@ public class Sampler {
 
     // https://stackoverflow.com/a/17479300/7448536
     // Distribution is very uniform from my testing
-    public static float hashToFloat(int seed, int... values) {
-        int hash = hash(seed, values);
+    public static float hashToFloat(long seed, int... values) {
+        int hash = Long.hashCode(hash(seed, values));
 
         int ieeeMantissa = 0x007FFFFF;
         int ieeeOne = 0x3F800000;
@@ -62,7 +62,7 @@ public class Sampler {
         return f - 1;
     }
 
-    public int getSeed() {
+    public long getSeed() {
         return seed;
     }
 

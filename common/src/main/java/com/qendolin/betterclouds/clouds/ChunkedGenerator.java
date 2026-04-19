@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ChunkedGenerator implements AutoCloseable {
     private final Sampler sampler;
-    private int seed;
+    private long seed;
     private double originX;
     private double originZ;
     private Buffer buffer;
@@ -30,7 +30,7 @@ public class ChunkedGenerator implements AutoCloseable {
     @Nullable
     private Task swappedTask;
 
-    public ChunkedGenerator(int seed) {
+    public ChunkedGenerator(long seed) {
         sampler = new Sampler(seed);
         this.seed = seed;
     }
@@ -407,7 +407,7 @@ public class ChunkedGenerator implements AutoCloseable {
                     for (int s = 0; s < gridPoints.length; s++) {
                         int[] tmp = gridPoints[s];
                         if (tmp == null) continue;
-                        int d = Sampler.hash(13, tmp[0] + gridOriginX, tmp[1] + gridOriginZ) % gridPoints.length;
+                        int d = Math.toIntExact(Sampler.hash(13, tmp[0] + gridOriginX, tmp[1] + gridOriginZ) % gridPoints.length);
                         if (d < 0) d = -d;
                         gridPoints[s] = gridPoints[d];
                         gridPoints[d] = tmp;
