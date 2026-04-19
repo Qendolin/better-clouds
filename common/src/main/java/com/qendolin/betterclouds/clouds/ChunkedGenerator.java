@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ChunkedGenerator implements AutoCloseable {
     private final Sampler sampler;
+    private int seed;
     private double originX;
     private double originZ;
     private Buffer buffer;
@@ -31,6 +32,7 @@ public class ChunkedGenerator implements AutoCloseable {
 
     public ChunkedGenerator(int seed) {
         sampler = new Sampler(seed);
+        this.seed = seed;
     }
 
     private static int calcBufferSize(Config options) {
@@ -359,8 +361,7 @@ public class ChunkedGenerator implements AutoCloseable {
 
             int gridMin = -Mth.floor(distance / spacing);
             int gridMax = Mth.ceil(distance / spacing);
-            int gridVisibilityRadiusSquared = Mth.ceil((distance + options.sizeXZ) / spacing);
-            gridVisibilityRadiusSquared = gridVisibilityRadiusSquared * gridVisibilityRadiusSquared;
+            int gridVisibilityRadiusSquared = Math.powExact(Mth.ceil((distance + options.sizeXZ) / spacing), 2);
 
             int chunkMin = roundToMultiple(gridMin, options.chunkSize);
             int chunkMax = roundToMultiple(gridMax, options.chunkSize);
@@ -386,7 +387,7 @@ public class ChunkedGenerator implements AutoCloseable {
                     // The outer loop generates sample points
                     for (int gridX = chunkGridMinX; gridX < chunkGridMaxX; gridX++) {
                         for (int gridZ = chunkGridMinZ; gridZ < chunkGridMaxZ; gridZ++) {
-                            if (options.sparsity > 0 && Sampler.hashToFloat(11, gridX + gridOriginX, gridZ + gridOriginZ) < options.sparsity)
+                            if (options.sparsity > 0 && Sampler.hashToFloat(sampler.getSeed(), 'G', gridX + gridOriginX, gridZ + gridOriginZ) < options.sparsity)
                                 continue;
                             if (gridX * gridX + gridZ * gridZ >= gridVisibilityRadiusSquared) {
                                 // The point is outside the visible range

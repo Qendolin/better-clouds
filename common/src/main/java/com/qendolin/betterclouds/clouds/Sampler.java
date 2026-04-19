@@ -22,11 +22,13 @@ public class Sampler {
             List.of(0, 1, 2)
     };
 
+    private final int seed;
     private final PerlinSimplexNoise NOISE;
     private final SimplexNoise BIG_NOISE;
 
     public Sampler(int seed) {
         WorldgenRandom random = new WorldgenRandom(new LegacyRandomSource(seed));
+        this.seed = seed;
         NOISE = new PerlinSimplexNoise(random, OCTAVE_OPTIONS[0]);
         BIG_NOISE = new SimplexNoise(random);
     }
@@ -60,12 +62,16 @@ public class Sampler {
         return f - 1;
     }
 
+    public int getSeed() {
+        return seed;
+    }
+
     public float randomOffsetX(int x, int z) {
-        return hashToFloat(0, x, z, 'X');
+        return hashToFloat(seed, 'S', x, z, 'X');
     }
 
     public float randomOffsetZ(int x, int z) {
-        return hashToFloat(0, x, z, 'Z');
+        return hashToFloat(seed, 'S', x, z, 'Z');
     }
 
     public float sample(int x, int z, float cloudiness, float fuzziness, float scale) {
