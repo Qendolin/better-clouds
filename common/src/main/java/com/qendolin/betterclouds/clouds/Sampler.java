@@ -15,6 +15,7 @@ public class Sampler {
      * -2, 0, 1, 2     - Medium heaps of clouds with fields of clear sky, no problem for 32 Chunks<br>
      * 0, 1, 2         - Many spots of small clouds with some medium holes of clear sky<br>
      */
+    @SuppressWarnings("unchecked")
     public static final List<Integer>[] OCTAVE_OPTIONS = new List[] {
             List.of(-1, 0, 1, 2),
             List.of(-3, -1, 0, 1, 2),
