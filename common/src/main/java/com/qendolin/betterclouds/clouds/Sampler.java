@@ -14,6 +14,8 @@ public class Sampler {
      * -3, -1, 0, 1, 2 - Pretty big, sparse fields of clouds and fields of clear sky, maybe too big for 32 Chunks of render distance<br>
      * -2, 0, 1, 2     - Medium heaps of clouds with fields of clear sky, no problem for 32 Chunks<br>
      * 0, 1, 2         - Many spots of small clouds with some medium holes of clear sky<br>
+     *
+     * <p>Run SamplerTest.java to visualize the noise function</p>
      */
     @SuppressWarnings("unchecked")
     public static final List<Integer>[] OCTAVE_OPTIONS = new List[] {
@@ -28,9 +30,13 @@ public class Sampler {
     private final SimplexNoise BIG_NOISE;
 
     public Sampler(long seed) {
+        this(seed, 0);
+    }
+
+    public Sampler(long seed, int octaveOption) {
         WorldgenRandom random = new WorldgenRandom(new LegacyRandomSource(seed));
         this.seed = seed;
-        NOISE = new PerlinSimplexNoise(random, OCTAVE_OPTIONS[0]);
+        NOISE = new PerlinSimplexNoise(random, OCTAVE_OPTIONS[octaveOption]);
         BIG_NOISE = new SimplexNoise(random);
     }
 

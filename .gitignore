@@ -52,3 +52,4 @@ local/
 changelog.txt
 changelog.txt.lock
 changelog.md
+/common/src/test/resources/
