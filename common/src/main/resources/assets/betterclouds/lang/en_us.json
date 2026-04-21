@@ -108,6 +108,8 @@
   "betterclouds.config.entry.timeSource.description" : "Determines what time source the clouds use for generation:\n\n- World time (what the day-night cycle is based on)\n\n-World play time (the same number as the Time Played statistic)\n\n-Renderer time (gets set to zero upon joining a world, increases afterwards)",
   "betterclouds.config.entry.pointiness" : "Pointiness",
   "betterclouds.config.entry.pointiness.description" : "How much the clouds' y height are increased towards the center",
+  "betterclouds.config.entry.bottomSparsity" : "Cloud bottom sparsity",
+  "betterclouds.config.entry.description" : "What percentage of cloud cubes will have another cube placed below them to fill the void under them",
   "betterclouds.config.entry.yOffset" : "Height Offset",
   "betterclouds.config.entry.yOffset.description" : "Adjusts the y level of the clouds",
   "betterclouds.config.entry.travelSpeed" : "Travel Speed",

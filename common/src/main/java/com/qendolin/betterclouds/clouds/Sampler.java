@@ -72,12 +72,12 @@ public class Sampler {
         return seed;
     }
 
-    public float randomOffsetX(int x, int z) {
-        return hashToFloat(seed, 'S', x, z, 'X');
+    public float randomOffsetX(int x, int z, int pass) {
+        return hashToFloat(seed, 'S', x, z, 'X', pass);
     }
 
-    public float randomOffsetZ(int x, int z) {
-        return hashToFloat(seed, 'S', x, z, 'Z');
+    public float randomOffsetZ(int x, int z, int pass) {
+        return hashToFloat(seed, 'S', x, z, 'Z', pass);
     }
 
     public float sample(int x, int z, float cloudiness, float fuzziness, float scale) {

@@ -41,6 +41,7 @@ public class ConfigGUI {
     public final Option<Float> yOffset;
     public final Option<Config.TimeSource> timeSource;
     public final Option<Float> pointiness;
+    public final Option<Float> bottomSparsity;
     public final Option<Float> samplingScale;
     public final Option<Float> sizeXZ;
     public final Option<Float> sizeY;
@@ -134,6 +135,10 @@ public class ConfigGUI {
         this.pointiness = createOption(float.class, "pointiness")
                 .binding(defaults.pointiness, () -> config.pointiness, val -> config.pointiness = val)
                 .customController(opt -> new FloatSliderController(opt, 0.5f, 5f, 0.1f))
+                .build();
+        this.bottomSparsity = createOption(float.class, "bottomSparsity")
+                .binding(defaults.bottomSparsity, () -> config.bottomSparsity, val -> config.bottomSparsity = val)
+                .customController(opt -> new FloatSliderController(opt, 0.1f, 1f, 0.01f))
                 .build();
         this.samplingScale = createOption(float.class, "samplingScale")
                 .binding(defaults.samplingScale, () -> config.samplingScale, val -> config.samplingScale = val)
@@ -239,6 +244,7 @@ public class ConfigGUI {
                 yOffset,
                 timeSource,
                 pointiness,
+                bottomSparsity,
                 spacing,
                 samplingScale,
                 shuffle

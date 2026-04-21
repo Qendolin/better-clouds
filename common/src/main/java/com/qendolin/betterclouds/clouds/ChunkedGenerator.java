@@ -424,17 +424,28 @@ public class ChunkedGenerator implements AutoCloseable {
 
                     int sampleX = Mth.floor((gridX + gridOriginX) * spacing);
                     int sampleZ = Mth.floor((gridZ + gridOriginZ) * spacing);
+
                     float value = sampler.sample(sampleX, sampleZ, cloudiness, options.fuzziness, options.samplingScale);
-                    if (value <= 0) continue;
+                    if (value <= 0) break;
 
-                    float x = sampleX - this.chunkX * options.chunkSize + sampler.randomOffsetX(sampleX, sampleZ) * options.randomPlacement * spacing;
-                    float y = options.yRange * (float) Math.pow(value, 6.5 - options.pointiness) + options.yOffset;
-                    float z = sampleZ - this.chunkZ * options.chunkSize + sampler.randomOffsetZ(sampleX, sampleZ) * options.randomPlacement * spacing;
+                    for (int pass = 0; pass <= 1; pass++) {
+                        // the second pass is used to "fill the cloud void" as described in https://github.com/Qendolin/better-clouds/issues/262
+                        // so the cube is placed below the normal cloud y range, like this:
+                        float cloudHeight = options.yRange * (float) Math.pow(value, 6.5 - options.pointiness);
+                        if (pass == 1) cloudHeight *= -0.3f;
 
-                    AABB pointAABB = new AABB(x, y, z, x, y, z);
-                    bounds = bounds != null ? bounds.minmax(pointAABB) : pointAABB;
-                    buffer.put(x, y, z);
-                    cloudCount++;
+                        float x = sampleX - this.chunkX * options.chunkSize + sampler.randomOffsetX(sampleX, sampleZ, pass) * options.randomPlacement * spacing;
+                        float y = cloudHeight + options.yOffset;
+                        float z = sampleZ - this.chunkZ * options.chunkSize + sampler.randomOffsetZ(sampleX, sampleZ, pass) * options.randomPlacement * spacing;
+
+                        AABB pointAABB = new AABB(x, y, z, x, y, z);
+                        bounds = bounds != null ? bounds.minmax(pointAABB) : pointAABB;
+                        buffer.put(x, y, z);
+                        cloudCount++;
+
+                        if (value < options.bottomSparsity)
+                            break;
+                    }
                 }
 
                 if (chunkCloudIndex != cloudCount && bounds != null) {
