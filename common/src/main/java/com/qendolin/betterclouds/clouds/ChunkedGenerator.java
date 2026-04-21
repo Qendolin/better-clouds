@@ -355,7 +355,7 @@ public class ChunkedGenerator implements AutoCloseable {
             startTime = Util.getMillis();
 
             int distance = options.blockDistance();
-            double spacing = options.spacing;
+            float spacing = options.spacing;
 
             int gridMin = -Mth.floor(distance / spacing);
             int gridMax = Mth.ceil(distance / spacing);
@@ -427,9 +427,9 @@ public class ChunkedGenerator implements AutoCloseable {
                     float value = sampler.sample(sampleX, sampleZ, cloudiness, options.fuzziness, options.samplingScale);
                     if (value <= 0) continue;
 
-                    float x = (float) (sampleX - this.chunkX * options.chunkSize + sampler.randomOffsetX(sampleX, sampleZ) * options.randomPlacement * spacing);
-                    float y = (float) (options.yRange * Math.pow(value, 5.5 - options.pointiness) + options.yOffset);
-                    float z = (float) (sampleZ - this.chunkZ * options.chunkSize + sampler.randomOffsetZ(sampleX, sampleZ) * options.randomPlacement * spacing);
+                    float x = sampleX - this.chunkX * options.chunkSize + sampler.randomOffsetX(sampleX, sampleZ) * options.randomPlacement * spacing;
+                    float y = options.yRange * (float) Math.pow(value, 6.5 - options.pointiness) + options.yOffset;
+                    float z = sampleZ - this.chunkZ * options.chunkSize + sampler.randomOffsetZ(sampleX, sampleZ) * options.randomPlacement * spacing;
 
                     AABB pointAABB = new AABB(x, y, z, x, y, z);
                     bounds = bounds != null ? bounds.minmax(pointAABB) : pointAABB;

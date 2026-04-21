@@ -40,13 +40,7 @@ flat out float pass_opacity;
 out vec3 pass_color;
 
 float linearFogFade(float distance, float fog_start, float fog_end) {
-    if (distance <= fog_start) {
-        return 1.0;
-    } else if (distance >= fog_end) {
-        return 0.0;
-    }
-
-    float f = 1.0 - (distance - fog_start) / (fog_end - fog_start);
+    float f = clamp(1.0 - (distance - fog_start) / (fog_end - fog_start), 0, 1);
     return f * f;
 }
 
