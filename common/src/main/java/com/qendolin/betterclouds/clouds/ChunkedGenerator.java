@@ -417,7 +417,7 @@ public class ChunkedGenerator implements AutoCloseable {
 
             for (int[][] gridPoints : chunkGridPoints) {
                 int chunkCloudIndex = cloudCount;
-                float[] bounds = null;
+                AABB bounds = null;
                 for (int[] point : gridPoints) {
                     if (point == null) continue;
                     int gridX = point[0], gridZ = point[1];
@@ -431,24 +431,14 @@ public class ChunkedGenerator implements AutoCloseable {
                     float y = (float) (options.yRange * Math.pow(value, 5.5 - options.pointiness) + options.yOffset);
                     float z = (float) (sampleZ - this.chunkZ * options.chunkSize + sampler.randomOffsetZ(sampleX, sampleZ) * options.randomPlacement * spacing);
 
-                    if (bounds == null) {
-                        bounds = new float[] { x, y, z, x, y, z };
-                    } else {
-                        if (x < bounds[0]) bounds[0] = x;
-                        if (y < bounds[1]) bounds[1] = y;
-                        if (z < bounds[2]) bounds[2] = z;
-                        if (x > bounds[3]) bounds[3] = x;
-                        if (y > bounds[4]) bounds[4] = y;
-                        if (z > bounds[5]) bounds[5] = z;
-                    }
-
+                    AABB pointAABB = new AABB(x, y, z, x, y, z);
+                    bounds = bounds != null ? bounds.minmax(pointAABB) : pointAABB;
                     buffer.put(x, y, z);
                     cloudCount++;
                 }
 
                 if (chunkCloudIndex != cloudCount && bounds != null) {
-                    AABB boundingBox = new AABB(bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5])
-                            .move(this.chunkX * options.chunkSize, 0, this.chunkZ * options.chunkSize);
+                    AABB boundingBox = bounds.move(this.chunkX * options.chunkSize, 0, this.chunkZ * options.chunkSize);
                     chunks.add(new ChunkIndex(chunkCloudIndex, cloudCount - chunkCloudIndex, boundingBox));
                 }
 

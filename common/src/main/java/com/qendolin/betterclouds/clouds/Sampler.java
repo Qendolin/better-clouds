@@ -35,7 +35,6 @@ public class Sampler {
     }
 
     // Jenkins hash function (seed does not have to be prime)
-    // TODO: test this
     public static long hash(long seed, int... values) {
         long hash = seed;
         for (int value : values) {

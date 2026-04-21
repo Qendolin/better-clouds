@@ -3,7 +3,7 @@ package com.qendolin.betterclouds.clouds;
 public class Mesh {
     // Use TRIANGLE_STRIP
     public static final float[] FANCY_MESH = new float[] {
-//     [position        ][normal          ]
+//     [    position    ][     normal     ]
 //     [  x     y     z ][ x     y     z  ]
             -.5f, -.5f, -.5f, 0.0f, -1.f, 0.0f,
             +.5f, -.5f, -.5f, 0.0f, -1.f, 0.0f,
