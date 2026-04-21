@@ -382,7 +382,7 @@ public class ChunkedGenerator implements AutoCloseable {
                     int chunkIndex = (chunkX - chunkMin) / options.chunkSize + chunkCount * ((chunkZ - chunkMin) / options.chunkSize);
                     chunkGridPoints[chunkIndex] = new int[chunkGridLengthX * chunkGridLengthZ][];
 
-                    // The outer loop generates sample points
+                    // The inner loop generates sample points
                     for (int gridX = chunkGridMinX; gridX < chunkGridMaxX; gridX++) {
                         for (int gridZ = chunkGridMinZ; gridZ < chunkGridMaxZ; gridZ++) {
                             if (options.sparsity > 0 && Sampler.hashToFloat(sampler.getSeed(), 'G', gridX + gridOriginX, gridZ + gridOriginZ) < options.sparsity)
@@ -444,7 +444,7 @@ public class ChunkedGenerator implements AutoCloseable {
                         buffer.put(x, y, z);
                         cloudCount++;
 
-                        if (value < options.bottomSparsity)
+                        if (value < 1 - options.bottomSparsity)
                             break;
                     }
                 }
