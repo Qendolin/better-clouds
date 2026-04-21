@@ -429,9 +429,10 @@ public class ChunkedGenerator implements AutoCloseable {
                     if (value <= 0) break;
 
                     for (int pass = 0; pass <= 1; pass++) {
+                        float cloudHeight = options.yRange * (float) Math.pow(value, 6.5 - options.pointiness);
+
                         // the second pass is used to "fill the cloud void" as described in https://github.com/Qendolin/better-clouds/issues/262
                         // so the cube is placed below the normal cloud y range, like this:
-                        float cloudHeight = options.yRange * (float) Math.pow(value, 6.5 - options.pointiness);
                         if (pass == 1) cloudHeight *= -0.3f;
 
                         float x = sampleX - this.chunkX * options.chunkSize + sampler.randomOffsetX(sampleX, sampleZ, pass) * options.randomPlacement * spacing;
