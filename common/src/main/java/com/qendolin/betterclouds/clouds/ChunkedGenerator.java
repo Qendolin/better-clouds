@@ -35,12 +35,8 @@ public class ChunkedGenerator implements AutoCloseable {
 
     private static int calcBufferSize(Config options) {
         int distance = options.blockDistance();
-        int size = Mth.floor(distance / options.spacing)
-                + Mth.ceil(distance / options.spacing);
-        if (size <= 0) {
-            return 8 * 16;
-        }
-        return size;
+        int size = Mth.floor(distance / options.spacing) + Mth.ceil(distance / options.spacing);
+        return size > 0 ? size : 8 * 16;
     }
 
     private static int floorCloudChunk(double coord, int chunkSize) {
@@ -426,7 +422,7 @@ public class ChunkedGenerator implements AutoCloseable {
                     int sampleZ = Mth.floor((gridZ + gridOriginZ) * spacing);
 
                     float value = sampler.sample(sampleX, sampleZ, cloudiness, options.fuzziness, options.samplingScale);
-                    if (value <= 0) break;
+                    if (value <= 0) continue;
 
                     for (int pass = 0; pass <= 1; pass++) {
                         float cloudHeight = options.yRange * (float) Math.pow(value, 6.5 - options.pointiness);

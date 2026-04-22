@@ -24,20 +24,23 @@ public class Sampler {
             List.of(-2, 0, 1, 2),
             List.of(0, 1, 2)
     };
+    public static final float REGION_SIZE = 4096;
 
     private final long seed;
-    private final PerlinSimplexNoise NOISE;
-    private final SimplexNoise BIG_NOISE;
+
+    private final SimplexNoise REGION_NOISE;
+    private final SimplexNoise COVERAGE_NOISE;
+    private final PerlinSimplexNoise[] DETAIL_NOISES = new PerlinSimplexNoise[OCTAVE_OPTIONS.length];
 
     public Sampler(long seed) {
-        this(seed, 0);
-    }
-
-    public Sampler(long seed, int octaveOption) {
         WorldgenRandom random = new WorldgenRandom(new LegacyRandomSource(seed));
+        WorldgenRandom regionRandom = new WorldgenRandom(new LegacyRandomSource(random.nextInt()));
         this.seed = seed;
-        NOISE = new PerlinSimplexNoise(random, OCTAVE_OPTIONS[octaveOption]);
-        BIG_NOISE = new SimplexNoise(random);
+
+        REGION_NOISE = new SimplexNoise(regionRandom);
+        COVERAGE_NOISE = new SimplexNoise(random);
+        for (int i = 0; i < DETAIL_NOISES.length; i++)
+            DETAIL_NOISES[i] = new PerlinSimplexNoise(random, OCTAVE_OPTIONS[i]);
     }
 
     // Jenkins hash function (seed does not have to be prime)
@@ -82,15 +85,22 @@ public class Sampler {
 
     public float sample(int x, int z, float cloudiness, float fuzziness, float scale) {
         // TODO: A vanilla like cloud distribution is not possible with this function
-        double value = NOISE.getValue(x / scale / 128f, z / scale / 128f, false);
+        double regionNoise = (REGION_NOISE.getValue(x / REGION_SIZE, z / REGION_SIZE) * 0.5 + 0.5) * DETAIL_NOISES.length;
+        int noiseInd = (int) regionNoise;
+        PerlinSimplexNoise noise1 = DETAIL_NOISES[noiseInd], noise2 = DETAIL_NOISES[(noiseInd + 1) % DETAIL_NOISES.length];
+
+        double value = Mth.lerp(
+                Math.pow(Mth.clamp(regionNoise - noiseInd, 0, 1), 5),
+                noise1.getValue(x / scale / 128f, z / scale / 128f, false),
+                noise2.getValue(x / scale / 128f, z / scale / 128f, false)
+        );
         value = value / 2 + 0.5;
         value = (value - (1 - cloudiness)) / cloudiness;
-        value *= smoothstep(-0.6 * cloudiness - 0.3, -0.6 * cloudiness, BIG_NOISE.getValue(x / 1024f, z / 1024f));
+        value *= smoothstep(-0.6 * cloudiness - 0.3, -0.6 * cloudiness, COVERAGE_NOISE.getValue(x / 1024f, z / 1024f));
 
-        float random = hashToFloat(x, z);
-        if (random > value + (1 - fuzziness)) {
-            return 0;
-        }
+        float random = hashToFloat(seed, 'B', x, z);
+        if (random > value + (1 - fuzziness)) return 0;
+
         return (float) value;
     }
 
