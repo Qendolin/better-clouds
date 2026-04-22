@@ -211,7 +211,16 @@ public class Commands {
                                             return 1;
                                         })))
                 )
+                .then(literal("cloud_speed")
+                        .then(argument("speed", IntegerArgumentType.integer(0, 1024))
+                                .executes(context -> {
+                                    ConfigManager.instance().travelSpeed = IntegerArgumentType.getInteger(context, "speed");
+                                    return 1;
+                                })
+                        )
+                )
         );
+
     }
 
     private static LiteralArgumentBuilder<Object> renderdocCommands() {
