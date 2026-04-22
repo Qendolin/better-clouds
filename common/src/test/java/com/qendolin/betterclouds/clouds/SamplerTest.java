@@ -7,14 +7,13 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
-import java.util.Random;
 
 public class SamplerTest {
     @Test
     void generatesSamplerImage() throws IOException {
         float scale = 0.5f;
 
-        Sampler s = new Sampler(new Random().nextInt());
+        Sampler s = new Sampler(1337);
         BufferedImage image = new BufferedImage(2400, 1600, BufferedImage.TYPE_INT_RGB);
         for (int x = 0; x < image.getWidth(); x++) {
             for (int y = 0; y < image.getHeight(); y++) {

@@ -3,6 +3,7 @@ package com.qendolin.betterclouds;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.arguments.BoolArgumentType;
+import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
@@ -212,9 +213,9 @@ public class Commands {
                                         })))
                 )
                 .then(literal("cloud_speed")
-                        .then(argument("speed", IntegerArgumentType.integer(0, 1024))
+                        .then(argument("speed", FloatArgumentType.floatArg(0, 1024))
                                 .executes(context -> {
-                                    ConfigManager.instance().travelSpeed = IntegerArgumentType.getInteger(context, "speed");
+                                    ConfigManager.instance().travelSpeed = FloatArgumentType.getFloat(context, "speed") / 20;
                                     return 1;
                                 })
                         )

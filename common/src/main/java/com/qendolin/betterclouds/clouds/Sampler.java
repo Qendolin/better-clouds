@@ -24,7 +24,9 @@ public class Sampler {
             List.of(-2, 0, 1, 2),
             List.of(0, 1, 2)
     };
-    public static final float REGION_SIZE = 4096;
+
+    public static final float REGION_SIZE = 2048;
+    public static final float BASE_FUZZINESS = 0.9f;
 
     private final long seed;
 
@@ -96,10 +98,10 @@ public class Sampler {
         );
         value = value / 2 + 0.5;
         value = (value - (1 - cloudiness)) / cloudiness;
-        value *= smoothstep(-0.6 * cloudiness - 0.3, -0.6 * cloudiness, COVERAGE_NOISE.getValue(x / 1024f, z / 1024f));
+        value *= 0.2 + 0.7 * smoothstep(-0.6 * cloudiness - 0.3, -0.6 * cloudiness, COVERAGE_NOISE.getValue(x / 1024f, z / 1024f));
 
         float random = hashToFloat(seed, 'B', x, z);
-        if (random > value + (1 - fuzziness)) return 0;
+        if (random > value + (BASE_FUZZINESS - fuzziness)) return 0;
 
         return (float) value;
     }
