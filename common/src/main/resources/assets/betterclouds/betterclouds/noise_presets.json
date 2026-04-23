@@ -1,5 +1,17 @@
 {
   "default" : {
-    "title" : "Default"
+    "title" : "Default",
+    "octaves" : [
+      [-1, 0, 1, 2],
+      [-3, -1, 0, 1, 2],
+      [-2, 0, 1, 2],
+      [0, 1, 2]
+    ]
+  },
+  "fluffy" : {
+    "title" : "Fluffy clouds",
+    "octaves" : [
+      [-1, 0, 1, 2]
+    ]
   }
 }
