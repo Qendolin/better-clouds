@@ -2,19 +2,11 @@ package com.qendolin.betterclouds.config;
 
 import com.google.gson.InstanceCreator;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
-import org.jetbrains.annotations.Nullable;
 
-public class ShaderPresetConfig {
-
+public class ShaderPresetConfig extends AbstractPresetConfig {
     public static final InstanceCreator<ShaderPresetConfig> INSTANCE_CREATOR = _ -> new ShaderPresetConfig();
     protected static final ShaderPresetConfig EMPTY_PRESET = new ShaderPresetConfig();
-    @SerialEntry
-    public String title;
-    @SerialEntry
-    @Nullable
-    public String key;
-    @SerialEntry
-    public boolean editable = true;
+
     @SerialEntry
     public float upscaleResolutionFactor = 1f;
     @SerialEntry
@@ -71,15 +63,8 @@ public class ShaderPresetConfig {
         }
     }
 
-    public void markAsCopy() {
-        editable = true;
-        key = null;
-    }
-
-    // Can't override the Object#equals method since it causes an issue with indexOf in the GUI
-    public boolean isEqualTo(ShaderPresetConfig other) {
-        if (!(other instanceof ShaderPresetConfig))
-            return false;
-        return Configs.equal(this, other);
+    @Override
+    public AbstractPresetConfig getEmptyPreset() {
+        return EMPTY_PRESET;
     }
 }

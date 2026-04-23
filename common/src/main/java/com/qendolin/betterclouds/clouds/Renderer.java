@@ -97,11 +97,11 @@ public class Renderer implements AutoCloseable {
     }
 
     private int scaledFramebufferWidth() {
-        return (int) (ConfigManager.instance().preset().upscaleResolutionFactor * client.getMainRenderTarget().width);
+        return (int) (ConfigManager.instance().shaderPreset().upscaleResolutionFactor * client.getMainRenderTarget().width);
     }
 
     private int scaledFramebufferHeight() {
-        return (int) (ConfigManager.instance().preset().upscaleResolutionFactor * client.getMainRenderTarget().height);
+        return (int) (ConfigManager.instance().shaderPreset().upscaleResolutionFactor * client.getMainRenderTarget().height);
     }
 
     private long getCloudTicks(int rendererTicks) {
@@ -120,7 +120,7 @@ public class Renderer implements AutoCloseable {
                 config.blockDistance(), config.sizeXZ, config.sizeY, config.celestialBodyHalo,
                 glCompat.useDepthWriteFallback(), glCompat.useStencilTextureFallback(),
                 DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled(),
-                config.preset().worldCurvatureSize
+                config.shaderPreset().worldCurvatureSize
         );
     }
 
@@ -369,7 +369,7 @@ public class Renderer implements AutoCloseable {
 
 
         boolean frustumCulling = config.useFrustumCulling;
-        if (IrisCompat.instance().isFrustumCullingDisabled() || config.preset().worldCurvatureSize != 0) {
+        if (IrisCompat.instance().isFrustumCullingDisabled() || config.shaderPreset().worldCurvatureSize != 0) {
             frustumCulling = false;
         }
 
@@ -467,22 +467,22 @@ public class Renderer implements AutoCloseable {
         Vector3f effectTint = EffectTintProvider.getEffectTint(client, fog, tickDelta, cam);
         long skyTime = world.getOverworldClockTime() % 24000;
         float skyAngleRad = EffectTintProvider.getSunAngleRadians(client.level, cam);
-        float sunPathAngleRad = config.preset().sunPathAngle * Mth.DEG_TO_RAD;
-        float dayNightFactor = MathUtil.interpolateDayNightFactor(skyTime, config.preset().sunriseStartTime, config.preset().sunriseEndTime, config.preset().sunsetStartTime, config.preset().sunsetEndTime);
-        float brightness = (1 - dayNightFactor) * config.preset().nightBrightness + dayNightFactor * config.preset().dayBrightness;
+        float sunPathAngleRad = config.shaderPreset().sunPathAngle * Mth.DEG_TO_RAD;
+        float dayNightFactor = MathUtil.interpolateDayNightFactor(skyTime, config.shaderPreset().sunriseStartTime, config.shaderPreset().sunriseEndTime, config.shaderPreset().sunsetStartTime, config.shaderPreset().sunsetEndTime);
+        float brightness = (1 - dayNightFactor) * config.shaderPreset().nightBrightness + dayNightFactor * config.shaderPreset().dayBrightness;
         float sunAxisY = Mth.sin(sunPathAngleRad);
         float sunAxisZ = Mth.cos(sunPathAngleRad);
         Vector3f sunDir = tempVector.set(1, 0, 0).rotateAxis(skyAngleRad + Mth.HALF_PI, 0, sunAxisY, sunAxisZ);
         float dayTime = world.getOverworldClockTime() % 24000;
-        float mappedTime = MathUtil.mapTimeOfDay(dayTime, config.preset().sunriseStartTime, config.preset().sunriseEndTime, config.preset().sunsetStartTime, config.preset().sunsetEndTime);
+        float mappedTime = MathUtil.mapTimeOfDay(dayTime, config.shaderPreset().sunriseStartTime, config.shaderPreset().sunriseEndTime, config.shaderPreset().sunsetStartTime, config.shaderPreset().sunsetEndTime);
 
         res.shadingShader().bind();
         res.shadingShader().uVPMatrix.setMat4(rotationProjectionMatrix);
         res.shadingShader().uSunDirection.setVec4(sunDir.x, sunDir.y, sunDir.z, mappedTime / 24000f);
         res.shadingShader().uSunAxis.setVec3(0, sunAxisY, sunAxisZ);
-        res.shadingShader().uOpacity.setVec3(config.preset().opacity, config.preset().opacityFactor, config.preset().opacityExponent);
-        res.shadingShader().uColorGrading.setVec4(brightness, 1f / config.preset().gamma(), 0.0f, config.preset().saturation);
-        res.shadingShader().uTint.setVec3(config.preset().tintRed * effectTint.x, config.preset().tintGreen * effectTint.y, config.preset().tintBlue * effectTint.z);
+        res.shadingShader().uOpacity.setVec3(config.shaderPreset().opacity, config.shaderPreset().opacityFactor, config.shaderPreset().opacityExponent);
+        res.shadingShader().uColorGrading.setVec4(brightness, 1f / config.shaderPreset().gamma(), 0.0f, config.shaderPreset().saturation);
+        res.shadingShader().uTint.setVec3(config.shaderPreset().tintRed * effectTint.x, config.shaderPreset().tintGreen * effectTint.y, config.shaderPreset().tintBlue * effectTint.z);
         res.shadingShader().uNoiseFactor.setFloat(config.colorVariationFactor);
 
         glBindVertexArray(res.cubeVao());

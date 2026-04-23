@@ -1,7 +1,7 @@
 package com.qendolin.betterclouds.platform.neoforge;
 
 import com.mojang.brigadier.CommandDispatcher;
-import com.qendolin.betterclouds.config.ShaderPresetLoader;
+import com.qendolin.betterclouds.config.PresetLoader;
 import com.qendolin.betterclouds.platform.EventHooks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
@@ -31,7 +31,9 @@ public class EventHooksImpl extends EventHooks {
         try {
             Method method = findMethod(event.getClass(), "addListener", 2);
             if (method != null) {
-                method.invoke(event, ShaderPresetLoader.ID, reloader);
+                for (PresetLoader<?> loader : PresetLoader.ALL_PRESETS) {
+                    method.invoke(event, loader.id, reloader);
+                }
             }
         } catch (IllegalAccessException | InvocationTargetException ignored) {
         }

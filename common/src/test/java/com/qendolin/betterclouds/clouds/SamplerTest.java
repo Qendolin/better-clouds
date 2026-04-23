@@ -23,7 +23,7 @@ public class SamplerTest {
             }
         }
 
-        File output = new File("sampler_options/sampler_test.png");
+        File output = new File("sampler_options/multi_octave_sampler_test.png");
         if (!output.exists() && !output.createNewFile()) throw new RuntimeException("File creation failed");
         ImageIO.write(image, "png", output);
         System.out.printf("Sample map created; 1 pixel ≈ %s blocks", new DecimalFormat("#.#").format(1 / scale));

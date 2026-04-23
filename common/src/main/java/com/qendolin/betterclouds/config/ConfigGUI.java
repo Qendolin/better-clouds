@@ -19,13 +19,16 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.Tuple;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 public class ConfigGUI {
     public static final String LANG_KEY_PREFIX = BetterCloudsStatic.MODID + ".config";
 
     public final ShaderPresetGUI shaderPresetGUI;
+    public final NoisePresetGUI noisePresetGUI;
     public final SereneSeasonsGUI sereneSeasonsCompatGUI;
     public final FabricSeasonsGUI fabricSeasonsCompatGUI;
     public final DimensionsGUI dimensionsGUI;
@@ -59,6 +62,7 @@ public class ConfigGUI {
     public final Option<Boolean> useFrustumCulling;
 
     public final List<Tuple<ConfigCategory.Builder, List<Tuple<OptionGroup.Builder, List<Option<?>>>>>> categories = new ArrayList<>();
+    public final Map<ConfigCategory.Builder, ListOption<?>> listOptions = new HashMap<>();
 
     public final List<Tuple<OptionGroup.Builder, List<Option<?>>>> commonCategory = new ArrayList<>();
     public final List<Tuple<OptionGroup.Builder, List<Option<?>>>> generationCategory = new ArrayList<>();
@@ -66,7 +70,6 @@ public class ConfigGUI {
     public final List<Tuple<OptionGroup.Builder, List<Option<?>>>> performanceCategory = new ArrayList<>();
     public final List<Tuple<OptionGroup.Builder, List<Option<?>>>> compatCategory = new ArrayList<>();
 
-    public final List<Option<?>> commonPresetsGroup = new ArrayList<>();
     public final List<Option<?>> commonGenerationGroup = new ArrayList<>();
     public final List<Option<?>> commonAppearanceGroup = new ArrayList<>();
     public final List<Option<?>> generationVisualGroup = new ArrayList<>();
@@ -83,6 +86,7 @@ public class ConfigGUI {
         this.config = config;
 
         shaderPresetGUI = new ShaderPresetGUI(defaults, config);
+        noisePresetGUI = new NoisePresetGUI(defaults, config);
         sereneSeasonsCompatGUI = new SereneSeasonsGUI(defaults.sereneSeasonsConfig, config.sereneSeasonsConfig);
         fabricSeasonsCompatGUI = new FabricSeasonsGUI(defaults.fabricSeasonsConfig, config.fabricSeasonsConfig);
         dimensionsGUI = new DimensionsGUI(defaults, config);
@@ -210,15 +214,6 @@ public class ConfigGUI {
         ));
 
         commonCategory.add(new Tuple<>(OptionGroup.createBuilder()
-                .name(groupLabel("common.presets")), commonPresetsGroup));
-        commonPresetsGroup.addAll(List.of(
-                shaderPresetGUI.selectedPreset,
-                shaderPresetGUI.presetTitle,
-                shaderPresetGUI.copyPresetButton,
-                shaderPresetGUI.removePresetButton
-        ));
-
-        commonCategory.add(new Tuple<>(OptionGroup.createBuilder()
                 .name(groupLabel("common.generation")), commonGenerationGroup));
         commonGenerationGroup.addAll(List.of(
                 sizeXZ,
@@ -318,6 +313,11 @@ public class ConfigGUI {
         categories.add(new Tuple<>(ConfigCategory.createBuilder()
                 .name(categoryLabel("shaders")), shaderPresetGUI.shadersCategory));
 
+        ConfigCategory.Builder builder = ConfigCategory.createBuilder().name(categoryLabel("noise"));
+        categories.add(new Tuple<>(builder, noisePresetGUI.noiseCategory));
+
+        listOptions.put(builder, noisePresetGUI.noiseBuilder);
+
         categories.add(new Tuple<>(ConfigCategory.createBuilder()
                 .name(categoryLabel("compat")), compatCategory));
 
@@ -399,11 +399,13 @@ public class ConfigGUI {
     }
 
     public YetAnotherConfigLib.Builder assemble(YetAnotherConfigLib.Builder builder) {
-        builder = builder
-                .save(() -> {
+        builder.save(() -> {
                     shaderPresetGUI.onSave();
+                    noisePresetGUI.onSave();
                     config.selectedPreset = Mth.clamp(config.selectedPreset, 0, config.presets.size());
-                    config.sortPresets();
+                    config.sortShaderPresets();
+                    config.selectedNoisePreset = Mth.clamp(config.selectedNoisePreset, 0, config.noisePresets.size());
+                    config.sortNoisePresets();
                     ConfigManager.handler().save();
                 })
                 .title(Component.translatable(LANG_KEY_PREFIX + ".title"));
@@ -415,6 +417,9 @@ public class ConfigGUI {
                 if (!groupPair.getB().isEmpty())
                     groupBuilder.options(groupPair.getB());
                 categoryBuilder.group(groupBuilder.build());
+            }
+            if (listOptions.containsKey(categoryBuilder)) {
+                categoryBuilder.group(listOptions.get(categoryBuilder));
             }
             builder.category(categoryBuilder.build());
         }

@@ -1,6 +1,7 @@
 package com.qendolin.betterclouds.config;
 
 import com.google.gson.*;
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.compat.BigGlobeCompat;
 import com.qendolin.betterclouds.compat.MiddleEarthCompat;
 import com.qendolin.betterclouds.util.PreLaunchGuard;
@@ -18,7 +19,11 @@ import net.minecraft.world.level.dimension.DimensionType;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
 public class Config {
     public static final String DEFAULT_PRESET_KEY = "default";
@@ -92,6 +97,10 @@ public class Config {
     @SerialEntry
     public List<ShaderPresetConfig> presets = new ArrayList<>();
     @SerialEntry
+    public int selectedNoisePreset = 0;
+    @SerialEntry
+    public List<NoisePresetConfig> noisePresets = new ArrayList<>();
+    @SerialEntry
     public boolean gpuIncompatibleMessageEnabled = true;
     @SerialEntry
     public List<ResourceKey<DimensionType>> enabledDimensions = new ArrayList<>(getDefaultDimensions());
@@ -109,12 +118,12 @@ public class Config {
         Configs.copy(this, other);
     }
 
-    private static boolean isPresetEqualToEmpty(ShaderPresetConfig preset) {
+    private static boolean isPresetEqualToEmpty(AbstractPresetConfig preset) {
         if (preset == null) return true;
         String title = preset.title;
         // The title does not matter
-        preset.title = ShaderPresetConfig.EMPTY_PRESET.title;
-        boolean equal = preset.isEqualTo(ShaderPresetConfig.EMPTY_PRESET);
+        preset.title = preset.getEmptyPreset().title;
+        boolean equal = preset.isEqualTo(preset.getEmptyPreset());
         preset.title = title;
         return equal;
     }
@@ -127,10 +136,28 @@ public class Config {
     }
 
     public void loadDefaultPresets() {
+        for (PresetLoader<?> presetLoader : PresetLoader.ALL_PRESETS) {
+            if (presetLoader.presets().isEmpty()) {
+                // Not initialized yet, wait for second resource reload to finish
+                BetterCloudsStatic.getLogger().info("{} not loaded yet, waiting for next resource load", presetLoader.id);
+                return;
+            }
+        }
+
+        BetterCloudsStatic.getLogger().info("All preset resources loaded, initializing preset config");
+        loadDefaultPreset(PresetLoader.SHADER, presets, shaderPreset().key, ShaderPresetConfig::new);
+        loadDefaultPreset(PresetLoader.NOISE, noisePresets, noisePreset().key, NoisePresetConfig::new);
+    }
+
+    public <T extends AbstractPresetConfig> void loadDefaultPreset(
+            PresetLoader<T> loader,
+            List<T> presets,
+            String selectedDefaultPreset, Function<T, T> instanceCopy
+    ) {
+        assert !loader.presets().isEmpty();
+
         // Remember which default preset was selected, if any
-        String selectedDefaultPreset = preset().key;
-        Map<String, ShaderPresetConfig> defaults = new HashMap<>();
-        ShaderPresetLoader.INSTANCE.presets().forEach((key, preset) -> defaults.put(key, new ShaderPresetConfig(preset)));
+        Map<String, T> defaults = loader.presets();     // map is copied dw
         boolean missingDefault = presets.stream().noneMatch(preset -> DEFAULT_PRESET_KEY.equals(preset.key));
         presets.removeIf(preset -> preset.key != null && !preset.editable && defaults.containsKey(preset.key));
         presets.addAll(defaults.values());
@@ -146,28 +173,29 @@ public class Config {
             // No preset with the key 'default' was present,
             // so it is assumed that the presets are not initialized
             presets.removeIf(Config::isPresetEqualToEmpty);
-            ShaderPresetConfig defaultPreset = defaults.get(DEFAULT_PRESET_KEY);
+            T defaultPreset = defaults.get(DEFAULT_PRESET_KEY);
             if (defaultPreset != null) {
-                ShaderPresetConfig defaultCopy = new ShaderPresetConfig(defaultPreset);
+                T defaultCopy = instanceCopy.apply(defaultPreset);
                 defaultCopy.markAsCopy();
                 presets.add(defaultCopy);
                 selectedPreset = presets.indexOf(defaultCopy);
             }
         }
-        sortPresets();
+        sortShaderPresets();
+        sortNoisePresets();
     }
 
     @NotNull
-    public ShaderPresetConfig preset() {
+    public ShaderPresetConfig shaderPreset() {
         if (presets == null || presets.isEmpty()) {
-            addFirstPreset();
+            addFirstShaderPreset();
         }
         selectedPreset = Mth.clamp(selectedPreset, 0, presets.size() - 1);
         return presets.get(selectedPreset);
     }
 
-    public void sortPresets() {
-        ShaderPresetConfig selected = preset();
+    public void sortShaderPresets() {
+        ShaderPresetConfig selected = shaderPreset();
         Comparator<ShaderPresetConfig> comparator = Comparator.
                 <ShaderPresetConfig, Boolean>comparing(preset -> !preset.editable)
                 .thenComparing(preset -> !DEFAULT_PRESET_KEY.equals(preset.key))
@@ -176,10 +204,33 @@ public class Config {
         selectedPreset = presets.indexOf(selected);
     }
 
-    public void addFirstPreset() {
+    public void addFirstShaderPreset() {
         if (presets == null) presets = new ArrayList<>();
         if (!presets.isEmpty()) return;
         presets.add(new ShaderPresetConfig());
+    }
+
+    @NotNull
+    public NoisePresetConfig noisePreset() {
+        if (noisePresets == null || noisePresets.isEmpty()) addFirstNoisePreset();
+        selectedNoisePreset = Mth.clamp(selectedNoisePreset, 0, noisePresets.size() - 1);
+        return noisePresets.get(selectedNoisePreset);
+    }
+
+    public void sortNoisePresets() {
+        NoisePresetConfig selected = noisePreset();
+        Comparator<NoisePresetConfig> comparator = Comparator.
+                <NoisePresetConfig, Boolean>comparing(preset -> !preset.editable)
+                .thenComparing(preset -> !DEFAULT_PRESET_KEY.equals(preset.key))
+                .thenComparing(preset -> preset.title);
+        noisePresets.sort(comparator);
+        selectedNoisePreset = noisePresets.indexOf(selected);
+    }
+
+    public void addFirstNoisePreset() {
+        if (noisePresets == null) noisePresets = new ArrayList<>();
+        if (!noisePresets.isEmpty()) return;
+        noisePresets.add(new NoisePresetConfig());
     }
 
     public int blockDistance() {

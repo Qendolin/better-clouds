@@ -148,7 +148,7 @@ public final class Configs {
     }
 
     private static List<SerialField> createSerialFields(Class<?> type) {
-        return Arrays.stream(type.getDeclaredFields())
+        return Arrays.stream(type.getFields())
                 .filter(field -> field.isAnnotationPresent(SerialEntry.class))
                 .sorted(Comparator.comparing(Field::getName))
                 .map(Configs::createSerialField)

@@ -2,7 +2,7 @@ package com.qendolin.betterclouds.platform.fabric;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.qendolin.betterclouds.BetterCloudsStatic;
-import com.qendolin.betterclouds.config.ShaderPresetLoader;
+import com.qendolin.betterclouds.config.PresetLoader;
 import com.qendolin.betterclouds.platform.EventHooks;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
@@ -14,6 +14,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
+import org.jspecify.annotations.NonNull;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -38,24 +39,23 @@ public class EventHooksImpl extends EventHooks {
         if (reloader instanceof IdentifiableResourceReloadListener identifiable) {
             listener = identifiable;
         } else {
-            Identifier id = reloader instanceof ShaderPresetLoader
-                    ? ShaderPresetLoader.ID
+            Identifier id = reloader instanceof PresetLoader
+                    ? ((PresetLoader) reloader).id
                     : Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "resource_reloader");
             listener = new IdentifiableResourceReloadListener() {
                 @Override
-                public Identifier getFabricId() {
+                public @NonNull Identifier getFabricId() {
                     return id;
                 }
 
                 @Override
-                public CompletableFuture<Void> reload(SharedState store, Executor loadExecutor, PreparationBarrier helper, Executor applyExecutor) {
+                public @NonNull CompletableFuture<Void> reload(@NonNull SharedState store, @NonNull Executor loadExecutor, @NonNull PreparationBarrier helper, @NonNull Executor applyExecutor) {
                     return reloader.reload(store, loadExecutor, helper, applyExecutor);
                 }
             };
         }
 
-        ResourceManagerHelper.get(PackType.CLIENT_RESOURCES)
-                .registerReloadListener(listener);
+        ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(listener);
     }
 
     @Override

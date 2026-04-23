@@ -1,5 +1,6 @@
 package com.qendolin.betterclouds.clouds;
 
+import com.qendolin.betterclouds.config.ConfigManager;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.levelgen.LegacyRandomSource;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
@@ -7,6 +8,7 @@ import net.minecraft.world.level.levelgen.synth.PerlinSimplexNoise;
 import net.minecraft.world.level.levelgen.synth.SimplexNoise;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Sampler {
     /**
@@ -25,6 +27,12 @@ public class Sampler {
             List.of(0, 1, 2)
     };
 
+    /**
+     * default configuration: 1 Perlin noise layer with default octaves
+     */
+    public static final List<String> DEFAULT_OCTAVES_STR = List.of(OCTAVE_OPTIONS[0].stream()
+            .map(s -> s + "").collect(Collectors.joining(",")));
+
     public static final float REGION_SIZE = 2048;
     public static final float BASE_FUZZINESS = 0.9f;
 
@@ -32,7 +40,7 @@ public class Sampler {
 
     private final SimplexNoise REGION_NOISE;
     private final SimplexNoise COVERAGE_NOISE;
-    private final PerlinSimplexNoise[] DETAIL_NOISES = new PerlinSimplexNoise[OCTAVE_OPTIONS.length];
+    private final List<PerlinSimplexNoise> DETAIL_NOISES;
 
     public Sampler(long seed) {
         WorldgenRandom random = new WorldgenRandom(new LegacyRandomSource(seed));
@@ -41,8 +49,8 @@ public class Sampler {
 
         REGION_NOISE = new SimplexNoise(regionRandom);
         COVERAGE_NOISE = new SimplexNoise(random);
-        for (int i = 0; i < DETAIL_NOISES.length; i++)
-            DETAIL_NOISES[i] = new PerlinSimplexNoise(random, OCTAVE_OPTIONS[i]);
+        DETAIL_NOISES = ConfigManager.instance().noisePreset().getOctaves()
+                .stream().map(octave -> new PerlinSimplexNoise(random, octave)).toList();
     }
 
     // Jenkins hash function (seed does not have to be prime)
@@ -87,9 +95,9 @@ public class Sampler {
 
     public float sample(int x, int z, float cloudiness, float fuzziness, float scale) {
         // TODO: A vanilla like cloud distribution is not possible with this function
-        double regionNoise = (REGION_NOISE.getValue(x / REGION_SIZE, z / REGION_SIZE) * 0.5 + 0.5) * DETAIL_NOISES.length;
+        double regionNoise = (REGION_NOISE.getValue(x / REGION_SIZE, z / REGION_SIZE) * 0.5 + 0.5) * DETAIL_NOISES.size();
         int noiseInd = (int) regionNoise;
-        PerlinSimplexNoise noise1 = DETAIL_NOISES[noiseInd], noise2 = DETAIL_NOISES[(noiseInd + 1) % DETAIL_NOISES.length];
+        PerlinSimplexNoise noise1 = DETAIL_NOISES.get(noiseInd), noise2 = DETAIL_NOISES.get((noiseInd + 1) % DETAIL_NOISES.size());
 
         double value = Mth.lerp(
                 Math.pow(Mth.clamp(regionNoise - noiseInd, 0, 1), 5),

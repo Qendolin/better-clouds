@@ -58,6 +58,7 @@ public class ConfigManager {
                                 .setPrettyPrinting()
                                 .registerTypeAdapter(Config.class, Config.INSTANCE_CREATOR)
                                 .registerTypeAdapter(ShaderPresetConfig.class, ShaderPresetConfig.INSTANCE_CREATOR)
+                                .registerTypeAdapter(NoisePresetConfig.class, NoisePresetConfig.INSTANCE_CREATOR)
                                 .registerTypeAdapter(ResourceKey.class, Config.REGISTRY_KEY_SERIALIZER))
                         .setPath(CONFIG_PATH)
                         .setJson5(false)
