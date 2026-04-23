@@ -39,6 +39,7 @@ public class NoisePresetConfig extends AbstractPresetConfig {
 
     private void parseOctaves() {
         try {
+            if (octaves.isEmpty()) throw new Exception();      // fixme: exception used as control flow
             parsedOctaves = octaves.stream()
                     .map(s -> Arrays.stream(s.split(",")).map(Integer::parseInt).toList())
                     .toList();
