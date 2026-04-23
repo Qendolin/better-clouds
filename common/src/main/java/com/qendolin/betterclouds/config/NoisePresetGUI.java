@@ -57,12 +57,12 @@ public class NoisePresetGUI {
                 .name(groupLabel("noise.builder"))
                 .description(OptionDescription.of(groupDescription("noise.builder")))
                 .state(StateManager.createInstant(
-                        defaults.noisePreset().octaves,
-                        () -> config.noisePreset().octaves,
-                        l -> config.noisePreset().octaves = l
+                        defaults.noisePreset().octavesToStringList(),
+                        () -> config.noisePreset().octavesToStringList(),
+                        l -> config.noisePreset().octavesFromStringList(l)
                 ))
                 .listener((option, _) -> option.applyValue())
-                .controller(StringControllerBuilder::create)
+                .controller(StringControllerBuilder::create)    // todo: move cursed string manipulation into custom controller
                 .initial("")
                 .build();
 

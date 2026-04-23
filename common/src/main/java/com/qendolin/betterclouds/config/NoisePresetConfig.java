@@ -1,23 +1,19 @@
 package com.qendolin.betterclouds.config;
 
 import com.google.gson.InstanceCreator;
-import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.clouds.Sampler;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class NoisePresetConfig extends AbstractPresetConfig {
     public static final InstanceCreator<NoisePresetConfig> INSTANCE_CREATOR = _ -> new NoisePresetConfig();
     protected static final NoisePresetConfig EMPTY_PRESET = new NoisePresetConfig();
 
     @SerialEntry
-    public List<String> octaves = new ArrayList<>();
-    private List<String> prevOctaves = Sampler.DEFAULT_OCTAVES_STR;
-
-    private List<List<Integer>> parsedOctaves;
+    public List<List<Integer>> octaves = List.of(Sampler.OCTAVE_OPTIONS[0]);
 
     public NoisePresetConfig() {
         this("");
@@ -32,24 +28,16 @@ public class NoisePresetConfig extends AbstractPresetConfig {
         Configs.copy(this, other);
     }
 
-    public List<List<Integer>> getOctaves() {
-        if (!prevOctaves.equals(octaves)) parseOctaves();
-        return parsedOctaves;
+    public List<String> octavesToStringList() {
+        return octaves.stream()
+                .map(octave -> octave.stream().map(Object::toString).collect(Collectors.joining(",")))
+                .toList();
     }
 
-    private void parseOctaves() {
-        try {
-            if (octaves.isEmpty()) throw new Exception();      // fixme: exception used as control flow
-            parsedOctaves = octaves.stream()
-                    .map(s -> Arrays.stream(s.split(",")).map(Integer::parseInt).toList())
-                    .toList();
-            prevOctaves = octaves;
-        } catch (Exception e) {
-            assert !prevOctaves.equals(octaves);    // if assert fails, reverting to previous octaves failed
-            BetterCloudsStatic.getLogger().warn("Noise configuration is invalid, reverting to last valid configuration:", e);
-            octaves = prevOctaves;
-            parseOctaves();
-        }
+    public void octavesFromStringList(List<String> octaves) {
+        this.octaves = octaves.stream()
+                .map(octave -> Arrays.stream(octave.split(",")).map(Integer::parseInt).toList())
+                .toList();
     }
 
     @Override

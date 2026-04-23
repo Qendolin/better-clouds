@@ -8,7 +8,6 @@ import net.minecraft.world.level.levelgen.synth.PerlinSimplexNoise;
 import net.minecraft.world.level.levelgen.synth.SimplexNoise;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class Sampler {
     /**
@@ -27,12 +26,6 @@ public class Sampler {
             List.of(0, 1, 2)
     };
 
-    /**
-     * default configuration: 1 Perlin noise layer with default octaves
-     */
-    public static final List<String> DEFAULT_OCTAVES_STR = List.of(OCTAVE_OPTIONS[0].stream()
-            .map(s -> s + "").collect(Collectors.joining(",")));
-
     public static final float REGION_SIZE = 2048;
     public static final float BASE_FUZZINESS = 0.9f;
 
@@ -49,7 +42,7 @@ public class Sampler {
 
         REGION_NOISE = new SimplexNoise(regionRandom);
         COVERAGE_NOISE = new SimplexNoise(random);
-        DETAIL_NOISES = ConfigManager.instance().noisePreset().getOctaves()
+        DETAIL_NOISES = ConfigManager.instance().noisePreset().octaves
                 .stream().map(octave -> new PerlinSimplexNoise(random, octave)).toList();
     }
 
