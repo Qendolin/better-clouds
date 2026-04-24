@@ -30,14 +30,14 @@ public class NoisePresetConfig extends AbstractPresetConfig {
 
     public List<String> octavesToStringList() {
         return octaves.stream()
-                .map(octave -> octave.stream().map(Object::toString).collect(Collectors.joining(",")))
+                .map(octave -> octave.stream().map(Object::toString).collect(Collectors.joining(", ")))
                 .toList();
     }
 
     public void octavesFromStringList(List<String> octaves) {
         this.octaves = octaves.stream()
-                .map(octave -> Arrays.stream(octave.split(",")).map(Integer::parseInt).toList())
-                .toList();
+                .map(octave -> Arrays.stream(octave.split("\\s*,\\s*"))
+                        .map(Integer::parseInt).toList()).toList();
     }
 
     @Override

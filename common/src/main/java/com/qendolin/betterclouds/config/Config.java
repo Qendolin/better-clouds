@@ -138,7 +138,7 @@ public class Config {
     public void loadDefaultPresets() {
         for (PresetLoader<?> presetLoader : PresetLoader.ALL_PRESETS) {
             if (presetLoader.presets().isEmpty()) {
-                // Not initialized yet, wait for second resource reload to finish
+                // Not initialized yet, wait for other preset file to be loaded
                 BetterCloudsStatic.getLogger().info("{} not loaded yet, waiting for next resource load", presetLoader.id);
                 return;
             }

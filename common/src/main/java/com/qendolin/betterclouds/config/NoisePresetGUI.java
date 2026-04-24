@@ -50,6 +50,7 @@ public class NoisePresetGUI {
                     if (opt.controller() instanceof SelectDropdownController select) {
                         select.updateValues();
                     }
+                    syncPresetOptions();
                 })
                 .build();
 
@@ -66,14 +67,16 @@ public class NoisePresetGUI {
                 .initial("")
                 .build();
 
+        noiseBuilder.setAvailable(config.noisePreset().editable);
+
         final Component removeButtonRemoveText = Component.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.remove");
         final Component removeButtonRestoreText = Component.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.restore");
 
         this.removePresetButton = CustomButtonOption.createBuilder()
                 .name(() -> presetsToBeDeleted.contains(NoisePresetGUI.this.config.noisePreset()) ? removeButtonRestoreText : removeButtonRemoveText)
-                .available(config.presets.size() > 1)
+                .available(config.noisePresets.size() > 1)
                 .action((_, option) -> {
-                    if (config.presets.size() <= 1 || !NoisePresetGUI.this.config.noisePreset().editable) {
+                    if (config.noisePresets.size() <= 1 || !config.noisePreset().editable) {
                         option.setAvailable(false);
                         return;
                     }
@@ -110,9 +113,19 @@ public class NoisePresetGUI {
         ));
     }
 
+    private void syncPresetOptions() {
+        if (noiseBuilder == null) {
+            updateNonResponsiveOptions();
+            return;
+        }
+        noiseBuilder.requestSet(config.noisePreset().octavesToStringList());
+        noiseBuilder.setAvailable(config.noisePreset().editable);
+        updateNonResponsiveOptions();
+    }
+
     private void updateNonResponsiveOptions() {
         if (removePresetButton != null) {
-            removePresetButton.setAvailable(config.noisePreset().editable && config.presets.size() > 1);
+            removePresetButton.setAvailable(config.noisePreset().editable && config.noisePresets.size() > 1);
         }
     }
 
