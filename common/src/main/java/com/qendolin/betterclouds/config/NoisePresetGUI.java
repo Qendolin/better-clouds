@@ -73,17 +73,17 @@ public class NoisePresetGUI {
         final Component removeButtonRestoreText = Component.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.restore");
 
         this.removePresetButton = CustomButtonOption.createBuilder()
-                .name(() -> presetsToBeDeleted.contains(NoisePresetGUI.this.config.noisePreset()) ? removeButtonRestoreText : removeButtonRemoveText)
+                .name(() -> presetsToBeDeleted.contains(config.noisePreset()) ? removeButtonRestoreText : removeButtonRemoveText)
                 .available(config.noisePresets.size() > 1)
                 .action((_, option) -> {
                     if (config.noisePresets.size() <= 1 || !config.noisePreset().editable) {
                         option.setAvailable(false);
                         return;
                     }
-                    if (presetsToBeDeleted.contains(NoisePresetGUI.this.config.noisePreset())) {
-                        presetsToBeDeleted.remove(NoisePresetGUI.this.config.noisePreset());
+                    if (presetsToBeDeleted.contains(config.noisePreset())) {
+                        presetsToBeDeleted.remove(config.noisePreset());
                     } else {
-                        presetsToBeDeleted.add(NoisePresetGUI.this.config.noisePreset());
+                        presetsToBeDeleted.add(config.noisePreset());
                     }
                 })
                 .build();
@@ -91,8 +91,8 @@ public class NoisePresetGUI {
         this.copyPresetButton = CustomButtonOption.createBuilder()
                 .name(() -> Component.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.copy"))
                 .action((_, _) -> {
-                    NoisePresetConfig preset = new NoisePresetConfig(NoisePresetGUI.this.config.noisePreset());
-                    preset.title = Component.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.copyOf", NoisePresetGUI.this.config.noisePreset().title).getString();
+                    NoisePresetConfig preset = new NoisePresetConfig(config.noisePreset());
+                    preset.title = Component.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.copyOf", config.noisePreset().title).getString();
                     preset.markAsCopy();
                     config.noisePresets.addFirst(preset);
                     selectedNoisePreset.requestSet(0);
