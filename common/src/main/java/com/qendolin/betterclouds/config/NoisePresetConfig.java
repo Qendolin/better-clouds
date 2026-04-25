@@ -15,7 +15,7 @@ public class NoisePresetConfig extends AbstractPresetConfig {
     public static final String OCTAVE_DELIMITER = ", ";
     public static final Pattern COMMA_REGEX = Pattern.compile("\\s*,\\s*");
     protected static final NoisePresetConfig EMPTY_PRESET = new NoisePresetConfig();
-
+    public static Exception lastException = null;
     @SerialEntry
     public List<List<Integer>> octaves = List.of(Sampler.OCTAVE_OPTIONS[0]);
 
@@ -38,14 +38,20 @@ public class NoisePresetConfig extends AbstractPresetConfig {
                 .toList();
     }
 
-    public void octavesFromStringList(List<String> octaves) {
+    public boolean octavesFromStringList(List<String> octaves) {
         try {
+            // maybe fix: exception used as control flow
+            if (octaves.isEmpty()) throw new IllegalArgumentException("Octaves cannot be empty");
+
             this.octaves = octaves.stream()
                     .map(octave -> Arrays.stream(COMMA_REGEX.split(octave))
-                            .map(Integer::parseInt).toList()).toList();
+                            .map(Integer::valueOf).toList()).toList();
+            return true;
         } catch (Exception e) {
-            BetterCloudsStatic.getLogger().warn("Invalid config, reverting to last config", e);
+            BetterCloudsStatic.getLogger().debug("Invalid config, reverting to last config", e);
+            lastException = e;
         }
+        return false;
     }
 
     @Override

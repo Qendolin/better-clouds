@@ -14,14 +14,25 @@ import net.minecraft.util.Tuple;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.qendolin.betterclouds.config.ConfigGUI.*;
 
 public class NoisePresetGUI {
+    /**
+     * Matches the erroneous string in
+     * <code>java.lang.NumberFormatException: For input string: "[erroneous string]"</code>
+     * (but with double quotes included)
+     *
+     */
+    public static final Pattern BAD_STRING_PATTERN = Pattern.compile("(\".*\")");
+
     public final Option<Integer> selectedNoisePreset;
     public final ListOption<String> noiseBuilder;
     public final Option<String> presetTitle;
     public final Option<String> description;
+    public final LabelOption configInvalidLabel;
     public final ButtonOption copyPresetButton;
     public final ButtonOption removePresetButton;
 
@@ -29,8 +40,11 @@ public class NoisePresetGUI {
 
     public final List<Option<?>> noisePresetGroup = new ArrayList<>();
     private final List<Option<?>> noisePresetOptions = new ArrayList<>();
+    private final List<Option<?>> noiseErrorMessages = new ArrayList<>();
     private final Config config;
     private final List<NoisePresetConfig> presetsToBeDeleted = new ArrayList<>();
+
+    public Component configLabelString = Component.translatable("betterclouds.config.noisePreset.presetValid", "");
 
     public NoisePresetGUI(Config defaults, Config config) {
         this.config = config;
@@ -42,9 +56,18 @@ public class NoisePresetGUI {
                 .customController(StringController::new)
                 .build();
         this.description = createOption(String.class, "presetDescription", false)
-                .binding("", () -> config.noisePreset().description, val -> config.noisePreset().description = val)
+                .binding("", () -> config.noisePreset().description, val -> {
+                    config.noisePreset().description = val;
+                    setPresetDescription();
+                })
                 .customController(StringController::new)
-                .listener(this::setPresetDescription)
+                .build();
+        this.configInvalidLabel = LabelOption.createBuilder()
+                .state(StateManager.createInstant(
+                        configLabelString,
+                        () -> configLabelString,
+                        s -> configLabelString = s
+                ))
                 .build();
         this.noiseBuilder = ListOption.<String>createBuilder()
                 .name(groupLabel("noise.builder"))
@@ -52,7 +75,11 @@ public class NoisePresetGUI {
                 .state(StateManager.createInstant(
                         defaults.noisePreset().octavesToStringList(),
                         () -> config.noisePreset().octavesToStringList(),
-                        l -> config.noisePreset().octavesFromStringList(l)
+                        l -> configInvalidLabel.requestSet(Component.translatable(
+                                config.noisePreset().octavesFromStringList(l) ? "betterclouds.config.noisePreset.presetValid" :
+                                        "betterclouds.config.noisePreset.presetInvalid",
+                                formatLastException()
+                        ))
                 ))
                 .listener((option, _) -> option.applyValue())
                 .controller(StringControllerBuilder::create)    // todo: move cursed string manipulation into custom controller
@@ -122,6 +149,7 @@ public class NoisePresetGUI {
                 .build();
 
         noiseCategory.add(new Tuple<>(OptionGroup.createBuilder().name(groupLabel("noise.preset")), noisePresetGroup));
+        noiseCategory.add(new Tuple<>(OptionGroup.createBuilder().name(groupLabel("noise.issues")), noiseErrorMessages));
 
         noisePresetGroup.addAll(Arrays.asList(
                 selectedNoisePreset,
@@ -131,12 +159,22 @@ public class NoisePresetGUI {
                 removePresetButton
         ));
 
+        noiseErrorMessages.add(configInvalidLabel);
+
         noisePresetOptions.addAll(Arrays.asList(
                 presetTitle,
                 description
         ));
 
         updateNonResponsiveOptions();
+    }
+
+    private static String formatLastException() {
+        if (NoisePresetConfig.lastException == null) return "";
+
+        String s = NoisePresetConfig.lastException.getMessage();
+        Matcher m = BAD_STRING_PATTERN.matcher(s);
+        return m.find() ? m.group(1) : s;
     }
 
     private void setPresetDescription() {
@@ -159,7 +197,7 @@ public class NoisePresetGUI {
 
         for (Option<?> option : noisePresetOptions) {
             option.forgetPendingValue();
-            option.setAvailable(config.shaderPreset().editable);
+            option.setAvailable(config.noisePreset().editable);
         }
 
         setPresetDescription();

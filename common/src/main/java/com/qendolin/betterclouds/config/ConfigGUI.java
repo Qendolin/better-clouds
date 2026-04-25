@@ -62,7 +62,7 @@ public class ConfigGUI {
     public final Option<Boolean> useFrustumCulling;
 
     public final List<Tuple<ConfigCategory.Builder, List<Tuple<OptionGroup.Builder, List<Option<?>>>>>> categories = new ArrayList<>();
-    public final Map<ConfigCategory.Builder, ListOption<?>> listOptions = new HashMap<>();
+    public final Map<ConfigCategory.Builder, Tuple<Integer, ListOption<?>>> listOptions = new HashMap<>();
 
     public final List<Tuple<OptionGroup.Builder, List<Option<?>>>> commonCategory = new ArrayList<>();
     public final List<Tuple<OptionGroup.Builder, List<Option<?>>>> generationCategory = new ArrayList<>();
@@ -316,7 +316,7 @@ public class ConfigGUI {
         ConfigCategory.Builder builder = ConfigCategory.createBuilder().name(categoryLabel("noise"));
         categories.add(new Tuple<>(builder, noisePresetGUI.noiseCategory));
 
-        listOptions.put(builder, noisePresetGUI.noiseBuilder);
+        listOptions.put(builder, new Tuple<>(1, noisePresetGUI.noiseBuilder));
 
         categories.add(new Tuple<>(ConfigCategory.createBuilder()
                 .name(categoryLabel("compat")), compatCategory));
@@ -412,14 +412,18 @@ public class ConfigGUI {
 
         for (Tuple<ConfigCategory.Builder, List<Tuple<OptionGroup.Builder, List<Option<?>>>>> categoryPair : categories) {
             ConfigCategory.Builder categoryBuilder = categoryPair.getA();
+            int listInsertInd = listOptions.containsKey(categoryBuilder) ? listOptions.get(categoryBuilder).getA() : -1;
+
+            int i = 0;
             for (Tuple<OptionGroup.Builder, List<Option<?>>> groupPair : categoryPair.getB()) {
+                if (i++ == listInsertInd) {
+                    categoryBuilder.group(listOptions.get(categoryBuilder).getB());
+                    i++;
+                }
                 OptionGroup.Builder groupBuilder = groupPair.getA();
                 if (!groupPair.getB().isEmpty())
                     groupBuilder.options(groupPair.getB());
                 categoryBuilder.group(groupBuilder.build());
-            }
-            if (listOptions.containsKey(categoryBuilder)) {
-                categoryBuilder.group(listOptions.get(categoryBuilder));
             }
             builder.category(categoryBuilder.build());
         }

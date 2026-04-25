@@ -48,8 +48,9 @@
   "betterclouds.config.group.generation.performance" : "Performance",
   "betterclouds.config.category.noise" : "Noise",
   "betterclouds.config.group.noise.preset" : "Noise Presets",
+  "betterclouds.config.group.noise.issues" : "Issues",
   "betterclouds.config.group.noise.builder" : "Noise Builder",
-  "betterclouds.config.group.noise.builder.description" : "Advanced settings for creating your own noise pattern!\n\nFormat: ",
+  "betterclouds.config.group.noise.builder.description" : "Advanced settings for creating your own noise pattern!\n\nFormat:\n\n• Comma-separated values; the octaves of a §nPerlin Simplex Noise§r.\n\n• Each list item represents a different noise object with different octaves, which are interpolated when the border of between two noise values are reached.\n\n§nPerlin Simplex Noise§r octaves work like this:\n\n• Lower noise octaves (towards the left of the value list) are larger scale, so they determine the appearance of big cloud masses and large gaps in between.\n\n• Higher noise octaves (towards the right of the value list) are smaller scale, so they add fine details such as edges and wisps to the cloud.\n\nE.g. for the list §l[-1, 0, 1, 2]§r:\n• §l-1§r creates large cloud regions\n• §l0§r creates the medium-sized shape of the clouds\n• §l1§r breaks up the clouds on a medium scale\n• §l2§r breaks up clouds on a small scale, adding small edge details.",
   "betterclouds.config.category.appearance" : "Appearance",
   "betterclouds.config.group.appearance.geometry" : "Geometry",
   "betterclouds.config.group.appearance.visibility" : "Visibility",
@@ -109,7 +110,7 @@
   "betterclouds.config.entry.timeSource.option.world" : "World time",
   "betterclouds.config.entry.timeSource.option.playtime" : "Time played in world",
   "betterclouds.config.entry.timeSource.option.renderer" : "Renderer elapsed time",
-  "betterclouds.config.entry.timeSource.description" : "Determines what time source the clouds use for generation:\n\n- World time (what the day-night cycle is based on)\n\n-World play time (the same number as the Time Played statistic)\n\n-Renderer time (gets set to zero upon joining a world, increases afterwards)",
+  "betterclouds.config.entry.timeSource.description" : "Determines what time source the clouds use for generation:\n\n• §lWorld time§r (what the day-night cycle is based on)\n\n• §lWorld play time§r (the same number as the Time Played statistic)\n\n• §lRenderer time§r (gets set to zero upon joining a world, increases afterwards)",
   "betterclouds.config.entry.pointiness" : "Pointiness",
   "betterclouds.config.entry.pointiness.description" : "How much the clouds' y height are increased towards the center",
   "betterclouds.config.entry.bottomSparsity" : "Bottom sparsity",
@@ -214,5 +215,7 @@
   "betterclouds.gui.issueReport.disable" : "Do not show this screen again",
   "betterclouds.gui.issueReport.toast.sent" : "Issue report submitted. Thanks!",
   "betterclouds.compat.sodium.option.enabled.name" : "Better Clouds",
-  "betterclouds.compat.sodium.option.enabled.tooltip" : "Use Better Clouds instead of Sodium's cloud rendering."
+  "betterclouds.compat.sodium.option.enabled.tooltip" : "Use Better Clouds instead of Sodium's cloud rendering.",
+  "betterclouds.config.noisePreset.presetValid" : "§aPreset is valid, no issues :D",
+  "betterclouds.config.noisePreset.presetInvalid" : "§cError: %s is not a number"
 }

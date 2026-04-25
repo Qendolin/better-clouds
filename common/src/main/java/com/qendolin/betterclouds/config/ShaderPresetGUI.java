@@ -71,7 +71,6 @@ public class ShaderPresetGUI {
         this.description = createOption(String.class, "presetDescription", false)
                 .binding("", () -> config.shaderPreset().description, val -> config.shaderPreset().description = val)
                 .customController(StringController::new)
-                .listener(this::setPresetDescription)
                 .build();
 
         // FIXME: defaults.preset() gives default values defined in the code, not from the `default` preset
