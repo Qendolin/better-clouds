@@ -1,7 +1,7 @@
 {
   "default" : {
     "title" : "Default",
-    "description" : "Varied patches of clouds. Different cloud patterns every day!",
+    "description" : "Varied patches of clouds. Creates different cloud patterns every day!",
     "octaves" : [
       [-1, 0, 1, 2],
       [-3, -1, 0, 1, 2],

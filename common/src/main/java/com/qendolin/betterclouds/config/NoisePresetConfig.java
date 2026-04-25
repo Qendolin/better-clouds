@@ -7,6 +7,7 @@ import dev.isxander.yacl3.config.v2.api.SerialEntry;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -14,8 +15,16 @@ public class NoisePresetConfig extends AbstractPresetConfig {
     public static final InstanceCreator<NoisePresetConfig> INSTANCE_CREATOR = _ -> new NoisePresetConfig();
     public static final String OCTAVE_DELIMITER = ", ";
     public static final Pattern COMMA_REGEX = Pattern.compile("\\s*,\\s*");
+    /**
+     * Matches the erroneous string in
+     * <code>java.lang.NumberFormatException: For input string: "[erroneous string]"</code>
+     * (but with double quotes included)
+     *
+     */
+    public static final Pattern BAD_STRING_PATTERN = Pattern.compile("(\".*\")");
     protected static final NoisePresetConfig EMPTY_PRESET = new NoisePresetConfig();
     public static Exception lastException = null;
+
     @SerialEntry
     public List<List<Integer>> octaves = List.of(Sampler.OCTAVE_OPTIONS[0]);
 
@@ -43,9 +52,15 @@ public class NoisePresetConfig extends AbstractPresetConfig {
             // maybe fix: exception used as control flow
             if (octaves.isEmpty()) throw new IllegalArgumentException("Octaves cannot be empty");
 
-            this.octaves = octaves.stream()
-                    .map(octave -> Arrays.stream(COMMA_REGEX.split(octave))
-                            .map(Integer::valueOf).toList()).toList();
+            try {
+                this.octaves = octaves.stream()
+                        .map(octave -> Arrays.stream(COMMA_REGEX.split(octave))
+                                .map(Integer::valueOf).toList()).toList();
+            } catch (NumberFormatException e) {
+                String s = e.getMessage();
+                Matcher m = BAD_STRING_PATTERN.matcher(s);
+                throw new NumberFormatException(m.find() ? m.group(1) + " is not an integer" : s);
+            }
             return true;
         } catch (Exception e) {
             BetterCloudsStatic.getLogger().debug("Invalid config, reverting to last config", e);

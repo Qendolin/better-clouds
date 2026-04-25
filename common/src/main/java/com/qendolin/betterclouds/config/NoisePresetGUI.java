@@ -14,20 +14,10 @@ import net.minecraft.util.Tuple;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.qendolin.betterclouds.config.ConfigGUI.*;
 
 public class NoisePresetGUI {
-    /**
-     * Matches the erroneous string in
-     * <code>java.lang.NumberFormatException: For input string: "[erroneous string]"</code>
-     * (but with double quotes included)
-     *
-     */
-    public static final Pattern BAD_STRING_PATTERN = Pattern.compile("(\".*\")");
-
     public final Option<Integer> selectedNoisePreset;
     public final ListOption<String> noiseBuilder;
     public final Option<String> presetTitle;
@@ -170,11 +160,7 @@ public class NoisePresetGUI {
     }
 
     private static String formatLastException() {
-        if (NoisePresetConfig.lastException == null) return "";
-
-        String s = NoisePresetConfig.lastException.getMessage();
-        Matcher m = BAD_STRING_PATTERN.matcher(s);
-        return m.find() ? m.group(1) : s;
+        return NoisePresetConfig.lastException != null ? NoisePresetConfig.lastException.getMessage() : "";
     }
 
     private void setPresetDescription() {

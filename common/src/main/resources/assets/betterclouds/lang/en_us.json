@@ -217,5 +217,5 @@
   "betterclouds.compat.sodium.option.enabled.name" : "Better Clouds",
   "betterclouds.compat.sodium.option.enabled.tooltip" : "Use Better Clouds instead of Sodium's cloud rendering.",
   "betterclouds.config.noisePreset.presetValid" : "§aPreset is valid, no issues :D",
-  "betterclouds.config.noisePreset.presetInvalid" : "§cError: %s is not a number"
+  "betterclouds.config.noisePreset.presetInvalid" : "§cError: %s"
 }
