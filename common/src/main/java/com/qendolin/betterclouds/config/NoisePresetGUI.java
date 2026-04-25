@@ -1,5 +1,6 @@
 package com.qendolin.betterclouds.config;
 
+import com.qendolin.betterclouds.duck.ListOptionDuck;
 import com.qendolin.betterclouds.gui.CustomButtonOption;
 import com.qendolin.betterclouds.gui.SelectDropdownController;
 import dev.isxander.yacl3.api.*;
@@ -31,6 +32,23 @@ public class NoisePresetGUI {
         config.addFirstNoisePreset();
         config.sortNoisePresets();
 
+        this.noiseBuilder = ListOption.<String>createBuilder()
+                .name(groupLabel("noise.builder"))
+                .description(OptionDescription.of(groupDescription("noise.builder")))
+                .state(StateManager.createInstant(
+                        defaults.noisePreset().octavesToStringList(),
+                        () -> config.noisePreset().octavesToStringList(),
+                        l -> config.noisePreset().octavesFromStringList(l)
+                ))
+                .listener((option, _) -> option.applyValue())
+                .controller(StringControllerBuilder::create)    // todo: move cursed string manipulation into custom controller
+                .collapsed(false)
+                .minimumNumberOfEntries(0)
+                .maximumNumberOfEntries(10)
+                .initial("")
+                .build();
+        ((ListOptionDuck) noiseBuilder).better_clouds$setForceExpanded(true);
+
         this.selectedNoisePreset = createOption(int.class, "noisePreset")
                 .binding(defaults.selectedNoisePreset, () -> config.selectedNoisePreset, val -> config.selectedNoisePreset = val)
                 .customController(opt -> new SelectDropdownController<>(opt, config.noisePresets, (_, preset) -> {
@@ -54,21 +72,6 @@ public class NoisePresetGUI {
                 })
                 .build();
 
-        this.noiseBuilder = ListOption.<String>createBuilder()
-                .name(groupLabel("noise.builder"))
-                .description(OptionDescription.of(groupDescription("noise.builder")))
-                .state(StateManager.createInstant(
-                        defaults.noisePreset().octavesToStringList(),
-                        () -> config.noisePreset().octavesToStringList(),
-                        l -> config.noisePreset().octavesFromStringList(l)
-                ))
-                .listener((option, _) -> option.applyValue())
-                .controller(StringControllerBuilder::create)    // todo: move cursed string manipulation into custom controller
-                .initial("")
-                .build();
-
-        noiseBuilder.setAvailable(config.noisePreset().editable);
-
         final Component removeButtonRemoveText = Component.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.remove");
         final Component removeButtonRestoreText = Component.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.restore");
 
@@ -87,7 +90,9 @@ public class NoisePresetGUI {
                     }
                 })
                 .build();
+
         updateNonResponsiveOptions();
+
         this.copyPresetButton = CustomButtonOption.createBuilder()
                 .name(() -> Component.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.copy"))
                 .action((_, _) -> {
@@ -114,19 +119,16 @@ public class NoisePresetGUI {
     }
 
     private void syncPresetOptions() {
-        if (noiseBuilder == null) {
-            updateNonResponsiveOptions();
-            return;
-        }
         noiseBuilder.requestSet(config.noisePreset().octavesToStringList());
-        noiseBuilder.setAvailable(config.noisePreset().editable);
         updateNonResponsiveOptions();
     }
 
     private void updateNonResponsiveOptions() {
-        if (removePresetButton != null) {
+        noiseBuilder.setAvailable(config.noisePreset().editable);
+        ((ListOptionDuck) noiseBuilder).better_clouds$setCollapsed(false);
+
+        if (removePresetButton != null)
             removePresetButton.setAvailable(config.noisePreset().editable && config.noisePresets.size() > 1);
-        }
     }
 
     public void onSave() {

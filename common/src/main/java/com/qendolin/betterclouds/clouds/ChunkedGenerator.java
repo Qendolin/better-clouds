@@ -16,9 +16,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ChunkedGenerator implements AutoCloseable {
-    private final Sampler sampler;
+    private Sampler sampler;
     private double originX;
     private double originZ;
+    private long seed;
     private Buffer buffer;
     @Nullable
     private Task queuedTask;
@@ -30,6 +31,7 @@ public class ChunkedGenerator implements AutoCloseable {
     private Task swappedTask;
 
     public ChunkedGenerator(long seed) {
+        this.seed = seed;
         sampler = new Sampler(seed);
     }
 
@@ -168,8 +170,10 @@ public class ChunkedGenerator implements AutoCloseable {
 
             boolean bufferCleared = buffer.swapCount() == 0 && queuedTask == null && runningTask == null && (completedTask == null || completedTask == swappedTask);
 
-            if (optionsChanged)
+            if (optionsChanged) {
                 BetterCloudsStatic.getLogger().debug("Configuration changed, updating geometry");
+                refreshSampler();
+            }
             updateGeometry = chunkChanged || optionsChanged || cloudinessChanged || bufferCleared;
         } else {
             BetterCloudsStatic.getLogger().debug("No tasks, updating geometry");
@@ -245,6 +249,10 @@ public class ChunkedGenerator implements AutoCloseable {
             long elapsed = swappedTask.elapsedMs(Util.getMillis());
             ChatUtil.debugChatMessage("profiling.genTimes", elapsed, 1000f / elapsed);
         }
+    }
+
+    public synchronized void refreshSampler() {
+        sampler = new Sampler(seed);
     }
 
     private static class Task {

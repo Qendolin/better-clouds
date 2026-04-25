@@ -8,18 +8,9 @@
   "mixins" : [
   ],
   "client" : [
-    "BiomeManagerMixin",
-    "CloudSettingMixin",
-    "GameRendererAccessor",
-    "GameRendererMixin",
-    "RenderSystemMixin",
-    "TabNavigationWidgetMixin",
-    "WorldMixin",
-    "WorldRendererMixin",
-    "yacl.AbstractWidgetMixin",
-    "yacl.CategoryTabMixin",
-    "yacl.OptionListWidgetMixin",
-    "yacl.PopupControllerScreenAccessor"
+    "BiomeManagerMixin", "CloudSettingMixin", "GameRendererAccessor", "GameRendererMixin", "RenderSystemMixin",
+    "TabNavigationWidgetMixin", "WorldMixin", "WorldRendererMixin", "yacl.AbstractWidgetMixin", "yacl.CategoryTabMixin",
+    "yacl.ListOptionMixin", "yacl.OptionListWidgetMixin", "yacl.PopupControllerScreenAccessor"
   ],
   "injectors" : {
     "defaultRequire" : 1

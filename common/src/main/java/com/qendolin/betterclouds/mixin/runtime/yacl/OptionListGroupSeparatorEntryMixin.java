@@ -1,10 +1,13 @@
 package com.qendolin.betterclouds.mixin.runtime.yacl;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+import com.qendolin.betterclouds.duck.ListOptionDuck;
 import com.qendolin.betterclouds.duck.OptionListEntryExtensionDuck;
+import dev.isxander.yacl3.api.OptionGroup;
 import dev.isxander.yacl3.gui.OptionListWidget;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -16,6 +19,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(value = OptionListWidget.GroupSeparatorEntry.class, remap = false)
 public abstract class OptionListGroupSeparatorEntryMixin extends ContainerObjectSelectionList.Entry<OptionListWidget.Entry> implements OptionListEntryExtensionDuck {
 
+    @Shadow
+    @Final
+    protected OptionGroup group;
+    @Shadow
+    protected boolean groupExpanded;
     @Unique
     private BeforeRenderCallback beforeRender;
     @Unique
@@ -25,6 +33,19 @@ public abstract class OptionListGroupSeparatorEntryMixin extends ContainerObject
 
     @Shadow
     protected abstract void updateHeight();
+
+    @Shadow
+    protected abstract void updateExpandMinimizeText();
+
+    @Inject(method = "setExpanded", at = @At("HEAD"), cancellable = true, remap = false)
+    private void preserveExpandedState(boolean expanded, CallbackInfo ci) {
+        if (expanded) {
+            return;
+        }
+        if (group instanceof ListOptionDuck duck && duck.better_clouds$forceExpanded()) {
+            ci.cancel();
+        }
+    }
 
     @Override
     public void betterclouds$onBeforeRender(BeforeRenderCallback callback) {
@@ -67,6 +88,13 @@ public abstract class OptionListGroupSeparatorEntryMixin extends ContainerObject
     @Override
     public int betterclouds$getYPadding() {
         return yPadding;
+    }
+
+    @Override
+    public void betterclouds$setExpanded(boolean expanded) {
+        groupExpanded = expanded;
+        updateExpandMinimizeText();
+        updateHeight();
     }
 
     @ModifyReturnValue(method = "getYPadding", at = @At("RETURN"))

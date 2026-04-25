@@ -16,6 +16,7 @@ version = rootProject.ext.buildVersionString(loader)
 
 loom {
     accessWidenerPath.set(project(":common").file("src/main/resources/betterclouds.accesswidener"))
+    log4jConfigs.from(rootProject.file("log4j-dev.xml"))
 
     mods {
         betterclouds {

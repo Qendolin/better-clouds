@@ -16,6 +16,9 @@ public interface OptionListEntryExtensionDuck {
         return 0;
     }
 
+    default void betterclouds$setExpanded(boolean expanded) {
+    }
+
     @FunctionalInterface
     interface BeforeRenderCallback {
         void onBeforeRender(ContainerObjectSelectionList.Entry<?> self, GuiGraphicsExtractor context, int x, int y, int width, int height, int mouseX, int mouseY, boolean hovered, float tickDelta);
