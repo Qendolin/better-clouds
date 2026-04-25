@@ -17,7 +17,7 @@
     ]
   },
   "sparse" : {
-    "title" : "Sparse",
+    "title" : "Grand",
     "description" : "Grand, vast fields of clouds. May be too performance-heavy on high render distance.",
     "octaves" : [
       [-3, -1, 0, 1, 2]
