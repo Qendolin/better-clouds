@@ -74,7 +74,7 @@ public class NoisePresetGUI {
                 .listener((option, _) -> option.applyValue())
                 .controller(StringControllerBuilder::create)    // todo: move cursed string manipulation into custom controller
                 .collapsed(false)
-                .minimumNumberOfEntries(0)
+                .minimumNumberOfEntries(1)
                 .maximumNumberOfEntries(10)
                 .initial("")
                 .build();
@@ -87,8 +87,7 @@ public class NoisePresetGUI {
                         return Component.translatable(LANG_KEY_PREFIX + ".entry.noisePreset.untitled")
                                 .withStyle(style -> style.withColor(ChatFormatting.GRAY).withItalic(true));
                     } else if (!preset.editable) {
-                        return Component.literal(preset.title)
-                                .withStyle(style -> style.withItalic(true));
+                        return Component.literal(preset.title + " §7(§obuilt-in§r§7)§r");
                     } else {
                         return Component.literal(preset.title);
                     }

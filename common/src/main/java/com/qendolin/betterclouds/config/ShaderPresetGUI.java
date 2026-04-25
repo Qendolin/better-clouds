@@ -82,8 +82,7 @@ public class ShaderPresetGUI {
                         return Component.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.untitled")
                                 .withStyle(style -> style.withColor(ChatFormatting.GRAY).withItalic(true).withStrikethrough(deleted));
                     } else if (!preset.editable) {
-                        return Component.literal(preset.title)
-                                .withStyle(style -> style.withItalic(true));
+                        return Component.literal(preset.title + " §7(§obuilt-in§r§7)§r");
                     } else {
                         return Component.literal(preset.title).withStyle(style -> style.withStrikethrough(deleted));
                     }
