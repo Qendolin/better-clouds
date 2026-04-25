@@ -29,6 +29,8 @@ neoForge {
             sourceSet = sourceSets.main
             gameDirectory = layout.projectDirectory.dir("../run")
             systemProperty "forge.logging.console.level", "debug"
+            loggingConfigFile = layout.projectDirectory.file("../log4j-dev.xml")
+
             jvmArgument "-Xmx2560M"
         }
 
@@ -36,6 +38,8 @@ neoForge {
             server()
             sourceSet = sourceSets.main
             gameDirectory = layout.projectDirectory.dir("../run")
+            loggingConfigFile = layout.projectDirectory.file("../log4j-dev.xml")
+
             jvmArgument "-Xmx2560M"
         }
     }
