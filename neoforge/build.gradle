@@ -29,14 +29,14 @@ neoForge {
             sourceSet = sourceSets.main
             gameDirectory = layout.projectDirectory.dir("../run")
             systemProperty "forge.logging.console.level", "debug"
-            ideName = "Minecraft Client (NeoForge)"
+            jvmArgument "-Xmx2560M"
         }
 
         server {
             server()
             sourceSet = sourceSets.main
             gameDirectory = layout.projectDirectory.dir("../run")
-            ideName = "Minecraft Server (NeoForge)"
+            jvmArgument "-Xmx2560M"
         }
     }
 }
