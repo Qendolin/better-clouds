@@ -16,10 +16,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ChunkedGenerator implements AutoCloseable {
+    private final long seed;
     private Sampler sampler;
     private double originX;
     private double originZ;
-    private long seed;
     private Buffer buffer;
     @Nullable
     private Task queuedTask;
@@ -105,6 +105,7 @@ public class ChunkedGenerator implements AutoCloseable {
 
     @Override
     public void close() {
+        clear();
         if (buffer != null) buffer.close();
     }
 
@@ -121,29 +122,30 @@ public class ChunkedGenerator implements AutoCloseable {
         int bufferSize = calcBufferSize(options);
 
         if (buffer.hasChanged(bufferSize, fancy, options.usePersistentBuffers)) {
+            clear();
             buffer.close();
             buffer = new Buffer(bufferSize, fancy, options.usePersistentBuffers);
-            clear();
             return true;
         }
         return false;
     }
 
     public synchronized void clear() {
-        queuedTask = null;
+        if (queuedTask != null) queuedTask.cancel();
+        if (swappedTask != null) swappedTask.cancel();
+        if (completedTask != null) completedTask.cancel();
         if (runningTask != null) runningTask.cancel();
+        queuedTask = null;
         runningTask = null;
         completedTask = null;
         swappedTask = null;
     }
 
     public synchronized void allocate(Config options, boolean fancy) {
-        int bufferSize = calcBufferSize(options);
-        if (buffer != null) {
-            buffer.close();
-        }
-        buffer = new Buffer(bufferSize, fancy, options.usePersistentBuffers);
         clear();
+        int bufferSize = calcBufferSize(options);
+        if (buffer != null) buffer.close();
+        buffer = new Buffer(bufferSize, fancy, options.usePersistentBuffers);
     }
 
     public synchronized void update(Vector3d camera, long ticks, float tickDelta, Config options, float cloudiness) {
@@ -288,7 +290,10 @@ public class ChunkedGenerator implements AutoCloseable {
         public void cancel() {
             synchronized (this) {
                 if (completed.get()) return;
-                if (cancelled.getAndSet(true)) return;
+                if (cancelled.getAndSet(true)) {
+                    notify();
+                    return;
+                }
                 BetterCloudsStatic.getLogger().debug("Generator task #{} cancelled", id);
                 try {
                     wait();
