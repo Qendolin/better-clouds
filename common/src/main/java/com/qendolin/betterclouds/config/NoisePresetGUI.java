@@ -1,6 +1,7 @@
 package com.qendolin.betterclouds.config;
 
 import com.qendolin.betterclouds.duck.ListOptionDuck;
+import com.qendolin.betterclouds.duck.StringControllerDuck;
 import com.qendolin.betterclouds.gui.CustomButtonOption;
 import com.qendolin.betterclouds.gui.SelectDropdownController;
 import dev.isxander.yacl3.api.*;
@@ -43,6 +44,7 @@ public class NoisePresetGUI {
         this.description = createOption(String.class, "presetDescription", false)
                 .binding("", () -> config.noisePreset().description, val -> config.noisePreset().description = val)
                 .customController(StringController::new)
+                .listener(this::setPresetDescription)
                 .build();
         this.noiseBuilder = ListOption.<String>createBuilder()
                 .name(groupLabel("noise.builder"))
@@ -137,6 +139,15 @@ public class NoisePresetGUI {
         updateNonResponsiveOptions();
     }
 
+    private void setPresetDescription() {
+        setPresetDescription(description, description.pendingValue().isBlank() ? "Description is empty" : description.pendingValue());
+    }
+
+    private void setPresetDescription(Option<String> descriptionOption, String newValue) {
+        ((StringControllerDuck) descriptionOption.controller()).better_clouds$setDescription(
+                OptionDescription.of(Component.literal(newValue)));
+    }
+
     private void syncPresetOptions() {
         noiseBuilder.requestSet(config.noisePreset().octavesToStringList());
         updateNonResponsiveOptions();
@@ -150,6 +161,8 @@ public class NoisePresetGUI {
             option.forgetPendingValue();
             option.setAvailable(config.shaderPreset().editable);
         }
+
+        setPresetDescription();
 
         if (removePresetButton != null)
             removePresetButton.setAvailable(config.noisePreset().editable && config.noisePresets.size() > 1);

@@ -11,7 +11,7 @@
   },
   "fluffy" : {
     "title" : "Fluffy",
-    "description" : "The old, fluffy clouds from 1.12 Better Clouds",
+    "description" : "The old, fluffy clouds from 1.12.x Better Clouds",
     "octaves" : [
       [-1, 0, 1, 2]
     ]

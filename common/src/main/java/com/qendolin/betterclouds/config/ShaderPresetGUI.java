@@ -1,12 +1,10 @@
 package com.qendolin.betterclouds.config;
 
+import com.qendolin.betterclouds.duck.StringControllerDuck;
 import com.qendolin.betterclouds.gui.CustomButtonOption;
 import com.qendolin.betterclouds.gui.CustomIntegerFieldController;
 import com.qendolin.betterclouds.gui.SelectDropdownController;
-import dev.isxander.yacl3.api.ButtonOption;
-import dev.isxander.yacl3.api.LabelOption;
-import dev.isxander.yacl3.api.Option;
-import dev.isxander.yacl3.api.OptionGroup;
+import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.gui.controllers.ColorController;
 import dev.isxander.yacl3.gui.controllers.TickBoxController;
 import dev.isxander.yacl3.gui.controllers.slider.FloatSliderController;
@@ -66,6 +64,16 @@ public class ShaderPresetGUI {
         config.addFirstShaderPreset();
         config.sortShaderPresets();
 
+        this.presetTitle = createOption(String.class, "presetTitle", false)
+                .binding("", () -> config.shaderPreset().title, val -> config.shaderPreset().title = val)
+                .customController(StringController::new)
+                .build();
+        this.description = createOption(String.class, "presetDescription", false)
+                .binding("", () -> config.shaderPreset().description, val -> config.shaderPreset().description = val)
+                .customController(StringController::new)
+                .listener(this::setPresetDescription)
+                .build();
+
         // FIXME: defaults.preset() gives default values defined in the code, not from the `default` preset
         this.selectedPreset = createOption(int.class, "shaderPreset")
                 .binding(defaults.selectedPreset, () -> config.selectedPreset, val -> config.selectedPreset = val)
@@ -94,14 +102,6 @@ public class ShaderPresetGUI {
                     }
                     updateNonResponsiveOptions();
                 })
-                .build();
-        this.presetTitle = createOption(String.class, "presetTitle", false)
-                .binding("", () -> config.shaderPreset().title, val -> config.shaderPreset().title = val)
-                .customController(StringController::new)
-                .build();
-        this.description = createOption(String.class, "presetDescription", false)
-                .binding("", () -> config.shaderPreset().description, val -> config.shaderPreset().description = val)
-                .customController(StringController::new)
                 .build();
         this.saturation = createOption(float.class, "saturation")
                 .binding(defaults.shaderPreset().saturation, () -> config.shaderPreset().saturation, val -> config.shaderPreset().saturation = val)
@@ -294,7 +294,17 @@ public class ShaderPresetGUI {
         ));
     }
 
+    private void setPresetDescription() {
+        setPresetDescription(description, description.pendingValue().isBlank() ? "Description is empty" : description.pendingValue());
+    }
+
+    private void setPresetDescription(Option<String> descriptionOption, String newValue) {
+        ((StringControllerDuck) descriptionOption.controller()).better_clouds$setDescription(
+                OptionDescription.of(Component.literal(newValue)));
+    }
+
     private void updateNonResponsiveOptions() {
+        setPresetDescription();
         if (removePresetButton != null) {
             removePresetButton.setAvailable(config.shaderPreset().editable && config.presets.size() > 1);
         }
