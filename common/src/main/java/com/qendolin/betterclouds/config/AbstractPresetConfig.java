@@ -9,6 +9,8 @@ public abstract class AbstractPresetConfig {
     @SerialEntry
     @Nullable
     public String key;
+    @SerialEntry
+    public String description = "";
 
     @SerialEntry
     public boolean editable = true;

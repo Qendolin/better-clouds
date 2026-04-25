@@ -1,6 +1,7 @@
 {
   "default" : {
     "title" : "Default",
+    "description" : "Varied patches of clouds. Different cloud patterns every day!",
     "octaves" : [
       [-1, 0, 1, 2],
       [-3, -1, 0, 1, 2],
@@ -9,9 +10,31 @@
     ]
   },
   "fluffy" : {
-    "title" : "Fluffy clouds",
+    "title" : "Fluffy",
+    "description" : "The old, fluffy clouds from 1.12 Better Clouds",
     "octaves" : [
       [-1, 0, 1, 2]
+    ]
+  },
+  "sparse" : {
+    "title" : "Sparse",
+    "description" : "Grand, vast fields of clouds. May be too performance-heavy on high render distance.",
+    "octaves" : [
+      [-3, -1, 0, 1, 2]
+    ]
+  },
+  "medium" : {
+    "title" : "Medium",
+    "description" : "Medium-sized heaps of clouds, with fields of clear sky",
+    "octaves" : [
+      [-2, 0, 1, 2]
+    ]
+  },
+  "dotted" : {
+    "title" : "Dotted",
+    "description" : "Many patches of small clouds, with medium holes of clear sky",
+    "octaves" : [
+      [0, 1, 2]
     ]
   }
 }

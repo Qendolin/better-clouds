@@ -31,6 +31,7 @@ public class ShaderPresetGUI {
     public final Option<Float> upscaleResolutionFactor;
     public final Option<Integer> selectedPreset;
     public final Option<String> presetTitle;
+    public final Option<String> description;
     public final List<Integer> worldCurvatureValues = List.of(0, -256, -512, -1024, -2048, -4096, -8192, -16384, 16384, 8192, 4096, 2048, 1024, 512, 256, 128, 64, 32, 16);
     public final Option<Integer> worldCurvatureSize; // option value is the index
     public final Option<Float> saturation;
@@ -96,6 +97,10 @@ public class ShaderPresetGUI {
                 .build();
         this.presetTitle = createOption(String.class, "presetTitle", false)
                 .binding("", () -> config.shaderPreset().title, val -> config.shaderPreset().title = val)
+                .customController(StringController::new)
+                .build();
+        this.description = createOption(String.class, "presetDescription", false)
+                .binding("", () -> config.shaderPreset().description, val -> config.shaderPreset().description = val)
                 .customController(StringController::new)
                 .build();
         this.saturation = createOption(float.class, "saturation")
@@ -166,7 +171,9 @@ public class ShaderPresetGUI {
                 .customController(opt -> new IntegerSliderController(opt, 0, worldCurvatureValues.size() - 1, 1,
                         i -> i == 0 ? Component.translatable("options.off") : Component.literal(worldCurvatureValues.get(i).toString())))
                 .build();
-        shaderConfigPresetOptions.addAll(List.of(presetTitle,
+        shaderConfigPresetOptions.addAll(List.of(
+                presetTitle,
+                description,
                 saturation,
                 tint,
                 gamma,
@@ -255,6 +262,7 @@ public class ShaderPresetGUI {
                 .name(groupLabel("shaders.presets")), shadersPresetGroup));
         shadersPresetGroup.addAll(List.of(selectedPreset,
                 presetTitle,
+                description,
                 copyPresetButton,
                 removePresetButton
         ));

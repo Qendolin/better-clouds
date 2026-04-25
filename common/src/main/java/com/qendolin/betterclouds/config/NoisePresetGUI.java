@@ -5,6 +5,7 @@ import com.qendolin.betterclouds.gui.CustomButtonOption;
 import com.qendolin.betterclouds.gui.SelectDropdownController;
 import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.api.controller.StringControllerBuilder;
+import dev.isxander.yacl3.gui.controllers.string.StringController;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Tuple;
@@ -18,12 +19,15 @@ import static com.qendolin.betterclouds.config.ConfigGUI.*;
 public class NoisePresetGUI {
     public final Option<Integer> selectedNoisePreset;
     public final ListOption<String> noiseBuilder;
+    public final Option<String> presetTitle;
+    public final Option<String> description;
     public final ButtonOption copyPresetButton;
     public final ButtonOption removePresetButton;
 
     public final List<Tuple<OptionGroup.Builder, List<Option<?>>>> noiseCategory = new ArrayList<>();
 
     public final List<Option<?>> noisePresetGroup = new ArrayList<>();
+    private final List<Option<?>> noisePresetOptions = new ArrayList<>();
     private final Config config;
     private final List<NoisePresetConfig> presetsToBeDeleted = new ArrayList<>();
 
@@ -32,6 +36,14 @@ public class NoisePresetGUI {
         config.addFirstNoisePreset();
         config.sortNoisePresets();
 
+        this.presetTitle = createOption(String.class, "presetTitle", false)
+                .binding("", () -> config.noisePreset().title, val -> config.noisePreset().title = val)
+                .customController(StringController::new)
+                .build();
+        this.description = createOption(String.class, "presetDescription", false)
+                .binding("", () -> config.noisePreset().description, val -> config.noisePreset().description = val)
+                .customController(StringController::new)
+                .build();
         this.noiseBuilder = ListOption.<String>createBuilder()
                 .name(groupLabel("noise.builder"))
                 .description(OptionDescription.of(groupDescription("noise.builder")))
@@ -72,8 +84,8 @@ public class NoisePresetGUI {
                 })
                 .build();
 
-        final Component removeButtonRemoveText = Component.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.remove");
-        final Component removeButtonRestoreText = Component.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.restore");
+        final Component removeButtonRemoveText = Component.translatable(LANG_KEY_PREFIX + ".entry.noisePreset.remove");
+        final Component removeButtonRestoreText = Component.translatable(LANG_KEY_PREFIX + ".entry.noisePreset.restore");
 
         this.removePresetButton = CustomButtonOption.createBuilder()
                 .name(() -> presetsToBeDeleted.contains(config.noisePreset()) ? removeButtonRestoreText : removeButtonRemoveText)
@@ -91,13 +103,11 @@ public class NoisePresetGUI {
                 })
                 .build();
 
-        updateNonResponsiveOptions();
-
         this.copyPresetButton = CustomButtonOption.createBuilder()
-                .name(() -> Component.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.copy"))
+                .name(() -> Component.translatable(LANG_KEY_PREFIX + ".entry.noisePreset.copy"))
                 .action((_, _) -> {
                     NoisePresetConfig preset = new NoisePresetConfig(config.noisePreset());
-                    preset.title = Component.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.copyOf", config.noisePreset().title).getString();
+                    preset.title = Component.translatable(LANG_KEY_PREFIX + ".entry.noisePreset.copyOf", config.noisePreset().title).getString();
                     preset.markAsCopy();
                     config.noisePresets.addFirst(preset);
                     selectedNoisePreset.requestSet(0);
@@ -113,9 +123,18 @@ public class NoisePresetGUI {
 
         noisePresetGroup.addAll(Arrays.asList(
                 selectedNoisePreset,
+                presetTitle,
+                description,
                 copyPresetButton,
                 removePresetButton
         ));
+
+        noisePresetOptions.addAll(Arrays.asList(
+                presetTitle,
+                description
+        ));
+
+        updateNonResponsiveOptions();
     }
 
     private void syncPresetOptions() {
@@ -126,6 +145,11 @@ public class NoisePresetGUI {
     private void updateNonResponsiveOptions() {
         noiseBuilder.setAvailable(config.noisePreset().editable);
         ((ListOptionDuck) noiseBuilder).better_clouds$setCollapsed(false);
+
+        for (Option<?> option : noisePresetOptions) {
+            option.forgetPendingValue();
+            option.setAvailable(config.shaderPreset().editable);
+        }
 
         if (removePresetButton != null)
             removePresetButton.setAvailable(config.noisePreset().editable && config.noisePresets.size() > 1);

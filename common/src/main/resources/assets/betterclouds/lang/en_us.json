@@ -169,6 +169,7 @@
   "betterclouds.config.entry.shaderPreset.restore" : "Restore Preset",
   "betterclouds.config.entry.shaderPreset.description" : "Quickly switch between settings",
   "betterclouds.config.entry.presetTitle" : "Title",
+  "betterclouds.config.entry.presetDescription" : "Description",
   "betterclouds.config.entry.noisePreset" : "Noise Preset",
   "betterclouds.config.entry.noisePreset.untitled" : "untitled",
   "betterclouds.config.entry.noisePreset.copy" : "Duplicate Preset",
