@@ -1,5 +1,3 @@
 package com.qendolin.betterclouds.compat;
-
-class DistantHorizons5CompatImpl extends DistantHorizons4CompatImpl {
-    // same as 4
+class DistantHorizons5CompatImpl extends DistantHorizons3CompatImpl {
 }
