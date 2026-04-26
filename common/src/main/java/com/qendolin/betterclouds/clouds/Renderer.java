@@ -155,7 +155,7 @@ public class Renderer implements AutoCloseable {
         res.generator().reallocateIfStale(config, useCubeClouds());
 
         float cloudiness = CloudinessProvider.getCloudiness(client.level, tickDelta);
-        res.generator().update(cam, getCloudTicks(ticks), tickDelta, ConfigManager.instance(), cloudiness);
+        res.generator().update(cam, getCloudTicks(ticks), ticks, tickDelta, ConfigManager.instance(), cloudiness);
         if (res.generator().canGenerate() && !res.generator().generating() && !Debug.generatorPause) {
             getProfiler().popPush("generate_clouds");
             res.generator().generate();

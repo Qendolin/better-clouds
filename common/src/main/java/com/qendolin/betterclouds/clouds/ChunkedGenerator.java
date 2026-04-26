@@ -18,8 +18,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ChunkedGenerator implements AutoCloseable {
     private final long seed;
     private Sampler sampler;
+
     private double originX;
     private double originZ;
+    private long lastCloudTicks;
+    private int lastRendererTicks;
+    private float lastTickIncrement;
+
     private Buffer buffer;
     @Nullable
     private Task queuedTask;
@@ -148,9 +153,16 @@ public class ChunkedGenerator implements AutoCloseable {
         buffer = new Buffer(bufferSize, fancy, options.usePersistentBuffers);
     }
 
-    public synchronized void update(Vector3d camera, long ticks, float tickDelta, Config options, float cloudiness) {
-        originX = RandomPath.getPathX(Math.abs(ticks + tickDelta), Math.abs(options.travelSpeed));
-        originZ = RandomPath.getPathZ(Math.abs(ticks + tickDelta), Math.abs(options.travelSpeed));
+    public synchronized void update(Vector3d camera, long cloudTicks, int rendererTicks, float tickDelta, Config options, float cloudiness) {
+        float interpTicks = cloudTicks + tickDelta * lastTickIncrement;
+        originX = RandomPath.getPathX(interpTicks, options.travelSpeed);
+        originZ = RandomPath.getPathZ(interpTicks, options.travelSpeed);
+
+        if (rendererTicks != lastRendererTicks) {
+            lastTickIncrement = cloudTicks - lastCloudTicks;
+            lastCloudTicks = cloudTicks;
+            lastRendererTicks = rendererTicks;
+        }
 
         double worldOriginX = camera.x - this.originX;
         double worldOriginZ = camera.z - this.originZ;
