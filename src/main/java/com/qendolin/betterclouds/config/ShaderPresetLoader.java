@@ -24,7 +24,7 @@ import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 //?}
 
 //? if <1.21.3
-/*import net.minecraft.util.profiler.Profiler;*/
+//import net.minecraft.util.profiler.Profiler;
 
 public class ShaderPresetLoader
 //? if fabric {

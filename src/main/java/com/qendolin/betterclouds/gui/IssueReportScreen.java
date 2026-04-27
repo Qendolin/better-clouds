@@ -1,5 +1,6 @@
 package com.qendolin.betterclouds.gui;
 
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.telemetry.ITelemetry;
 import net.minecraft.client.gui.DrawContext;
@@ -12,7 +13,7 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.crash.CrashReport;
 
 //? if <1.21.2
-/*import net.minecraft.client.MinecraftClient;*/
+//import net.minecraft.client.MinecraftClient;
 
 public class IssueReportScreen extends Screen {
 
@@ -33,6 +34,7 @@ public class IssueReportScreen extends Screen {
         super(TITLE);
         this.details = details;
         this.cause = cause;
+        BetterCloudsStatic.getLogger().error("Error occured", cause);
     }
 
     @Override

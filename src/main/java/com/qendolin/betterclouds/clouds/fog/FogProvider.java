@@ -8,7 +8,7 @@ import org.jetbrains.annotations.Nullable;
 
 public interface FogProvider {
     //? if >=1.20.1 && <1.21.3
-    /*FogProvider instance = new FogProvider1201();*/
+    //FogProvider instance = new FogProvider1201();
     //? if >=1.21.3 && <1.21.6
     /*FogProvider instance = new FogProvider1213();*/
     //? if >=1.21.6

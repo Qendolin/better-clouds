@@ -1,9 +1,12 @@
 package com.qendolin.betterclouds.clouds;
 
 
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.config.Config;
 import net.minecraft.client.MinecraftClient;
+
+import java.util.Arrays;
 import java.util.function.Supplier;
 
 //? if >=1.21.5 {
@@ -56,7 +59,7 @@ public class VanillaRenderTarget {
         //?} else {
         /*framebuffer.beginWrite(false);
         renderPhase = RenderPhaseAccessor.getCloudsTarget();
-        invokeRenderPhase(renderPhase, "startDrawing");
+        invokeRenderPhase(renderPhase, "setupRenderState");
         *///?}
     }
 
@@ -72,7 +75,7 @@ public class VanillaRenderTarget {
         }
         //?} else {
         /*if (renderPhase != null) {
-            invokeRenderPhase(renderPhase, "endDrawing");
+            invokeRenderPhase(renderPhase, "clearRenderState");
         }
         *///?}
     }
@@ -82,6 +85,8 @@ public class VanillaRenderTarget {
         try {
             renderPhase.getClass().getMethod(methodName).invoke(renderPhase);
         } catch (ReflectiveOperationException e) {
+            BetterCloudsStatic.getLogger().info(Arrays.toString(renderPhase.getClass().getMethods()), e);
+            BetterCloudsStatic.getLogger().error(e);
             throw new RuntimeException("Failed to call RenderPhase." + methodName, e);
         }
     }
