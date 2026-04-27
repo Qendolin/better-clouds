@@ -42,23 +42,31 @@ public abstract class DistantHorizonsCompat {
         }
 
         try {
-            if (apiVersion == 6) {
-                BetterCloudsStatic.getLogger().info("Using EXPERIMENTAL DistantHorizons 6 compat. The game might crash!");
-                instance = new DistantHorizons6CompatImpl();
-            } else if (apiVersion == 5) {
-                BetterCloudsStatic.getLogger().info("Using EXPERIMENTAL DistantHorizons 5 compat. The game might crash!");
-                instance = new DistantHorizons5CompatImpl();
-            } else if (apiVersion == 4) {
-                BetterCloudsStatic.getLogger().warn("Using DistantHorizons 4 compat");
-                instance = new DistantHorizons4CompatImpl();
-            } else if (apiVersion == 3) {
-                BetterCloudsStatic.getLogger().info("Using DistantHorizons 3 compat");
-                instance = new DistantHorizons3CompatImpl();
-            } else if (apiVersion == 2) {
-                BetterCloudsStatic.getLogger().info("Using DistantHorizons 2 compat");
-                instance = new DistantHorizons2CompatImpl();
-            } else {
-                BetterCloudsStatic.getLogger().error("DistantHorizons version not compatible");
+            switch (apiVersion) {
+                case 6 -> {
+                    BetterCloudsStatic.getLogger().info("Using EXPERIMENTAL DistantHorizons 6 compat. The game might crash!");
+                    instance = new DistantHorizons6CompatImpl();
+                }
+                case 5 -> {
+                    BetterCloudsStatic.getLogger().info("Using EXPERIMENTAL DistantHorizons 5 compat. The game might crash!");
+                    instance = new DistantHorizons5CompatImpl();
+                }
+                case 4 -> {
+                    BetterCloudsStatic.getLogger().warn("Using DistantHorizons 4 compat");
+                    instance = new DistantHorizons4CompatImpl();
+                }
+                case 3 -> {
+                    BetterCloudsStatic.getLogger().info("Using DistantHorizons 3 compat");
+                    instance = new DistantHorizons3CompatImpl();
+                }
+                case 2 -> {
+                    BetterCloudsStatic.getLogger().info("Using DistantHorizons 2 compat");
+                    instance = new DistantHorizons2CompatImpl();
+                }
+                default -> {
+                    BetterCloudsStatic.getLogger().info("DistantHorizons version not explicitly handled, falling back to V6");
+                    instance = new DistantHorizons6CompatImpl();
+                }
             }
         } catch (Throwable e) {
             BetterCloudsStatic.getLogger().error("DistantHorizons version not compatible", e);
