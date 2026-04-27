@@ -26,6 +26,8 @@
    - Fix Ars Nouveau flickering issue – [#222](https://github.com/Qendolin/better-clouds/pull/222)
 - orangishcat
    - Updated the mod to 1.21.11 – [#279](https://github.com/Qendolin/better-clouds/pull/279)
+- Villhume
+  - Updated DH Compat to version 6 - [#306](https://github.com/Qendolin/better-clouds/pull/306)
 
 ... got a PR accepted
  
