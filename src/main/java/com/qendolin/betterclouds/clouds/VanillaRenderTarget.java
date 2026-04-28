@@ -25,6 +25,10 @@ public class VanillaRenderTarget {
     private final MinecraftClient client;
     private static final Supplier<String> RENDER_PASS_LABEL = () -> "BetterClouds";
 
+    private static final String[] START_DRAWING = new String[] {"setupRenderState", "startDrawing"};
+    private static final String[] END_DRAWING = new String[] {"clearRenderState", "endDrawing"};
+    private static int attempt = 0;
+
     private final boolean useIris;
     //? if >=1.21.5 {
     private RenderPass renderPass = null;
@@ -59,7 +63,12 @@ public class VanillaRenderTarget {
         //?} else {
         /*framebuffer.beginWrite(false);
         renderPhase = RenderPhaseAccessor.getCloudsTarget();
-        invokeRenderPhase(renderPhase, "setupRenderState");
+        try {
+            invokeRenderPhase(renderPhase, START_DRAWING[attempt]);
+        } catch (Exception ignored) {
+            attempt++;
+            invokeRenderPhase(renderPhase, START_DRAWING[attempt]);
+        }
         *///?}
     }
 
@@ -74,8 +83,11 @@ public class VanillaRenderTarget {
             renderPass.close();
         }
         //?} else {
-        /*if (renderPhase != null) {
-            invokeRenderPhase(renderPhase, "clearRenderState");
+        /*try {
+            invokeRenderPhase(renderPhase, END_DRAWING[attempt]);
+        } catch (Exception ignored) {
+            attempt++;
+            invokeRenderPhase(renderPhase, END_DRAWING[attempt]);
         }
         *///?}
     }
