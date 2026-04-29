@@ -1,6 +1,7 @@
 package com.qendolin.betterclouds.clouds;
 
 import com.qendolin.betterclouds.config.ConfigManager;
+import it.unimi.dsi.fastutil.longs.Long2FloatLinkedOpenHashMap;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.levelgen.LegacyRandomSource;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
@@ -29,11 +30,16 @@ public class Sampler {
     public static final float REGION_SIZE = 2048;
     public static final float BASE_FUZZINESS = 0.9f;
 
+    public static int cacheHit = 0;
+    public static int cacheMiss = 0;
+
     private final long seed;
 
     private final SimplexNoise REGION_NOISE;
     private final SimplexNoise COVERAGE_NOISE;
     private final List<PerlinSimplexNoise> DETAIL_NOISES;
+
+    private final SamplerLRUCache cache = new SamplerLRUCache();
 
     public Sampler(long seed) {
         WorldgenRandom random = new WorldgenRandom(new LegacyRandomSource(seed));
@@ -87,6 +93,13 @@ public class Sampler {
     }
 
     public float sample(int x, int z, float cloudiness, float fuzziness, float scale) {
+        long cacheHash = hash(seed, x, z, Float.hashCode(cloudiness), Float.hashCode(fuzziness), Float.hashCode(scale));
+        float cachedValue = cache.get(cacheHash);
+        if (!Double.isNaN(cachedValue)) {
+            cacheHit++;
+            return cachedValue;
+        }
+
         // TODO: A vanilla like cloud distribution is not possible with this function
         double regionNoise = (REGION_NOISE.getValue(x / REGION_SIZE, z / REGION_SIZE) * 0.5 + 0.5) * DETAIL_NOISES.size();
         int noiseInd = (int) regionNoise;
@@ -102,9 +115,12 @@ public class Sampler {
         value *= 0.2 + 0.7 * smoothstep(-0.6 * cloudiness - 0.3, -0.6 * cloudiness, COVERAGE_NOISE.getValue(x / 1024f, z / 1024f));
 
         float random = hashToFloat(seed, 'B', x, z);
-        if (random > value + (BASE_FUZZINESS - fuzziness)) return 0;
+        if (random > value + (BASE_FUZZINESS - fuzziness)) value = 0;
 
-        return (float) value;
+        float fv = (float) value;
+        cache.put(cacheHash, fv);
+        cacheMiss++;
+        return fv;
     }
 
     // https://stackoverflow.com/a/50815919/7448536
@@ -113,5 +129,37 @@ public class Sampler {
         x = Mth.clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
         // Evaluate polynomial
         return x * x * (3 - 2 * x);
+    }
+
+    public static class SamplerLRUCache {
+        private final int capacity;
+        private final Long2FloatLinkedOpenHashMap map;
+
+        public SamplerLRUCache() {
+            this(500000);
+        }
+
+        public SamplerLRUCache(int capacity) {
+            this.capacity = capacity;
+            this.map = new Long2FloatLinkedOpenHashMap(capacity, 0.75f);
+            this.map.defaultReturnValue(Float.NaN);
+        }
+
+        public float get(long key) {
+            return map.getAndMoveToFirst(key);
+        }
+
+        public void put(long key, float value) {
+            map.putAndMoveToFirst(key, value);
+            if (map.size() > capacity) map.removeLastFloat(); // evict LRU
+        }
+
+        public boolean contains(long key) {
+            return map.containsKey(key);
+        }
+
+        public float defaultReturnValue() {
+            return map.defaultReturnValue();
+        }
     }
 }
