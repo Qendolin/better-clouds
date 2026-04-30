@@ -25,7 +25,7 @@ public class RandomPath {
     }
 
     private static double getPathSmooth(double time, double travelSpeed, int coordinateIndex) {
-        double x = time / TICKS_PER_POINT * travelSpeed;
+        double x = Math.max(0, time) / TICKS_PER_POINT * travelSpeed;
         int index = Mth.floor(x);
         double fractionalPart = Mth.frac(x);
 
