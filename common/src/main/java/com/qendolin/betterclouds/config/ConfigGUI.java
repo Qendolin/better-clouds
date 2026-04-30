@@ -60,6 +60,7 @@ public class ConfigGUI {
     public final Option<Float> fogEndFactor;
     public final Option<Boolean> usePersistentBuffers;
     public final Option<Boolean> useFrustumCulling;
+    public final Option<Boolean> useSamplerCaching;
 
     public final List<Tuple<ConfigCategory.Builder, List<Tuple<OptionGroup.Builder, List<Option<?>>>>>> categories = new ArrayList<>();
     public final Map<ConfigCategory.Builder, Tuple<Integer, ListOption<?>>> listOptions = new HashMap<>();
@@ -200,6 +201,10 @@ public class ConfigGUI {
                 .binding(defaults.useFrustumCulling, () -> config.useFrustumCulling, val -> config.useFrustumCulling = val)
                 .customController(TickBoxController::new)
                 .build();
+        this.useSamplerCaching = createOption(boolean.class, "useSamplerCaching")
+                .binding(defaults.useSamplerCaching, () -> config.useSamplerCaching, val -> config.useSamplerCaching = val)
+                .customController(TickBoxController::new)
+                .build();
 
 
         categories.add(new Tuple<>(ConfigCategory.createBuilder()
@@ -308,7 +313,7 @@ public class ConfigGUI {
 
         performanceCategory.add(new Tuple<>(OptionGroup.createBuilder()
                 .name(groupLabel("performance.technical")), performanceTechnicalGroup));
-        performanceTechnicalGroup.addAll(List.of(usePersistentBuffers, useFrustumCulling));
+        performanceTechnicalGroup.addAll(List.of(usePersistentBuffers, useFrustumCulling, useSamplerCaching));
 
         categories.add(new Tuple<>(ConfigCategory.createBuilder()
                 .name(categoryLabel("shaders")), shaderPresetGUI.shadersCategory));

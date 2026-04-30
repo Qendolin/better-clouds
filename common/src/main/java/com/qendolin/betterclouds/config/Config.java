@@ -87,6 +87,8 @@ public class Config {
     @SerialEntry
     public boolean useFrustumCulling = true;
     @SerialEntry
+    public boolean useSamplerCaching = true;
+    @SerialEntry
     public boolean irisSupport = true;
     @SerialEntry
     public boolean cloudOverride = true;
