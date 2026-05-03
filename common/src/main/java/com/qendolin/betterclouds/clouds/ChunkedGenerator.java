@@ -154,7 +154,7 @@ public class ChunkedGenerator implements AutoCloseable {
     }
 
     public synchronized void update(Vector3d camera, long cloudTicks, int rendererTicks, float tickDelta, Config options, float cloudiness) {
-        float interpTicks = cloudTicks + tickDelta * lastTickIncrement;
+        double interpTicks = cloudTicks + tickDelta * lastTickIncrement;
         originX = RandomPath.getPathX(interpTicks, options.travelSpeed);
         originZ = RandomPath.getPathZ(interpTicks, options.travelSpeed);
 
