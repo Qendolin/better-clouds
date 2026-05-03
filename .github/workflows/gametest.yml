@@ -1,4 +1,4 @@
-name: Fabric Game Test
+name: Game Test
 
 on:
   pull_request:
@@ -15,3 +15,14 @@ jobs:
           java-version: 25
       - uses: gradle/actions/setup-gradle@v4
       - run: timeout 2m xvfb-run ./gradlew fabric:runGameTest --stacktrace
+
+  neoforge-gametest:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+      - uses: gradle/actions/setup-gradle@v4
+      - run: timeout 2m xvfb-run ./gradlew neoforge:runGameTest --stacktrace

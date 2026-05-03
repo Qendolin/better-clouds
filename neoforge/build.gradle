@@ -34,6 +34,17 @@ neoForge {
             jvmArgument "-Xmx2560M"
         }
 
+        gameTest {
+            client()
+            sourceSet = sourceSets.main
+            gameDirectory = layout.projectDirectory.dir("../run/neoforge-gametest")
+            systemProperty "forge.logging.console.level", "debug"
+            systemProperty "neoforge.enableGameTest", "true"
+            loggingConfigFile = layout.projectDirectory.file("../log4j-dev.xml")
+
+            jvmArgument "-Xmx2560M"
+        }
+
         server {
             server()
             sourceSet = sourceSets.main
