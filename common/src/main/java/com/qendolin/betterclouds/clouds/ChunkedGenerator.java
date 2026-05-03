@@ -159,7 +159,7 @@ public class ChunkedGenerator implements AutoCloseable {
     public synchronized void update(Vector3d camera, long cloudTicks, int rendererTicks, float tickDelta, Config options, float cloudiness) {
         if (options.travelSpeed > 3) {
             // weird edge case with cloud flickering. above the travel speed limit, so only happens if manually
-            // set using the debug command, so just gonna modulo and call it a day
+            // set using the debug command. Just gonna modulo and call it a day
             cloudTicks %= 10_000_000L;
         }
 
