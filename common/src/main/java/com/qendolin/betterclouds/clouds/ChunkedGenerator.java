@@ -157,33 +157,8 @@ public class ChunkedGenerator implements AutoCloseable {
     }
 
     public synchronized void update(Vector3d camera, long cloudTicks, int rendererTicks, float tickDelta, Config options, float cloudiness) {
-        if (options.travelSpeed > 3) {
-            // weird edge case with cloud flickering. above the travel speed limit, so only happens if manually
-            // set using the debug command. Just gonna modulo and call it a day
-            cloudTicks %= 10_000_000L;
-        }
-
-        originX = Mth.lerp(tickDelta, prevOriginX, rawOriginX);
-        originZ = Mth.lerp(tickDelta, prevOriginZ, rawOriginZ);
-
-        if (rendererTicks != lastRendererTicks) {
-            lastTickIncrement = cloudTicks - lastCloudTicks;
-            lastCloudTicks = cloudTicks;
-            lastRendererTicks = rendererTicks;
-            prevOriginX = rawOriginX;
-            prevOriginZ = rawOriginZ;
-            rawOriginX = RandomPath.getPathX(cloudTicks, options.travelSpeed);
-            rawOriginZ = RandomPath.getPathZ(cloudTicks, options.travelSpeed);
-        }
-
-        if (Math.abs(cloudTicks - lastCloudTicks) >= lastTickIncrement * TICK_TOLERANCE) {
-            rawOriginX = RandomPath.getPathX(cloudTicks, options.travelSpeed);
-            rawOriginZ = RandomPath.getPathZ(cloudTicks, options.travelSpeed);
-            prevOriginX = RandomPath.getPathX(cloudTicks - 1, options.travelSpeed);
-            prevOriginZ = RandomPath.getPathZ(cloudTicks - 1, options.travelSpeed);
-            lastCloudTicks = cloudTicks;
-            lastTickIncrement = 1;
-        }
+        originX = RandomPath.getPathX(cloudTicks, tickDelta, options.travelSpeed);
+        originZ = RandomPath.getPathZ(cloudTicks, tickDelta, options.travelSpeed);
 
         double worldOriginX = camera.x - this.originX;
         double worldOriginZ = camera.z - this.originZ;
