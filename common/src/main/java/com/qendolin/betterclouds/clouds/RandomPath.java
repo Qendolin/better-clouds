@@ -27,7 +27,7 @@ public class RandomPath {
         // equal to (ticks + tickDelta) * speed / ticks
         // but for high values of ticks, ticks + tickDelta = ticks due to precision loss
         // so we do it like this instead
-        double x = Math.max(0, ticks) * travelSpeed / TICKS_PER_POINT + tickDelta * travelSpeed / TICKS_PER_POINT;
+        double x = Math.max(0, ticks * travelSpeed / TICKS_PER_POINT + tickDelta * travelSpeed / TICKS_PER_POINT);
 
         int index = Mth.floor(x);
         double delta = Mth.frac(x);
