@@ -22,11 +22,9 @@ public class ChunkedGenerator implements AutoCloseable {
     private Sampler sampler;
 
     private double originX, originZ;
-    private double rawOriginX, rawOriginZ;
-    private double prevOriginX, prevOriginZ;
     private long lastCloudTicks;
     private int lastRendererTicks;
-    private float lastTickIncrement;
+    private float lastTickIncrement = 1;
 
     private Buffer buffer;
     @Nullable
@@ -157,8 +155,14 @@ public class ChunkedGenerator implements AutoCloseable {
     }
 
     public synchronized void update(Vector3d camera, long cloudTicks, int rendererTicks, float tickDelta, Config options, float cloudiness) {
-        originX = RandomPath.getPathX(cloudTicks, tickDelta, options.travelSpeed);
-        originZ = RandomPath.getPathZ(cloudTicks, tickDelta, options.travelSpeed);
+        originX = RandomPath.getPathX(cloudTicks, tickDelta * lastTickIncrement, options.travelSpeed);
+        originZ = RandomPath.getPathZ(cloudTicks, tickDelta * lastTickIncrement, options.travelSpeed);
+
+        if (rendererTicks != lastRendererTicks) {
+            lastTickIncrement = cloudTicks - lastCloudTicks;
+            lastCloudTicks = cloudTicks;
+            lastRendererTicks = rendererTicks;
+        }
 
         double worldOriginX = camera.x - this.originX;
         double worldOriginZ = camera.z - this.originZ;
