@@ -7,10 +7,9 @@ import java.nio.ByteBuffer;
 
 public class RandomPath {
 
-    private static final int TICKS_PER_POINT = 20;
+    public static final int TICKS_PER_POINT = 20;
+    public static int points;
     private static int[] path;
-
-    private static int points;
     private static int pathWrap;
 
     private static double getPathLinear(double time, double travelSpeed, int coordinateIndex) {
@@ -18,8 +17,8 @@ public class RandomPath {
         int index = Mth.floor(x);
         double fractionalPart = Mth.frac(x);
 
-        double p0 = getPointCoordinate(index, coordinateIndex);
-        double p1 = getPointCoordinate(index + 1, coordinateIndex);
+        double p0 = getPointCoordinate(index, 0, coordinateIndex);
+        double p1 = getPointCoordinate(index, 1, coordinateIndex);
 
         return p0 + (p1 - p0) * fractionalPart;
     }
@@ -29,17 +28,22 @@ public class RandomPath {
         int index = Mth.floor(x);
         double fractionalPart = Mth.frac(x);
 
-        double p0 = getPointCoordinate(index, coordinateIndex);
-        double p1 = getPointCoordinate(index + 1, coordinateIndex);
-        double p2 = getPointCoordinate(index + 2, coordinateIndex);
-        double p3 = getPointCoordinate(index + 3, coordinateIndex);
+        double p0 = getPointCoordinate(index, 0, coordinateIndex);
+        double p1 = getPointCoordinate(index, 1, coordinateIndex);
+        double p2 = getPointCoordinate(index, 2, coordinateIndex);
+        double p3 = getPointCoordinate(index, 3, coordinateIndex);
 
         return catmullRomInterpolate(p0, p1, p2, p3, fractionalPart);
     }
 
-    private static double getPointCoordinate(int index, int coordinate) {
+    private static double getPointCoordinate(int index, int add, int coordinate) {
         int wraps = index / points;
         index -= wraps * points;
+        index += add;
+        if (index >= points) {
+            index -= points;
+            wraps++;
+        }
         int value = path[index * 2 + coordinate];
         if (coordinate == 0) value += pathWrap * wraps;
         return value;

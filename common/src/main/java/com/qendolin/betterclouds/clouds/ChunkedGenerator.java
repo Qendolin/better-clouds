@@ -16,11 +16,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ChunkedGenerator implements AutoCloseable {
+    public static final int TICK_TOLERANCE = 10;
+
     private final long seed;
     private Sampler sampler;
 
-    private double originX;
-    private double originZ;
+    private double originX, originZ;
+    private double rawOriginX, rawOriginZ;
+    private double prevOriginX, prevOriginZ;
     private long lastCloudTicks;
     private int lastRendererTicks;
     private float lastTickIncrement;
@@ -154,14 +157,26 @@ public class ChunkedGenerator implements AutoCloseable {
     }
 
     public synchronized void update(Vector3d camera, long cloudTicks, int rendererTicks, float tickDelta, Config options, float cloudiness) {
-        double interpTicks = cloudTicks + tickDelta * lastTickIncrement;
-        originX = RandomPath.getPathX(interpTicks, options.travelSpeed);
-        originZ = RandomPath.getPathZ(interpTicks, options.travelSpeed);
+        originX = Mth.lerp(tickDelta, prevOriginX, rawOriginX);
+        originZ = Mth.lerp(tickDelta, prevOriginZ, rawOriginZ);
 
         if (rendererTicks != lastRendererTicks) {
             lastTickIncrement = cloudTicks - lastCloudTicks;
             lastCloudTicks = cloudTicks;
             lastRendererTicks = rendererTicks;
+            prevOriginX = rawOriginX;
+            prevOriginZ = rawOriginZ;
+            rawOriginX = RandomPath.getPathX(cloudTicks, options.travelSpeed);
+            rawOriginZ = RandomPath.getPathZ(cloudTicks, options.travelSpeed);
+        }
+
+        if (Math.abs(cloudTicks - lastCloudTicks) >= lastTickIncrement * TICK_TOLERANCE) {
+            rawOriginX = RandomPath.getPathX(cloudTicks, options.travelSpeed);
+            rawOriginZ = RandomPath.getPathZ(cloudTicks, options.travelSpeed);
+            prevOriginX = RandomPath.getPathX(cloudTicks - 1, options.travelSpeed);
+            prevOriginZ = RandomPath.getPathZ(cloudTicks - 1, options.travelSpeed);
+            lastCloudTicks = cloudTicks;
+            lastTickIncrement = 1;
         }
 
         double worldOriginX = camera.x - this.originX;
