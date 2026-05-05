@@ -79,15 +79,15 @@ jobs:
 
       - name: Download runtime mods
         run: |
+          ferium profile create \
+            --game-version ${{ matrix.game_version }} \
+            --mod-loader ${{ matrix.loader }} \
+            --output-dir run/mods
           if [ "${{ matrix.loader }}" = "fabric" ]; then
             ferium add fabric-api
           fi
           ferium add distanthorizons
           ferium add yacl
-          ferium profile configure \
-            --game-version ${{ matrix.game_version }} \
-            --mod-loader ${{ matrix.loader }} \
-            --output-dir run/mods
           ferium upgrade
 
       - name: Load client world
