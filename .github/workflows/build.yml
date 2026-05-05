@@ -43,3 +43,60 @@ jobs:
           path: |
             ${{ matrix.loader }}/build/libs/*.jar
           if-no-files-found: error
+
+  client-world-load:
+    name: gametest_${{ matrix.loader }}
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    strategy:
+      fail-fast: false
+      matrix:
+        loader: [ fabric, neoforge ]
+        game_version: [ 26.1 ]
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.loader }}-artifacts
+          path: run/mods
+
+      - name: setup jdk
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+
+      - name: Install Ferium
+        run: |
+          curl -L https://github.com/gorilla-devs/ferium/releases/latest/download/ferium-linux-amd64 -o ferium
+          chmod +x ferium
+          sudo mv ferium /usr/local/bin/ferium
+
+      - name: Download runtime mods
+        run: |
+          if [ "${{ matrix.loader }}" = "fabric" ]; then
+            ferium add fabric-api
+          fi
+          ferium add distanthorizons
+          ferium add yacl
+          ferium profile configure \
+            --game-version ${{ matrix.game_version }} \
+            --mod-loader ${{ matrix.loader }} \
+            --output-dir run/mods
+          ferium upgrade
+
+      - name: Load client world
+        timeout-minutes: 2
+        uses: headlesshq/mc-runtime-test@4.4.0
+        with:
+          mc: 26.1.2
+          modloader: ${{ matrix.loader }}
+          regex: .*${{ matrix.loader }}.*
+          xvfb: true
+          java: 25
+          mc-runtime-test: ${{ matrix.loader }}
+          headlessmc-command: --jvm "-Djava.awt.headless=true"
