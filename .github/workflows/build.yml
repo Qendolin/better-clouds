@@ -72,9 +72,10 @@ jobs:
 
       - name: Install Ferium
         run: |
-          curl -L https://github.com/gorilla-devs/ferium/releases/latest/download/ferium-linux-amd64 -o ferium
-          chmod +x ferium
-          sudo mv ferium /usr/local/bin/ferium
+          curl -L https://github.com/gorilla-devs/ferium/releases/download/v4.7.1/ferium-linux-nogui.zip -o ferium.zip
+          unzip ferium.zip -d ferium-bin
+          chmod +x ferium-bin/ferium
+          sudo mv ferium-bin/ferium /usr/local/bin/ferium
 
       - name: Download runtime mods
         run: |
