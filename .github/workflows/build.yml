@@ -80,9 +80,9 @@ jobs:
       - name: Download runtime mods
         run: |
           ferium profile create \
-            --name Actions runtime for ${{ matrix.loader }} ${{ matrix.game_version }}
-            --game-version ${{ matrix.game_version }} \
-            --mod-loader ${{ matrix.loader }} \
+            --name "Actions runtime for ${{ matrix.loader }} ${{ matrix.game_version }}"
+            --game-version "${{ matrix.game_version }}" \
+            --mod-loader "${{ matrix.loader }}" \
             --output-dir run/mods
           if [ "${{ matrix.loader }}" = "fabric" ]; then
             ferium add fabric-api
