@@ -86,7 +86,8 @@ jobs:
             --name "Actions runtime for ${{ matrix.loader }} ${{ matrix.game_version }}" \
             --game-version "${{ matrix.game_version }}" \
             --mod-loader "${{ matrix.loader }}" \
-            --output-dir ${pwd}/run/mods
+            --output-dir $(pwd)/run/mods
+          echo "out dir: $(pwd)/run/mods"
           if [ "${{ matrix.loader }}" = "fabric" ]; then
             sudo ferium add fabric-api
           fi
