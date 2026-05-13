@@ -2,7 +2,6 @@ package com.qendolin.betterclouds.clouds;
 
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
-import it.unimi.dsi.fastutil.longs.Long2FloatLinkedOpenHashMap;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.levelgen.LegacyRandomSource;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
@@ -31,16 +30,11 @@ public class Sampler {
     public static final float REGION_SIZE = 2048;
     public static final float BASE_FUZZINESS = 0.9f;
 
-    public static int cacheHit = 0;
-    public static int cacheMiss = 0;
-
     private final long seed;
 
     private final SimplexNoise REGION_NOISE;
     private final SimplexNoise COVERAGE_NOISE;
     private final List<PerlinSimplexNoise> DETAIL_NOISES;
-
-    private final SamplerLRUCache cache;
 
     public Sampler(long seed) {
         WorldgenRandom random = new WorldgenRandom(new LegacyRandomSource(seed));
@@ -48,7 +42,6 @@ public class Sampler {
         this.seed = seed;
 
         Config options = ConfigManager.instance();
-        cache = options.useSamplerCaching ? new SamplerLRUCache() : null;
 
         REGION_NOISE = new SimplexNoise(regionRandom);
         COVERAGE_NOISE = new SimplexNoise(random);
@@ -84,10 +77,6 @@ public class Sampler {
         return f - 1;
     }
 
-    public static long cacheHash(int x, int z) {
-        return ((long) x << 32) | (z & 0xffffffffL);
-    }
-
     public long getSeed() {
         return seed;
     }
@@ -101,22 +90,6 @@ public class Sampler {
     }
 
     public float sample(int x, int z, float cloudiness, float fuzziness, float scale) {
-        if (cache == null) return sampleWithoutCache(x, z, cloudiness, fuzziness, scale);
-
-        long cacheHash = cacheHash(x, z);
-        float cachedValue = cache.get(cacheHash);
-        if (!Double.isNaN(cachedValue)) {
-            cacheHit++;
-            return cachedValue;
-        }
-
-        float value = sampleWithoutCache(x, z, cloudiness, fuzziness, scale);
-        cache.put(cacheHash, value);
-        cacheMiss++;
-        return value;
-    }
-
-    private float sampleWithoutCache(int x, int z, float cloudiness, float fuzziness, float scale) {
         // TODO: A vanilla like cloud distribution is not possible with this function
         double regionNoise = (REGION_NOISE.getValue(x / REGION_SIZE, z / REGION_SIZE) * 0.5 + 0.5) * DETAIL_NOISES.size();
         int noiseInd = (int) regionNoise;
@@ -142,35 +115,5 @@ public class Sampler {
         x = Mth.clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
         // Evaluate polynomial
         return x * x * (3 - 2 * x);
-    }
-
-    public static class SamplerLRUCache {
-        private static final int CLOUD_DIST_BLOCKS_TO_POINT_COUNT = 244;
-
-        private final int capacity;
-        private final Long2FloatLinkedOpenHashMap map;
-
-        public SamplerLRUCache() {
-            this(ConfigManager.instance().blockDistance() * CLOUD_DIST_BLOCKS_TO_POINT_COUNT);
-        }
-
-        public SamplerLRUCache(int capacity) {
-            this.capacity = capacity;
-            this.map = new Long2FloatLinkedOpenHashMap(Math.min(capacity, 1000), 0.5f);     // cap initial capacity to prevent lag spikes
-            this.map.defaultReturnValue(Float.NaN);
-        }
-
-        public float get(long key) {
-            return map.getAndMoveToFirst(key);
-        }
-
-        public void put(long key, float value) {
-            map.putAndMoveToFirst(key, value);
-            if (map.size() > capacity) map.removeLastFloat();
-        }
-
-        public boolean contains(long key) {
-            return map.containsKey(key);
-        }
     }
 }
