@@ -80,22 +80,21 @@ jobs:
       - name: Download runtime mods
         run: |
           ferium profile create \
-            --name "Actions runtime for ${{ matrix.loader }} ${{ matrix.game_version }}"
+            --name "Actions runtime for ${{ matrix.loader }} ${{ matrix.game_version }}" \
             --game-version "${{ matrix.game_version }}" \
             --mod-loader "${{ matrix.loader }}" \
-            --output-dir run/mods
+            --output-dir ${pwd}/run/mods
           if [ "${{ matrix.loader }}" = "fabric" ]; then
             ferium add fabric-api
           fi
-          ferium add distanthorizons
-          ferium add yacl
+          ferium add distanthorizons yacl
           ferium upgrade
 
       - name: Load client world
         timeout-minutes: 2
         uses: headlesshq/mc-runtime-test@4.4.0
         with:
-          mc: 26.1.2
+          mc: ${{ matrix.game_version }}
           modloader: ${{ matrix.loader }}
           regex: .*${{ matrix.loader }}.*
           xvfb: true
