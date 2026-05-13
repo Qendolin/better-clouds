@@ -88,7 +88,7 @@ jobs:
             ferium add fabric-api
           fi
           ferium add distanthorizons yacl
-          ferium upgrade
+          sudo ferium upgrade
 
       - name: Load client world
         timeout-minutes: 2
