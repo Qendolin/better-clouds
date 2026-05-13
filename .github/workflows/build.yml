@@ -63,6 +63,9 @@ jobs:
         with:
           name: ${{ matrix.loader }}-artifacts
           path: run/mods
+          
+      - name: Remove sources jar
+        run: find run/mods -type f -name '*sources*.jar' -delete
 
       - name: setup jdk
         uses: actions/setup-java@v4
