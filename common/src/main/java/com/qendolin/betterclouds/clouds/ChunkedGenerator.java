@@ -29,6 +29,9 @@ public class ChunkedGenerator implements AutoCloseable {
     private long lastCloudTicks;
     private int lastRendererTicks;
     private float lastTickIncrement = 1;
+
+    private boolean queueCacheClear = false;
+
     private Buffer buffer;
     @Nullable
     private Task queuedTask;
@@ -193,7 +196,7 @@ public class ChunkedGenerator implements AutoCloseable {
 
             if (optionsChanged || cloudinessChanged) {
                 BetterCloudsStatic.getLogger().debug(optionsChanged ? "Configuration" : "Cloudiness" + " changed, updating geometry");
-                refresh();
+                queueCacheClear = true;
             }
             updateGeometry = chunkChanged || optionsChanged || cloudinessChanged || bufferCleared;
         } else {
@@ -222,6 +225,11 @@ public class ChunkedGenerator implements AutoCloseable {
         }
         runningTask = queuedTask;
         queuedTask = null;
+
+        if (queueCacheClear) {
+            queueCacheClear = false;
+            pointCache.clear();
+        }
 
         if (runningTask.ran()) {
             BetterCloudsStatic.getLogger().warn("Queued generator task #{} already ran", runningTask.id());
@@ -270,11 +278,6 @@ public class ChunkedGenerator implements AutoCloseable {
             long elapsed = swappedTask.elapsedMs(Util.getMillis());
             ChatUtil.debugChatMessage("profiling.genTimes", elapsed, 1000f / elapsed, cacheHit, cacheMiss + cacheHit, (float) cacheHit / (cacheMiss + cacheHit) * 100);
         }
-    }
-
-    public synchronized void refresh() {
-        sampler = new Sampler(seed);
-        pointCache.clear();
     }
 
     private static class Task {
@@ -411,7 +414,10 @@ public class ChunkedGenerator implements AutoCloseable {
 
                     int globalChunkX = chunkX + gridOriginX;
                     int globalChunkZ = chunkZ + gridOriginZ;
-                    long cacheKey = cacheHash(globalChunkX / options.chunkSize, globalChunkZ / options.chunkSize);
+                    long cacheKey = cacheHash(
+                            Math.floorDiv(globalChunkX, options.chunkSize),
+                            Math.floorDiv(globalChunkZ, options.chunkSize)
+                    );
 
                     SamplePoints samplePoints = pointCache.get(cacheKey);
                     if (samplePoints == null) {
@@ -513,11 +519,7 @@ public class ChunkedGenerator implements AutoCloseable {
         }
 
         private int roundToMultiple(int n, int base) {
-            if (n >= 0) {
-                return (n + base - 1) / base * base;
-            } else {
-                return (n - base + 1) / base * base;
-            }
+            return Math.floorDiv(n, base) * base;
         }
     }
 
