@@ -90,14 +90,17 @@ public class Config {
     public boolean cloudOverride = true;
     @SerialEntry
     public boolean useIrisFBO = true;
+
     @SerialEntry
     public int selectedPreset = 0;
     @SerialEntry
     public List<ShaderPresetConfig> presets = new ArrayList<>();
+
     @SerialEntry
     public int selectedNoisePreset = 0;
     @SerialEntry
     public List<NoisePresetConfig> noisePresets = new ArrayList<>();
+
     @SerialEntry
     public boolean gpuIncompatibleMessageEnabled = true;
     @SerialEntry
