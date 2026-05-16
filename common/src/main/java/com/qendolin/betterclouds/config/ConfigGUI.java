@@ -38,7 +38,6 @@ public class ConfigGUI {
     public final Option<Float> fuzziness;
     public final Option<Float> spacing;
     public final Option<Float> sparsity;
-    public final Option<Boolean> shuffle;
     public final Option<Float> randomPlacement;
     public final Option<Float> yRange;
     public final Option<Float> yOffset;
@@ -115,10 +114,6 @@ public class ConfigGUI {
         this.sparsity = createOption(float.class, "sparsity")
                 .binding(defaults.sparsity, () -> config.sparsity, val -> config.sparsity = val)
                 .customController(opt -> new FloatSliderController(opt, 0, 1, 0.01f, ConfigGUI::formatAsPercent))
-                .build();
-        this.shuffle = createOption(boolean.class, "shuffle")
-                .binding(defaults.shuffle, () -> config.shuffle, val -> config.shuffle = val)
-                .customController(TickBoxController::new)
                 .build();
         this.randomPlacement = createOption(float.class, "randomPlacement")
                 .binding(defaults.randomPlacement, () -> config.randomPlacement, val -> config.randomPlacement = val)
@@ -240,8 +235,7 @@ public class ConfigGUI {
                 timeSource,
                 bottomSparsity,
                 spacing,
-                samplingScale,
-                shuffle
+                samplingScale
         ));
 
         generationCategory.add(new Tuple<>(OptionGroup.createBuilder()
@@ -301,8 +295,7 @@ public class ConfigGUI {
                 chunkSize,
                 distance,
                 sparsity,
-                fuzziness,
-                shuffle
+                fuzziness
         ));
 
         performanceCategory.add(new Tuple<>(OptionGroup.createBuilder()

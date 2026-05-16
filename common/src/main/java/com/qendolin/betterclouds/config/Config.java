@@ -43,8 +43,6 @@ public class Config {
     @SerialEntry
     public float fuzziness = 1.0f;
     @SerialEntry
-    public boolean shuffle = false;
-    @SerialEntry
     public float yRange = 64f;
     @SerialEntry
     public float yOffset = 0f;

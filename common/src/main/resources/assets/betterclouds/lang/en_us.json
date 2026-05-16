@@ -96,8 +96,6 @@
   "betterclouds.config.entry.shaderPreset.remove" : "Remove Preset",
   "betterclouds.config.entry.shaderPreset.restore" : "Restore Preset",
   "betterclouds.config.entry.shaderPreset.untitled" : "untitled",
-  "betterclouds.config.entry.shuffle" : "Random Ordering",
-  "betterclouds.config.entry.shuffle.description" : "Can improve some visual issues and z-fighting",
   "betterclouds.config.entry.sizeXZ" : "Width",
   "betterclouds.config.entry.sizeXZ.description" : "The width of an individual cloud cube",
   "betterclouds.config.entry.sizeY" : "Height",
