@@ -230,9 +230,11 @@ public class ChunkedGenerator implements AutoCloseable {
             BetterCloudsStatic.getLogger().warn("generate called with no queued task");
             return;
         }
+
         if (runningTask != null) {
             runningTask.cancel();
         }
+
         runningTask = queuedTask;
         queuedTask = null;
 
@@ -286,7 +288,13 @@ public class ChunkedGenerator implements AutoCloseable {
 
         if (Debug.isProfilingEnabled()) {
             long elapsed = swappedTask.elapsedMs(Util.getMillis());
-            ChatUtil.debugChatMessage("profiling.genTimes", elapsed, 1000f / elapsed, cacheHit, cacheMiss + cacheHit, pointCache.capacity(), (float) cacheHit / (cacheMiss + cacheHit) * 100);
+            ChatUtil.debugChatMessage(
+                    "profiling.genTimes",
+                    elapsed, 1000f / elapsed,
+                    cacheHit, cacheMiss + cacheHit,
+                    pointCache.capacity(),
+                    (float) cacheHit / (cacheMiss + cacheHit) * 100
+            );
         }
     }
 
@@ -553,7 +561,7 @@ public class ChunkedGenerator implements AutoCloseable {
         public SamplePoints get(long key) {
             SamplePoints value = readMap.remove(key);
             if (value != defaultReturnValue())
-                writeMap.putAndMoveToFirst(key, value);
+                put(key, value);
             else if (BetterCloudsStatic.IS_DEV && writeMap.containsKey(key))
                 BetterCloudsStatic.getLogger().warn("Same position accessed twice? %d, %d", (int) (key >> 32), (int) key);
             return value;
