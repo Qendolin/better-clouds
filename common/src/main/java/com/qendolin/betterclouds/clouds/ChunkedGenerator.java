@@ -2,6 +2,7 @@ package com.qendolin.betterclouds.clouds;
 
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.Config;
+import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.util.ChatUtil;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -22,7 +23,7 @@ public class ChunkedGenerator implements AutoCloseable {
     private static int cacheHit = 0;
     private static int cacheMiss = 0;
 
-    private final ChunkCache pointCache = new ChunkCache();
+    private ChunkCache pointCache;
     private Sampler sampler;
     private double originX, originZ;
     private long lastCloudTicks;
@@ -43,6 +44,11 @@ public class ChunkedGenerator implements AutoCloseable {
 
     public ChunkedGenerator(long seed) {
         sampler = new Sampler(seed);
+
+        Config options = ConfigManager.instance();
+        int gridWidth = (int) (options.blockDistance() / options.spacing / options.chunkSize * 2);
+        // default capacity: number of chunks in the grid + some extra for when camera position changes
+        pointCache = new ChunkCache(gridWidth * gridWidth + gridWidth * 4);
     }
 
     private static int calcBufferSize(Config options) {
@@ -200,6 +206,13 @@ public class ChunkedGenerator implements AutoCloseable {
         } else {
             BetterCloudsStatic.getLogger().debug("No tasks, updating geometry");
             updateGeometry = true;
+        }
+
+        if (Debug.generatorChangeCacheSize >= 30) {
+            pointCache = new ChunkCache(Debug.generatorChangeCacheSize);
+            BetterCloudsStatic.getLogger().debug("Changing cache size and invalidating cache");
+            Debug.generatorForceUpdate = true;
+            Debug.generatorChangeCacheSize = 0;
         }
 
         if (Debug.generatorForceUpdate) {
@@ -453,6 +466,7 @@ public class ChunkedGenerator implements AutoCloseable {
                 }
             }
 
+            pointCache.swap();
             completed.set(true);
         }
 
@@ -527,34 +541,51 @@ public class ChunkedGenerator implements AutoCloseable {
     public record BufferPoint(int x, int y, int z) {
     }
 
+    /**
+     * LRU-like cache with two maps so new entries don't erase old entries that would have been future cache hits
+     */
     private static class ChunkCache {
         private final int capacity;
-        private final Long2ObjectLinkedOpenHashMap<SamplePoints> map;
-
-        public ChunkCache() {
-            this(676);
-        }
+        private Long2ObjectLinkedOpenHashMap<SamplePoints> readMap, writeMap;
 
         public ChunkCache(int capacity) {
             this.capacity = capacity;
-            this.map = new Long2ObjectLinkedOpenHashMap<>(capacity, 0.5f);
+            this.readMap = new Long2ObjectLinkedOpenHashMap<>(capacity, 0.5f);
+            this.writeMap = new Long2ObjectLinkedOpenHashMap<>(capacity, 0.5f);
         }
 
         public SamplePoints get(long key) {
-            return map.getAndMoveToFirst(key);
+            SamplePoints value = readMap.remove(key);
+            if (value != readMap.defaultReturnValue())
+                writeMap.putAndMoveToFirst(key, value);
+            else if (BetterCloudsStatic.IS_DEV && writeMap.containsKey(key))
+                BetterCloudsStatic.getLogger().warn("Same position accessed twice? %d, %d", (int) (key >> 32), (int) key);
+            return value;
         }
 
         public void put(long key, SamplePoints value) {
-            map.putAndMoveToFirst(key, value);
-            if (map.size() > capacity) map.removeLast();
+            writeMap.putAndMoveToFirst(key, value);
+            if (writeMap.size() > capacity) writeMap.removeLast();
+        }
+
+        public void swap() {
+            Long2ObjectLinkedOpenHashMap<SamplePoints> prevReadMap = readMap;
+            readMap = writeMap;
+            writeMap = prevReadMap;
+            writeMap.clear();
         }
 
         public boolean contains(long key) {
-            return map.containsKey(key);
+            return writeMap.containsKey(key);
         }
 
         public void clear() {
-            map.clear();
+            readMap.clear();
+            writeMap.clear();
+        }
+
+        public SamplePoints defaultReturnValue() {
+            return readMap.defaultReturnValue();
         }
     }
 

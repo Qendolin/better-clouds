@@ -116,7 +116,13 @@ public class Commands {
                         .executes(_ -> {
                             Debug.generatorForceUpdate = true;
                             return 1;
-                        })));
+                        }))
+                .then(literal("setCacheSize")
+                        .then(argument("cacheSize", IntegerArgumentType.integer(30, 1000))
+                                .executes(context -> {
+                                    Debug.generatorChangeCacheSize = IntegerArgumentType.getInteger(context, "cacheSize");
+                                    return 1;
+                                }))));
         dispatcher.register(literal(BetterCloudsStatic.MODID + ":animation")
                 .then(literal("pause")
                         .executes(_ -> {
