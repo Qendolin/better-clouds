@@ -148,8 +148,8 @@ public class Config {
         BetterCloudsStatic.getLogger().info("All preset resources loaded, initializing preset config");
         loadDefaultPreset(PresetLoader.SHADER, presets, shaderPreset().key, ShaderPresetConfig::new);
         loadDefaultPreset(PresetLoader.NOISE, noisePresets, noisePreset().key, NoisePresetConfig::new);
-        sortShaderPresets();
-        sortNoisePresets();
+        sortShaderPresets(false);
+        sortNoisePresets(false);
     }
 
     public <T extends AbstractPresetConfig> void loadDefaultPreset(
@@ -194,13 +194,18 @@ public class Config {
     }
 
     public void sortShaderPresets() {
+        sortShaderPresets(true);
+    }
+
+    public void sortShaderPresets(boolean updateSelectedIndex) {
         ShaderPresetConfig selected = shaderPreset();
         Comparator<ShaderPresetConfig> comparator = Comparator.
                 <ShaderPresetConfig, Boolean>comparing(preset -> !preset.editable)
                 .thenComparing(preset -> !DEFAULT_PRESET_KEY.equals(preset.key))
                 .thenComparing(preset -> preset.title);
         presets.sort(comparator);
-        selectedPreset = presets.indexOf(selected);
+        if (updateSelectedIndex)
+            selectedPreset = presets.indexOf(selected);
     }
 
     @NotNull
@@ -211,13 +216,19 @@ public class Config {
     }
 
     public void sortNoisePresets() {
+        sortNoisePresets(true);
+    }
+
+    public void sortNoisePresets(boolean updateSelectedIndex) {
         NoisePresetConfig selected = noisePreset();
         Comparator<NoisePresetConfig> comparator = Comparator.
                 <NoisePresetConfig, Boolean>comparing(preset -> !preset.editable)
                 .thenComparing(preset -> !DEFAULT_PRESET_KEY.equals(preset.key))
                 .thenComparing(preset -> preset.title);
         noisePresets.sort(comparator);
-        selectedNoisePreset = noisePresets.indexOf(selected);
+
+        if (updateSelectedIndex)
+            selectedNoisePreset = noisePresets.indexOf(selected);
     }
 
     public int blockDistance() {
