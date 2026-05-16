@@ -22,7 +22,6 @@ public class ChunkedGenerator implements AutoCloseable {
     private static int cacheHit = 0;
     private static int cacheMiss = 0;
 
-    private final long seed;
     private final ChunkCache pointCache = new ChunkCache();
     private Sampler sampler;
     private double originX, originZ;
@@ -43,7 +42,6 @@ public class ChunkedGenerator implements AutoCloseable {
     private Task swappedTask;
 
     public ChunkedGenerator(long seed) {
-        this.seed = seed;
         sampler = new Sampler(seed);
     }
 
