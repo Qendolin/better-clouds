@@ -9,6 +9,7 @@ import dev.isxander.yacl3.api.controller.StringControllerBuilder;
 import dev.isxander.yacl3.gui.controllers.string.StringController;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 import net.minecraft.util.Tuple;
 
 import java.util.ArrayList;
@@ -38,7 +39,6 @@ public class NoisePresetGUI {
 
     public NoisePresetGUI(Config defaults, Config config) {
         this.config = config;
-        config.addFirstNoisePreset();
         config.sortNoisePresets();
 
         this.presetTitle = createOption(String.class, "presetTitle", false)
@@ -192,8 +192,12 @@ public class NoisePresetGUI {
     }
 
     public void onSave() {
+        if (presetsToBeDeleted.isEmpty()) return;
+
+        NoisePresetConfig currentPreset = config.noisePreset();
         for (NoisePresetConfig preset : presetsToBeDeleted) {
             config.noisePresets.remove(preset);
         }
+        config.selectedPreset = Mth.clamp(config.noisePresets.indexOf(currentPreset), 0, config.noisePresets.size() - 1);
     }
 }

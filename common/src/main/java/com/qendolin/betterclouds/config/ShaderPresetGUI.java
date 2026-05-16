@@ -12,6 +12,7 @@ import dev.isxander.yacl3.gui.controllers.slider.IntegerSliderController;
 import dev.isxander.yacl3.gui.controllers.string.StringController;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 import net.minecraft.util.Tuple;
 
 import java.awt.*;
@@ -61,7 +62,6 @@ public class ShaderPresetGUI {
 
     public ShaderPresetGUI(Config defaults, Config config) {
         this.config = config;
-        config.addFirstShaderPreset();
         config.sortShaderPresets();
 
         this.presetTitle = createOption(String.class, "presetTitle", false)
@@ -72,8 +72,6 @@ public class ShaderPresetGUI {
                 .binding("", () -> config.shaderPreset().description, val -> config.shaderPreset().description = val)
                 .customController(StringController::new)
                 .build();
-
-        // FIXME: defaults.preset() gives default values defined in the code, not from the `default` preset
         this.selectedPreset = createOption(int.class, "shaderPreset")
                 .binding(defaults.selectedPreset, () -> config.selectedPreset, val -> config.selectedPreset = val)
                 .customController(opt -> new SelectDropdownController<>(opt, config.presets, (i, preset) -> {
@@ -309,8 +307,12 @@ public class ShaderPresetGUI {
     }
 
     public void onSave() {
+        if (presetsToBeDeleted.isEmpty()) return;
+
+        ShaderPresetConfig currentPreset = config.shaderPreset();
         for (ShaderPresetConfig preset : presetsToBeDeleted) {
             config.presets.remove(preset);
         }
+        config.selectedPreset = Mth.clamp(config.presets.indexOf(currentPreset), 0, config.presets.size() - 1);
     }
 }

@@ -148,6 +148,8 @@ public class Config {
         BetterCloudsStatic.getLogger().info("All preset resources loaded, initializing preset config");
         loadDefaultPreset(PresetLoader.SHADER, presets, shaderPreset().key, ShaderPresetConfig::new);
         loadDefaultPreset(PresetLoader.NOISE, noisePresets, noisePreset().key, NoisePresetConfig::new);
+        sortShaderPresets();
+        sortNoisePresets();
     }
 
     public <T extends AbstractPresetConfig> void loadDefaultPreset(
@@ -182,15 +184,11 @@ public class Config {
                 selectedPreset = presets.indexOf(defaultCopy);
             }
         }
-        sortShaderPresets();
-        sortNoisePresets();
     }
 
     @NotNull
     public ShaderPresetConfig shaderPreset() {
-        if (presets == null || presets.isEmpty()) {
-            addFirstShaderPreset();
-        }
+        if (presets.isEmpty()) return PresetLoader.SHADER.presets().get(DEFAULT_PRESET_KEY);
         selectedPreset = Mth.clamp(selectedPreset, 0, presets.size() - 1);
         return presets.get(selectedPreset);
     }
@@ -205,15 +203,9 @@ public class Config {
         selectedPreset = presets.indexOf(selected);
     }
 
-    public void addFirstShaderPreset() {
-        if (presets == null) presets = new ArrayList<>();
-        if (!presets.isEmpty()) return;
-        presets.add(new ShaderPresetConfig());
-    }
-
     @NotNull
     public NoisePresetConfig noisePreset() {
-        if (noisePresets == null || noisePresets.isEmpty()) addFirstNoisePreset();
+        if (presets.isEmpty()) return PresetLoader.NOISE.presets().get(DEFAULT_PRESET_KEY);
         selectedNoisePreset = Mth.clamp(selectedNoisePreset, 0, noisePresets.size() - 1);
         return noisePresets.get(selectedNoisePreset);
     }
@@ -226,12 +218,6 @@ public class Config {
                 .thenComparing(preset -> preset.title);
         noisePresets.sort(comparator);
         selectedNoisePreset = noisePresets.indexOf(selected);
-    }
-
-    public void addFirstNoisePreset() {
-        if (noisePresets == null) noisePresets = new ArrayList<>();
-        if (!noisePresets.isEmpty()) return;
-        noisePresets.add(new NoisePresetConfig());
     }
 
     public int blockDistance() {
