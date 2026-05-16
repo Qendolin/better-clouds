@@ -8,6 +8,7 @@ import net.minecraft.world.level.levelgen.WorldgenRandom;
 import net.minecraft.world.level.levelgen.synth.PerlinSimplexNoise;
 import net.minecraft.world.level.levelgen.synth.SimplexNoise;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class Sampler {
@@ -49,12 +50,21 @@ public class Sampler {
                 .stream().map(octave -> new PerlinSimplexNoise(random, octave)).toList();
     }
 
+    /**
+     * For testing only
+     */
     public Sampler() {
         this.seed = 1337;
         WorldgenRandom random = new WorldgenRandom(new LegacyRandomSource(seed));
         WorldgenRandom regionRandom = new WorldgenRandom(new LegacyRandomSource(random.nextInt()));
 
         Config options = new Config();
+        options.noisePreset().octaves = Arrays.asList(
+                Arrays.asList(-1, 0, 1, 2),
+                Arrays.asList(-3, -1, 0, 1, 2),
+                Arrays.asList(-2, 0, 1, 2),
+                Arrays.asList(0, 1, 2)
+        );
 
         REGION_NOISE = new SimplexNoise(regionRandom);
         COVERAGE_NOISE = new SimplexNoise(random);
