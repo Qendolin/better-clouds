@@ -130,7 +130,7 @@
   "betterclouds.config.entry.useFrustumCulling" : "Frustum Culling",
   "betterclouds.config.entry.useFrustumCulling.description" : "Culls clouds not visible to the camera",
   "betterclouds.config.entry.useSamplerCaching" : "Sampler Caching",
-  "betterclouds.config.entry.useSamplerCaching.description" : "Caches cloud generation data for 60% faster generation (uses extra 30MB live memory on max settings)",
+  "betterclouds.config.entry.useSamplerCaching.description" : "Caches previous cloud generation data for much faster generation",
   "betterclouds.config.entry.useIrisFBO" : "Use Iris FBO",
   "betterclouds.config.entry.useIrisFBO.description" : "Don't turn this off unless you are experiencing crashes",
   "betterclouds.config.entry.usePersistentBuffers" : "Persistent Buffers",
