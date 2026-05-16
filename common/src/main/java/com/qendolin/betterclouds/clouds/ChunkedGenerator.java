@@ -22,9 +22,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ChunkedGenerator implements AutoCloseable {
     private static int cacheHit = 0;
     private static int cacheMiss = 0;
-
+    private final Sampler sampler;
     private ChunkCache pointCache;
-    private Sampler sampler;
     private double originX, originZ;
     private long lastCloudTicks;
     private int lastRendererTicks;
@@ -287,7 +286,7 @@ public class ChunkedGenerator implements AutoCloseable {
 
         if (Debug.isProfilingEnabled()) {
             long elapsed = swappedTask.elapsedMs(Util.getMillis());
-            ChatUtil.debugChatMessage("profiling.genTimes", elapsed, 1000f / elapsed, cacheHit, cacheMiss + cacheHit, (float) cacheHit / (cacheMiss + cacheHit) * 100);
+            ChatUtil.debugChatMessage("profiling.genTimes", elapsed, 1000f / elapsed, cacheHit, cacheMiss + cacheHit, pointCache.capacity(), (float) cacheHit / (cacheMiss + cacheHit) * 100);
         }
     }
 
@@ -538,9 +537,6 @@ public class ChunkedGenerator implements AutoCloseable {
     private record SamplePoints(AABB bounds, ObjectArrayList<AABB> points) {
     }
 
-    public record BufferPoint(int x, int y, int z) {
-    }
-
     /**
      * LRU-like cache with two maps so new entries don't erase old entries that would have been future cache hits
      */
@@ -556,7 +552,7 @@ public class ChunkedGenerator implements AutoCloseable {
 
         public SamplePoints get(long key) {
             SamplePoints value = readMap.remove(key);
-            if (value != readMap.defaultReturnValue())
+            if (value != defaultReturnValue())
                 writeMap.putAndMoveToFirst(key, value);
             else if (BetterCloudsStatic.IS_DEV && writeMap.containsKey(key))
                 BetterCloudsStatic.getLogger().warn("Same position accessed twice? %d, %d", (int) (key >> 32), (int) key);
@@ -575,10 +571,6 @@ public class ChunkedGenerator implements AutoCloseable {
             writeMap.clear();
         }
 
-        public boolean contains(long key) {
-            return writeMap.containsKey(key);
-        }
-
         public void clear() {
             readMap.clear();
             writeMap.clear();
@@ -586,6 +578,10 @@ public class ChunkedGenerator implements AutoCloseable {
 
         public SamplePoints defaultReturnValue() {
             return readMap.defaultReturnValue();
+        }
+
+        public int capacity() {
+            return capacity;
         }
     }
 

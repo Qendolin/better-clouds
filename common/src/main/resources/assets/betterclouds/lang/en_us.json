@@ -203,7 +203,7 @@
   "betterclouds.message.profiling.cpuTimes" : "§3CPU Times§r (msec):\n%s",
   "betterclouds.message.profiling.disabled" : "Disabled profiling.",
   "betterclouds.message.profiling.enabled" : "Enabled profiling over %d frames, performance will suffer.",
-  "betterclouds.message.profiling.genTimes" : "§5Gen Times§r: %d §7ms§r || %.3f §7per second§r || §7Cache hit§r %d/%d (%.2f%%)",
+  "betterclouds.message.profiling.genTimes" : "§5Gen Times§r: %d §7ms§r || %.3f §7per second§r || §7Cache hit§r %d/%d/%d (%.2f%%)",
   "betterclouds.message.profiling.gpuTimes" : "§cGPU Times§r (msec):\n%s",
   "betterclouds.message.reloadingConfig" : "Reloading config...",
   "betterclouds.message.renderdoc.capture.failure" : "RenderDoc capture unsuccessful.",
