@@ -184,7 +184,7 @@ public class ChunkedGenerator implements AutoCloseable {
             Task prevTask = queuedTask == null ? (runningTask == null ? completedTask : runningTask) : queuedTask;
             int prevChunkX = prevTask.chunkX();
             int prevChunkZ = prevTask.chunkZ();
-            boolean chunkChanged = prevChunkX != chunkX || prevChunkZ != chunkZ;
+            boolean chunkChanged = Math.abs(prevChunkX - chunkX) + Math.abs(prevChunkZ - chunkZ) > 4;
             boolean optionsChanged = !options.equals(prevTask.options);
             float prevCloudiness = prevTask.cloudiness();
             boolean cloudinessChanged = Math.ceil(cloudiness * 100) != Math.ceil(prevCloudiness * 100);
@@ -488,7 +488,7 @@ public class ChunkedGenerator implements AutoCloseable {
                     if (value <= 0) continue;
 
                     for (int pass = 0; pass <= 1; pass++) {
-                        float cloudHeight = options.yRange * (float) Math.pow(value, 6.5 - options.pointiness);
+                        float cloudHeight = value * value * options.yRange;
 
                         // the second pass is used to "fill the cloud void" as described in https://github.com/Qendolin/better-clouds/issues/262
                         // so the cube is placed below the normal cloud y range, like this:

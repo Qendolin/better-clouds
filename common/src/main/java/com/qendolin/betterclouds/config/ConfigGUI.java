@@ -43,7 +43,6 @@ public class ConfigGUI {
     public final Option<Float> yRange;
     public final Option<Float> yOffset;
     public final Option<Config.TimeSource> timeSource;
-    public final Option<Float> pointiness;
     public final Option<Float> bottomSparsity;
     public final Option<Float> samplingScale;
     public final Option<Float> sizeXZ;
@@ -136,10 +135,6 @@ public class ConfigGUI {
         this.timeSource = createOption(Config.TimeSource.class, "timeSource")
                 .binding(defaults.timeSource, () -> config.timeSource, val -> config.timeSource = val)
                 .customController(opt -> new EnumController<>(opt, Config.TimeSource.class))
-                .build();
-        this.pointiness = createOption(float.class, "pointiness")
-                .binding(defaults.pointiness, () -> config.pointiness, val -> config.pointiness = val)
-                .customController(opt -> new FloatSliderController(opt, 0.5f, 5f, 0.1f))
                 .build();
         this.bottomSparsity = createOption(float.class, "bottomSparsity")
                 .binding(defaults.bottomSparsity, () -> config.bottomSparsity, val -> config.bottomSparsity = val)
@@ -243,7 +238,6 @@ public class ConfigGUI {
                 yRange,
                 yOffset,
                 timeSource,
-                pointiness,
                 bottomSparsity,
                 spacing,
                 samplingScale,

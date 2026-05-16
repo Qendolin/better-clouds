@@ -49,6 +49,19 @@ public class Sampler {
                 .stream().map(octave -> new PerlinSimplexNoise(random, octave)).toList();
     }
 
+    public Sampler() {
+        this.seed = 1337;
+        WorldgenRandom random = new WorldgenRandom(new LegacyRandomSource(seed));
+        WorldgenRandom regionRandom = new WorldgenRandom(new LegacyRandomSource(random.nextInt()));
+
+        Config options = new Config();
+
+        REGION_NOISE = new SimplexNoise(regionRandom);
+        COVERAGE_NOISE = new SimplexNoise(random);
+        DETAIL_NOISES = options.noisePreset().octaves
+                .stream().map(octave -> new PerlinSimplexNoise(random, octave)).toList();
+    }
+
     // Jenkins hash function (seed does not have to be prime)
     public static long hash(long seed, int... values) {
         long hash = seed;
@@ -102,7 +115,7 @@ public class Sampler {
         );
         value = value / 2 + 0.5;
         value = (value - (1 - cloudiness)) / cloudiness;
-        value *= 0.2 + 0.7 * smoothstep(-0.6 * cloudiness - 0.3, -0.6 * cloudiness, COVERAGE_NOISE.getValue(x / 1024f, z / 1024f));
+        value *= smoothstep(-0.6 * cloudiness - 0.3, -0.6 * cloudiness, COVERAGE_NOISE.getValue(x / 1024f, z / 1024f));
 
         float random = hashToFloat(seed, 'B', x, z);
         if (random > value + (BASE_FUZZINESS - fuzziness)) value = 0;

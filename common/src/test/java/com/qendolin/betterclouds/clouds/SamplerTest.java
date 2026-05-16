@@ -13,7 +13,7 @@ public class SamplerTest {
     void generatesSamplerImage() throws IOException {
         float scale = 0.5f;
 
-        Sampler s = new Sampler(1337);
+        Sampler s = new Sampler();
         BufferedImage image = new BufferedImage(2400, 1600, BufferedImage.TYPE_INT_RGB);
         for (int x = 0; x < image.getWidth(); x++) {
             for (int y = 0; y < image.getHeight(); y++) {
