@@ -113,16 +113,23 @@ public class Sampler {
     }
 
     public float sample(int x, int z, float cloudiness, float fuzziness, float scale) {
-        // TODO: A vanilla like cloud distribution is not possible with this function
-        double regionNoise = (REGION_NOISE.getValue(x / REGION_SIZE, z / REGION_SIZE) * 0.5 + 0.5) * DETAIL_NOISES.size();
-        int noiseInd = (int) regionNoise;
-        PerlinSimplexNoise noise1 = DETAIL_NOISES.get(noiseInd), noise2 = DETAIL_NOISES.get((noiseInd + 1) % DETAIL_NOISES.size());
+        double value;
 
-        double value = Mth.lerp(
-                Math.pow(Mth.clamp(regionNoise - noiseInd, 0, 1), 5),
-                noise1.getValue(x / scale / 128f, z / scale / 128f, false),
-                noise2.getValue(x / scale / 128f, z / scale / 128f, false)
-        );
+        // TODO: A vanilla like cloud distribution is not possible with this function
+        if (DETAIL_NOISES.size() > 1) {
+            double regionNoise = (REGION_NOISE.getValue(x / REGION_SIZE, z / REGION_SIZE) * 0.5 + 0.5) * DETAIL_NOISES.size();
+            int noiseInd = (int) regionNoise;
+            PerlinSimplexNoise noise1 = DETAIL_NOISES.get(noiseInd), noise2 = DETAIL_NOISES.get((noiseInd + 1) % DETAIL_NOISES.size());
+
+            value = Mth.lerp(
+                    Math.pow(Mth.clamp(regionNoise - noiseInd, 0, 1), 5),
+                    noise1.getValue(x / scale / 128f, z / scale / 128f, false),
+                    noise2.getValue(x / scale / 128f, z / scale / 128f, false)
+            );
+        } else {
+            value = DETAIL_NOISES.getFirst().getValue(x / scale / 128f, z / scale / 128f, false);
+        }
+
         value = value / 2 + 0.5;
         value = (value - (1 - cloudiness)) / cloudiness;
         value *= smoothstep(-0.6 * cloudiness - 0.3, -0.6 * cloudiness, COVERAGE_NOISE.getValue(x / 1024f, z / 1024f));
