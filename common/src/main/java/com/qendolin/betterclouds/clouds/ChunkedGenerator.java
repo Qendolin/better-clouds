@@ -22,13 +22,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ChunkedGenerator implements AutoCloseable {
     private static int cacheHit = 0;
     private static int cacheMiss = 0;
-    private final Sampler sampler;
+    private Sampler sampler;
     private ChunkCache pointCache;
     private double originX, originZ;
     private long lastCloudTicks;
     private int lastRendererTicks;
     private float lastTickIncrement = 1;
 
+    private long seed;
     private boolean queueCacheClear = false;
 
     private Buffer buffer;
@@ -43,11 +44,12 @@ public class ChunkedGenerator implements AutoCloseable {
 
     public ChunkedGenerator(long seed) {
         sampler = new Sampler(seed);
+        this.seed = seed;
 
         Config options = ConfigManager.instance();
         int gridWidth = (int) (options.blockDistance() / options.spacing / options.chunkSize * 2);
         // default capacity: number of chunks in the grid + some extra for when camera position changes
-        pointCache = new ChunkCache(gridWidth * gridWidth + gridWidth * 4);
+        pointCache = new ChunkCache(gridWidth * gridWidth + gridWidth * 2);
     }
 
     private static int calcBufferSize(Config options) {
@@ -240,7 +242,7 @@ public class ChunkedGenerator implements AutoCloseable {
 
         if (queueCacheClear) {
             queueCacheClear = false;
-            pointCache.clear();
+            refresh();
         }
 
         if (runningTask.ran()) {
@@ -271,6 +273,11 @@ public class ChunkedGenerator implements AutoCloseable {
                         }
                     }
                 });
+    }
+
+    private void refresh() {
+        pointCache.clear();
+        sampler = new Sampler(seed);
     }
 
     public synchronized void swap() {
