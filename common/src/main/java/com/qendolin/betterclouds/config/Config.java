@@ -188,7 +188,8 @@ public class Config {
 
     @NotNull
     public ShaderPresetConfig shaderPreset() {
-        if (presets.isEmpty()) return PresetLoader.SHADER.presets().get(DEFAULT_PRESET_KEY);
+        if (presets.isEmpty())
+            return PresetLoader.SHADER.presets().getOrDefault(DEFAULT_PRESET_KEY, ShaderPresetConfig.EMPTY_PRESET);
         selectedPreset = Mth.clamp(selectedPreset, 0, presets.size() - 1);
         return presets.get(selectedPreset);
     }
@@ -210,7 +211,8 @@ public class Config {
 
     @NotNull
     public NoisePresetConfig noisePreset() {
-        if (presets.isEmpty()) return PresetLoader.NOISE.presets().get(DEFAULT_PRESET_KEY);
+        if (noisePresets.isEmpty())
+            return PresetLoader.NOISE.presets().getOrDefault(DEFAULT_PRESET_KEY, NoisePresetConfig.EMPTY_PRESET);
         selectedNoisePreset = Mth.clamp(selectedNoisePreset, 0, noisePresets.size() - 1);
         return noisePresets.get(selectedNoisePreset);
     }

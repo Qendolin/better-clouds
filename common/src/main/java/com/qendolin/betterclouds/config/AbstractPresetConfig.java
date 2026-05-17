@@ -5,10 +5,10 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractPresetConfig {
     @SerialEntry
-    public String title;
+    public String title = "";
     @SerialEntry
     @Nullable
-    public String key;
+    public String key = "";
     @SerialEntry
     public String description = "";
 
