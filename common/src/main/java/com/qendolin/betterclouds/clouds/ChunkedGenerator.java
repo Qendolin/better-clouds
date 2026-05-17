@@ -200,7 +200,7 @@ public class ChunkedGenerator implements AutoCloseable {
             boolean bufferCleared = buffer.swapCount() == 0 && queuedTask == null && runningTask == null && (completedTask == null || completedTask == swappedTask);
 
             if (optionsChanged || cloudinessChanged) {
-                BetterCloudsStatic.getLogger().debug(optionsChanged ? "Configuration" : "Cloudiness" + " changed, updating geometry");
+                BetterCloudsStatic.getLogger().info((optionsChanged ? "Configuration" : "Cloudiness") + " changed, updating geometry");
                 queueCacheClear = true;
             }
             updateGeometry = chunkChanged || optionsChanged || cloudinessChanged || bufferCleared;
@@ -223,7 +223,7 @@ public class ChunkedGenerator implements AutoCloseable {
         }
 
         if (updateGeometry) {
-            queuedTask = new Task(chunkX, chunkZ, new Config(options), distance, cloudiness, buffer, sampler, pointCache);
+            queuedTask = new Task(chunkX, chunkZ, new Config(options), distance, cloudiness, this);
         }
     }
 
@@ -290,7 +290,7 @@ public class ChunkedGenerator implements AutoCloseable {
             return;
         }
 
-        completedTask.buffer.swap();
+        completedTask.generator.buffer.swap();
         swappedTask = completedTask;
 
         if (Debug.isProfilingEnabled()) {
@@ -314,9 +314,7 @@ public class ChunkedGenerator implements AutoCloseable {
         private final Config options;
         private final float distance;
         private final float cloudiness;
-        private final Buffer buffer;
-        private final Sampler sampler;
-        private final ChunkCache pointCache;
+        private final ChunkedGenerator generator;
         private final AtomicBoolean ran = new AtomicBoolean();
         private final AtomicBoolean cancelled = new AtomicBoolean();
         private final AtomicBoolean completed = new AtomicBoolean();
@@ -325,16 +323,14 @@ public class ChunkedGenerator implements AutoCloseable {
 
         private long startTime;
 
-        public Task(int chunkX, int chunkZ, Config options, float distance, float cloudiness, Buffer buffer, Sampler sampler, ChunkCache pointCache) {
+        public Task(int chunkX, int chunkZ, Config options, float distance, float cloudiness, ChunkedGenerator generator) {
             this.id = nextId.getAndIncrement();
             this.chunkX = chunkX;
             this.chunkZ = chunkZ;
             this.options = options;
             this.distance = distance;
             this.cloudiness = cloudiness;
-            this.buffer = buffer;
-            this.sampler = sampler;
-            this.pointCache = pointCache;
+            this.generator = generator;
         }
 
         public void cancel() {
@@ -374,7 +370,7 @@ public class ChunkedGenerator implements AutoCloseable {
         }
 
         public int instanceVertexCount() {
-            return buffer.instanceVertexCount();
+            return generator.buffer.instanceVertexCount();
         }
 
         public Config options() {
@@ -428,7 +424,7 @@ public class ChunkedGenerator implements AutoCloseable {
             int gridOriginX = Mth.floor((chunkX * options.chunkSize) / spacing);
             int gridOriginZ = Mth.floor((chunkZ * options.chunkSize) / spacing);
 
-            buffer.clear();
+            generator.buffer.clear();
             cacheHit = 0;
             cacheMiss = 0;
 
@@ -444,7 +440,7 @@ public class ChunkedGenerator implements AutoCloseable {
                             Math.floorDiv(globalChunkZ, options.chunkSize)
                     );
 
-                    SamplePoints samplePoints = pointCache.get(cacheKey);
+                    SamplePoints samplePoints = generator.pointCache.get(cacheKey);
                     if (samplePoints == null) {
                         cacheMiss++;
                         samplePoints = genSamplePoints(
@@ -453,13 +449,13 @@ public class ChunkedGenerator implements AutoCloseable {
                                 gridOriginX, gridOriginZ,
                                 spacing
                         );
-                        pointCache.put(cacheKey, samplePoints);
+                        generator.pointCache.put(cacheKey, samplePoints);
                     } else {
                         cacheHit++;
                     }
 
                     for (AABB point : samplePoints.points()) {
-                        buffer.put(
+                        generator.buffer.put(
                                 (float) (point.minX - this.chunkX * options.chunkSize),
                                 (float) point.minY,
                                 (float) (point.minZ - this.chunkZ * options.chunkSize)
@@ -480,7 +476,7 @@ public class ChunkedGenerator implements AutoCloseable {
                 }
             }
 
-            pointCache.swap();
+            generator.pointCache.swap();
             completed.set(true);
         }
 
@@ -509,14 +505,14 @@ public class ChunkedGenerator implements AutoCloseable {
                     int globalGridX = gridX + gridOriginX;
                     int globalGridZ = gridZ + gridOriginZ;
 
-                    if (options.sparsity > 0 && Sampler.hashToFloat(sampler.getSeed(), 'G', globalGridX, globalGridZ) < options.sparsity)
+                    if (options.sparsity > 0 && Sampler.hashToFloat(generator.sampler.getSeed(), 'G', globalGridX, globalGridZ) < options.sparsity)
                         continue;
 
                     // global/world block coordinates sampled from the cloud noise field
                     int sampleX = Mth.floor(globalGridX * spacing);
                     int sampleZ = Mth.floor(globalGridZ * spacing);
 
-                    float value = sampler.sample(sampleX, sampleZ, cloudiness, options.fuzziness, options.samplingScale);
+                    float value = generator.sampler.sample(sampleX, sampleZ, cloudiness, options.fuzziness, options.samplingScale);
                     if (value <= 0) continue;
 
                     for (int pass = 0; pass <= 1; pass++) {
@@ -527,9 +523,9 @@ public class ChunkedGenerator implements AutoCloseable {
                         if (pass == 1) cloudHeight *= -0.3f;
 
                         // global/world block coordinates for cached sample points
-                        float x = sampleX + sampler.randomOffsetX(sampleX, sampleZ, pass) * options.randomPlacement * spacing;
+                        float x = sampleX + generator.sampler.randomOffsetX(sampleX, sampleZ, pass) * options.randomPlacement * spacing;
                         float y = cloudHeight + options.yOffset;
-                        float z = sampleZ + sampler.randomOffsetZ(sampleX, sampleZ, pass) * options.randomPlacement * spacing;
+                        float z = sampleZ + generator.sampler.randomOffsetZ(sampleX, sampleZ, pass) * options.randomPlacement * spacing;
 
                         AABB pointAABB = new AABB(x, y, z, x, y, z);
                         bounds = bounds != null ? bounds.minmax(pointAABB) : pointAABB;
