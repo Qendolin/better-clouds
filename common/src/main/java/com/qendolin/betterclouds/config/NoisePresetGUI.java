@@ -1,6 +1,7 @@
 package com.qendolin.betterclouds.config;
 
 import com.qendolin.betterclouds.duck.ListOptionDuck;
+import com.qendolin.betterclouds.duck.OptionDuck;
 import com.qendolin.betterclouds.duck.StringControllerDuck;
 import com.qendolin.betterclouds.gui.CustomButtonOption;
 import com.qendolin.betterclouds.gui.SelectDropdownController;
@@ -177,18 +178,26 @@ public class NoisePresetGUI {
     }
 
     private void updateNonResponsiveOptions() {
-        noiseBuilder.setAvailable(config.noisePreset().editable);
         ((ListOptionDuck) noiseBuilder).better_clouds$setCollapsed(false);
 
-        for (Option<?> option : noisePresetOptions) {
-            option.forgetPendingValue();
-            option.setAvailable(config.noisePreset().editable);
-        }
-
+        noisePresetOptions.forEach(this::setOptionEditable);
+        noiseBuilder.setAvailable(config.noisePreset().editable);
         setPresetDescription();
 
         if (removePresetButton != null)
             removePresetButton.setAvailable(config.noisePreset().editable && config.noisePresets.size() > 1);
+    }
+
+    public void setOptionEditable(Option<?> option) {
+        boolean editable = config.noisePreset().editable;
+        option.forgetPendingValue();
+        option.setAvailable(editable);
+        ((OptionDuck) option).better_clouds$appendToDescription(
+                OptionDescription.of(
+                        !editable ?
+                                Component.translatable("betterclouds.config.message.fieldControlledByNoisePreset") :
+                                Component.literal("")
+                ));
     }
 
     public void onSave() {

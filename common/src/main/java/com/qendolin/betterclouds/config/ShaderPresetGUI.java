@@ -1,5 +1,6 @@
 package com.qendolin.betterclouds.config;
 
+import com.qendolin.betterclouds.duck.OptionDuck;
 import com.qendolin.betterclouds.duck.StringControllerDuck;
 import com.qendolin.betterclouds.gui.CustomButtonOption;
 import com.qendolin.betterclouds.gui.CustomIntegerFieldController;
@@ -88,14 +89,8 @@ public class ShaderPresetGUI {
                 .listener((opt, i) -> {
                     // The 'instant' listener gets called later, applyValue is called now manually
                     opt.applyValue();
-                    //noinspection rawtypes
-                    if (opt.controller() instanceof SelectDropdownController select) {
-                        select.updateValues();
-                    }
-                    for (Option<?> option : shaderConfigPresetOptions) {
-                        option.forgetPendingValue();
-                        option.setAvailable(config.shaderPreset().editable);
-                    }
+                    if (opt.controller() instanceof SelectDropdownController<?> select) select.updateValues();
+                    shaderConfigPresetOptions.forEach(this::setOptionEditable);
                     updateNonResponsiveOptions();
                 })
                 .build();
@@ -185,7 +180,7 @@ public class ShaderPresetGUI {
                 opacityExponent,
                 opacity,
                 worldCurvatureSize));
-        shaderConfigPresetOptions.forEach(opt -> opt.setAvailable(config.shaderPreset().editable));
+        shaderConfigPresetOptions.forEach(this::setOptionEditable);
 
         final Component removeButtonRemoveText = Component.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.remove");
         final Component removeButtonRestoreText = Component.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.restore");
@@ -301,9 +296,23 @@ public class ShaderPresetGUI {
 
     private void updateNonResponsiveOptions() {
         setPresetDescription();
+        
+        shaderConfigPresetOptions.forEach(this::setOptionEditable);
         if (removePresetButton != null) {
             removePresetButton.setAvailable(config.shaderPreset().editable && config.presets.size() > 1);
         }
+    }
+
+    public void setOptionEditable(Option<?> option) {
+        boolean editable = config.shaderPreset().editable;
+        option.forgetPendingValue();
+        option.setAvailable(editable);
+        ((OptionDuck) option).better_clouds$appendToDescription(
+                OptionDescription.of(
+                        !editable ?
+                                Component.translatable("betterclouds.config.message.fieldControlledByShaderPreset") :
+                                Component.literal("")
+                ));
     }
 
     public void onSave() {
