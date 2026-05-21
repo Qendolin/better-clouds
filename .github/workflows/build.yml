@@ -69,7 +69,7 @@ jobs:
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
-          name: ${{ matrix.loader == 'neoforge' && 'forge' || matrix.loader }}-artifacts
+          name: ${{ matrix.mc-version}}-${{ matrix.loader == 'neoforge' && 'forge' || matrix.loader }}-artifacts
           path: run/mods
 
       - name: Remove sources jar
