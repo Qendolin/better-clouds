@@ -13,6 +13,7 @@ import dev.isxander.yacl3.gui.controllers.slider.IntegerSliderController;
 import dev.isxander.yacl3.gui.controllers.string.StringController;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.Pair;
 
 import java.awt.*;
@@ -74,7 +75,6 @@ public class ShaderPresetGUI {
 
     public ShaderPresetGUI(Config defaults, Config config) {
         this.config = config;
-        config.addFirstPreset();
         config.sortPresets();
 
         // FIXME: defaults.preset() gives default values defined in the code, not from the `default` preset
@@ -316,8 +316,12 @@ public class ShaderPresetGUI {
     }
 
     public void onSave() {
+        if (presetsToBeDeleted.isEmpty()) return;
+
+        ShaderPresetConfig currentPreset = config.preset();
         for (ShaderPresetConfig preset : presetsToBeDeleted) {
             config.presets.remove(preset);
         }
+        config.selectedPreset = MathHelper.clamp(config.presets.indexOf(currentPreset), 0, config.presets.size() - 1);
     }
 }

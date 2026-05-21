@@ -7,14 +7,13 @@ import java.nio.ByteBuffer;
 
 public class RandomPath {
 
-    private static final int TICKS_PER_POINT = 20;
+    public static final int TICKS_PER_POINT = 20;
+    public static int points;
+    public static long pathWrap;
     private static int[] path;
 
-    private static int points;
-    private static int pathWrap;
-
     private static double getPathLinear(double time, double travelSpeed, int coordinateIndex) {
-        double x = time / TICKS_PER_POINT * travelSpeed;
+        double x = Math.max(0, time) / TICKS_PER_POINT * travelSpeed;
         int index = MathHelper.floor(x);
         double fractionalPart = MathHelper.fractionalPart(x);
 
@@ -24,8 +23,8 @@ public class RandomPath {
         return p0 + (p1 - p0) * fractionalPart;
     }
 
-    private static double getPathSmooth(double time, double travelSpeed, int coordinateIndex) {
-        double x = time / TICKS_PER_POINT * travelSpeed;
+    private static double getPathSmooth(long ticks, float tickDelta, double travelSpeed, int coordinateIndex) {
+        double x = Math.max(0, ticks * travelSpeed / TICKS_PER_POINT + tickDelta * travelSpeed / TICKS_PER_POINT);
         int index = MathHelper.floor(x);
         double fractionalPart = MathHelper.fractionalPart(x);
 
@@ -37,11 +36,11 @@ public class RandomPath {
         return catmullRomInterpolate(p0, p1, p2, p3, fractionalPart);
     }
 
-    private static double getPointCoordinate(int index, int coordinate) {
-        int wraps = index / points;
+    private static double getPointCoordinate(long index, int coordinate) {
+        long wraps = index / points;
         index -= wraps * points;
-        int value = path[index * 2 + coordinate];
-        if (coordinate == 0) value += pathWrap * wraps;
+        int value = path[(int) (index * 2 + coordinate)];
+        if (coordinate == 0) value += (int) (pathWrap * wraps);
         return value;
     }
 
@@ -58,12 +57,12 @@ public class RandomPath {
         );
     }
 
-    public static double getPathX(double time, double travelSpeed) {
-        return getPathSmooth(time, travelSpeed, 0);
+    public static double getPathX(long ticks, float tickDelta, double travelSpeed) {
+        return getPathSmooth(ticks, tickDelta, travelSpeed, 0);
     }
 
-    public static double getPathZ(double time, double travelSpeed) {
-        return getPathSmooth(time, travelSpeed, 1);
+    public static double getPathZ(long ticks, float tickDelta, double travelSpeed) {
+        return getPathSmooth(ticks, tickDelta, travelSpeed, 1);
     }
 
     public static void initialize() {

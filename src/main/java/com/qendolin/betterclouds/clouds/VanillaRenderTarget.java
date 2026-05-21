@@ -25,9 +25,8 @@ public class VanillaRenderTarget {
     private final MinecraftClient client;
     private static final Supplier<String> RENDER_PASS_LABEL = () -> "BetterClouds";
 
-    private static final String[] START_DRAWING = new String[] {"setupRenderState", "startDrawing"};
-    private static final String[] END_DRAWING = new String[] {"clearRenderState", "endDrawing"};
-    private static int attempt = 0;
+    private static final String[] START_DRAWING = new String[]{"setupRenderState", "startDrawing", "method_23516", "m_110185_", "a"};
+    private static final String[] END_DRAWING = new String[]{"clearRenderState", "endDrawing", "method_23518", "m_110188_", "b"};
 
     private final boolean useIris;
     //? if >=1.21.5 {
@@ -63,12 +62,7 @@ public class VanillaRenderTarget {
         //?} else {
         /*framebuffer.beginWrite(false);
         renderPhase = RenderPhaseAccessor.getCloudsTarget();
-        try {
-            invokeRenderPhase(renderPhase, START_DRAWING[attempt]);
-        } catch (Exception ignored) {
-            attempt++;
-            invokeRenderPhase(renderPhase, START_DRAWING[attempt]);
-        }
+        invokeRenderPhase(renderPhase, START_DRAWING);
         *///?}
     }
 
@@ -83,24 +77,24 @@ public class VanillaRenderTarget {
             renderPass.close();
         }
         //?} else {
-        /*try {
-            invokeRenderPhase(renderPhase, END_DRAWING[attempt]);
-        } catch (Exception ignored) {
-            attempt++;
-            invokeRenderPhase(renderPhase, END_DRAWING[attempt]);
-        }
+        /*invokeRenderPhase(renderPhase, END_DRAWING);
         *///?}
     }
 
     //? if <1.21.5 {
-    /*private static void invokeRenderPhase(Object renderPhase, String methodName) {
-        try {
-            renderPhase.getClass().getMethod(methodName).invoke(renderPhase);
-        } catch (ReflectiveOperationException e) {
-            BetterCloudsStatic.getLogger().info(Arrays.toString(renderPhase.getClass().getMethods()), e);
-            BetterCloudsStatic.getLogger().error(e);
-            throw new RuntimeException("Failed to call RenderPhase." + methodName, e);
+    /*private static void invokeRenderPhase(Object renderPhase, String[] methodNames) {
+        ReflectiveOperationException lastException = null;
+        for (String methodName : methodNames) {
+            try {
+                renderPhase.getClass().getMethod(methodName).invoke(renderPhase);
+                return;
+            } catch (ReflectiveOperationException e) {
+                lastException = e;
+            }
         }
+        BetterCloudsStatic.getLogger().info(Arrays.toString(renderPhase.getClass().getMethods()), lastException);
+        BetterCloudsStatic.getLogger().error(lastException);
+        throw new RuntimeException("Failed to call RenderPhase." + Arrays.toString(methodNames), lastException);
     }
     *///?}
 }

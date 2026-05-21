@@ -1,11 +1,9 @@
 package com.qendolin.betterclouds.config;
 
-import com.google.common.base.Objects;
 import com.google.gson.InstanceCreator;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
-import org.jetbrains.annotations.Nullable;
 
-public class ShaderPresetConfig {
+public class ShaderPresetConfig extends AbstractPresetConfig {
 
     public static final InstanceCreator<ShaderPresetConfig> INSTANCE_CREATOR = type -> new ShaderPresetConfig();
     protected static final ShaderPresetConfig EMPTY_PRESET = new ShaderPresetConfig();
@@ -18,38 +16,11 @@ public class ShaderPresetConfig {
         this.title = title;
     }
 
+    @SuppressWarnings("CopyConstructorMissesField")
     public ShaderPresetConfig(ShaderPresetConfig other) {
-        this.title = other.title;
-        this.key = other.key;
-        this.editable = other.editable;
-        this.upscaleResolutionFactor = other.upscaleResolutionFactor;
-        this.gamma = other.gamma;
-        this.sunPathAngle = other.sunPathAngle;
-        this.dayBrightness = other.dayBrightness;
-        this.nightBrightness = other.nightBrightness;
-        this.sunriseStartTime = other.sunriseStartTime;
-        this.sunriseEndTime = other.sunriseEndTime;
-        this.sunsetStartTime = other.sunsetStartTime;
-        this.sunsetEndTime = other.sunsetEndTime;
-        this.saturation = other.saturation;
-        this.opacity = other.opacity;
-        this.opacityFactor = other.opacityFactor;
-        this.opacityExponent = other.opacityExponent;
-        this.tintRed = other.tintRed;
-        this.tintGreen = other.tintGreen;
-        this.tintBlue = other.tintBlue;
-        this.worldCurvatureSize = other.worldCurvatureSize;
-
-        //!! NOTE: Don't forget to update `isEqualTo` when adding fields
+        Configs.copy(this, other);
     }
 
-    @SerialEntry
-    public String title;
-    @SerialEntry
-    @Nullable
-    public String key;
-    @SerialEntry
-    public boolean editable = true;
     @SerialEntry
     public float upscaleResolutionFactor = 1f;
     @SerialEntry
@@ -94,34 +65,8 @@ public class ShaderPresetConfig {
         }
     }
 
-    public void markAsCopy() {
-        editable = true;
-        key = null;
-    }
-
-    // Can't override the Object#equals method since it causes an issue with indexOf in the GUI
-    public boolean isEqualTo(ShaderPresetConfig other) {
-        if (this == other) return true;
-        if (other == null) return false;
-        return editable == other.editable &&
-            Float.compare(other.upscaleResolutionFactor, upscaleResolutionFactor) == 0 &&
-            Float.compare(other.gamma, gamma) == 0 &&
-            Float.compare(other.sunPathAngle, sunPathAngle) == 0 &&
-            sunriseStartTime == other.sunriseStartTime &&
-            sunriseEndTime == other.sunriseEndTime &&
-            sunsetStartTime == other.sunsetStartTime &&
-            sunsetEndTime == other.sunsetEndTime &&
-            Float.compare(other.dayBrightness, dayBrightness) == 0 &&
-            Float.compare(other.nightBrightness, nightBrightness) == 0 &&
-            Float.compare(other.saturation, saturation) == 0 &&
-            Float.compare(other.opacity, opacity) == 0 &&
-            Float.compare(other.opacityFactor, opacityFactor) == 0 &&
-            Float.compare(other.opacityExponent, opacityExponent) == 0 &&
-            Float.compare(other.tintRed, tintRed) == 0 &&
-            Float.compare(other.tintGreen, tintGreen) == 0 &&
-            Float.compare(other.tintBlue, tintBlue) == 0 &&
-            Objects.equal(title, other.title) &&
-            Objects.equal(key, other.key) &&
-            worldCurvatureSize == other.worldCurvatureSize;
+    @Override
+    public AbstractPresetConfig getEmptyPreset() {
+        return EMPTY_PRESET;
     }
 }

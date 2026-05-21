@@ -4,10 +4,12 @@ import com.google.gson.*;
 import com.qendolin.betterclouds.compat.BigGlobeCompat;
 import com.qendolin.betterclouds.compat.MiddleEarthCompat;
 import com.qendolin.betterclouds.util.PreLaunchGuard;
+import dev.isxander.yacl3.api.NameableEnum;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.InvalidIdentifierException;
 import net.minecraft.util.math.MathHelper;
@@ -32,53 +34,8 @@ public class Config {
     public Config() {
     }
 
-    public Config(Config other) {
-        this.migrationVersion = other.migrationVersion;
-        //? if <1.21.6 {
-        /*this.distance = other.distance;
-        *///?}
-        this.randomPlacement = other.randomPlacement;
-        this.fuzziness = other.fuzziness;
-        this.shuffle = other.shuffle;
-        this.yRange = other.yRange;
-        this.yOffset = other.yOffset;
-        this.sparsity = other.sparsity;
-        this.spacing = other.spacing;
-        this.sizeXZ = other.sizeXZ;
-        this.sizeY = other.sizeY;
-        this.travelSpeed = other.travelSpeed;
-        this.windEffectFactor = other.windEffectFactor;
-        this.windSpeedFactor = other.windSpeedFactor;
-        this.colorVariationFactor = other.colorVariationFactor;
-        this.chunkSize = other.chunkSize;
-        this.samplingScale = other.samplingScale;
-        this.scaleFalloffMin = other.scaleFalloffMin;
-        this.fogRangeFactor = other.fogRangeFactor;
-        this.fogEndFactor = other.fogEndFactor;
-        this.usePersistentBuffers = other.usePersistentBuffers;
-        this.irisSupport = other.irisSupport;
-        this.enabled = other.enabled;
-        this.cloudOverride = other.cloudOverride;
-        this.useIrisFBO = other.useIrisFBO;
-        this.selectedPreset = other.selectedPreset;
-        //noinspection IncompleteCopyConstructor
-        this.presets = other.presets == null ? new ArrayList<>() : new ArrayList<>(other.presets);
-        this.presets.replaceAll(ShaderPresetConfig::new);
-        this.lastTelemetryVersion = other.lastTelemetryVersion;
-        this.gpuIncompatibleMessageEnabled = other.gpuIncompatibleMessageEnabled;
-        this.issueReportEnabled = other.issueReportEnabled;
-        //noinspection IncompleteCopyConstructor
-        this.enabledDimensions = other.enabledDimensions == null ? new ArrayList<>() : new ArrayList<>(other.enabledDimensions);
-        this.celestialBodyHalo = other.celestialBodyHalo;
-        this.useFrustumCulling = other.useFrustumCulling;
-        //? if >=1.21.6 {
-        this.lunarSucksMessageEnabled = other.lunarSucksMessageEnabled;
-        //?}
-        //noinspection IncompleteCopyConstructor
-        this.sereneSeasonsConfig = new SereneSeasonsConfig(other.sereneSeasonsConfig);
-        //noinspection IncompleteCopyConstructor
-        this.fabricSeasonsConfig = new FabricSeasonsConfig(other.fabricSeasonsConfig);
-    }
+    @SerialEntry
+    public float bottomSparsity = 0f;
 
     @SerialEntry
     public int migrationVersion = 0;
@@ -93,11 +50,11 @@ public class Config {
     @SerialEntry
     public float fuzziness = 1.0f;
     @SerialEntry
-    public boolean shuffle = false;
-    @SerialEntry
     public float yRange = 64f;
     @SerialEntry
     public float yOffset = 0f;
+    @SerialEntry
+    public TimeSource timeSource = TimeSource.WORLD;
     @SerialEntry
     public float sparsity = 0f;
     @SerialEntry
@@ -129,9 +86,13 @@ public class Config {
     @SerialEntry
     public boolean usePersistentBuffers = true;
     @SerialEntry
+    public boolean useSamplerCaching = true;
+    @SerialEntry
     public boolean useFrustumCulling = true;
     @SerialEntry
     public boolean irisSupport = true;
+    @SerialEntry
+    public int selectedNoisePreset = 0;
     @SerialEntry
     public boolean cloudOverride = true;
     @SerialEntry
@@ -141,7 +102,14 @@ public class Config {
     @SerialEntry
     public List<ShaderPresetConfig> presets = new ArrayList<>();
     @SerialEntry
+    public List<NoisePresetConfig> noisePresets = new ArrayList<>();
+    @SerialEntry
     public int lastTelemetryVersion = 0;
+
+    @SuppressWarnings("CopyConstructorMissesField")
+    public Config(Config other) {
+        Configs.copy(this, other);
+    }
     @SerialEntry
     public boolean gpuIncompatibleMessageEnabled = true;
     @SerialEntry
@@ -157,10 +125,30 @@ public class Config {
     @SerialEntry
     public FabricSeasonsConfig fabricSeasonsConfig = new FabricSeasonsConfig();
 
+    private static boolean isPresetEqualToEmpty(AbstractPresetConfig preset) {
+        if (preset == null) return true;
+        String title = preset.title;
+        // The title does not matter
+        preset.title = preset.getEmptyPreset().title;
+        boolean equal = preset.isEqualTo(preset.getEmptyPreset());
+        preset.title = title;
+        return equal;
+    }
+
     public void loadDefaultPresets() {
+        if (PresetLoader.ALL_PRESETS.stream().anyMatch(loader -> loader.presets().isEmpty())) {
+            return;
+        }
+        loadDefaultShaderPresets();
+        loadDefaultNoisePresets();
+        sortPresets(false);
+        sortNoisePresets(false);
+    }
+
+    private void loadDefaultShaderPresets() {
         // Remember which default preset was selected, if any
         String selectedDefaultPreset = preset().key;
-        Map<String, ShaderPresetConfig> defaults = new HashMap<>(ShaderPresetLoader.INSTANCE.presets());
+        Map<String, ShaderPresetConfig> defaults = new HashMap<>(PresetLoader.SHADER.presets());
         boolean missingDefault = presets.stream().noneMatch(preset -> DEFAULT_PRESET_KEY.equals(preset.key));
         presets.removeIf(preset -> preset.key != null && !preset.editable && defaults.containsKey(preset.key));
         presets.addAll(defaults.values());
@@ -184,42 +172,100 @@ public class Config {
                 selectedPreset = presets.indexOf(defaultCopy);
             }
         }
-        sortPresets();
+    }
+
+    private void loadDefaultNoisePresets() {
+        String selectedDefaultPreset = noisePreset().key;
+        Map<String, NoisePresetConfig> defaults = new HashMap<>(PresetLoader.NOISE.presets());
+        boolean missingDefault = noisePresets.stream().noneMatch(preset -> DEFAULT_PRESET_KEY.equals(preset.key));
+        noisePresets.removeIf(preset -> preset.key != null && !preset.editable && defaults.containsKey(preset.key));
+        noisePresets.addAll(defaults.values());
+
+        if (selectedDefaultPreset != null) {
+            noisePresets.stream()
+                    .filter(preset -> selectedDefaultPreset.equals(preset.key)).findFirst()
+                    .ifPresentOrElse(prevSelectedPreset -> selectedNoisePreset = noisePresets.indexOf(prevSelectedPreset), () -> selectedNoisePreset = 0);
+        }
+
+        if (missingDefault) {
+            noisePresets.removeIf(Config::isPresetEqualToEmpty);
+            NoisePresetConfig defaultPreset = defaults.get(DEFAULT_PRESET_KEY);
+            if (defaultPreset != null) {
+                NoisePresetConfig defaultCopy = new NoisePresetConfig(defaultPreset);
+                defaultCopy.markAsCopy();
+                noisePresets.add(defaultCopy);
+                selectedNoisePreset = noisePresets.indexOf(defaultCopy);
+            }
+        }
     }
 
     @NotNull
     public ShaderPresetConfig preset() {
+        return shaderPreset();
+    }
+
+    @NotNull
+    public ShaderPresetConfig shaderPreset() {
         if (presets == null || presets.isEmpty()) {
-            addFirstPreset();
+            ShaderPresetConfig preset = PresetLoader.SHADER.presets().get(DEFAULT_PRESET_KEY);
+            return preset != null ? preset : ShaderPresetConfig.EMPTY_PRESET;
         }
         selectedPreset = MathHelper.clamp(selectedPreset, 0, presets.size() - 1);
         return presets.get(selectedPreset);
     }
 
-    private static boolean isPresetEqualToEmpty(ShaderPresetConfig preset) {
-        if (preset == null) return true;
-        String title = preset.title;
-        // The title does not matter
-        preset.title = ShaderPresetConfig.EMPTY_PRESET.title;
-        boolean equal = preset.isEqualTo(ShaderPresetConfig.EMPTY_PRESET);
-        preset.title = title;
-        return equal;
+    public void sortPresets() {
+        sortPresets(true);
     }
 
-    public void sortPresets() {
+    public void sortPresets(boolean updateSelectedIndex) {
         ShaderPresetConfig selected = preset();
         Comparator<ShaderPresetConfig> comparator = Comparator.
             <ShaderPresetConfig, Boolean>comparing(preset -> !preset.editable)
             .thenComparing(preset -> !DEFAULT_PRESET_KEY.equals(preset.key))
             .thenComparing(preset -> preset.title);
         presets.sort(comparator);
-        selectedPreset = presets.indexOf(selected);
+        if (updateSelectedIndex) {
+            selectedPreset = presets.indexOf(selected);
+        }
     }
 
     public void addFirstPreset() {
         if (presets == null) presets = new ArrayList<>();
         if (!presets.isEmpty()) return;
         presets.add(new ShaderPresetConfig());
+    }
+
+    @NotNull
+    public NoisePresetConfig noisePreset() {
+        if (noisePresets == null || noisePresets.isEmpty()) {
+            NoisePresetConfig preset = PresetLoader.NOISE.presets().get(DEFAULT_PRESET_KEY);
+            return preset != null ? preset : NoisePresetConfig.EMPTY_PRESET;
+        }
+        selectedNoisePreset = MathHelper.clamp(selectedNoisePreset, 0, noisePresets.size() - 1);
+        return noisePresets.get(selectedNoisePreset);
+    }
+
+    public void sortNoisePresets() {
+        sortNoisePresets(true);
+    }
+
+    public void sortNoisePresets(boolean updateSelectedIndex) {
+        NoisePresetConfig selected = noisePreset();
+        Comparator<NoisePresetConfig> comparator = Comparator.
+                <NoisePresetConfig, Boolean>comparing(preset -> !preset.editable)
+                .thenComparing(preset -> !DEFAULT_PRESET_KEY.equals(preset.key))
+                .thenComparing(preset -> preset.title);
+        noisePresets.sort(comparator);
+        if (updateSelectedIndex) {
+            selectedNoisePreset = noisePresets.indexOf(selected);
+        }
+    }
+
+    public void addFirstNoisePreset() {
+        if (noisePresets == null) noisePresets = new ArrayList<>();
+        if (!noisePresets.isEmpty()) return;
+        noisePresets.add(new NoisePresetConfig());
     }
 
     public int blockDistance() {
@@ -235,6 +281,28 @@ public class Config {
             DimensionTypes.OVERWORLD,
             BigGlobeCompat.DIMENSION_KEY,
             MiddleEarthCompat.DIMENSION_KEY);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Config)) {
+            return false;
+        }
+        return Configs.equal(this, obj);
+    }
+
+    @Override
+    public int hashCode() {
+        return Configs.hashCode(this);
+    }
+
+    public enum TimeSource implements NameableEnum {
+        WORLD, PLAYTIME, RENDERER;
+
+        @Override
+        public Text getDisplayName() {
+            return Text.translatable("betterclouds.config.entry.timeSource.option." + name().toLowerCase());
+        }
     }
 
     public static class RegistryKeySerializer implements JsonSerializer<RegistryKey<DimensionType>>, JsonDeserializer<RegistryKey<DimensionType>> {

@@ -5,7 +5,7 @@ import com.qendolin.betterclouds.clouds.Renderer;
 import com.qendolin.betterclouds.compat.*;
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
-import com.qendolin.betterclouds.config.ShaderPresetLoader;
+import com.qendolin.betterclouds.config.PresetLoader;
 import com.qendolin.betterclouds.duck.WorldRendererDuck;
 import com.qendolin.betterclouds.platform.EventHooks;
 import com.qendolin.betterclouds.platform.ModLoader;
@@ -128,7 +128,7 @@ public class BetterClouds extends BetterCloudsStatic {
 
             firstJoin.set(false);
         });
-        EventHooks.instance.onClientResourcesReload(() -> ShaderPresetLoader.INSTANCE);
+        PresetLoader.ALL_PRESETS.forEach(presetLoader -> EventHooks.instance.onClientResourcesReload(() -> presetLoader));
         EventHooks.instance.onClientCommandRegistration(Commands::register);
     }
 

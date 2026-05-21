@@ -25,6 +25,7 @@ public class Debug {
     // -1 to disable, 0 to initialize, paused tick otherwise
     public static int animationPause = -1;
     public static boolean generatorForceUpdate = false;
+    public static int generatorChangeCacheSize = 0;
 
     public static final List<Pair<Box, Boolean>> frustumCulledBoxes = new ArrayList<>();
 
@@ -148,7 +149,7 @@ public class Debug {
         //? if >=1.21 {
         vertexConsumer.vertex(x, y, z).color(red, green, blue, alpha);
         //?} else
-        /*vertexConsumer.vertex(x, y, z).color(red, green, blue, alpha).next();*/
+        //vertexConsumer.vertex(x, y, z).color(red, green, blue, alpha).next();
     }
 
     private static class BuiltBufferRenderer {

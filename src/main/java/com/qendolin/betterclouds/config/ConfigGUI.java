@@ -7,6 +7,7 @@ import com.qendolin.betterclouds.gui.YACLOptionBuilder;
 import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.gui.controllers.BooleanController;
 import dev.isxander.yacl3.gui.controllers.TickBoxController;
+import dev.isxander.yacl3.gui.controllers.cycling.EnumController;
 import dev.isxander.yacl3.gui.controllers.slider.FloatSliderController;
 import dev.isxander.yacl3.gui.controllers.slider.IntegerSliderController;
 import net.minecraft.client.gui.screen.Screen;
@@ -25,6 +26,12 @@ import java.util.function.Supplier;
 import com.qendolin.betterclouds.mixin.runtime.SimpleOptionAccessor;
 //?}
 
+//? if >=1.21.11 {
+import com.qendolin.betterclouds.gui.SelectDropdownController;
+//?} else {
+/*import com.qendolin.betterclouds.gui.SelectController;
+ *///?}
+
 public class ConfigGUI {
     private final Config config;
 
@@ -42,10 +49,11 @@ public class ConfigGUI {
     public final Option<Float> fuzziness;
     public final Option<Float> spacing;
     public final Option<Float> sparsity;
-    public final Option<Boolean> shuffle;
     public final Option<Float> randomPlacement;
     public final Option<Float> yRange;
     public final Option<Float> yOffset;
+    public final Option<Config.TimeSource> timeSource;
+    public final Option<Float> bottomSparsity;
     public final Option<Float> samplingScale;
     public final Option<Float> sizeXZ;
     public final Option<Float> sizeY;
@@ -61,6 +69,8 @@ public class ConfigGUI {
     public final Option<Float> fogEndFactor;
     public final Option<Boolean> usePersistentBuffers;
     public final Option<Boolean> useFrustumCulling;
+    public final Option<Boolean> useSamplerCaching;
+    public final Option<Integer> selectedNoisePreset;
 
     public final List<Pair<ConfigCategory.Builder, List<Pair<OptionGroup.Builder, List<Option<?>>>>>> categories = new ArrayList<>();
 
@@ -122,10 +132,6 @@ public class ConfigGUI {
             .binding(defaults.sparsity, () -> config.sparsity, val -> config.sparsity = val)
             .customController(opt -> new FloatSliderController(opt, 0, 1, 0.01f, ConfigGUI::formatAsPercent))
             .build();
-        this.shuffle = createOption(boolean.class, "shuffle")
-            .binding(defaults.shuffle, () -> config.shuffle, val -> config.shuffle = val)
-            .customController(TickBoxController::new)
-            .build();
         this.randomPlacement = createOption(float.class, "randomPlacement")
             .binding(defaults.randomPlacement, () -> config.randomPlacement, val -> config.randomPlacement = val)
             .customController(opt -> new FloatSliderController(opt, 0, 1, 0.01f, ConfigGUI::formatAsPercent))
@@ -137,6 +143,14 @@ public class ConfigGUI {
         this.yOffset = createOption(float.class, "yOffset")
             .binding(defaults.yOffset, () -> config.yOffset, val -> config.yOffset = val)
             .customController(opt -> new FloatSliderController(opt, -384, 256, 8))
+                .build();
+        this.timeSource = createOption(Config.TimeSource.class, "timeSource")
+                .binding(defaults.timeSource, () -> config.timeSource, val -> config.timeSource = val)
+                .customController(opt -> new EnumController<>(opt, Config.TimeSource.class))
+                .build();
+        this.bottomSparsity = createOption(float.class, "bottomSparsity")
+                .binding(defaults.bottomSparsity, () -> config.bottomSparsity, val -> config.bottomSparsity = val)
+                .customController(opt -> new FloatSliderController(opt, 0, 1f, 0.01f, ConfigGUI::formatAsPercent))
             .build();
         this.samplingScale = createOption(float.class, "samplingScale")
             .binding(defaults.samplingScale, () -> config.samplingScale, val -> config.samplingScale = val)
@@ -194,6 +208,25 @@ public class ConfigGUI {
             .binding(defaults.useFrustumCulling, () -> config.useFrustumCulling, val -> config.useFrustumCulling = val)
             .customController(TickBoxController::new)
             .build();
+        this.useSamplerCaching = createOption(boolean.class, "useSamplerCaching")
+                .binding(defaults.useSamplerCaching, () -> config.useSamplerCaching, val -> config.useSamplerCaching = val)
+                .customController(TickBoxController::new)
+                .build();
+        config.sortNoisePresets();
+        this.selectedNoisePreset = createOption(int.class, "noisePreset")
+                .binding(defaults.selectedNoisePreset, () -> config.selectedNoisePreset, val -> config.selectedNoisePreset = val)
+                .customController(opt -> new /*? if >=1.21.11 {*/ SelectDropdownController /*?} else {*/ /*SelectController *//*?}*/<>(opt, config.noisePresets, (i, preset) -> {
+                    if (preset.title.isBlank()) {
+                        return Text.translatable(LANG_KEY_PREFIX + ".entry.noisePreset.untitled");
+                    }
+                    else if (!preset.editable) {
+                        return Text.literal(preset.title).styled(style -> style.withItalic(true));
+                    }
+                    else {
+                        return Text.literal(preset.title);
+                    }
+                }))
+                .build();
 
 
         categories.add(new Pair<>(ConfigCategory.createBuilder()
@@ -240,9 +273,10 @@ public class ConfigGUI {
             sparsity,
             yRange,
             yOffset,
+                timeSource,
+                bottomSparsity,
             spacing,
-            samplingScale,
-            shuffle
+                samplingScale
         ));
 
         generationCategory.add(new Pair<>(OptionGroup.createBuilder()
@@ -302,16 +336,19 @@ public class ConfigGUI {
             chunkSize,
             distance,
             sparsity,
-            fuzziness,
-            shuffle
+                fuzziness
         ));
 
         performanceCategory.add(new Pair<>(OptionGroup.createBuilder()
             .name(groupLabel("performance.technical")), performanceTechnicalGroup));
-        performanceTechnicalGroup.addAll(List.of(usePersistentBuffers, useFrustumCulling));
+        performanceTechnicalGroup.addAll(List.of(usePersistentBuffers, useFrustumCulling, useSamplerCaching));
 
         categories.add(new Pair<>(ConfigCategory.createBuilder()
             .name(categoryLabel("shaders")), shaderPresetGUI.shadersCategory));
+
+        categories.add(new Pair<>(ConfigCategory.createBuilder()
+                .name(categoryLabel("noise")), List.of(new Pair<>(OptionGroup.createBuilder()
+                .name(groupLabel("noise.preset")), List.of(selectedNoisePreset)))));
 
         categories.add(new Pair<>(ConfigCategory.createBuilder()
             .name(categoryLabel("compat")), compatCategory));
@@ -342,6 +379,8 @@ public class ConfigGUI {
                 shaderPresetGUI.onSave();
                 config.selectedPreset = MathHelper.clamp(config.selectedPreset, 0, config.presets.size());
                 config.sortPresets();
+                config.selectedNoisePreset = MathHelper.clamp(config.selectedNoisePreset, 0, config.noisePresets.size());
+                config.sortNoisePresets();
                 ConfigManager.handler().save();
             })
             .title(Text.translatable(LANG_KEY_PREFIX + ".title"));

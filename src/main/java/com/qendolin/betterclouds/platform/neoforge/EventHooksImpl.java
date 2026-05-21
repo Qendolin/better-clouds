@@ -15,7 +15,7 @@ import net.neoforged.neoforge.common.NeoForge;
 
 //? if >=1.21.4 {
 import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;
-import com.qendolin.betterclouds.config.ShaderPresetLoader;
+import com.qendolin.betterclouds.config.PresetLoader;
 //?} else {
 /^import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
 ^///?}
@@ -57,7 +57,8 @@ public class EventHooksImpl extends EventHooks {
     public void onClientResourcesReload(Supplier<ResourceReloader> supplier) {
         //? if >=1.21.4 {
         modEventBus.addListener(AddClientReloadListenersEvent.class, event -> {
-            event.addListener(ShaderPresetLoader.ID, supplier.get());
+            ResourceReloader listener = supplier.get();
+            event.addListener(listener instanceof PresetLoader<?> presetLoader ? presetLoader.id : PresetLoader.SHADER.id, listener);
         });
         //?} else {
         /^modEventBus.addListener(RegisterClientReloadListenersEvent.class, event -> {
@@ -96,4 +97,3 @@ public class EventHooksImpl extends EventHooks {
 public abstract class EventHooksImpl extends EventHooks {
 }
 //?}
-
