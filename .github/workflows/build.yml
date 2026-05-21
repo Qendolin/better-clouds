@@ -50,7 +50,7 @@ jobs:
           if-no-files-found: error
 
   client-world-load:
-    name: gametest_${{ env.BUILD_TARGET }}
+    name: gametest_${{ matrix.version }}-${{ matrix.modloader }}
     needs: build
     runs-on: ubuntu-24.04
     timeout-minutes: 2
