@@ -8,7 +8,6 @@ import net.minecraft.util.math.noise.SimplexNoiseSampler;
 import net.minecraft.util.math.random.CheckedRandom;
 import net.minecraft.util.math.random.ChunkRandom;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class Sampler {
@@ -34,29 +33,6 @@ public class Sampler {
         this.seed = seed;
 
         Config options = ConfigManager.instance();
-
-        regionNoise = new SimplexNoiseSampler(regionRandom);
-        coverageNoise = new SimplexNoiseSampler(random);
-        detailNoises = options.noisePreset().octaves.stream()
-                .map(octave -> new OctaveSimplexNoiseSampler(random, octave))
-                .toList();
-    }
-
-    /**
-     * For testing only.
-     */
-    public Sampler() {
-        ChunkRandom random = new ChunkRandom(new CheckedRandom(1337));
-        ChunkRandom regionRandom = new ChunkRandom(new CheckedRandom(random.nextLong()));
-        this.seed = 1337;
-
-        Config options = new Config();
-        options.noisePreset().octaves = Arrays.asList(
-                Arrays.asList(-1, 0, 1, 2),
-                Arrays.asList(-3, -1, 0, 1, 2),
-                Arrays.asList(-2, 0, 1, 2),
-                Arrays.asList(0, 1, 2)
-        );
 
         regionNoise = new SimplexNoiseSampler(regionRandom);
         coverageNoise = new SimplexNoiseSampler(random);

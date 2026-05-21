@@ -51,15 +51,8 @@ stonecutter {
         } else {
             // The topmost version is considered the "default" and activated with "Reset active project"
             mc("1.21.11", "fabric", "forge")
-            mc("1.21.10", "fabric", "forge")
-            mc("1.21.8", "fabric", "forge")
-            mc("1.21.5", "fabric", "forge")
-            mc("1.21.4", "fabric", "forge")
-            mc("1.21.3", "fabric", "forge")
             mc("1.21.1", "fabric", "forge")
             mc("1.20.6", "fabric", "forge")
-            mc("1.20.4", "fabric", "forge")
-            mc("1.20.1", "fabric", "forge")
         }
     }
 
