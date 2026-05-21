@@ -18,7 +18,6 @@ jobs:
     env:
       GRADLE_OPTS: "-Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000"
       BUILD_TARGET: ${{ matrix.mc-version }}-${{ matrix.loader }}
-      ORG_GRADLE_PROJECT_modTarget: ${{ matrix.mc-version }}-${{ matrix.loader }}
     steps:
       - name: checkout repository
         uses: actions/checkout@v4
@@ -57,7 +56,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        loader: [ fabric, forge ]
+        loader: [ fabric, neoforge ]
         mc-version: [1.20.6, 1.21.1, 1.21.11]
     env:
       GRADLE_OPTS: "-Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000"
@@ -70,7 +69,7 @@ jobs:
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
-          name: ${{ env.BUILD_TARGET }}-artifacts
+          name: ${{ matrix.loader == 'neoforge' && 'forge' || matrix.loader }}-artifacts
           path: run/mods
 
       - name: Remove sources jar
@@ -92,7 +91,7 @@ jobs:
       - name: Download runtime mods
         run: |
           ferium_mod_loader="${{ matrix.loader }}"
-          if [ "$ferium_mod_loader" = "forge" ]; then
+          if [ "$ferium_mod_loader" = "neoforge" ]; then
             ferium_mod_loader="neo-forge"
           fi
 
