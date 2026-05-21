@@ -46,7 +46,7 @@ jobs:
         with:
           name: ${{ env.BUILD_TARGET }}-artifacts
           path: |
-            ${{ env.BUILD_TARGET }}/build/libs/*.jar
+            versions/${{ env.BUILD_TARGET }}/build/libs/*.jar
           if-no-files-found: error
 
   client-world-load:
