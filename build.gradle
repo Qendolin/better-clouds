@@ -17,7 +17,6 @@ var mcVersion = stonecutter.current.version
 
 var isFabric = loader == "fabric"
 var isNeoForge = loader == "neoforge"
-var isForge = loader == "forge"
 
 stonecutter {
 	dependencies {
@@ -26,12 +25,120 @@ stonecutter {
 	constants {
 		put("fabric", isFabric)
 		put("neoforge", isNeoForge)
-		put("forge", isForge)
 	}
 }
 
 stonecutter.filters.include("**/*.vsh")
 stonecutter.filters.include("**/*.fsh")
+
+def publishTargetDefinitions = [
+		fabric   : [
+				loader    : "fabric",
+				loaderName: "Fabric",
+				modrinth  : [
+						requires    : ["yacl", "fabric-api"],
+						optional    : ["modmenu", "sodium", "iris"],
+						incompatible: ["vulkanmod", "immersiveportals"],
+				],
+				curseforge: [
+						requires    : ["yacl", "fabric-api"],
+						optional    : ["modmenu", "sodium", "irisshaders"],
+						incompatible: ["vulkanmod", "immersive-portals-mod"],
+				],
+		],
+		neoforge : [
+				loader    : "neoforge",
+				loaderName: "NeoForge",
+				modrinth  : [
+						requires    : ["yacl"],
+						optional    : ["sodium", "iris"],
+						incompatible: [],
+				],
+				curseforge: [
+						requires    : ["yacl"],
+						optional    : ["sodium", "irisshaders"],
+						incompatible: [],
+				],
+		],
+]
+
+def publishTargetConfig = publishTargetDefinitions[loader]
+
+def parseBooleanGradleProperty = { String name, boolean defaultValue ->
+	providers.gradleProperty(name).map { value ->
+		def normalized = value.trim().toLowerCase(Locale.ROOT)
+		if (!(normalized in ["true", "false"])) {
+			throw new GradleException("Property ${name} must be either true or false, got '${value}'.")
+		}
+		normalized == "true"
+	}.orElse(defaultValue)
+}
+
+def isPublishTargetEnabled = { String target ->
+	parseBooleanGradleProperty("publish.${target}", true).get()
+}
+
+def requirePublishConfirmation = { List<String> warningLines ->
+	warningLines.each { warningLine -> println warningLine }
+	println "Press Enter to continue, or Ctrl+C to cancel."
+
+	def console = System.console()
+	if (console != null) {
+		console.readLine()
+		return
+	}
+
+	def line = new BufferedReader(new InputStreamReader(System.in)).readLine()
+	if (line == null) {
+		throw new GradleException("Interactive confirmation required. Re-run this publish command in a console and press Enter to continue.")
+	}
+}
+
+def changelogFile = rootProject.layout.projectDirectory.file("changelog.md").asFile
+def maxChangelogAgeMs = 60L * 60L * 1000L
+
+def validatePublishChangelog = {
+	if (!changelogFile.exists()) {
+		throw new GradleException("Missing changelog.md. Update it within the last hour before publishing.")
+	}
+
+	def changelog = changelogFile.getText("UTF-8")
+	if (changelog.isBlank()) {
+		throw new GradleException("changelog.md was blank")
+	}
+
+	def changelogAgeMs = System.currentTimeMillis() - changelogFile.lastModified()
+	if (changelogAgeMs > maxChangelogAgeMs) {
+		def modifiedAt = new Date(changelogFile.lastModified())
+		throw new GradleException("changelog.md must be updated within the last hour before publishing. Last modified: ${modifiedAt}.")
+	}
+}
+
+def loadPublishSecrets = {
+	def secrets = new Properties()
+	def secretsFile = rootProject.file("secrets.properties")
+	if (!secretsFile.exists()) {
+		throw new GradleException("Missing secrets.properties for publishing")
+	}
+
+	secretsFile.withInputStream { secrets.load(it) }
+	return secrets
+}
+
+def releaseTypeEnum = {
+	def releaseType = property("mod.release").toString()
+	def normalizedReleaseType = releaseType.toLowerCase(Locale.ROOT)
+	def releaseTypeEnum = [
+			"release": "STABLE",
+			"stable" : "STABLE",
+			"beta"   : "BETA",
+			"alpha"  : "ALPHA"
+	][normalizedReleaseType]
+	if (!releaseTypeEnum) {
+		throw new GradleException("Unknown release type: ${releaseType}")
+	}
+	return releaseTypeEnum
+}
 
 static def buildVersionString(String modVersion, String releaseType, String mcVersion, String loader) {
 	var semver = modVersion
@@ -60,8 +167,6 @@ architectury {
 	platformSetupLoomIde()
 	if (isFabric)
 		fabric()
-	if (isForge)
-		forge()
 	if (isNeoForge)
 		neoForge()
 }
@@ -92,14 +197,6 @@ repositories {
 
 loom {
 	accessWidenerPath.set(project.rootProject.file("src/main/resources/betterclouds.accesswidener"))
-
-	if (isForge) forge {
-		mixinConfigs(
-				"betterclouds.required.mixins.json",
-				"betterclouds.optional.mixins.json",
-				"betterclouds.runtime.mixins.json",
-		)
-	}
 
 	runs {
 		configureEach {
@@ -167,11 +264,8 @@ dependencies {
 		productionRuntimeMods "net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}"
 	}
 
-	if (isNeoForge || isForge) {
-		if (isNeoForge)
-			neoForge "net.neoforged:neoforge:${property('loader.neoforge')}"
-		if (isForge)
-			forge "net.minecraftforge:forge:${property('loader.forge')}"
+	if (isNeoForge) {
+		neoForge "net.neoforged:neoforge:${property('loader.neoforge')}"
 
 		modImplementation("dev.isxander:yet-another-config-lib:${property('deps.yacl')}-${loader}") {
 			transitive = false
@@ -181,14 +275,10 @@ dependencies {
 		implementation(include("com.github.bawnorton.mixinsquared:mixinsquared-${loader}:0.2.0"))
 
 		// forge does not include mixinextras, and neoforge has a version that's too old <= 1.20.6
-		if (isForge || (isNeoForge && stonecutter.eval(mcVersion, "<=1.20.6"))) {
+		if (isNeoForge && stonecutter.eval(mcVersion, "<=1.20.6")) {
 			compileOnly(implementation("io.github.llamalad7:mixinextras-common:${property("deps.mixin_extras")}"))
 			include(implementation("io.github.llamalad7:mixinextras-${loader}:${property("deps.mixin_extras")}"))
 		}
-
-		// These should be included with yacl, but it doesn't work correctly, so adding them here
-		forgeRuntimeLibrary(runtimeOnly("org.quiltmc.parsers:json:0.2.1"))
-		forgeRuntimeLibrary(runtimeOnly("org.quiltmc.parsers:gson:0.2.1"))
 
 		if (stonecutter.eval(mcVersion, ">=1.21")) {
 			modCompileOnly "maven.modrinth:iris:${property('deps.iris')}"
@@ -256,13 +346,8 @@ processResources {
 		expand props
 	}
 
-	// other targets use the AW
-	if (!isForge)
-		exclude("META-INF/accesstransformer.cfg")
-	if (isNeoForge || isForge)
+	if (isNeoForge)
 		exclude("fabric.mod.json")
-	if (isForge)
-		exclude("META-INF/neoforge.mods.toml")
 	if (isFabric)
 		exclude("META-INF/mods.toml", "META-INF/neoforge.mods.toml")
 
@@ -353,11 +438,6 @@ if (stonecutter.current.active) {
 		group = "project"
 		dependsOn(tasks.named("publishMods"))
 	}
-	rootProject.tasks.named("activePublishMods") {
-		doLast {
-			new File(rootProject.absoluteProjectPath("changelog.txt")).delete()
-		}
-	}
 	// Register task to run genSources for the active version only
 	rootProject.tasks.register("activeGenSources") {
 		group = "project"
@@ -382,113 +462,99 @@ jar {
 	}
 }
 
+if (publishTargetConfig != null) {
 publishMods {
-	def secrets = new Properties()
-	def secretsFile = project.rootProject.file("secrets.properties")
-	if (secretsFile.exists()) {
-		secretsFile.withInputStream { secrets.load(it) }
-	} else if (gradle.startParameter.taskNames.any { it.toLowerCase().contains("publish") }) {
-		throw new GradleException("Missing secrets.properties for publishMods")
-	}
-
 	def releaseType = property("mod.release").toString()
 	var releaseName = releaseType.capitalize()
-	def releaseTypeEnum = [
-			"release": "STABLE",
-			"stable" : "STABLE",
-			"beta"   : "BETA",
-			"alpha"  : "ALPHA"
-	][releaseType.toLowerCase()]
-	if (!releaseTypeEnum)
-		throw new GradleException("Unknown release type: ${releaseType}")
-
-	def releaseLetter = releaseType.substring(0, 1).toLowerCase()
-	def loaderName = loom.platform.get().displayName
 	def modVersion = property("mod.version").toString()
 	def mcVersions = findProperty("deps.minecraft").toString().split(",").collect { it.trim().replace(".0", "") }
-
-	def changelogProvider = provider {
-		def file = rootProject.file("changelog.txt")
-		def lock = rootProject.file("changelog.txt.lock")
-		if (lock.createNewFile()) {
-			println("Opening changelog in notepad")
-			file.createNewFile()
-			def process = new ProcessBuilder("notepad", file.absolutePath).start()
-			process.waitFor()
-			lock.delete()
-		} else {
-			println("Waiting for changelog lock...")
-			while (lock.exists()) {
-				sleep(100)
-			}
-		}
-
-		def changelog = file.getText('UTF-8')
-		if (changelog.isBlank()) {
-			file.delete()
-			throw new GradleException("Changelog was blank")
-		}
-
-		return changelog
+	def dependenciesFor = { String service ->
+		def dependencies = publishTargetConfig[service]
+		return [
+				requires    : dependencies.requires,
+				optional    : dependencies.optional,
+				incompatible: dependencies.incompatible,
+		]
 	}
 
 	file = remapJar.archiveFile
-	changelog = changelogProvider
-	version = "${modVersion}+${mcVersion}-${loader}-${releaseLetter}"
-	type = releaseTypeEnum
-	displayName = "${releaseName} ${modVersion} for ${mcVersion} ${loaderName}"
-	modLoaders.add(loader)
+	changelog = rootProject.providers.fileContents(rootProject.layout.projectDirectory.file("changelog.md")).asText
+	version = "${modVersion}+${mcVersion}-${publishTargetConfig.loader}-${releaseType}"
+	type = releaseTypeEnum()
+	displayName = "${releaseName} ${modVersion} for ${mcVersion} ${publishTargetConfig.loaderName}"
+	modLoaders.add(publishTargetConfig.loader)
 
 	modrinth {
-		accessToken = providers.provider { secrets.getProperty("MODRINTH") }
+		accessToken = providers.provider { loadPublishSecrets().getProperty("MODRINTH") }
 		projectId = "5srFLIaK"
 		minecraftVersions.addAll(mcVersions)
 
-		requires("yacl")
-		if (isFabric) {
-			requires("fabric-api")
-			optional("modmenu")
-			incompatible("vulkanmod")
-			incompatible("immersiveportals")
-		}
+		def dependencies = dependenciesFor("modrinth")
+		dependencies.requires.each { slug -> requires(slug) }
+		dependencies.optional.each { slug -> optional(slug) }
+		dependencies.incompatible.each { slug -> incompatible(slug) }
 
-		if (isFabric || stonecutter.eval(mcVersion, ">=1.21")) {
-			optional("sodium")
-			optional("iris")
-		} else {
-			optional("embeddium")
-			optional("oculus")
-		}
-
-		projectDescription = providers.fileContents(layout.projectDirectory.file("readme.md")).asText
+		projectDescription = rootProject.providers.fileContents(rootProject.layout.projectDirectory.file("README.md")).asText
 	}
 
 	curseforge {
-		accessToken = providers.provider { secrets.getProperty("CURSEFORGE") }
+		accessToken = providers.provider { loadPublishSecrets().getProperty("CURSEFORGE") }
 		projectId = "1285973"
 		projectSlug = "better-clouds"
 		minecraftVersions.addAll(mcVersions)
 
 		changelogType = "markdown"
 
-		javaVersions.add(JavaVersion.VERSION_17)
+		javaVersions.add(j21 ? JavaVersion.VERSION_21 : JavaVersion.VERSION_17)
 		clientRequired = true
 		serverRequired = false
 
-		requires("yacl")
-		if (isFabric) {
-			requires("fabric-api")
-			optional("modmenu")
-			incompatible("vulkanmod")
-			incompatible("immersive-portals-mod")
-		}
+		def dependencies = dependenciesFor("curseforge")
+		dependencies.requires.each { slug -> requires(slug) }
+		dependencies.optional.each { slug -> optional(slug) }
+		dependencies.incompatible.each { slug -> incompatible(slug) }
+	}
+}
+}
 
-		if (isFabric || stonecutter.eval(mcVersion, ">=1.21")) {
-			optional("sodium")
-			optional("irisshaders")
-		} else {
-			optional("embeddium")
-			optional("oculus")
+["publishMods", "publishModrinth", "publishCurseforge"].each { taskName ->
+	tasks.named(taskName).configure {
+		onlyIf { publishTargetConfig != null && isPublishTargetEnabled(loader) }
+		doFirst {
+			validatePublishChangelog()
 		}
+	}
+}
+
+tasks.register("validatePublishChangelog") {
+	group = "publishing"
+	description = "Validates that changelog.md exists, is non-blank, and was updated within the last hour."
+	doLast {
+		validatePublishChangelog()
+	}
+}
+
+def requestedPublishTaskNames = gradle.startParameter.taskNames.findAll { requestedTaskName ->
+	requestedTaskName.tokenize(":").last() in ["activePublishMods", "publishMods", "publishModrinth", "publishCurseforge"]
+}
+
+def requestedPublishModsTaskNames = requestedPublishTaskNames.findAll { requestedTaskName ->
+	requestedTaskName.tokenize(":").last() in ["activePublishMods", "publishMods"]
+}
+
+if (stonecutter.current.active && !requestedPublishTaskNames.isEmpty()) {
+	if (publishTargetConfig == null) {
+		throw new GradleException("invalid publishing config")
+	}
+
+	if (!isPublishTargetEnabled(loader)) {
+		throw new GradleException("publish target '${loader}' is disabled. Set publish.${loader}=true to publish it.")
+	}
+
+	if (!requestedPublishModsTaskNames.isEmpty()) {
+		requirePublishConfirmation([
+				"Requested publish task(s): ${requestedPublishModsTaskNames.join(", ")}",
+				buildVersionString(property("mod.version").toString(), property("mod.release").toString().toLowerCase(Locale.ROOT), mcVersion, loader)
+		])
 	}
 }
