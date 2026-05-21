@@ -17,9 +17,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import org.slf4j.Logger;
 *///?}
 
-//? if !forge {
 import org.objectweb.asm.Opcodes;
-//?}
 
 @SuppressWarnings("UnusedMixin")
 @Mixin(MinecraftClient.class)
@@ -27,7 +25,6 @@ public abstract class GameTestClientMixin {
 
     @Shadow @Final private Window window;
 
-    //? if !forge {
     @Inject(
         method = "<init>",
         at = @At(
@@ -40,7 +37,6 @@ public abstract class GameTestClientMixin {
     private void atWindowCreation(CallbackInfo ci) {
         GLFW.glfwHideWindow(window.getHandle());
     }
-    //?}
 
     @Inject(method = "run", at = @At("HEAD"))
     private void atEntry(CallbackInfo ci) {

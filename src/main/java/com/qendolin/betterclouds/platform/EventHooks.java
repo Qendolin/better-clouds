@@ -13,7 +13,7 @@ import net.minecraft.resource.ResourceReloader;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 //?}
 
-//? if neoforge || forge {
+//? if neoforge {
 /*import net.minecraft.command.CommandSource;
 import net.minecraft.server.command.ServerCommandSource;
 *///?}
