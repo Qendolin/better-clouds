@@ -8,7 +8,7 @@ on: [ pull_request, push ]
 
 jobs:
   build:
-    name: build_${{ matrix.version }}-${{ matrix.modloader }}
+    name: build_${{ matrix.mc-version }}-${{ matrix.loader }}
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
@@ -17,8 +17,8 @@ jobs:
         mc-version: [1.20.6, 1.21.1, 1.21.11]
     env:
       GRADLE_OPTS: "-Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000"
-      BUILD_TARGET: ${{ matrix.version }}-${{ matrix.modloader }}
-      ORG_GRADLE_PROJECT_modTarget: ${{ matrix.version }}-${{ matrix.modloader }}
+      BUILD_TARGET: ${{ matrix.mc-version }}-${{ matrix.loader }}
+      ORG_GRADLE_PROJECT_modTarget: ${{ matrix.mc-version }}-${{ matrix.loader }}
     steps:
       - name: checkout repository
         uses: actions/checkout@v4
@@ -50,7 +50,7 @@ jobs:
           if-no-files-found: error
 
   client-world-load:
-    name: gametest_${{ matrix.version }}-${{ matrix.modloader }}
+    name: gametest_${{ matrix.mc-version }}-${{ matrix.loader }}
     needs: build
     runs-on: ubuntu-24.04
     timeout-minutes: 2
