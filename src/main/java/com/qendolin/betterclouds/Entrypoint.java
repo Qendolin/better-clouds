@@ -51,36 +51,4 @@ public final class Entrypoint {
         });
     }
 }
-*///?} elif forge {
-/*import com.qendolin.betterclouds.platform.forge.EventHooksImpl;
-import com.qendolin.betterclouds.config.ConfigGUI;
-import net.minecraft.client.MinecraftClient;
-import net.minecraftforge.client.ConfigScreenHandler;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-
-@Mod(BetterCloudsStatic.MODID)
-public final class Entrypoint {
-    @Deprecated
-    @SuppressWarnings("removal")
-    public Entrypoint() {
-        this(FMLJavaModLoadingContext.get());
-    }
-
-    public Entrypoint(FMLJavaModLoadingContext context) {
-        EventHooks.instance = new EventHooksImpl(context.getModEventBus());
-
-        BetterClouds.initializeClientEarly();
-        BetterClouds.initializeClientEvents();
-
-        context.getModEventBus().<FMLClientSetupEvent>addListener(event -> {
-            MinecraftClient.getInstance().execute(BetterClouds::initializeClient);
-
-            context.registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class,
-                () -> new ConfigScreenHandler.ConfigScreenFactory(
-                    (client, parent) -> ConfigGUI.create(parent)));
-        });
-    }
-}
 *///?}
