@@ -115,7 +115,7 @@ jobs:
           modloader: ${{ matrix.loader }}
           regex: .*${{ matrix.loader }}.*
           xvfb: true
-          java: 25
+          java: 21
           mc-runtime-test: ${{ matrix.loader }}
           dummy-assets: true
           download-hmc: true
