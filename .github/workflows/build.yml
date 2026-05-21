@@ -18,6 +18,7 @@ jobs:
     env:
       GRADLE_OPTS: "-Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000"
       BUILD_TARGET: ${{ matrix.mc-version }}-${{ matrix.loader }}
+      ORG_GRADLE_PROJECT_modTarget: ${{ matrix.mc-version }}-${{ matrix.loader }}
     steps:
       - name: checkout repository
         uses: actions/checkout@v4
@@ -61,7 +62,6 @@ jobs:
     env:
       GRADLE_OPTS: "-Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000"
       BUILD_TARGET: ${{ matrix.mc-version }}-${{ matrix.loader }}
-      ORG_GRADLE_PROJECT_modTarget: ${{ matrix.mc-version }}-${{ matrix.loader }}
     steps:
       - name: checkout repository
         uses: actions/checkout@v4
