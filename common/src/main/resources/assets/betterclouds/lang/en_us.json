@@ -60,8 +60,6 @@
   "betterclouds.config.entry.opacityExponent.description" : "Affects how quickly the maximum opacity is reached",
   "betterclouds.config.entry.opacityFactor" : "Opacity Factor",
   "betterclouds.config.entry.opacityFactor.description" : "The final opacity is scaled by this factor",
-  "betterclouds.config.entry.pointiness" : "Pointiness",
-  "betterclouds.config.entry.pointiness.description" : "How much the clouds' y height are increased towards the center",
   "betterclouds.config.entry.presetDescription" : "Description",
   "betterclouds.config.entry.presetTitle" : "Title",
   "betterclouds.config.entry.presetTitle.description" : "Title of your preset",

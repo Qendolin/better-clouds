@@ -22,14 +22,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ChunkedGenerator implements AutoCloseable {
     private static int cacheHit = 0;
     private static int cacheMiss = 0;
+    private final long seed;
     private Sampler sampler;
-    private ChunkCache pointCache;
+    private DummyCache pointCache;
     private double originX, originZ;
     private long lastCloudTicks;
     private int lastRendererTicks;
     private float lastTickIncrement = 1;
-
-    private long seed;
     private boolean queueCacheClear = false;
 
     private Buffer buffer;
@@ -49,7 +48,7 @@ public class ChunkedGenerator implements AutoCloseable {
         Config options = ConfigManager.instance();
         int gridWidth = (int) (options.blockDistance() / options.spacing / options.chunkSize * 2);
         // default capacity: number of chunks in the grid + some extra for when camera position changes
-        pointCache = new ChunkCache(gridWidth * gridWidth + gridWidth * 2);
+        pointCache = options.useSamplerCaching ? new ChunkCache(gridWidth * gridWidth + gridWidth * 2) : new DummyCache();
     }
 
     private static int calcBufferSize(Config options) {
@@ -548,10 +547,36 @@ public class ChunkedGenerator implements AutoCloseable {
     private record SamplePoints(AABB bounds, ObjectArrayList<AABB> points) {
     }
 
+    private static class DummyCache {
+        public DummyCache() {
+        }
+
+        public SamplePoints get(long key) {
+            return defaultReturnValue();
+        }
+
+        public void put(long key, SamplePoints value) {
+        }
+
+        public void swap() {
+        }
+
+        public void clear() {
+        }
+
+        public SamplePoints defaultReturnValue() {
+            return null;
+        }
+
+        public int capacity() {
+            return 0;
+        }
+    }
+
     /**
      * LRU-like cache with two maps so new entries don't erase old entries that would have been future cache hits
      */
-    private static class ChunkCache {
+    private static class ChunkCache extends DummyCache {
         private final int capacity;
         private Long2ObjectLinkedOpenHashMap<SamplePoints> readMap, writeMap;
 
