@@ -40,13 +40,13 @@ jobs:
       - name: list gradle projects
         run: ./gradlew -q projects
       - name: build project
-        run: ./gradlew :${{ matrix.loader }}:build
+        run: ./gradlew :${{ env.BUILD_TARGET }}:build
       - name: upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.loader }}-artifacts
+          name: ${{ env.BUILD_TARGET }}-artifacts
           path: |
-            ${{ matrix.loader }}/build/libs/*.jar
+            ${{ env.BUILD_TARGET }}/build/libs/*.jar
           if-no-files-found: error
 
   client-world-load:
@@ -66,7 +66,7 @@ jobs:
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
-          name: ${{ matrix.loader }}-artifacts
+          name: ${{ env.BUILD_TARGET }}-artifacts
           path: run/mods
 
       - name: Remove sources jar
