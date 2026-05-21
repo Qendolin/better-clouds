@@ -33,9 +33,9 @@ public class Sampler {
 
     private final long seed;
 
-    private final SimplexNoise REGION_NOISE;
-    private final SimplexNoise COVERAGE_NOISE;
-    private final List<PerlinSimplexNoise> DETAIL_NOISES;
+    private final SimplexNoise regionNoise;
+    private final SimplexNoise coverageNoise;
+    private final List<PerlinSimplexNoise> detailNoises;
 
     public Sampler(long seed) {
         WorldgenRandom random = new WorldgenRandom(new LegacyRandomSource(seed));
@@ -44,9 +44,9 @@ public class Sampler {
 
         Config options = ConfigManager.instance();
 
-        REGION_NOISE = new SimplexNoise(regionRandom);
-        COVERAGE_NOISE = new SimplexNoise(random);
-        DETAIL_NOISES = options.noisePreset().octaves
+        regionNoise = new SimplexNoise(regionRandom);
+        coverageNoise = new SimplexNoise(random);
+        detailNoises = options.noisePreset().octaves
                 .stream().map(octave -> new PerlinSimplexNoise(random, octave)).toList();
     }
 
@@ -66,9 +66,9 @@ public class Sampler {
                 Arrays.asList(0, 1, 2)
         );
 
-        REGION_NOISE = new SimplexNoise(regionRandom);
-        COVERAGE_NOISE = new SimplexNoise(random);
-        DETAIL_NOISES = options.noisePreset().octaves
+        regionNoise = new SimplexNoise(regionRandom);
+        coverageNoise = new SimplexNoise(random);
+        detailNoises = options.noisePreset().octaves
                 .stream().map(octave -> new PerlinSimplexNoise(random, octave)).toList();
     }
 
@@ -116,23 +116,23 @@ public class Sampler {
         double value;
 
         // TODO: A vanilla like cloud distribution is not possible with this function
-        if (DETAIL_NOISES.size() > 1) {
-            double regionNoise = (REGION_NOISE.getValue(x / REGION_SIZE, z / REGION_SIZE) * 0.5 + 0.5) * DETAIL_NOISES.size();
-            int noiseInd = (int) regionNoise;
-            PerlinSimplexNoise noise1 = DETAIL_NOISES.get(noiseInd), noise2 = DETAIL_NOISES.get((noiseInd + 1) % DETAIL_NOISES.size());
+        if (detailNoises.size() > 1) {
+            double regionNoiseValue = (regionNoise.getValue(x / REGION_SIZE, z / REGION_SIZE) * 0.5 + 0.5) * detailNoises.size();
+            int noiseInd = (int) regionNoiseValue;
+            PerlinSimplexNoise noise1 = detailNoises.get(noiseInd), noise2 = detailNoises.get((noiseInd + 1) % detailNoises.size());
 
             value = Mth.lerp(
-                    Math.pow(Mth.clamp(regionNoise - noiseInd, 0, 1), 5),
+                    Math.pow(Mth.clamp(regionNoiseValue - noiseInd, 0, 1), 5),
                     noise1.getValue(x / scale / 128f, z / scale / 128f, false),
                     noise2.getValue(x / scale / 128f, z / scale / 128f, false)
             );
         } else {
-            value = DETAIL_NOISES.getFirst().getValue(x / scale / 128f, z / scale / 128f, false);
+            value = detailNoises.getFirst().getValue(x / scale / 128f, z / scale / 128f, false);
         }
 
         value = value / 2 + 0.5;
         value = (value - (1 - cloudiness)) / cloudiness;
-        value *= smoothstep(-0.6 * cloudiness - 0.3, -0.6 * cloudiness, COVERAGE_NOISE.getValue(x / 1024f, z / 1024f));
+        value *= smoothstep(-0.6 * cloudiness - 0.3, -0.6 * cloudiness, coverageNoise.getValue(x / 1024f, z / 1024f));
 
         float random = hashToFloat(seed, 'B', x, z);
         if (random > value + (BASE_FUZZINESS - fuzziness)) value = 0;
