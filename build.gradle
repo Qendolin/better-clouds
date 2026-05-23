@@ -5,6 +5,7 @@ plugins {
     id "me.modmuss50.mod-publish-plugin" version "1.1.0" apply false
 }
 
+
 apply from: rootProject.file("common.gradle").path
 
 def publishTargetDefinitions = [
@@ -56,6 +57,20 @@ def isPublishTargetEnabled = { String target ->
 
 def selectedPublishTargets = {
     publishTargetDefinitions.keySet().findAll(isPublishTargetEnabled)
+}
+
+def runCommand = { List<?> command ->
+    def stringCommand = command.collect { it.toString() }
+    def process = new ProcessBuilder(stringCommand)
+            .directory(rootProject.rootDir)
+            .inheritIO()
+            .start()
+
+    def exitCode = process.waitFor()
+    if (exitCode != 0) {
+        throw new GradleException("Command failed with exit code ${exitCode}: ${stringCommand.join(' ')}")
+    }
+    return 0
 }
 
 def requirePublishConfirmation = { List<String> warningLines ->
@@ -166,7 +181,55 @@ def configurePublishProject = { String target, Map<String, ?> targetConfig ->
             }
         }
 
-        ["publishMods", "publishModrinth", "publishCurseforge"].each { taskName ->
+        def publishGithubAll = rootProject.tasks.names.contains("publishGithubAll")
+                ? rootProject.tasks.named("publishGithubAll")
+                : rootProject.tasks.register("publishGithubAll") {
+            group = "publishing"
+
+            def releaseTargets = selectedPublishTargets().collect { enabledTarget ->
+                project(publishTargetDefinitions[enabledTarget].projectPath)
+            }
+
+            dependsOn releaseTargets.collect { releaseProject ->
+                releaseProject.tasks.named("jar")
+            }
+
+            doLast {
+                def releaseType = rootProject.property("mod.release").toString()
+                def releaseName = releaseType.capitalize()
+                def modVersion = rootProject.property("mod.version").toString()
+
+                def tag = modVersion
+                if (releaseType != "release") tag += "-" + releaseType + ".rev." + "git rev-parse --short HEAD".execute().text.trim()
+
+                def title = "${releaseName} ${modVersion} for ${mcVersion}"
+                def head = "git rev-parse HEAD".execute(null, rootProject.rootDir).text.trim()
+
+                def jars = releaseTargets.collect { releaseProject ->
+                    releaseProject.tasks.named("jar", Jar).get().archiveFile.get().asFile.absolutePath
+                }
+
+                runCommand([
+                        "gh", "release", "create", tag,
+                        "--target", head,
+                        "--notes-file", changelogFile.absolutePath,
+                        "--title", title
+                ])
+
+                runCommand((["gh", "release", "upload", tag] + jars + ["--clobber"]).collect { it.toString() })
+            }
+        }
+
+        def publishGithub = targetProject.tasks.register("publishGithub") {
+            group = "publishing"
+            dependsOn publishGithubAll
+        }
+
+        targetProject.tasks.named("publishMods").configure {
+            dependsOn publishGithub
+        }
+
+        ["publishMods", "publishModrinth", "publishCurseforge", "publishGithub"].each { taskName ->
             targetProject.tasks.named(taskName).configure {
                 onlyIf { isPublishTargetEnabled(target) }
                 doFirst {
