@@ -196,26 +196,28 @@ def configurePublishProject = { String target, Map<String, ?> targetConfig ->
 
             doLast {
                 def releaseType = rootProject.property("mod.release").toString()
-                def releaseName = releaseType.capitalize()
                 def modVersion = rootProject.property("mod.version").toString()
 
-                def tag = modVersion
-                if (releaseType != "release") tag += "-" + releaseType + ".rev." + "git rev-parse --short HEAD".execute().text.trim()
+                def tag = "v" + modVersion
+                def isPrerelease = releaseType != "release";
+                if (isPrerelease) tag += "-" + releaseType + ".rev." + "git rev-parse --short HEAD".execute().text.trim()
 
-                def title = "${releaseName} ${modVersion} for ${mcVersion}"
+                def title = tag
                 def head = "git rev-parse HEAD".execute(null, rootProject.rootDir).text.trim()
 
                 def jars = releaseTargets.collect { releaseProject ->
                     releaseProject.tasks.named("jar", Jar).get().archiveFile.get().asFile.absolutePath
                 }
 
-                runCommand([
+                def releaseCreateCommand = [
                         "gh", "release", "create", tag,
                         "--target", head,
                         "--notes-file", changelogFile.absolutePath,
                         "--title", title
-                ])
+                ]
+                if (isPrerelease) releaseCreateCommand.add("--prerelease")
 
+                runCommand(releaseCreateCommand)
                 runCommand((["gh", "release", "upload", tag] + jars + ["--clobber"]).collect { it.toString() })
             }
         }
