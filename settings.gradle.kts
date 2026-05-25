@@ -1,16 +1,16 @@
 pluginManagement {
     repositories {
         maven {
-            name = 'Fabric'
-            url = 'https://maven.fabricmc.net/'
+            name = "Fabric"
+            url = uri("https://maven.fabricmc.net/")
         }
         maven {
             name = "NeoForged"
-            url = "https://maven.neoforged.net/releases"
+            url = uri("https://maven.neoforged.net/releases")
         }
         maven {
             name = "Architectury"
-            url = "https://maven.architectury.dev/"
+            url = uri("https://maven.architectury.dev/")
         }
         mavenCentral()
         gradlePluginPortal()
@@ -22,7 +22,7 @@ pluginManagement {
 buildscript {
     repositories { gradlePluginPortal() }
     dependencies {
-        classpath 'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.4.1'
+        classpath("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.4.1")
     }
 }
 
