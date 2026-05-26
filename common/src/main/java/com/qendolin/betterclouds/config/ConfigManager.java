@@ -1,6 +1,7 @@
 package com.qendolin.betterclouds.config;
 
 import com.google.gson.FieldNamingPolicy;
+import com.google.gson.reflect.TypeToken;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.platform.ModLoader;
 import com.qendolin.betterclouds.util.PreLaunchGuard;
@@ -16,6 +17,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 public class ConfigManager {
     public static final Path CONFIG_PATH = ModLoader.getConfigDir().resolve("betterclouds-v1.json");
@@ -59,7 +61,15 @@ public class ConfigManager {
                                 .registerTypeAdapter(Config.class, Config.INSTANCE_CREATOR)
                                 .registerTypeAdapter(ShaderPresetConfig.class, ShaderPresetConfig.INSTANCE_CREATOR)
                                 .registerTypeAdapter(NoisePresetConfig.class, NoisePresetConfig.INSTANCE_CREATOR)
-                                .registerTypeAdapter(ResourceKey.class, Config.REGISTRY_KEY_SERIALIZER))
+                                .registerTypeAdapter(ResourceKey.class, Config.REGISTRY_KEY_SERIALIZER)
+                                .registerTypeAdapter(
+                                        new TypeToken<List<ShaderPresetConfig>>() { }.getType(),
+                                        new PresetListSerializer<ShaderPresetConfig>(
+                                                () -> PresetLoader.SHADER.presets().keySet()))
+                                .registerTypeAdapter(
+                                        new TypeToken<List<NoisePresetConfig>>() { }.getType(),
+                                        new PresetListSerializer<NoisePresetConfig>(
+                                                () -> PresetLoader.NOISE.presets().keySet())))
                         .setPath(CONFIG_PATH)
                         .setJson5(false)
                         .build())

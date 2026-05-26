@@ -203,7 +203,7 @@ public class ShaderPresetGUI {
         updateNonResponsiveOptions();
         this.copyPresetButton = CustomButtonOption.createBuilder()
                 .name(() -> Component.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.copy"))
-                .action((screen, buttonOption) -> {
+                .action((_, _) -> {
                     ShaderPresetConfig preset = new ShaderPresetConfig(config.shaderPreset());
                     preset.title = Component.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.copyOf", config.shaderPreset().title).getString();
                     preset.markAsCopy();
@@ -296,7 +296,7 @@ public class ShaderPresetGUI {
 
     private void updateNonResponsiveOptions() {
         setPresetDescription();
-        
+
         shaderConfigPresetOptions.forEach(this::setOptionEditable);
         if (removePresetButton != null) {
             removePresetButton.setAvailable(config.shaderPreset().editable && config.presets.size() > 1);
