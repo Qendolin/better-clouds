@@ -207,6 +207,6 @@ public class NoisePresetGUI {
         for (NoisePresetConfig preset : presetsToBeDeleted) {
             config.noisePresets.remove(preset);
         }
-        config.selectedPreset = Mth.clamp(config.noisePresets.indexOf(currentPreset), 0, config.noisePresets.size() - 1);
+        config.selectedNoisePreset = Mth.clamp(config.noisePresets.indexOf(currentPreset), 0, config.noisePresets.size() - 1);
     }
 }

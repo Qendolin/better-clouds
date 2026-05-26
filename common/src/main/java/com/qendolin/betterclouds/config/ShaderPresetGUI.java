@@ -188,7 +188,7 @@ public class ShaderPresetGUI {
         this.removePresetButton = CustomButtonOption.createBuilder()
                 .name(() -> presetsToBeDeleted.contains(config.shaderPreset()) ? removeButtonRestoreText : removeButtonRemoveText)
                 .available(config.presets.size() > 1)
-                .action((screen, option) -> {
+                .action((_, option) -> {
                     if (config.presets.size() <= 1 || !config.shaderPreset().editable) {
                         option.setAvailable(false);
                         return;
