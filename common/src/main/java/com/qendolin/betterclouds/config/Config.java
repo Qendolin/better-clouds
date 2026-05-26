@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 public class Config {
     public static final String DEFAULT_PRESET_KEY = "default";
@@ -146,44 +145,22 @@ public class Config {
         }
 
         BetterCloudsStatic.getLogger().info("All preset resources loaded, initializing preset config");
-        loadDefaultPreset(PresetLoader.SHADER, presets, shaderPreset().key, ShaderPresetConfig::new);
-        loadDefaultPreset(PresetLoader.NOISE, noisePresets, noisePreset().key, NoisePresetConfig::new);
+        loadDefaultPreset(PresetLoader.SHADER, presets);
+        loadDefaultPreset(PresetLoader.NOISE, noisePresets);
         sortShaderPresets(false);
         sortNoisePresets(false);
     }
 
     public <T extends AbstractPresetConfig> void loadDefaultPreset(
             PresetLoader<T> loader,
-            List<T> presets,
-            String selectedDefaultPreset, Function<T, T> instanceCopy
+            List<T> presets
     ) {
         assert !loader.presets().isEmpty();
 
         // Remember which default preset was selected, if any
         Map<String, T> defaults = loader.presets();     // map is copied dw
-        boolean missingDefault = presets.stream().noneMatch(preset -> DEFAULT_PRESET_KEY.equals(preset.key));
         presets.removeIf(preset -> preset.key != null && !preset.editable && defaults.containsKey(preset.key));
         presets.addAll(defaults.values());
-
-        if (selectedDefaultPreset != null) {
-            // Restore the selected default preset
-            presets.stream()
-                    .filter(preset -> selectedDefaultPreset.equals(preset.key)).findFirst()
-                    .ifPresentOrElse(prevSelectedPreset -> selectedPreset = presets.indexOf(prevSelectedPreset), () -> selectedPreset = 0);
-        }
-
-        if (missingDefault) {
-            // No preset with the key 'default' was present,
-            // so it is assumed that the presets are not initialized
-            presets.removeIf(Config::isPresetEqualToEmpty);
-            T defaultPreset = defaults.get(DEFAULT_PRESET_KEY);
-            if (defaultPreset != null) {
-                T defaultCopy = instanceCopy.apply(defaultPreset);
-                defaultCopy.markAsCopy();
-                presets.add(defaultCopy);
-                selectedPreset = presets.indexOf(defaultCopy);
-            }
-        }
     }
 
     @NotNull
