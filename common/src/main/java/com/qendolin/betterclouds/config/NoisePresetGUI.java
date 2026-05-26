@@ -84,13 +84,14 @@ public class NoisePresetGUI {
         this.selectedNoisePreset = createOption(int.class, "noisePreset")
                 .binding(defaults.selectedNoisePreset, () -> config.selectedNoisePreset, val -> config.selectedNoisePreset = val)
                 .customController(opt -> new SelectDropdownController<>(opt, config.noisePresets, (_, preset) -> {
+                    boolean deleted = presetsToBeDeleted.contains(preset);
                     if (preset.title.isBlank()) {
                         return Component.translatable(LANG_KEY_PREFIX + ".entry.noisePreset.untitled")
-                                .withStyle(style -> style.withColor(ChatFormatting.GRAY).withItalic(true));
+                                .withStyle(style -> style.withColor(ChatFormatting.GRAY).withItalic(true).withStrikethrough(deleted));
                     } else if (!preset.editable) {
                         return Component.literal(preset.title + " §7(§obuilt-in§r§7)§r");
                     } else {
-                        return Component.literal(preset.title);
+                        return Component.literal(preset.title).withStyle(style -> style.withStrikethrough(deleted));
                     }
                 }))
                 .listener((opt, _) -> {
