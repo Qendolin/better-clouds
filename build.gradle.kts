@@ -150,7 +150,7 @@ val loadPublishSecrets: () -> Properties = {
 val releaseTypeEnum: () -> ReleaseType = {
     val releaseType = property("mod.release").toString()
     when (releaseType.lowercase(Locale.ROOT)) {
-        "release", "stable" -> ReleaseType.STABLE
+        "release" -> ReleaseType.STABLE
         "beta" -> ReleaseType.BETA
         "alpha" -> ReleaseType.ALPHA
         else -> throw GradleException("Unknown release type: $releaseType")
@@ -162,7 +162,7 @@ val modVersion = property("mod.version").toString()
 val mcVersion = findProperty("deps.minecraft").toString()
 val buildVersionString: (String) -> String = { loader ->
     var semver = modVersion
-    val isPrerelease = releaseType != "release"
+    val isPrerelease = releaseTypeEnum() != ReleaseType.STABLE
     if (isPrerelease) semver += "-$releaseType"
     semver += "+$mcVersion-$loader"
     if (isPrerelease) semver += ".rev.${gitOutput(listOf("git", "rev-parse", "--short", "HEAD"))}"
