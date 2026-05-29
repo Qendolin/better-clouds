@@ -11,13 +11,15 @@ import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.duck.WorldRendererDuck;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import com.qendolin.betterclouds.util.RenderHelper;
+import net.minecraft.client.Camera;
 import net.minecraft.client.CloudStatus;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.Options;
+import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.LevelTargetBundle;
-import net.minecraft.client.renderer.chunk.ChunkSectionsToRender;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -49,20 +51,13 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
     @Unique
     private Frustum better_clouds$frustum;
     @Shadow
-    private ClientLevel level;
-    @Shadow
-    private int ticks;
-    @Shadow
     @Final
     private LevelTargetBundle targets;
-    @Shadow
-    @Final
-    private Minecraft minecraft;
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void init(CallbackInfo ci) {
         if (glCompat.isIncompatible()) return;
-        better_clouds$cloudRenderer = new Renderer(minecraft);
+        better_clouds$cloudRenderer = new Renderer(Minecraft.getInstance());
     }
 
     @Override
@@ -70,7 +65,7 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
         return better_clouds$cloudRenderer;
     }
 
-    @Inject(at = @At("TAIL"), method = "onResourceManagerReload(Lnet/minecraft/server/packs/resources/ResourceManager;)V")
+    @Inject(at = @At("TAIL"), method = "onResourceManagerReload(Lnet/minecraft/server/packs/resources/ResourceManager;)V", require = 0)
     private void onReload(ResourceManager manager, CallbackInfo ci) {
         if (!BetterClouds.isInitialized()) return;
         if (glCompat.isIncompatible()) return;
@@ -78,13 +73,18 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
             better_clouds$cloudRenderer.reload(manager);
     }
 
-    @Inject(at = @At("TAIL"), method = "setLevel")
+    @Inject(at = @At("TAIL"), method = "setLevel", require = 0)
     private void onSetWorld(ClientLevel world, CallbackInfo ci) {
         if (better_clouds$cloudRenderer != null) better_clouds$cloudRenderer.setWorld(world);
     }
 
-    @Inject(at = @At("HEAD"), method = "renderLevel")
-    private void captureViewAndProjectionMatrix(GraphicsResourceAllocator allocator, DeltaTracker tickCounter, boolean renderBlockOutline, CameraRenderState cameraRenderState, Matrix4fc positionMatrix, GpuBufferSlice fogBuffer, Vector4f fogColor, boolean renderSky, ChunkSectionsToRender chunkSectionsToRender, CallbackInfo ci) {
+    @Inject(at = @At("TAIL"), method = "invalidateCompiledGeometry")
+    private void onInvalidateCompiledGeometry(ClientLevel world, Options options, Camera camera, BlockColors blockColors, CallbackInfo ci) {
+        if (better_clouds$cloudRenderer != null) better_clouds$cloudRenderer.setWorld(world);
+    }
+
+    @Inject(at = @At("HEAD"), method = "render")
+    private void captureViewAndProjectionMatrix(GraphicsResourceAllocator allocator, DeltaTracker tickCounter, boolean renderBlockOutline, CameraRenderState cameraRenderState, Matrix4fc positionMatrix, GpuBufferSlice fogBuffer, Vector4f fogColor, boolean renderSky, CallbackInfo ci) {
         better_clouds$frustum = cameraRenderState.cullFrustum;
         Vec3 cameraPos = cameraRenderState.pos;
         better_clouds$frustum.prepare(cameraPos.x, cameraPos.y, cameraPos.z);
@@ -96,7 +96,7 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
             cancellable = true
     )
     private void renderClouds(FrameGraphBuilder frameGraphBuilder, CloudStatus _mode, Vec3 cameraPos, long _seed, float _ticks, int _color, float _cloudHeight, int _cloudRenderMode, CallbackInfo ci) {
-        better_clouds$renderCloudsInternal(frameGraphBuilder, cameraPos, _ticks, ci);
+        better_clouds$renderCloudsInternal(frameGraphBuilder, cameraPos, _seed, _ticks, ci);
     }
 
     // NF calls a different overload of addCloudsPass that isn't even in the decompiled source. Like HOW
@@ -108,11 +108,11 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
             require = 0     // silently fail if not neoforge
     )
     private void renderCloudsNeoForge(FrameGraphBuilder frameGraphBuilder, CloudStatus _mode, Vec3 cameraPos, long _seed, float _ticks, int _color, float _cloudHeight, int _cloudRenderMode, Matrix4fc _viewMatrix, CallbackInfo ci) {
-        better_clouds$renderCloudsInternal(frameGraphBuilder, cameraPos, _ticks, ci);
+        better_clouds$renderCloudsInternal(frameGraphBuilder, cameraPos, _seed, _ticks, ci);
     }
 
     @Unique
-    private void better_clouds$renderCloudsInternal(FrameGraphBuilder frameGraphBuilder, Vec3 cameraPos, float ticksInput, CallbackInfo ci) {
+    private void better_clouds$renderCloudsInternal(FrameGraphBuilder frameGraphBuilder, Vec3 cameraPos, long gameTime, float ticksInput, CallbackInfo ci) {
         double camX = cameraPos.x, camY = cameraPos.y, camZ = cameraPos.z;
         float tickDelta = Mth.frac(ticksInput);
         Matrix4f viewMat = RenderHelper.getViewMatrix();
@@ -121,6 +121,7 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
         RenderHelper.setViewMatrix(new Matrix4f(viewMat));
         if (better_clouds$cloudRenderer == null) return;
         if (glCompat.isIncompatible()) return;
+        ClientLevel level = Minecraft.getInstance().level;
         if (level == null) return;
         if (!ConfigManager.instance().enabledDimensions.contains(level.dimensionTypeRegistration().unwrapKey().orElse(null)))
             return;
@@ -132,7 +133,7 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
         Vector3d cam = better_clouds$tempVector.set(camX, camY, camZ);
         Frustum frustum = this.better_clouds$frustum;
 
-        int ticks = this.ticks;
+        int ticks = (int) gameTime;
         if (Debug.animationPause >= 0) {
             if (Debug.animationPause == 0) Debug.animationPause = ticks;
             else ticks = Debug.animationPause;
