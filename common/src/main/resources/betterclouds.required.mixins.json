@@ -8,9 +8,10 @@
   "mixins" : [
   ],
   "client" : [
-    "BiomeManagerMixin", "CloudSettingMixin", "GameRendererAccessor", "GameRendererMixin", "RenderSystemMixin",
+    "BiomeManagerMixin", "CloudSettingMixin", "GameRendererAccessor", "GameRendererMixin", "MinecraftMixin", "RenderSystemMixin",
     "TabNavigationWidgetMixin", "WorldMixin", "WorldRendererMixin", "yacl.AbstractWidgetMixin", "yacl.CategoryTabMixin",
     "yacl.ListOptionMixin", "yacl.OptionListWidgetMixin", "yacl.OptionMixin", "yacl.PopupControllerScreenAccessor",
+    "yacl.ScrollableNavigationBarMixin",
     "yacl.StringControllerMixin"
   ],
   "injectors" : {

@@ -5,10 +5,9 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.config.Config;
 import net.minecraft.client.Minecraft;
-
-import java.util.OptionalDouble;
-import java.util.OptionalInt;
 import java.util.function.Supplier;
+import java.util.Optional;
+import java.util.OptionalDouble;
 
 public class VanillaRenderTarget {
 
@@ -28,13 +27,17 @@ public class VanillaRenderTarget {
             return;
         }
 
-        var framebuffer = client.levelRenderer.getCloudsTarget();
+        var framebuffer = client.levelRenderer.cloudsTarget();
         if (framebuffer == null)
-            framebuffer = client.getMainRenderTarget();
+            framebuffer = client.gameRenderer.mainRenderTarget();
 
-        renderPass = RenderSystem.getDevice()
-                .createCommandEncoder()
-                .createRenderPass(RENDER_PASS_LABEL, framebuffer.getColorTextureView(), OptionalInt.empty(), framebuffer.getDepthTextureView(), OptionalDouble.empty());
+        renderPass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(
+                RENDER_PASS_LABEL,
+                framebuffer.getColorTextureView(),
+                Optional.empty(),
+                framebuffer.getDepthTextureView(),
+                OptionalDouble.empty()
+        );
     }
 
     public void end() {

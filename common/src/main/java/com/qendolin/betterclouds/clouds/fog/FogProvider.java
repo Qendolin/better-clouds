@@ -17,7 +17,7 @@ public interface FogProvider {
     default Fog getFog(Minecraft client, Config config, float tickDelta) {
         if (client.level == null) return null;
 
-        Camera camera = client.gameRenderer.getMainCamera();
+        Camera camera = client.gameRenderer.mainCamera();
         float cloudDistance = config.blockDistance();
 
         Fog fog;

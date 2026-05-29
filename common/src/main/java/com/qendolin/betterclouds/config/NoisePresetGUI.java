@@ -11,7 +11,6 @@ import dev.isxander.yacl3.gui.controllers.string.StringController;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
-import net.minecraft.util.Tuple;
 
 import java.util.ArrayList;
 import java.util.Arrays;

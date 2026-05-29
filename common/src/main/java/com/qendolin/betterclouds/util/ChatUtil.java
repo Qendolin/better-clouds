@@ -16,6 +16,6 @@ public interface ChatUtil {
     static void debugChatMessage(Component message) {
         Minecraft client = Minecraft.getInstance();
         if (client == null || client.level == null) return;
-        client.gui.getChat().addClientSystemMessage(Component.literal("§e[§bBC§b§e]§r ").append(message));
+        client.gui.chatListener().handleSystemMessage(Component.literal("§e[§bBC§b§e]§r ").append(message), false);
     }
 }

@@ -83,13 +83,13 @@ public abstract class CategoryTabMixin implements CustomCategoryTabDuck {
     @Unique
     private void hideOrShow() {
         Minecraft client = Minecraft.getInstance();
-        if (client.screen == screen) {
+        if (client.gui.screen() == screen) {
             hideShowButton.setMessage(Component.translatable(ConfigGUI.LANG_KEY_PREFIX + ".show"));
             Screen hiddenScreen = new ConfigScreen.HiddenScreen(screen.getTitle(), hideShowButton);
-            client.setScreen(hiddenScreen);
+            client.gui.setScreen(hiddenScreen);
         } else {
             hideShowButton.setMessage(Component.translatable(ConfigGUI.LANG_KEY_PREFIX + ".hide"));
-            client.setScreen(screen);
+            client.gui.setScreen(screen);
         }
     }
 

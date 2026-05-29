@@ -7,6 +7,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.nio.file.Files;
 
 public class SamplerTest {
     @Test
@@ -23,8 +24,8 @@ public class SamplerTest {
             }
         }
 
-        File output = new File("sampler_options/multi_octave_sampler_test.png");
-        if (!output.exists() && !output.createNewFile()) throw new RuntimeException("File creation failed");
+        File output = new File("build/test-artifacts/sampler_options/multi_octave_sampler_test.png");
+        Files.createDirectories(output.toPath().getParent());
         ImageIO.write(image, "png", output);
         System.out.printf("Sample map created; 1 pixel ≈ %s blocks", new DecimalFormat("#.#").format(1 / scale));
     }

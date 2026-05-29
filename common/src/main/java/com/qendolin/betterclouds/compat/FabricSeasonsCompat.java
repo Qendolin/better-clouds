@@ -40,7 +40,7 @@ public abstract class FabricSeasonsCompat {
             return;
         }
 
-        BetterCloudsStatic.getLogger().warn("FabricSeasons compat is temporarily disabled on Minecraft 26.1 until an official-mappings build is available");
+        BetterCloudsStatic.getLogger().warn("FabricSeasons compat is temporarily disabled on Minecraft 26.2 until an official-mappings build is available");
         instance = new Stub();
     }
 

@@ -1,8 +1,4 @@
 import net.fabricmc.loom.task.prod.ClientProductionRunTask
-import org.gradle.api.tasks.SourceSetContainer
-import org.gradle.api.tasks.compile.JavaCompile
-import org.gradle.api.tasks.bundling.Jar
-import org.gradle.language.jvm.tasks.ProcessResources
 
 plugins {
     id("net.fabricmc.fabric-loom")
@@ -77,7 +73,9 @@ dependencies {
     compileOnly("maven.modrinth:z2XEADmE:${property("deps.data_anchor")}-fabric")
 
     add("productionRuntimeMods", "maven.modrinth:1eAoo2KR:${property("deps.yacl")}")
-    add("productionRuntimeMods", "net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
+    add("productionRuntimeMods", "net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}") {
+        exclude(group = "net.fabricmc.fabric-api", module = "fabric-client-gametest-api-v1")
+    }
 }
 
 tasks.register<ClientProductionRunTask>("runGameTest") {
@@ -88,14 +86,14 @@ tasks.register<ClientProductionRunTask>("runGameTest") {
 
 tasks.named<ProcessResources>("processResources") {
     val props = mutableMapOf<String, Any>(
-        "version" to project.version,
-        "loader" to loader,
+            "version" to project.version,
+            "loader" to loader,
     )
     props["mc_version_range"] = findProperty("deps.minecraft").toString()
-        .replace("-rc-", "-rc.")
-        .replace("-pre-", "-pre.")
-        .split(",")
-        .joinToString(", ") { "\"~$it\"" }
+            .replace("-rc-", "-rc.")
+            .replace("-pre-", "-pre.")
+            .split(",")
+            .joinToString(", ") { "\"~$it\"" }
 
     inputs.properties(props)
 

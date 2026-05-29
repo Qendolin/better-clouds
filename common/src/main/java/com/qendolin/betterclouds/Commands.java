@@ -85,12 +85,12 @@ public class Commands {
         dispatcher.register(literal(BetterCloudsStatic.MODID + ":frustum")
                 .then(literal("capture")
                         .executes(_ -> {
-                            ChatUtil.debugChatMessage(Component.literal("Frustum capture is not available on Minecraft 26.1"));
+                            ChatUtil.debugChatMessage(Component.literal("Frustum capture is not available on Minecraft 26.2"));
                             return 1;
                         }))
                 .then(literal("release")
                         .executes(_ -> {
-                            ChatUtil.debugChatMessage(Component.literal("Frustum capture is not available on Minecraft 26.1"));
+                            ChatUtil.debugChatMessage(Component.literal("Frustum capture is not available on Minecraft 26.2"));
                             return 1;
                         }))
                 .then(literal("debugCulling")
@@ -146,7 +146,7 @@ public class Commands {
                 .then(literal("open").executes(_ -> {
                     // The chat screen will call setScreen(null) after the command handler
                     // which would override our call, so we delay it
-                    client.schedule(() -> client.setScreen(ConfigGUI.create(null)));
+                    client.schedule(() -> client.gui.setScreen(ConfigGUI.create(null)));
                     return 1;
                 }))
                 .then(literal("reload").executes(_ -> {

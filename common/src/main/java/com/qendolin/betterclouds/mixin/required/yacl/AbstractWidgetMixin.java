@@ -57,10 +57,10 @@ public abstract class AbstractWidgetMixin {
         if (client == null || client.level == null) {
             return false;
         }
-        if (client.screen instanceof ConfigScreen) {
+        if (client.gui.screen() instanceof ConfigScreen) {
             return true;
         }
-        if (client.screen instanceof PopupControllerScreen popupScreen) {
+        if (client.gui.screen() instanceof PopupControllerScreen popupScreen) {
             return ((PopupControllerScreenAccessor) popupScreen).getBackgroundYaclScreen() instanceof ConfigScreen;
         }
         return false;

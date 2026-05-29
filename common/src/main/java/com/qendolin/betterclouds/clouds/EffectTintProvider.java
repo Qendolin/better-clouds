@@ -61,7 +61,7 @@ public abstract class EffectTintProvider {
 
         if (client.player != null && client.player.hasEffect(MobEffects.NIGHT_VISION)) {
             float min = result.get(result.minComponent());
-            result.div(Mth.lerp(GameRenderer.getNightVisionScale(client.player, tickDelta), 1.0f, min));
+            result.div(Mth.lerp(GameRenderer.nightVisionScale(client.player, tickDelta), 1.0f, min));
         }
         return result;
     }

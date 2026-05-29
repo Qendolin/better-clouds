@@ -16,7 +16,6 @@ import net.minecraft.client.Options;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
-import net.minecraft.util.Tuple;
 
 import java.util.ArrayList;
 import java.util.HashMap;

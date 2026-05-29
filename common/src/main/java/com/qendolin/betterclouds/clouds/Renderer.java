@@ -97,11 +97,11 @@ public class Renderer implements AutoCloseable {
     }
 
     private int scaledFramebufferWidth() {
-        return (int) (ConfigManager.instance().shaderPreset().upscaleResolutionFactor * client.getMainRenderTarget().width);
+        return (int) (ConfigManager.instance().shaderPreset().upscaleResolutionFactor * client.gameRenderer.mainRenderTarget().width);
     }
 
     private int scaledFramebufferHeight() {
-        return (int) (ConfigManager.instance().shaderPreset().upscaleResolutionFactor * client.getMainRenderTarget().height);
+        return (int) (ConfigManager.instance().shaderPreset().upscaleResolutionFactor * client.gameRenderer.mainRenderTarget().height);
     }
 
     private long getCloudTicks(int rendererTicks) {
@@ -135,7 +135,7 @@ public class Renderer implements AutoCloseable {
         }
 
         // Rendering clouds when underwater was making them very visible in unloaded chunks
-        if (client.gameRenderer.getMainCamera().getFluidInCamera() != FogType.NONE) {
+        if (client.gameRenderer.mainCamera().getFluidInCamera() != FogType.NONE) {
             return PrepareResult.NO_RENDER;
         }
 
@@ -247,7 +247,7 @@ public class Renderer implements AutoCloseable {
         getProfiler().popPush("render_cleanup");
         rt.end();
         res.generator().unbind();
-        GlStateManager._disableBlend();
+        glDisable(GL_BLEND);
         GlStateManager._enableDepthTest();
         RenderHelper.depthMask(true);
         RenderHelper.restoreDepthMask();
@@ -290,7 +290,7 @@ public class Renderer implements AutoCloseable {
 
         if (glCompat.useStencilTextureFallback()) {
             GlStateManager._depthFunc(GL_ALWAYS);
-            GlStateManager._enableBlend();
+            glEnable(GL_BLEND);
             glBlendEquation(GL_FUNC_ADD);
             // FIXME: buf0 needs depth sorting
             glCompat.blendFunci(0, GL_ONE, GL_ZERO);
@@ -298,7 +298,7 @@ public class Renderer implements AutoCloseable {
             glDisable(GL_STENCIL_TEST);
         } else {
             GlStateManager._depthFunc(GL_LEQUAL);
-            GlStateManager._disableBlend();
+            glDisable(GL_BLEND);
             glEnable(GL_STENCIL_TEST);
             glStencilMask(0xff);
             glClearStencil(0);
@@ -326,7 +326,7 @@ public class Renderer implements AutoCloseable {
         }
 
         GlStateManager._activeTexture(GL_TEXTURE0);
-        RenderHelper.bindTexture(client.getMainRenderTarget().getDepthTexture());
+        RenderHelper.bindTexture(client.gameRenderer.mainRenderTarget().getDepthTexture());
 
         // Distant Horizons compat
         if (DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled()) {
@@ -439,7 +439,7 @@ public class Renderer implements AutoCloseable {
             GlStateManager._disableDepthTest();
         }
 
-        GlStateManager._enableBlend();
+        glEnable(GL_BLEND);
         glBlendEquation(GL_FUNC_ADD);
         // sync up state manager state, can be desynced by use of blendFunci
         GlStateManager._blendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);

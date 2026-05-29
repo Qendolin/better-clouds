@@ -7,6 +7,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Random;
+import java.nio.file.Files;
 
 public class JenkinsHashTest {
     @Test
@@ -20,8 +21,8 @@ public class JenkinsHashTest {
             }
         }
 
-        File output = new File("hash_test.png");
-        if (!output.exists() && !output.createNewFile()) throw new RuntimeException("File creation failed");
+        File output = new File("build/test-artifacts/hash_test.png");
+        Files.createDirectories(output.toPath().getParent());
         ImageIO.write(image, "png", output);
 
         System.out.println("Hash visualizer created; noise should be pretty uniform");
