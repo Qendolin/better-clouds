@@ -11,18 +11,14 @@ import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.duck.WorldRendererDuck;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import com.qendolin.betterclouds.util.RenderHelper;
-import net.minecraft.client.Camera;
 import net.minecraft.client.CloudStatus;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.Options;
-import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.LevelTargetBundle;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
-import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
@@ -65,24 +61,6 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
         return better_clouds$cloudRenderer;
     }
 
-    @Inject(at = @At("TAIL"), method = "onResourceManagerReload(Lnet/minecraft/server/packs/resources/ResourceManager;)V", require = 0)
-    private void onReload(ResourceManager manager, CallbackInfo ci) {
-        if (!BetterClouds.isInitialized()) return;
-        if (glCompat.isIncompatible()) return;
-        if (better_clouds$cloudRenderer != null)
-            better_clouds$cloudRenderer.reload(manager);
-    }
-
-    @Inject(at = @At("TAIL"), method = "setLevel", require = 0)
-    private void onSetWorld(ClientLevel world, CallbackInfo ci) {
-        if (better_clouds$cloudRenderer != null) better_clouds$cloudRenderer.setWorld(world);
-    }
-
-    @Inject(at = @At("TAIL"), method = "invalidateCompiledGeometry")
-    private void onInvalidateCompiledGeometry(ClientLevel world, Options options, Camera camera, BlockColors blockColors, CallbackInfo ci) {
-        if (better_clouds$cloudRenderer != null) better_clouds$cloudRenderer.setWorld(world);
-    }
-
     @Inject(at = @At("HEAD"), method = "render")
     private void captureViewAndProjectionMatrix(GraphicsResourceAllocator allocator, DeltaTracker tickCounter, boolean renderBlockOutline, CameraRenderState cameraRenderState, Matrix4fc positionMatrix, GpuBufferSlice fogBuffer, Vector4f fogColor, boolean renderSky, CallbackInfo ci) {
         better_clouds$frustum = cameraRenderState.cullFrustum;
@@ -95,8 +73,8 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
             method = "addCloudsPass(Lcom/mojang/blaze3d/framegraph/FrameGraphBuilder;Lnet/minecraft/client/CloudStatus;Lnet/minecraft/world/phys/Vec3;JFIFI)V",
             cancellable = true
     )
-    private void renderClouds(FrameGraphBuilder frameGraphBuilder, CloudStatus _mode, Vec3 cameraPos, long _seed, float _ticks, int _color, float _cloudHeight, int _cloudRenderMode, CallbackInfo ci) {
-        better_clouds$renderCloudsInternal(frameGraphBuilder, cameraPos, _seed, _ticks, ci);
+    private void renderClouds(FrameGraphBuilder frame, CloudStatus cloudStatus, Vec3 cameraPosition, long gameTime, float partialTicks, int cloudColor, float cloudHeight, int cloudRange, CallbackInfo ci) {
+        better_clouds$renderCloudsInternal(frame, cameraPosition, gameTime, partialTicks, ci);
     }
 
     // NF calls a different overload of addCloudsPass that isn't even in the decompiled source. Like HOW
