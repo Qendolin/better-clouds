@@ -51,7 +51,8 @@ dependencies {
     implementation("net.fabricmc:fabric-loader:${property("loader.fabric")}")
     implementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
 
-    implementation("com.terraformersmc:modmenu:${property("deps.modmenu")}")
+    // fixme: revert to implementation when modmenu for 26.2 comes out
+    compileOnly("com.terraformersmc:modmenu:${property("deps.modmenu")}")
     implementation("maven.modrinth:1eAoo2KR:${property("deps.yacl")}")
 
     compileOnly("maven.modrinth:KJe6y9Eu:${property("deps.fabric_seasons")}")
