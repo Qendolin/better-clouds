@@ -18,8 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GLCompat implements GraphicsCompat {
-    public static GLCompat instance = null;
+public class GLCompat extends GraphicsCompat {
     public final int GL_VERTEX_ARRAY;
     public final int GL_BUFFER;
     public final int GL_PROGRAM;
@@ -284,19 +283,18 @@ public class GLCompat implements GraphicsCompat {
 
     public void init() {
         BetterCloudsStatic.getLogger().info("Initializing OpenGL compat");
-        instance = new GLCompat(BetterCloudsStatic.IS_DEV);
 
-        if (instance.isIncompatible()) {
+        if (isIncompatible()) {
             BetterCloudsStatic.getLogger().warn("Your GPU (or configuration) is not compatible with Better Clouds. Try updating your drivers?");
-            BetterCloudsStatic.getLogger().info(" - Vendor:       {}", instance.getString(GL32.GL_VENDOR));
-            BetterCloudsStatic.getLogger().info(" - Renderer:     {}", instance.getString(GL32.GL_RENDERER));
-            BetterCloudsStatic.getLogger().info(" - GL Version:   {}", instance.getString(GL32.GL_VERSION));
-            BetterCloudsStatic.getLogger().info(" - GLSL Version: {}", instance.getString(GL32.GL_SHADING_LANGUAGE_VERSION));
-            BetterCloudsStatic.getLogger().info(" - Extensions:   {}", String.join(", ", instance.supportedCheckedExtensions));
-            BetterCloudsStatic.getLogger().info(" - Functions:    {}", String.join(", ", instance.supportedCheckedFunctions));
-        } else if (instance.isPartiallyIncompatible()) {
+            BetterCloudsStatic.getLogger().info(" - Vendor:       {}", getString(GL32.GL_VENDOR));
+            BetterCloudsStatic.getLogger().info(" - Renderer:     {}", getString(GL32.GL_RENDERER));
+            BetterCloudsStatic.getLogger().info(" - GL Version:   {}", getString(GL32.GL_VERSION));
+            BetterCloudsStatic.getLogger().info(" - GLSL Version: {}", getString(GL32.GL_SHADING_LANGUAGE_VERSION));
+            BetterCloudsStatic.getLogger().info(" - Extensions:   {}", String.join(", ", supportedCheckedExtensions));
+            BetterCloudsStatic.getLogger().info(" - Functions:    {}", String.join(", ", supportedCheckedFunctions));
+        } else if (isPartiallyIncompatible()) {
             BetterCloudsStatic.getLogger().warn("Your GPU is not fully compatible with Better Clouds.");
-            for (String fallback : instance.usedFallbacks()) {
+            for (String fallback : usedFallbacks()) {
                 BetterCloudsStatic.getLogger().info("- Using {} fallback", fallback);
             }
         }
@@ -340,9 +338,9 @@ public class GLCompat implements GraphicsCompat {
         }
     }
 
-    public void pushDebugGroupDev(String name) {
+    public void pushDebugGroupDev(String groupName) {
         if (!isDev) return;
-        pushDebugGroup(name);
+        pushDebugGroup(groupName);
     }
 
     public void pushDebugGroup(String name) {
@@ -380,7 +378,7 @@ public class GLCompat implements GraphicsCompat {
         }
     }
 
-    public void enableDebugOutputSynchronousDev() {
+    public void initDev() {
         if (!isDev) return;
         BetterCloudsStatic.getLogger().warn("Enabling synchronous OpenGL debug output");
         enableDebugOutputSynchronous();

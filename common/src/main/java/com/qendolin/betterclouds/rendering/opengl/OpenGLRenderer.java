@@ -32,7 +32,6 @@ import org.jspecify.annotations.NonNull;
 
 import java.util.*;
 
-import static com.qendolin.betterclouds.compat.GLCompat.instance;
 import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
 import static org.lwjgl.opengl.GL32.*;
 
@@ -47,6 +46,7 @@ public class OpenGLRenderer implements CloudRenderer {
     private final Vector3f tempVector = new Vector3f();
     private final Frustum tempFrustum = new Frustum(new Matrix4f().identity(), new Matrix4f().identity());
     private final Resources res = new Resources();
+    GLCompat glCompat = (GLCompat) GraphicsCompat.instance;
     private ClientLevel world = null;
     private float cloudsHeight;
     private ShaderParameters shaderParameters = null;
@@ -107,19 +107,20 @@ public class OpenGLRenderer implements CloudRenderer {
         return new ShaderParameters(
                 client.options.getCloudStatus(),
                 config.blockDistance(), config.sizeXZ, config.sizeY, config.celestialBodyHalo,
-                instance.useDepthWriteFallback(), instance.useStencilTextureFallback(),
+                glCompat.useDepthWriteFallback(), glCompat.useStencilTextureFallback(),
                 DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled(),
                 config.shaderPreset().worldCurvatureSize
         );
     }
 
     public @NonNull PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, int ticks, float tickDelta, Vector3d cam) {
+
         assert RenderSystem.isOnRenderThread();
         getProfiler().popPush("render_setup");
         Config config = ConfigManager.instance();
 
         if (res.failedToLoadCritical()) {
-            if (RenderDoc.isFrameCapturing()) instance.debugMessage("prepare failed: critical resource not loaded");
+            if (RenderDoc.isFrameCapturing()) glCompat.debugMessage("prepare failed: critical resource not loaded");
             return PrepareResult.FALLBACK;
         }
 
@@ -249,7 +250,7 @@ public class OpenGLRenderer implements CloudRenderer {
         RenderHelper.restoreColorMask();
         RenderHelper.restoreShader();
 
-        if (!instance.useStencilTextureFallback()) {
+        if (!glCompat.useStencilTextureFallback()) {
             glDisable(GL_STENCIL_TEST);
             glStencilFunc(GL_ALWAYS, 0x0, 0xff);
             glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
@@ -280,13 +281,13 @@ public class OpenGLRenderer implements CloudRenderer {
         RenderHelper.depthMask(true);
         glEnable(GL_DEPTH_CLAMP);
 
-        if (instance.useStencilTextureFallback()) {
+        if (glCompat.useStencilTextureFallback()) {
             GlStateManager._depthFunc(GL_ALWAYS);
             GlStateManager._enableBlend(0);
             glBlendEquation(GL_FUNC_ADD);
             // FIXME: buf0 needs depth sorting
-            instance.blendFunci(0, GL_ONE, GL_ZERO);
-            instance.blendFunci(1, GL_ONE, GL_ONE);
+            glCompat.blendFunci(0, GL_ONE, GL_ZERO);
+            glCompat.blendFunci(1, GL_ONE, GL_ONE);
             glDisable(GL_STENCIL_TEST);
         } else {
             GlStateManager._depthFunc(GL_GEQUAL);
@@ -346,7 +347,7 @@ public class OpenGLRenderer implements CloudRenderer {
         RenderHelper.bindTexture(client.getTextureManager().getTexture(Resources.NOISE_TEXTURE));
 
         res.generator().bind();
-        if (instance.useBaseInstanceFallback()) {
+        if (glCompat.useBaseInstanceFallback()) {
             res.generator().buffer().bindDrawBuffer();
         }
 
@@ -375,6 +376,7 @@ public class OpenGLRenderer implements CloudRenderer {
     }
 
     private void drawCloudsWithFrustumCulling(Frustum frustumAtOrigin, Config config) {
+
         // This algorithm loops over chunks, which are in a line-by-line order.
         // When a visible chunk is found it's marked as a run start. The run continues until
         // the next non-visible chunk is found. At the end of a run the entire run is rendered as once.
@@ -386,10 +388,10 @@ public class OpenGLRenderer implements CloudRenderer {
             if (!frustumAtOrigin.isVisible(bounds)) {
                 Debug.addFrustumCulledBox(bounds, false);
                 if (runCount != 0) {
-                    if (instance.useBaseInstanceFallback()) {
+                    if (glCompat.useBaseInstanceFallback()) {
                         res.generator().buffer().setVAPointerToInstance(runStart);
                     }
-                    instance.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
+                    glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
                 }
                 runStart = -1;
                 runCount = 0;
@@ -400,31 +402,33 @@ public class OpenGLRenderer implements CloudRenderer {
             }
         }
         if (runCount != 0) {
-            if (instance.useBaseInstanceFallback()) {
+            if (glCompat.useBaseInstanceFallback()) {
                 res.generator().buffer().setVAPointerToInstance(runStart);
             }
-            instance.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
+            glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
         }
     }
 
     private void drawCloudsWithoutFrustumCulling() {
+
         List<ChunkedGenerator.ChunkIndex> chunks = res.generator().chunks();
         if (chunks.isEmpty()) return;
         ChunkedGenerator.ChunkIndex first = chunks.getFirst();
         ChunkedGenerator.ChunkIndex last = chunks.getLast();
         int start = first.start();
         int count = last.start() + last.count();
-        if (instance.useBaseInstanceFallback()) {
+        if (glCompat.useBaseInstanceFallback()) {
             res.generator().buffer().setVAPointerToInstance(start);
         }
-        instance.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), count, start);
+        glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), count, start);
     }
 
     private void drawShading(float tickDelta, FogProvider.Fog fog, Vector3d cam) {
+
         Config config = ConfigManager.instance();
         GlStateManager._depthFunc(GL_GEQUAL);
 
-        if (!instance.useDepthWriteFallback()) {
+        if (!glCompat.useDepthWriteFallback()) {
             RenderHelper.depthMask(true);
             GlStateManager._enableDepthTest();
         } else {
@@ -439,12 +443,12 @@ public class OpenGLRenderer implements CloudRenderer {
 
         RenderHelper.colorMask(false, false, false, false);
         glColorMaski(0, true, true, true, true);
-        if (!instance.useStencilTextureFallback()) {
+        if (!glCompat.useStencilTextureFallback()) {
             glDisable(GL_STENCIL_TEST);
         }
 
         GlStateManager._activeTexture(GL_TEXTURE1);
-        if (instance.useDepthWriteFallback()) {
+        if (glCompat.useDepthWriteFallback()) {
             RenderHelper.bindTexture(0);
         } else {
             RenderHelper.bindTexture(res.oitCoverageDepthTexture());
@@ -480,14 +484,14 @@ public class OpenGLRenderer implements CloudRenderer {
         glBindVertexArray(res.cubeVao());
         glDrawArrays(GL_TRIANGLES, 0, Mesh.CUBE_MESH_VERTEX_COUNT);
 
-        if (instance.useDepthWriteFallback()) {
+        if (glCompat.useDepthWriteFallback()) {
             RenderHelper.colorMask(false, false, false, false);
             GlStateManager._activeTexture(GL_TEXTURE6);
             RenderHelper.bindTexture(res.oitCoverageDepthTexture());
-            glTexParameteri(GL_TEXTURE_2D, instance.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_DEPTH_COMPONENT);
+            glTexParameteri(GL_TEXTURE_2D, glCompat.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_DEPTH_COMPONENT);
             res.depthShader().bind();
             glDrawArrays(GL_TRIANGLES, 0, Mesh.QUAD_MESH_VERTEX_COUNT);
-            glTexParameteri(GL_TEXTURE_2D, instance.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_STENCIL_INDEX);
+            glTexParameteri(GL_TEXTURE_2D, glCompat.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_STENCIL_INDEX);
         }
     }
 

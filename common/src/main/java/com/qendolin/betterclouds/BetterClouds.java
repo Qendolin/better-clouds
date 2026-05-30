@@ -63,10 +63,10 @@ public class BetterClouds extends BetterCloudsStatic {
 
     public static void initializeClientEvents() {
         EventHooks.instance.onClientStarted(_ -> {
-            if (instance == null) {
-                throw new IllegalStateException("OpenGL compat not initialized yet. This should not happen!");
-            }
-            instance.enableDebugOutputSynchronousDev();
+            if (instance == null)
+                throw new IllegalStateException("Compat not initialized yet. This should not happen!");
+            if (BetterCloudsStatic.IS_DEV)
+                instance.initDev();
         });
         EventHooks.instance.onWorldJoin(client -> {
             if (instance.isIncompatible()) {

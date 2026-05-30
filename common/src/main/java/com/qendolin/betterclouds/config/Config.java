@@ -88,6 +88,8 @@ public class Config {
     public boolean cloudOverride = true;
     @SerialEntry
     public boolean useIrisFBO = true;
+    @SerialEntry
+    public Renderer renderer = Renderer.OPENGL;
 
     @SerialEntry
     public int selectedPreset = 0;
@@ -222,6 +224,15 @@ public class Config {
     @Override
     public int hashCode() {
         return Configs.hashCode(this);
+    }
+
+    public enum Renderer implements NameableEnum {
+        OPENGL, BLAZE3D;
+
+        @Override
+        public Component getDisplayName() {
+            return Component.translatable("betterclouds.config.entry.renderer.option." + name().toLowerCase());
+        }
     }
 
     public enum TimeSource implements NameableEnum {

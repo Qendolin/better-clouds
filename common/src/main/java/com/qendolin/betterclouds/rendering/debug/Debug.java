@@ -2,6 +2,8 @@ package com.qendolin.betterclouds.rendering.debug;
 
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.datafixers.util.Pair;
+import com.qendolin.betterclouds.compat.GLCompat;
+import com.qendolin.betterclouds.rendering.GraphicsCompat;
 import com.qendolin.betterclouds.rendering.opengl.RenderHelper;
 import com.qendolin.betterclouds.rendering.opengl.Resources;
 import net.minecraft.world.phys.AABB;
@@ -39,6 +41,8 @@ public class Debug {
     }
 
     public static void render(Resources res, Vector3d cam) {
+        if (!GraphicsCompat.isOpenGL) return;
+
         if (!frustumCulling) {
             clearFrustumCulledBoxes();
             return;
@@ -144,17 +148,19 @@ public class Debug {
         private final int vaoId;
         private int vboSize = 0;
 
+        private GLCompat glCompat = (GLCompat) instance;
+
         public BuiltBufferRenderer() {
             int prevVao = GL32.glGetInteger(GL32.GL_VERTEX_ARRAY_BINDING);
             vaoId = GL32.glGenVertexArrays();
             GL32.glBindVertexArray(vaoId);
-            instance.objectLabelDev(instance.GL_VERTEX_ARRAY, vaoId, "debug_vao");
+            glCompat.objectLabelDev(glCompat.GL_VERTEX_ARRAY, vaoId, "debug_vao");
             GL32.glEnableVertexAttribArray(0);
             GL32.glEnableVertexAttribArray(1);
 
             vboId = GL32.glGenBuffers();
             GL32.glBindBuffer(GL32.GL_ARRAY_BUFFER, vboId); // realize id
-            instance.objectLabelDev(instance.GL_BUFFER, vboId, "debug_vbo");
+            glCompat.objectLabelDev(glCompat.GL_BUFFER, vboId, "debug_vbo");
             GL32.glBindBuffer(GL32.GL_ARRAY_BUFFER, 0);
 
             GL32.glBindVertexArray(prevVao);

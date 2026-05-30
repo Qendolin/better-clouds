@@ -4,8 +4,10 @@ import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.Commands;
+import com.qendolin.betterclouds.compat.GLCompat;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.generator.ChunkedGenerator;
+import com.qendolin.betterclouds.rendering.GraphicsCompat;
 import com.qendolin.betterclouds.rendering.debug.Debug;
 import com.qendolin.betterclouds.rendering.debug.PerfTimer;
 import com.qendolin.betterclouds.rendering.opengl.internal.Mesh;
@@ -18,7 +20,6 @@ import java.io.Closeable;
 import java.io.IOException;
 
 import static com.qendolin.betterclouds.BetterCloudsStatic.getLogger;
-import static com.qendolin.betterclouds.compat.GLCompat.instance;
 import static org.lwjgl.opengl.GL32.*;
 
 public class Resources implements Closeable {
@@ -28,20 +29,17 @@ public class Resources implements Closeable {
     public static final Identifier LIGHTING_TEXTURE = Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "textures/environment/cloud_light_gradient.png");
 
     private static final int UNASSIGNED = 0;
-
+    private final GLCompat glCompat = (GLCompat) GraphicsCompat.instance;
     // Shaders
     private DepthShader depthShader = null;
     private CoverageShader coverageShader = null;
     private ShadingShader shadingShader = null;
     private DebugShader debugShader = null;
-
     // Generator
     private ChunkedGenerator generator = null;
-
     // Meshes
     private int cubeVbo;
     private int cubeVao;
-
     // FBO
     private int oitFbo;
     // Texture Unit 1
@@ -52,7 +50,6 @@ public class Resources implements Closeable {
     private int oitCoverageTexture;
     private int fboWidth;
     private int fboHeight;
-
     private PerfTimer timer;
 
     public static void unbindVao() {
@@ -143,11 +140,11 @@ public class Resources implements Closeable {
 
         cubeVao = glGenVertexArrays();
         glBindVertexArray(cubeVao);
-        instance.objectLabelDev(instance.GL_VERTEX_ARRAY, cubeVao, "cube");
+        glCompat.objectLabelDev(glCompat.GL_VERTEX_ARRAY, cubeVao, "cube");
 
         cubeVbo = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, cubeVbo);
-        instance.objectLabelDev(instance.GL_BUFFER, cubeVbo, "cube");
+        glCompat.objectLabelDev(glCompat.GL_BUFFER, cubeVbo, "cube");
 
         glBufferData(GL_ARRAY_BUFFER, Mesh.CUBE_MESH, GL_STATIC_DRAW);
         glEnableVertexAttribArray(0);
@@ -165,18 +162,19 @@ public class Resources implements Closeable {
     }
 
     public void reloadTextures(Minecraft client) {
+
         RenderSystem.assertOnRenderThread();
         int noiseTexture = RenderHelper.getTextureId(client.getTextureManager().getTexture(NOISE_TEXTURE));
         GlStateManager._activeTexture(GL_TEXTURE0);
         RenderHelper.bindTexture(noiseTexture);
-        instance.objectLabelDev(GL_TEXTURE, noiseTexture, "noise");
+        glCompat.objectLabelDev(GL_TEXTURE, noiseTexture, "noise");
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         int lightingTexture = RenderHelper.getTextureId(client.getTextureManager().getTexture(LIGHTING_TEXTURE));
         GlStateManager._bindTexture(lightingTexture);
-        instance.objectLabelDev(GL_TEXTURE, lightingTexture, "lighting");
+        glCompat.objectLabelDev(GL_TEXTURE, lightingTexture, "lighting");
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -208,7 +206,7 @@ public class Resources implements Closeable {
 
         oitFbo = glGenFramebuffers();
         GlStateManager._glBindFramebuffer(GL_DRAW_FRAMEBUFFER, oitFbo);
-        instance.objectLabelDev(GL_FRAMEBUFFER, oitFbo, "coverage");
+        glCompat.objectLabelDev(GL_FRAMEBUFFER, oitFbo, "coverage");
 
         fboWidth = width;
         fboHeight = height;
@@ -216,15 +214,15 @@ public class Resources implements Closeable {
         oitDataTexture = glGenTextures();
         GlStateManager._activeTexture(GL_TEXTURE0);
         GlStateManager._bindTexture(oitDataTexture);
-        instance.objectLabelDev(GL_TEXTURE, oitDataTexture, "coverage_color");
-        instance.texStorage2DFallback(GL_TEXTURE_2D, 1, GL_RGB8, fboWidth, fboHeight, GL_RGB, GL_BYTE);
+        glCompat.objectLabelDev(GL_TEXTURE, oitDataTexture, "coverage_color");
+        glCompat.texStorage2DFallback(GL_TEXTURE_2D, 1, GL_RGB8, fboWidth, fboHeight, GL_RGB, GL_BYTE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, oitDataTexture, 0);
         glDrawBuffers(new int[] { GL_COLOR_ATTACHMENT0 });
 
-        boolean useStencilTextureFallback = instance.useStencilTextureFallback();
-        boolean useDepthWriteFallback = instance.useDepthWriteFallback();
+        boolean useStencilTextureFallback = glCompat.useStencilTextureFallback();
+        boolean useDepthWriteFallback = glCompat.useDepthWriteFallback();
         boolean[][] configurations = { { false, false }, { true, false }, { true, true } };
         int configurationIndex = -1;
 
@@ -234,8 +232,8 @@ public class Resources implements Closeable {
             if (status == GL_FRAMEBUFFER_COMPLETE) {
                 BetterCloudsStatic.getLogger().info("Framebuffer complete. useStencilTextureFallback={}, useDepthWriteFallback={}", useStencilTextureFallback, useDepthWriteFallback);
                 if (configurationIndex != -1) {
-                    instance.setUseStencilTextureFallback(useStencilTextureFallback);
-                    instance.setUseDepthWriteFallback(useDepthWriteFallback);
+                    glCompat.setUseStencilTextureFallback(useStencilTextureFallback);
+                    glCompat.setUseDepthWriteFallback(useDepthWriteFallback);
                 }
                 break;
             }
@@ -257,8 +255,8 @@ public class Resources implements Closeable {
         if (useStencilTextureFallback) {
             oitCoverageTexture = glGenTextures();
             GlStateManager._bindTexture(oitCoverageTexture);
-            instance.objectLabelDev(GL_TEXTURE, oitCoverageTexture, "coverage_color_fallback");
-            instance.texStorage2DFallback(GL_TEXTURE_2D, 1, GL_R8, fboWidth, fboHeight, GL_RED, GL_UNSIGNED_BYTE);
+            glCompat.objectLabelDev(GL_TEXTURE, oitCoverageTexture, "coverage_color_fallback");
+            glCompat.texStorage2DFallback(GL_TEXTURE_2D, 1, GL_R8, fboWidth, fboHeight, GL_RED, GL_UNSIGNED_BYTE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, oitCoverageTexture, 0);
@@ -266,31 +264,31 @@ public class Resources implements Closeable {
 
             oitCoverageDepthTexture = glGenTextures();
             glBindTexture(GL_TEXTURE_2D, oitCoverageDepthTexture);
-            instance.objectLabelDev(GL_TEXTURE, oitCoverageDepthTexture, "coverage_depth");
-            instance.texStorage2DFallback(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT24, fboWidth, fboHeight, GL_DEPTH_COMPONENT, GL_FLOAT);
+            glCompat.objectLabelDev(GL_TEXTURE, oitCoverageDepthTexture, "coverage_depth");
+            glCompat.texStorage2DFallback(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT24, fboWidth, fboHeight, GL_DEPTH_COMPONENT, GL_FLOAT);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, oitCoverageDepthTexture, 0);
         } else {
             oitCoverageTexture = glGenTextures();
             GlStateManager._bindTexture(oitCoverageTexture);
-            instance.objectLabelDev(GL_TEXTURE, oitCoverageTexture, "coverage_stencil");
-            instance.texStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH24_STENCIL8, fboWidth, fboHeight);
+            glCompat.objectLabelDev(GL_TEXTURE, oitCoverageTexture, "coverage_stencil");
+            glCompat.texStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH24_STENCIL8, fboWidth, fboHeight);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, instance.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_STENCIL_INDEX);
+            glTexParameteri(GL_TEXTURE_2D, glCompat.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_STENCIL_INDEX);
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, oitCoverageTexture, 0);
 
             if (useDepthWriteFallback) {
                 oitCoverageDepthTexture = oitCoverageTexture;
             } else {
                 oitCoverageDepthTexture = glGenTextures();
-                instance.textureView(oitCoverageDepthTexture, GL_TEXTURE_2D, oitCoverageTexture, GL_DEPTH24_STENCIL8, 0, 1, 0, 1);
+                glCompat.textureView(oitCoverageDepthTexture, GL_TEXTURE_2D, oitCoverageTexture, GL_DEPTH24_STENCIL8, 0, 1, 0, 1);
                 glBindTexture(GL_TEXTURE_2D, oitCoverageDepthTexture);
-                instance.objectLabelDev(GL_TEXTURE, oitCoverageDepthTexture, "coverage_depth");
+                glCompat.objectLabelDev(GL_TEXTURE, oitCoverageDepthTexture, "coverage_depth");
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                glTexParameteri(GL_TEXTURE_2D, instance.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_DEPTH_COMPONENT);
+                glTexParameteri(GL_TEXTURE_2D, glCompat.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_DEPTH_COMPONENT);
             }
         }
         GlStateManager._bindTexture(0);
@@ -329,7 +327,8 @@ public class Resources implements Closeable {
         depthShader = DepthShader.create(manager);
         depthShader.bind();
         depthShader.uDepthTexture.setInt(6);
-        instance.objectLabelDev(instance.GL_PROGRAM, depthShader.glId(), "depth");
+
+        glCompat.objectLabelDev(glCompat.GL_PROGRAM, depthShader.glId(), "depth");
 
         coverageShader = CoverageShader.create(manager,
                 shaderParameters.configSizeXZ(),
@@ -341,7 +340,7 @@ public class Resources implements Closeable {
         coverageShader.uDepthTexture.setInt(0);
         coverageShader.uNoiseTexture.setInt(5);
         coverageShader.uDhDepthTexture.setInt(6);
-        instance.objectLabelDev(instance.GL_PROGRAM, coverageShader.glId(), "coverage");
+        glCompat.objectLabelDev(glCompat.GL_PROGRAM, coverageShader.glId(), "coverage");
 
         shadingShader = ShadingShader.create(manager,
                 shaderParameters.useDepthWriteFallback(),
@@ -352,12 +351,12 @@ public class Resources implements Closeable {
         shadingShader.uDataTexture.setInt(2);
         shadingShader.uCoverageTexture.setInt(3);
         shadingShader.uLightTexture.setInt(4);
-        instance.objectLabelDev(instance.GL_PROGRAM, shadingShader.glId(), "shading");
+        glCompat.objectLabelDev(glCompat.GL_PROGRAM, shadingShader.glId(), "shading");
 
         debugShader = new DebugShader(manager);
         debugShader.bind();
         debugShader.uColorModulator.setVec4(1.0f, 1.0f, 1.0f, 1.0f);
-        instance.objectLabelDev(instance.GL_PROGRAM, debugShader.glId(), "debug");
+        glCompat.objectLabelDev(glCompat.GL_PROGRAM, debugShader.glId(), "debug");
     }
 
     public void deleteShaders() {

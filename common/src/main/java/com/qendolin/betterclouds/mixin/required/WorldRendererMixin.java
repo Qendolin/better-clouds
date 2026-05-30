@@ -55,9 +55,9 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
     }
 
     @Inject(at = @At("HEAD"), method = "render")
-    private void captureViewAndProjectionMatrix(GraphicsResourceAllocator allocator, DeltaTracker tickCounter, boolean renderBlockOutline, CameraRenderState cameraRenderState, Matrix4fc positionMatrix, GpuBufferSlice fogBuffer, Vector4f fogColor, boolean renderSky, CallbackInfo ci) {
-        better_clouds$frustum = cameraRenderState.cullFrustum;
-        Vec3 cameraPos = cameraRenderState.pos;
+    private void captureViewAndProjectionMatrix(GraphicsResourceAllocator resourceAllocator, DeltaTracker deltaTracker, boolean renderOutline, CameraRenderState cameraState, Matrix4fc modelViewMatrix, GpuBufferSlice terrainFog, Vector4f fogColor, boolean shouldRenderSky, CallbackInfo ci) {
+        better_clouds$frustum = cameraState.cullFrustum;
+        Vec3 cameraPos = cameraState.pos;
         better_clouds$frustum.prepare(cameraPos.x, cameraPos.y, cameraPos.z);
     }
 

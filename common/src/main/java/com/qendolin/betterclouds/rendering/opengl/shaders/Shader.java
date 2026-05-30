@@ -1,6 +1,8 @@
 package com.qendolin.betterclouds.rendering.opengl.shaders;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.qendolin.betterclouds.compat.GLCompat;
+import com.qendolin.betterclouds.rendering.GraphicsCompat;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.ChainedJsonException;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -12,13 +14,12 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import static com.qendolin.betterclouds.compat.GLCompat.instance;
 import static org.lwjgl.opengl.GL32.*;
 
 public class Shader implements AutoCloseable {
 
     private final Map<String, String> defs;
-
+    private final GLCompat glCompat = (GLCompat) GraphicsCompat.instance;
     protected int programId;
 
     public Shader(ResourceManager resMan, Identifier vshId, Identifier fshId, Map<String, String> defs) throws IOException {
@@ -27,8 +28,8 @@ public class Shader implements AutoCloseable {
         int vsh = compileShader(GL_VERTEX_SHADER, vshId, resMan);
         int fsh = compileShader(GL_FRAGMENT_SHADER, fshId, resMan);
 
-        instance.objectLabelDev(instance.GL_SHADER, vsh, vshId.getPath());
-        instance.objectLabelDev(instance.GL_SHADER, fsh, fshId.getPath());
+        glCompat.objectLabelDev(glCompat.GL_SHADER, vsh, vshId.getPath());
+        glCompat.objectLabelDev(glCompat.GL_SHADER, fsh, fshId.getPath());
 
         programId = glCreateProgram();
         glAttachShader(programId, vsh);
@@ -60,7 +61,7 @@ public class Shader implements AutoCloseable {
             shaderSrc = shaderSrc.replace(entry.getKey(), entry.getValue());
         }
         int id = glCreateShader(type);
-        instance.shaderSource(id, shaderSrc);
+        glCompat.shaderSource(id, shaderSrc);
         glCompileShader(id);
         if (glGetShaderi(id, GL_COMPILE_STATUS) == 0) {
             String log = StringUtils.trim(glGetShaderInfoLog(id, 32768));
