@@ -10,6 +10,7 @@ import com.qendolin.betterclouds.compat.GLCompat;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.config.gui.ConfigGUI;
 import com.qendolin.betterclouds.renderdoc.*;
+import com.qendolin.betterclouds.rendering.GraphicsCompat;
 import com.qendolin.betterclouds.rendering.debug.Debug;
 import com.qendolin.betterclouds.util.ChatUtil;
 import net.minecraft.ChatFormatting;
@@ -162,6 +163,14 @@ public class Commands {
                                             ChatUtil.debugChatMessage("updatedPreferences");
                                             return 1;
                                         })))
+                        .then(literal("cloudSpeed")
+                                .then(argument("speed", FloatArgumentType.floatArg(0, 1024))
+                                        .executes(context -> {
+                                            ConfigManager.instance().travelSpeed = FloatArgumentType.getFloat(context, "speed") / 20;
+                                            return 1;
+                                        })
+                                )
+                        )
                 )
         );
         dispatcher.register(literal(BetterCloudsStatic.MODID + ":dimension")
@@ -194,6 +203,12 @@ public class Commands {
                             return 1;
                         })));
 
+        registerOpenGLCommands(dispatcher, client);
+    }
+
+    private static void registerOpenGLCommands(CommandDispatcher<Object> dispatcher, Minecraft client) {
+        if (!GraphicsCompat.isOpenGL) return;
+
         dispatcher.register(literal(BetterCloudsStatic.MODID + ":debug")
                 .then(renderdocCommands())
                 .then(literal("fallback")
@@ -212,14 +227,6 @@ public class Commands {
                                             client.reloadResourcePacks().whenComplete((_, _) -> ChatUtil.debugChatMessage(Component.literal(String.format("Fallback %s is now %s", fallback.getSerializedName(), enable ? "enabled" : "disabled"))));
                                             return 1;
                                         })))
-                )
-                .then(literal("cloud_speed")
-                        .then(argument("speed", FloatArgumentType.floatArg(0, 1024))
-                                .executes(context -> {
-                                    ConfigManager.instance().travelSpeed = FloatArgumentType.getFloat(context, "speed") / 20;
-                                    return 1;
-                                })
-                        )
                 )
         );
     }
