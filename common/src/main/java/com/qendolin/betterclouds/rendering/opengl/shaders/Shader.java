@@ -12,7 +12,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
+import static com.qendolin.betterclouds.compat.GLCompat.instance;
 import static org.lwjgl.opengl.GL32.*;
 
 public class Shader implements AutoCloseable {
@@ -27,8 +27,8 @@ public class Shader implements AutoCloseable {
         int vsh = compileShader(GL_VERTEX_SHADER, vshId, resMan);
         int fsh = compileShader(GL_FRAGMENT_SHADER, fshId, resMan);
 
-        glCompat.objectLabelDev(glCompat.GL_SHADER, vsh, vshId.getPath());
-        glCompat.objectLabelDev(glCompat.GL_SHADER, fsh, fshId.getPath());
+        instance.objectLabelDev(instance.GL_SHADER, vsh, vshId.getPath());
+        instance.objectLabelDev(instance.GL_SHADER, fsh, fshId.getPath());
 
         programId = glCreateProgram();
         glAttachShader(programId, vsh);
@@ -60,7 +60,7 @@ public class Shader implements AutoCloseable {
             shaderSrc = shaderSrc.replace(entry.getKey(), entry.getValue());
         }
         int id = glCreateShader(type);
-        glCompat.shaderSource(id, shaderSrc);
+        instance.shaderSource(id, shaderSrc);
         glCompileShader(id);
         if (glGetShaderi(id, GL_COMPILE_STATUS) == 0) {
             String log = StringUtils.trim(glGetShaderInfoLog(id, 32768));

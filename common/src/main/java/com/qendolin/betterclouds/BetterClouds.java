@@ -19,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
+import static com.qendolin.betterclouds.compat.GLCompat.instance;
 
 public class BetterClouds extends BetterCloudsStatic {
 
@@ -63,16 +63,16 @@ public class BetterClouds extends BetterCloudsStatic {
 
     public static void initializeClientEvents() {
         EventHooks.instance.onClientStarted(_ -> {
-            if (glCompat == null) {
+            if (instance == null) {
                 throw new IllegalStateException("OpenGL compat not initialized yet. This should not happen!");
             }
-            glCompat.enableDebugOutputSynchronousDev();
+            instance.enableDebugOutputSynchronousDev();
         });
         EventHooks.instance.onWorldJoin(client -> {
-            if (glCompat.isIncompatible()) {
+            if (instance.isIncompatible()) {
                 CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
                         .execute(() -> client.execute(Commands::sendGpuIncompatibleChatMessage));
-            } else if (glCompat.isPartiallyIncompatible()) {
+            } else if (instance.isPartiallyIncompatible()) {
                 CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
                         .execute(() -> client.execute(Commands::sendGpuPartiallyIncompatibleChatMessage));
             }

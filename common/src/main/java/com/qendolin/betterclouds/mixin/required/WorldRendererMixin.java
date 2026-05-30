@@ -26,7 +26,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
+import static com.qendolin.betterclouds.compat.GLCompat.instance;
 import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
 
 @Mixin(value = LevelRenderer.class, priority = 900)
@@ -45,7 +45,7 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void init(CallbackInfo ci) {
-        if (glCompat.isIncompatible()) return;
+        if (instance.isIncompatible()) return;
         better_clouds$cloudRenderer = new OpenGLRenderer(Minecraft.getInstance());
     }
 
@@ -71,7 +71,7 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
     }
 
     // NF calls a different overload of addCloudsPass that isn't even in the decompiled source. Like HOW
-    @SuppressWarnings("MixinAnnotationTarget")
+    @SuppressWarnings({ "MixinAnnotationTarget", "UnresolvedMixinReference" })
     @Inject(
             at = @At("HEAD"),
             method = "addCloudsPass(Lcom/mojang/blaze3d/framegraph/FrameGraphBuilder;Lnet/minecraft/client/CloudStatus;Lnet/minecraft/world/phys/Vec3;JFIFILorg/joml/Matrix4fc;)V",
@@ -91,7 +91,7 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
         RenderHelper.setProjectionMatrix(new Matrix4f(projMat));
         RenderHelper.setViewMatrix(new Matrix4f(viewMat));
         if (better_clouds$cloudRenderer == null) return;
-        if (glCompat.isIncompatible()) return;
+        if (instance.isIncompatible()) return;
         ClientLevel level = Minecraft.getInstance().level;
         if (level == null) return;
         if (!ConfigManager.instance().enabledDimensions.contains(level.dimensionTypeRegistration().unwrapKey().orElse(null)))
@@ -99,7 +99,7 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
         if (!BetterClouds.isEnabled()) return;
 
         getProfiler().push(BetterCloudsStatic.MODID);
-        glCompat.pushDebugGroupDev("Better Clouds");
+        instance.pushDebugGroupDev("Better Clouds");
 
         Vector3d cam = better_clouds$tempVector.set(camX, camY, camZ);
         Frustum frustum = this.better_clouds$frustum;
@@ -113,7 +113,7 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
 
         PrepareResult prepareResult = better_clouds$cloudRenderer.prepare(viewMat, projMat, ticks, tickDelta, cam);
         if (RenderDoc.isFrameCapturing())
-            glCompat.debugMessage("renderer prepare returned " + prepareResult.name());
+            instance.debugMessage("renderer prepare returned " + prepareResult.name());
 
         if (prepareResult != PrepareResult.FALLBACK)
             ci.cancel();
@@ -134,15 +134,15 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
             final var ffrustum = frustum;
             renderPass.executes(() -> {
                 getProfiler().push("clouds");
-                glCompat.pushDebugGroupDev("Better Clouds");
+                instance.pushDebugGroupDev("Better Clouds");
                 better_clouds$cloudRenderer.render(fticks, ftickDelta, fcam, ffrustumPos, ffrustum);
                 getProfiler().pop();
-                glCompat.popDebugGroupDev();
+                instance.popDebugGroupDev();
             });
         }
 
         getProfiler().pop();
-        glCompat.popDebugGroupDev();
+        instance.popDebugGroupDev();
     }
 
 

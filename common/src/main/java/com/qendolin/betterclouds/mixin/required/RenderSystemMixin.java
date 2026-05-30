@@ -12,6 +12,6 @@ public abstract class RenderSystemMixin {
 
     @Inject(method = "initRenderer", at = @At("TAIL"))
     private static void afterInitRenderer(CallbackInfo ci) {
-        GLCompat.initGlCompat();
+        GLCompat.instance.init();
     }
 }

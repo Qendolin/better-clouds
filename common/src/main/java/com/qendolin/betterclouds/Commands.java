@@ -200,7 +200,7 @@ public class Commands {
                         .then(argument("name", FallbackArgumentType.fallback())
                                 .executes(context -> {
                                     FallbackArgument fallback = FallbackArgumentType.getFallback(context, "name");
-                                    boolean enabled = fallback.get(GLCompat.glCompat);
+                                    boolean enabled = fallback.get(GLCompat.instance);
                                     ChatUtil.debugChatMessage(Component.literal(String.format("Fallback %s is currently %s", fallback.getSerializedName(), enabled ? "enabled" : "disabled")));
                                     return 1;
                                 })
@@ -208,7 +208,7 @@ public class Commands {
                                         .executes(context -> {
                                             FallbackArgument fallback = FallbackArgumentType.getFallback(context, "name");
                                             boolean enable = BoolArgumentType.getBool(context, "enable");
-                                            fallback.set(GLCompat.glCompat, enable);
+                                            fallback.set(GLCompat.instance, enable);
                                             client.reloadResourcePacks().whenComplete((_, _) -> ChatUtil.debugChatMessage(Component.literal(String.format("Fallback %s is now %s", fallback.getSerializedName(), enable ? "enabled" : "disabled"))));
                                             return 1;
                                         })))

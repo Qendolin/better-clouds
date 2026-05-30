@@ -12,7 +12,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
+import static com.qendolin.betterclouds.compat.GLCompat.instance;
 
 public class Debug {
     public static final List<Pair<AABB, Boolean>> frustumCulledBoxes = new ArrayList<>();
@@ -49,7 +49,7 @@ public class Debug {
             renderer = new BuiltBufferRenderer();
         }
 
-        glCompat.pushDebugGroupDev("Debug Draw");
+        instance.pushDebugGroupDev("Debug Draw");
         int bufferSize = Math.max(1024, frustumCulledBoxes.size() * 384);
         try (ByteBufferBuilder byteBufferBuilder = ByteBufferBuilder.exactlySized(bufferSize)) {
             BufferBuilder vertices = new BufferBuilder(byteBufferBuilder, com.mojang.blaze3d.PrimitiveTopology.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
@@ -69,7 +69,7 @@ public class Debug {
         }
 
         clearFrustumCulledBoxes();
-        glCompat.popDebugGroup();
+        instance.popDebugGroup();
     }
 
     private static void drawFrustumCulledBoxes(VertexConsumer vertices, Vector3d cam) {
@@ -148,13 +148,13 @@ public class Debug {
             int prevVao = GL32.glGetInteger(GL32.GL_VERTEX_ARRAY_BINDING);
             vaoId = GL32.glGenVertexArrays();
             GL32.glBindVertexArray(vaoId);
-            glCompat.objectLabelDev(glCompat.GL_VERTEX_ARRAY, vaoId, "debug_vao");
+            instance.objectLabelDev(instance.GL_VERTEX_ARRAY, vaoId, "debug_vao");
             GL32.glEnableVertexAttribArray(0);
             GL32.glEnableVertexAttribArray(1);
 
             vboId = GL32.glGenBuffers();
             GL32.glBindBuffer(GL32.GL_ARRAY_BUFFER, vboId); // realize id
-            glCompat.objectLabelDev(glCompat.GL_BUFFER, vboId, "debug_vbo");
+            instance.objectLabelDev(instance.GL_BUFFER, vboId, "debug_vbo");
             GL32.glBindBuffer(GL32.GL_ARRAY_BUFFER, 0);
 
             GL32.glBindVertexArray(prevVao);
