@@ -26,6 +26,8 @@ public class ChunkedGenerator implements AutoCloseable {
     private final long seed;
     private Sampler sampler;
     private DummyCache pointCache;
+    private ObjectArrayList<Point> readPoints = new ObjectArrayList<>();
+    private ObjectArrayList<Point> writePoints = new ObjectArrayList<>();
     private double originX, originZ;
     private long lastCloudTicks;
     private int lastRendererTicks;
@@ -76,8 +78,7 @@ public class ChunkedGenerator implements AutoCloseable {
     }
 
     public synchronized List<Point> points() {
-        if (swappedTask == null) return List.of();
-        return swappedTask.points();
+        return readPoints;
     }
 
     public double originX() {
@@ -121,6 +122,8 @@ public class ChunkedGenerator implements AutoCloseable {
         runningTask = null;
         completedTask = null;
         swappedTask = null;
+        readPoints.clear();
+        writePoints.clear();
     }
 
     public synchronized void update(Vector3d camera, long cloudTicks, int rendererTicks, float tickDelta, Config options, float cloudiness) {
@@ -242,6 +245,9 @@ public class ChunkedGenerator implements AutoCloseable {
             return;
         }
 
+        ObjectArrayList<Point> prevReadPoints = readPoints;
+        readPoints = writePoints;
+        writePoints = prevReadPoints;
         swappedTask = completedTask;
 
         if (Debug.isProfilingEnabled()) {
@@ -270,7 +276,6 @@ public class ChunkedGenerator implements AutoCloseable {
         private final AtomicBoolean cancelled = new AtomicBoolean();
         private final AtomicBoolean completed = new AtomicBoolean();
         private final List<ChunkIndex> chunks = new ArrayList<>();
-        private final List<Point> points = new ArrayList<>();
         private int cloudCount;
 
         private long startTime;
@@ -333,10 +338,6 @@ public class ChunkedGenerator implements AutoCloseable {
             return chunks;
         }
 
-        public List<Point> points() {
-            return points;
-        }
-
         public boolean ran() {
             return ran.get();
         }
@@ -372,6 +373,7 @@ public class ChunkedGenerator implements AutoCloseable {
             int gridOriginX = Mth.floor((chunkX * options.chunkSize) / spacing);
             int gridOriginZ = Mth.floor((chunkZ * options.chunkSize) / spacing);
 
+            generator.writePoints.clear();
             cacheHit = 0;
             cacheMiss = 0;
 
@@ -402,7 +404,7 @@ public class ChunkedGenerator implements AutoCloseable {
                     }
 
                     for (AABB point : samplePoints.points()) {
-                        points.add(new Point(
+                        generator.writePoints.add(new Point(
                                 (float) (point.minX - this.chunkX * options.chunkSize),
                                 (float) point.minY,
                                 (float) (point.minZ - this.chunkZ * options.chunkSize)

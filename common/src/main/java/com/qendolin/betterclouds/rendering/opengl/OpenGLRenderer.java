@@ -175,17 +175,16 @@ public class OpenGLRenderer extends CloudRenderer {
         Config options = ConfigManager.instance();
 
         res.generator().update(cam, options.getCloudTicks(client, ticks), ticks, tickDelta, options, cloudiness);
-        if (res.generator().canGenerate() && !res.generator().generating() && !Debug.generatorPause) {
-            getProfiler().popPush("generate_clouds");
-            res.generator().generate();
-            getProfiler().popPush("render_setup");
-        }
-
         if (res.generator().canSwap()) {
             getProfiler().popPush("swap");
             res.generator().swap();
             uploadPointsToBuffer(res.generator().points());
             reallocatedBuffer = false;
+            getProfiler().popPush("render_setup");
+        }
+        if (res.generator().canGenerate() && !res.generator().generating() && !Debug.generatorPause) {
+            getProfiler().popPush("generate_clouds");
+            res.generator().generate();
             getProfiler().popPush("render_setup");
         }
         if (reallocatedBuffer && res.generator().canRender()) {
