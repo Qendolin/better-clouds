@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds;
 
-import com.qendolin.betterclouds.config.ConfigGUI;
+import com.qendolin.betterclouds.config.gui.ConfigGUI;
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
 

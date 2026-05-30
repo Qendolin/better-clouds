@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds.gui;
 
-import com.qendolin.betterclouds.duck.TabNavigationWidgetExtensionDuck;
+import com.qendolin.betterclouds.mixin.duck.TabNavigationWidgetExtensionDuck;
 import com.qendolin.betterclouds.mixin.required.yacl.PopupControllerScreenAccessor;
 import dev.isxander.yacl3.gui.controllers.PopupControllerScreen;
 import dev.isxander.yacl3.gui.tab.ScrollableNavigationBar;

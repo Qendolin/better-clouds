@@ -1,15 +1,15 @@
 package com.qendolin.betterclouds;
 
-import com.qendolin.betterclouds.clouds.RandomPath;
-import com.qendolin.betterclouds.clouds.Renderer;
 import com.qendolin.betterclouds.compat.*;
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
-import com.qendolin.betterclouds.config.PresetLoader;
-import com.qendolin.betterclouds.duck.WorldRendererDuck;
+import com.qendolin.betterclouds.config.preset.PresetLoader;
+import com.qendolin.betterclouds.mixin.duck.WorldRendererDuck;
+import com.qendolin.betterclouds.generator.RandomPath;
 import com.qendolin.betterclouds.platform.EventHooks;
 import com.qendolin.betterclouds.platform.ModLoader;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
+import com.qendolin.betterclouds.rendering.opengl.OpenGLRenderer;
 import com.qendolin.betterclouds.util.ChatUtil;
 import com.qendolin.betterclouds.util.DataDirectoryMigration;
 import com.qendolin.betterclouds.util.NamedLogger;
@@ -93,7 +93,7 @@ public class BetterClouds extends BetterCloudsStatic {
     }
 
     @Nullable
-    public static Renderer getCloudsRenderer() {
+    public static OpenGLRenderer getCloudsRenderer() {
         Minecraft client = Minecraft.getInstance();
         if (client.levelRenderer instanceof WorldRendererDuck duck) {
             return duck.betterclouds$getRenderer();

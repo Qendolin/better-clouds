@@ -1,9 +1,9 @@
 package com.qendolin.betterclouds.mixin.required;
 
 import com.qendolin.betterclouds.BetterClouds;
-import com.qendolin.betterclouds.clouds.Renderer;
-import com.qendolin.betterclouds.duck.WorldRendererDuck;
+import com.qendolin.betterclouds.mixin.duck.WorldRendererDuck;
 import com.qendolin.betterclouds.renderdoc.CaptureManager;
+import com.qendolin.betterclouds.rendering.opengl.OpenGLRenderer;
 import net.minecraft.client.GameLoadCookie;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -39,7 +39,7 @@ public abstract class MinecraftMixin {
 
     @Inject(at = @At("TAIL"), method = "setLevel(Lnet/minecraft/client/multiplayer/ClientLevel;)V")
     private void setBetterCloudsWorld(ClientLevel world, CallbackInfo ci) {
-        Renderer renderer = better_clouds$getRenderer();
+        OpenGLRenderer renderer = better_clouds$getRenderer();
         if (renderer != null) renderer.setWorld(world);
     }
 
@@ -47,12 +47,12 @@ public abstract class MinecraftMixin {
     private void reloadBetterCloudsRenderer(GameLoadCookie gameLoadCookie, CallbackInfo ci) {
         if (!BetterClouds.isInitialized()) return;
         if (glCompat.isIncompatible()) return;
-        Renderer renderer = better_clouds$getRenderer();
+        OpenGLRenderer renderer = better_clouds$getRenderer();
         if (renderer != null) renderer.reload(getResourceManager());
     }
 
     @Unique
-    private Renderer better_clouds$getRenderer() {
+    private OpenGLRenderer better_clouds$getRenderer() {
         return ((WorldRendererDuck) levelRenderer).betterclouds$getRenderer();
     }
 }

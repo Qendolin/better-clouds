@@ -1,7 +1,7 @@
 package com.qendolin.betterclouds.compat;
 
 import com.qendolin.betterclouds.BetterCloudsStatic;
-import com.qendolin.betterclouds.config.FabricSeasonsConfig;
+import com.qendolin.betterclouds.config.compat.FabricSeasonsConfig;
 import com.qendolin.betterclouds.platform.ModLoader;
 import com.qendolin.betterclouds.platform.ModVersion;
 import net.minecraft.world.level.Level;

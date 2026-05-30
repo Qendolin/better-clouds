@@ -2,7 +2,7 @@ package com.qendolin.betterclouds.platform.fabric;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.qendolin.betterclouds.BetterCloudsStatic;
-import com.qendolin.betterclouds.config.PresetLoader;
+import com.qendolin.betterclouds.config.preset.PresetLoader;
 import com.qendolin.betterclouds.platform.EventHooks;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
@@ -29,7 +29,7 @@ public class EventHooksImpl extends EventHooks {
 
     @Override
     public void onWorldJoin(Consumer<Minecraft> callback) {
-        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> callback.accept(client));
+        ClientPlayConnectionEvents.JOIN.register((_, _, client) -> callback.accept(client));
     }
 
     @Override
@@ -65,6 +65,6 @@ public class EventHooksImpl extends EventHooks {
 
     @Override
     public void onClientCommandRegistration(Consumer<CommandDispatcher<?>> callback) {
-        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> callback.accept(dispatcher));
+        ClientCommandRegistrationCallback.EVENT.register((dispatcher, _) -> callback.accept(dispatcher));
     }
 }

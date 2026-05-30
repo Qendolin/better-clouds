@@ -1,8 +1,13 @@
 package com.qendolin.betterclouds.config;
 
 import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Strictness;
 import com.google.gson.reflect.TypeToken;
 import com.qendolin.betterclouds.BetterCloudsStatic;
+import com.qendolin.betterclouds.config.compat.ShaderPresetConfig;
+import com.qendolin.betterclouds.config.preset.NoisePresetConfig;
+import com.qendolin.betterclouds.config.preset.PresetListSerializer;
+import com.qendolin.betterclouds.config.preset.PresetLoader;
 import com.qendolin.betterclouds.platform.ModLoader;
 import com.qendolin.betterclouds.util.PreLaunchGuard;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
@@ -54,7 +59,7 @@ public class ConfigManager {
                 .id(CONFIG_ID)
                 .serializer(config -> GsonConfigSerializerBuilder.create(config)
                         .appendGsonBuilder(b -> b
-                                .setLenient()
+                                .setStrictness(Strictness.LENIENT)
                                 .serializeNulls()
                                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                                 .setPrettyPrinting()
@@ -63,11 +68,13 @@ public class ConfigManager {
                                 .registerTypeAdapter(NoisePresetConfig.class, NoisePresetConfig.INSTANCE_CREATOR)
                                 .registerTypeAdapter(ResourceKey.class, Config.REGISTRY_KEY_SERIALIZER)
                                 .registerTypeAdapter(
-                                        new TypeToken<List<ShaderPresetConfig>>() { }.getType(),
+                                        new TypeToken<List<ShaderPresetConfig>>() {
+                                        }.getType(),
                                         new PresetListSerializer<ShaderPresetConfig>(
                                                 () -> PresetLoader.SHADER.presets().keySet()))
                                 .registerTypeAdapter(
-                                        new TypeToken<List<NoisePresetConfig>>() { }.getType(),
+                                        new TypeToken<List<NoisePresetConfig>>() {
+                                        }.getType(),
                                         new PresetListSerializer<NoisePresetConfig>(
                                                 () -> PresetLoader.NOISE.presets().keySet())))
                         .setPath(CONFIG_PATH)

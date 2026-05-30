@@ -4,6 +4,12 @@ import com.google.gson.*;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.compat.BigGlobeCompat;
 import com.qendolin.betterclouds.compat.MiddleEarthCompat;
+import com.qendolin.betterclouds.config.compat.FabricSeasonsConfig;
+import com.qendolin.betterclouds.config.compat.SereneSeasonsConfig;
+import com.qendolin.betterclouds.config.compat.ShaderPresetConfig;
+import com.qendolin.betterclouds.config.preset.AbstractPresetConfig;
+import com.qendolin.betterclouds.config.preset.NoisePresetConfig;
+import com.qendolin.betterclouds.config.preset.PresetLoader;
 import com.qendolin.betterclouds.util.PreLaunchGuard;
 import dev.isxander.yacl3.api.NameableEnum;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
@@ -118,16 +124,6 @@ public class Config {
         Configs.copy(this, other);
     }
 
-    private static boolean isPresetEqualToEmpty(AbstractPresetConfig preset) {
-        if (preset == null) return true;
-        String title = preset.title;
-        // The title does not matter
-        preset.title = preset.getEmptyPreset().title;
-        boolean equal = preset.isEqualTo(preset.getEmptyPreset());
-        preset.title = title;
-        return equal;
-    }
-
     public static List<ResourceKey<DimensionType>> getDefaultDimensions() {
         return List.of(
                 BuiltinDimensionTypes.OVERWORLD,
@@ -208,6 +204,15 @@ public class Config {
 
         if (updateSelectedIndex)
             selectedNoisePreset = noisePresets.indexOf(selected);
+    }
+
+    public long getCloudTicks(Minecraft client, int rendererTicks) {
+        if (client.level == null) return rendererTicks;
+        return switch (timeSource) {
+            case WORLD -> client.level.getOverworldClockTime();
+            case PLAYTIME -> client.level.getGameTime();
+            case RENDERER -> rendererTicks;
+        };
     }
 
     public int blockDistance() {

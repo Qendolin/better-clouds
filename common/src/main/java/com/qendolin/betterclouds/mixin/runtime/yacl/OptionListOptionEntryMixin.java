@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds.mixin.runtime.yacl;
 
-import com.qendolin.betterclouds.duck.OptionListEntryExtensionDuck;
+import com.qendolin.betterclouds.mixin.duck.OptionListEntryExtensionDuck;
 import dev.isxander.yacl3.gui.AbstractWidget;
 import dev.isxander.yacl3.gui.OptionListWidget;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -22,56 +22,56 @@ public abstract class OptionListOptionEntryMixin extends ContainerObjectSelectio
     @Final
     public AbstractWidget widget;
     @Unique
-    private BeforeRenderCallback beforeRender;
+    private BeforeRenderCallback better_clouds$beforeRender;
     @Unique
-    private AfterRenderCallback afterRender;
+    private AfterRenderCallback better_clouds$afterRender;
     @Unique
-    private int yPadding = 0;
+    private int better_clouds$yPadding = 0;
 
     @Shadow
     protected abstract void updateHeight();
 
     @Override
     public void betterclouds$onBeforeRender(BeforeRenderCallback callback) {
-        this.beforeRender = callback;
+        this.better_clouds$beforeRender = callback;
     }
 
     @Override
     public void betterclouds$onAfterRender(AfterRenderCallback callback) {
-        this.afterRender = callback;
+        this.better_clouds$afterRender = callback;
     }
 
     @Inject(method = "extractContent", at = @At("HEAD"), remap = false)
     private void onBeforeRender(GuiGraphicsExtractor context, int mouseX, int mouseY, boolean hovered, float tickDelta, CallbackInfo ci) {
-        if (beforeRender != null) {
+        if (better_clouds$beforeRender != null) {
             int x = widget.getDimension().x();
             int y = widget.getDimension().y();
             int w = widget.getDimension().width();
             int h = widget.getDimension().height();
-            beforeRender.onBeforeRender(this, context, x, y, w, h, mouseX, mouseY, hovered, tickDelta);
+            better_clouds$beforeRender.onBeforeRender(this, context, x, y, w, h, mouseX, mouseY, hovered, tickDelta);
         }
     }
 
     @Inject(method = "extractContent", at = @At("RETURN"), remap = false)
     private void onAfterRender(GuiGraphicsExtractor context, int mouseX, int mouseY, boolean hovered, float tickDelta, CallbackInfo ci) {
-        if (afterRender != null) {
+        if (better_clouds$afterRender != null) {
             int x = widget.getDimension().x();
             int y = widget.getDimension().y();
             int w = widget.getDimension().width();
             int h = widget.getDimension().height();
-            afterRender.onAfterRender(this, context, x, y, w, h, mouseX, mouseY, hovered, tickDelta);
+            better_clouds$afterRender.onAfterRender(this, context, x, y, w, h, mouseX, mouseY, hovered, tickDelta);
         }
     }
 
     @Override
     public void betterclouds$setYPadding(int padding) {
-        yPadding = padding;
+        better_clouds$yPadding = padding;
         updateHeight();
     }
 
     @Override
     public int betterclouds$getYPadding() {
-        return yPadding;
+        return better_clouds$yPadding;
     }
 
 
@@ -83,6 +83,6 @@ public abstract class OptionListOptionEntryMixin extends ContainerObjectSelectio
                     remap = true
             ))
     private int modifyYPadding(int original) {
-        return original + yPadding;
+        return original + better_clouds$yPadding;
     }
 }

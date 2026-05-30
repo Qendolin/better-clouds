@@ -1,7 +1,7 @@
 package com.qendolin.betterclouds.mixin.runtime;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-import com.qendolin.betterclouds.util.RenderHelper;
+import com.qendolin.betterclouds.rendering.opengl.RenderHelper;
 import net.minecraft.client.renderer.fog.FogData;
 import net.minecraft.client.renderer.fog.FogRenderer;
 import org.joml.Vector4f;
@@ -17,7 +17,7 @@ public abstract class FogRendererMixin {
             at = @At("RETURN")
     )
     private FogData captureFogData(FogData fogData) {
-        Vector4f color = fogData.color == null ? null : new Vector4f(fogData.color);
+        Vector4f color = new Vector4f(fogData.color);
         RenderHelper.setFogDataAndColor(new RenderHelper.FogDataAndColor(fogData, color));
         return fogData;
     }

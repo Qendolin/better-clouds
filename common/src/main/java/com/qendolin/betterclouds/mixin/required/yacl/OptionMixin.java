@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds.mixin.required.yacl;
 
-import com.qendolin.betterclouds.duck.OptionDuck;
+import com.qendolin.betterclouds.mixin.duck.OptionDuck;
 import dev.isxander.yacl3.api.OptionDescription;
 import dev.isxander.yacl3.impl.OptionImpl;
 import org.spongepowered.asm.mixin.Mixin;

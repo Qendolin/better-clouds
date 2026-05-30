@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds.mixin.required;
 
-import com.qendolin.betterclouds.compat.WorldDuck;
+import com.qendolin.betterclouds.mixin.duck.WorldDuck;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;

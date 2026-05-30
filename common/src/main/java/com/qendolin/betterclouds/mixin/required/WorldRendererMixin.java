@@ -5,12 +5,13 @@ import com.mojang.blaze3d.framegraph.FrameGraphBuilder;
 import com.mojang.blaze3d.resource.GraphicsResourceAllocator;
 import com.qendolin.betterclouds.BetterClouds;
 import com.qendolin.betterclouds.BetterCloudsStatic;
-import com.qendolin.betterclouds.clouds.Debug;
-import com.qendolin.betterclouds.clouds.Renderer;
 import com.qendolin.betterclouds.config.ConfigManager;
-import com.qendolin.betterclouds.duck.WorldRendererDuck;
+import com.qendolin.betterclouds.mixin.duck.WorldRendererDuck;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
-import com.qendolin.betterclouds.util.RenderHelper;
+import com.qendolin.betterclouds.rendering.PrepareResult;
+import com.qendolin.betterclouds.rendering.debug.Debug;
+import com.qendolin.betterclouds.rendering.opengl.OpenGLRenderer;
+import com.qendolin.betterclouds.rendering.opengl.RenderHelper;
 import net.minecraft.client.CloudStatus;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -43,7 +44,7 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
     private final Vector3d better_clouds$tempVector = new Vector3d();
 
     @Unique
-    private Renderer better_clouds$cloudRenderer;
+    private OpenGLRenderer better_clouds$cloudRenderer;
     @Unique
     private Frustum better_clouds$frustum;
     @Shadow
@@ -53,11 +54,11 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
     @Inject(method = "<init>", at = @At("TAIL"))
     private void init(CallbackInfo ci) {
         if (glCompat.isIncompatible()) return;
-        better_clouds$cloudRenderer = new Renderer(Minecraft.getInstance());
+        better_clouds$cloudRenderer = new OpenGLRenderer(Minecraft.getInstance());
     }
 
     @Override
-    public Renderer betterclouds$getRenderer() {
+    public OpenGLRenderer betterclouds$getRenderer() {
         return better_clouds$cloudRenderer;
     }
 
@@ -118,15 +119,15 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
             tickDelta = 0;
         }
 
-        Renderer.PrepareResult prepareResult = better_clouds$cloudRenderer.prepare(viewMat, projMat, ticks, tickDelta, cam);
+        PrepareResult prepareResult = better_clouds$cloudRenderer.prepare(viewMat, projMat, ticks, tickDelta, cam);
         if (RenderDoc.isFrameCapturing())
             glCompat.debugMessage("renderer prepare returned " + prepareResult.name());
 
-        if (prepareResult != Renderer.PrepareResult.FALLBACK)
+        if (prepareResult != PrepareResult.FALLBACK)
             ci.cancel();
 
         // Note to self: do not use return
-        if (prepareResult == Renderer.PrepareResult.RENDER) {
+        if (prepareResult == PrepareResult.RENDER) {
             var renderPass = frameGraphBuilder.addPass("clouds");
             if (targets.clouds != null) {
                 targets.clouds = renderPass.readsAndWrites(targets.clouds);

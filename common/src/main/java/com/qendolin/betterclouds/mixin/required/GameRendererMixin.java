@@ -3,7 +3,7 @@ package com.qendolin.betterclouds.mixin.required;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.qendolin.betterclouds.compat.IrisCompat;
-import com.qendolin.betterclouds.util.RenderHelper;
+import com.qendolin.betterclouds.rendering.opengl.RenderHelper;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.GameRenderer;
 import org.joml.Matrix4f;

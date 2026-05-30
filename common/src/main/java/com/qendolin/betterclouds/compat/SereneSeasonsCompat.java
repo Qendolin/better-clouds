@@ -1,7 +1,7 @@
 package com.qendolin.betterclouds.compat;
 
 import com.qendolin.betterclouds.BetterCloudsStatic;
-import com.qendolin.betterclouds.config.SereneSeasonsConfig;
+import com.qendolin.betterclouds.config.compat.SereneSeasonsConfig;
 import net.minecraft.world.level.Level;
 
 import java.util.Map;
