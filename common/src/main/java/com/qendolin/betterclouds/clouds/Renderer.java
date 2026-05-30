@@ -15,6 +15,7 @@ import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import com.qendolin.betterclouds.util.ChatUtil;
 import com.qendolin.betterclouds.util.MathUtil;
 import com.qendolin.betterclouds.util.RenderHelper;
+import net.minecraft.client.CloudStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.culling.Frustum;
@@ -93,7 +94,7 @@ public class Renderer implements AutoCloseable {
 
     // Used to be called isFancyMode
     private boolean useCubeClouds() {
-        return ConfigManager.instance().sizeY > 0;
+        return Minecraft.getInstance().options.getCloudStatus() == CloudStatus.FANCY && ConfigManager.instance().sizeY > 0;
     }
 
     private int scaledFramebufferWidth() {
