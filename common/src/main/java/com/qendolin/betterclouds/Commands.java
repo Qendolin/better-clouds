@@ -11,7 +11,7 @@ import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.config.gui.ConfigGUI;
 import com.qendolin.betterclouds.renderdoc.*;
 import com.qendolin.betterclouds.rendering.GraphicsCompat;
-import com.qendolin.betterclouds.rendering.debug.Debug;
+import com.qendolin.betterclouds.rendering.opengl.Debug;
 import com.qendolin.betterclouds.util.ChatUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;

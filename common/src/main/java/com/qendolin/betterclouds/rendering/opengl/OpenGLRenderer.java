@@ -11,8 +11,6 @@ import com.qendolin.betterclouds.mixin.duck.BiomeManagerDuck;
 import com.qendolin.betterclouds.mixin.provider.*;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import com.qendolin.betterclouds.rendering.*;
-import com.qendolin.betterclouds.rendering.debug.Debug;
-import com.qendolin.betterclouds.rendering.debug.PerfTimer;
 import com.qendolin.betterclouds.rendering.opengl.internal.Mesh;
 import com.qendolin.betterclouds.rendering.opengl.shaders.ShaderParameters;
 import com.qendolin.betterclouds.util.ChatUtil;

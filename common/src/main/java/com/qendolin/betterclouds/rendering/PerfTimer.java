@@ -1,4 +1,4 @@
-package com.qendolin.betterclouds.rendering.debug;
+package com.qendolin.betterclouds.rendering;
 
 import net.minecraft.util.Mth;
 import org.jspecify.annotations.NonNull;
