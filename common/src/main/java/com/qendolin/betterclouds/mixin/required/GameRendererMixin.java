@@ -3,7 +3,7 @@ package com.qendolin.betterclouds.mixin.required;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.qendolin.betterclouds.compat.IrisCompat;
-import com.qendolin.betterclouds.rendering.opengl.RenderHelper;
+import com.qendolin.betterclouds.rendering.MatrixCapture;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.GameRenderer;
 import org.joml.Matrix4f;
@@ -26,16 +26,16 @@ public abstract class GameRendererMixin {
     private void captureCloudPassMatrices(
             DeltaTracker deltaTracker,
             CallbackInfo ci,
-            @Local(name = "modelViewMatrix") Matrix4fc viewMatrix,
+            @Local(name = "modelViewMatrix") Matrix4fc modelViewMatrix,
             @Local(name = "projectionMatrix") Matrix4f projectionMatrix,
             @Local(name = "bobStack") PoseStack bobStack
     ) {
-        Matrix4f capturedViewMatrix = new Matrix4f(viewMatrix);
+        Matrix4f capturedViewMatrix = new Matrix4f(modelViewMatrix);
         if (IrisCompat.instance().isShadersEnabled()) {
-            // Iris moves bob/hurt from the projection matrix onto the model-view matrix right before LevelRenderer.renderLevel.
+            // Iris moves bob/hurt from the projection matrix onto the model-view matrix right before LevelRenderer.renderLevel
             capturedViewMatrix.mulLocal(bobStack.last().pose());
         }
-        RenderHelper.setViewMatrix(capturedViewMatrix);
-        RenderHelper.setProjectionMatrix(new Matrix4f(projectionMatrix));
+        MatrixCapture.capturedViewMat = capturedViewMatrix;
+        MatrixCapture.capturedProjMat = new Matrix4f(projectionMatrix);
     }
 }

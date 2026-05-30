@@ -8,9 +8,10 @@ import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.mixin.duck.WorldRendererDuck;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
+import com.qendolin.betterclouds.rendering.MatrixCapture;
 import com.qendolin.betterclouds.rendering.PrepareResult;
-import com.qendolin.betterclouds.rendering.opengl.*;
 import com.qendolin.betterclouds.rendering.opengl.Debug;
+import com.qendolin.betterclouds.rendering.opengl.OpenGLRenderer;
 import net.minecraft.client.*;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LevelRenderer;
@@ -54,7 +55,7 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
     }
 
     @Inject(at = @At("HEAD"), method = "render")
-    private void captureViewAndProjectionMatrix(GraphicsResourceAllocator resourceAllocator, DeltaTracker deltaTracker, boolean renderOutline, CameraRenderState cameraState, Matrix4fc modelViewMatrix, GpuBufferSlice terrainFog, Vector4f fogColor, boolean shouldRenderSky, CallbackInfo ci) {
+    private void captureFrustum(GraphicsResourceAllocator resourceAllocator, DeltaTracker deltaTracker, boolean renderOutline, CameraRenderState cameraState, Matrix4fc modelViewMatrix, GpuBufferSlice terrainFog, Vector4f fogColor, boolean shouldRenderSky, CallbackInfo ci) {
         better_clouds$frustum = cameraState.cullFrustum;
         Vec3 cameraPos = cameraState.pos;
         better_clouds$frustum.prepare(cameraPos.x, cameraPos.y, cameraPos.z);
@@ -85,10 +86,6 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
     private void better_clouds$renderCloudsInternal(FrameGraphBuilder frameGraphBuilder, Vec3 cameraPos, long gameTime, float ticksInput, CallbackInfo ci) {
         double camX = cameraPos.x, camY = cameraPos.y, camZ = cameraPos.z;
         float tickDelta = Mth.frac(ticksInput);
-        Matrix4f viewMat = RenderHelper.getViewMatrix();
-        Matrix4f projMat = RenderHelper.getProjectionMatrix();
-        RenderHelper.setProjectionMatrix(new Matrix4f(projMat));
-        RenderHelper.setViewMatrix(new Matrix4f(viewMat));
         if (better_clouds$cloudRenderer == null) return;
         if (instance.isIncompatible()) return;
         ClientLevel level = Minecraft.getInstance().level;
@@ -110,7 +107,7 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
             tickDelta = 0;
         }
 
-        PrepareResult prepareResult = better_clouds$cloudRenderer.prepare(viewMat, projMat, ticks, tickDelta, cam);
+        PrepareResult prepareResult = better_clouds$cloudRenderer.prepare(MatrixCapture.capturedViewMat, MatrixCapture.capturedProjMat, ticks, tickDelta, cam);
         if (RenderDoc.isFrameCapturing())
             instance.debugMessage("renderer prepare returned " + prepareResult.name());
 

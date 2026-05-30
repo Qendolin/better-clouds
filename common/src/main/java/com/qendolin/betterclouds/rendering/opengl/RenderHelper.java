@@ -4,7 +4,6 @@ import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.opengl.GlTexture;
 import com.mojang.blaze3d.textures.GpuTexture;
 import net.minecraft.client.renderer.texture.AbstractTexture;
-import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL32;
 
 import java.lang.reflect.Method;
@@ -13,8 +12,6 @@ import java.nio.ByteBuffer;
 public abstract class RenderHelper {
 
     private static final ByteBuffer colorMaskBuffer = ByteBuffer.allocateDirect(4);
-    private static Matrix4f projectionMatrix = new Matrix4f().identity();
-    private static Matrix4f viewMatrix = new Matrix4f().identity();
     private static FogDataAndColor fogDataAndColor = null;
     private static int savedShaderId = 0;
 
@@ -83,22 +80,6 @@ public abstract class RenderHelper {
 
     public static void restoreDepthMask() {
         depthMask(savedDepthMask);
-    }
-
-    public static Matrix4f getProjectionMatrix() {
-        return projectionMatrix;
-    }
-
-    public static void setProjectionMatrix(Matrix4f matrix) {
-        projectionMatrix = matrix;
-    }
-
-    public static Matrix4f getViewMatrix() {
-        return viewMatrix;
-    }
-
-    public static void setViewMatrix(Matrix4f matrix) {
-        viewMatrix = matrix;
     }
 
     public static FogDataAndColor getFogDataAndColor() {
