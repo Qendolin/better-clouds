@@ -240,17 +240,6 @@ ij_java_wrap_comments = false
 ij_java_wrap_first_method_in_call_chain = false
 ij_java_wrap_long_lines = false
 
-[*.nbtt]
-max_line_length = 150
-ij_continuation_indent_size = 4
-ij_nbtt_keep_indents_on_empty_lines = false
-ij_nbtt_space_after_colon = true
-ij_nbtt_space_after_comma = true
-ij_nbtt_space_before_colon = true
-ij_nbtt_space_before_comma = false
-ij_nbtt_spaces_within_brackets = false
-ij_nbtt_spaces_within_parentheses = false
-
 [*.properties]
 ij_properties_align_group_field_declarations = false
 
@@ -261,15 +250,6 @@ ij_editorconfig_space_after_comma = true
 ij_editorconfig_space_before_colon = false
 ij_editorconfig_space_before_comma = false
 ij_editorconfig_spaces_around_assignment_operators = true
-
-[{*.bash,*.zsh,*.sh}]
-indent_size = 2
-tab_width = 2
-ij_shell_binary_ops_start_line = false
-ij_shell_keep_column_alignment_padding = false
-ij_shell_minify_program = false
-ij_shell_redirect_followed_by_space = false
-ij_shell_switch_cases_indented = false
 
 [{*.gant,*.groovy,*.gradle,*.gdsl,*.gy}]
 ij_groovy_align_group_field_declarations = false

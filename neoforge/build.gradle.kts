@@ -67,7 +67,7 @@ val commonResources by configurations.creating {
 dependencies {
     add(commonJava.name, project(mapOf("path" to ":common", "configuration" to "commonJava")))
     add(commonResources.name, project(mapOf("path" to ":common", "configuration" to "commonResources")))
-    implementation(project(":common")) // IDE syntax highlighting can discover :common.
+    implementation(project(":common")) // so IDE syntax highlighting can discover stuff in :common
 
     annotationProcessor("io.github.llamalad7:mixinextras-common:${property("deps.mixin_extras")}")
     compileOnly("org.ow2.asm:asm-tree:9.8")
@@ -81,7 +81,7 @@ dependencies {
     annotationProcessor("com.google.guava:guava:33.5.0-jre")
     compileOnly("org.apache.maven:maven-artifact:3.9.9")
 
-    // Compile common GUI code against Yarn-named YACL classes, but run NeoForge with the NeoForge artifact.
+    // Compile common GUI code against Yarn-named YACL classes, but run NeoForge with the NeoForge artifact
     compileOnly("maven.modrinth:1eAoo2KR:${property("deps.yacl")}")
     runtimeOnly("maven.modrinth:1eAoo2KR:${property("deps.yacl_neoforge")}")
 
@@ -89,7 +89,7 @@ dependencies {
     implementation(jarJar("com.github.bawnorton.mixinsquared:mixinsquared-neoforge:0.3.7-beta.1")!!)
     implementation("io.github.llamalad7:mixinextras-neoforge:${property("deps.mixin_extras")}")
 
-    // These should be included with yacl, but it does not work correctly, so adding them here.
+    // these should be included with yacl, but it doesnt work correctly, so adding them here
     runtimeOnly("org.quiltmc.parsers:json:0.3.0")
     runtimeOnly("org.quiltmc.parsers:gson:0.3.0")
 
@@ -128,7 +128,7 @@ tasks.named<ProcessResources>("processResources") {
     dependsOn(commonResources)
     from(commonResources)
 
-    val props = mutableMapOf<String, Any>(
+    val props = mutableMapOf(
             "version" to project.version,
             "loader" to loader,
     )
