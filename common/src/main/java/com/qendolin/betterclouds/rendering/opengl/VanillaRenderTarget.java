@@ -1,4 +1,4 @@
-package com.qendolin.betterclouds.rendering;
+package com.qendolin.betterclouds.rendering.opengl;
 
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;

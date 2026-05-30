@@ -33,8 +33,7 @@ import java.util.*;
 import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
 import static org.lwjgl.opengl.GL32.*;
 
-public class OpenGLRenderer implements CloudRenderer {
-    private final Minecraft client;
+public class OpenGLRenderer extends CloudRenderer {
     private final Matrix4f mvpMatrix = new Matrix4f();
     private final Matrix4f mvMatrix = new Matrix4f();
     private final Matrix4f pMatrix = new Matrix4f();
@@ -50,7 +49,7 @@ public class OpenGLRenderer implements CloudRenderer {
     private ShaderParameters shaderParameters = null;
 
     public OpenGLRenderer(Minecraft client) {
-        this.client = client;
+        super(client);
     }
 
     private static void setFrustumTo(Frustum dst, Frustum src) {
@@ -112,7 +111,6 @@ public class OpenGLRenderer implements CloudRenderer {
     }
 
     public @NonNull PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, int ticks, float tickDelta, Vector3d cam) {
-
         assert RenderSystem.isOnRenderThread();
         getProfiler().popPush("render_setup");
         Config config = ConfigManager.instance();
@@ -374,7 +372,6 @@ public class OpenGLRenderer implements CloudRenderer {
     }
 
     private void drawCloudsWithFrustumCulling(Frustum frustumAtOrigin, Config config) {
-
         // This algorithm loops over chunks, which are in a line-by-line order.
         // When a visible chunk is found it's marked as a run start. The run continues until
         // the next non-visible chunk is found. At the end of a run the entire run is rendered as once.

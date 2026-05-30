@@ -3,7 +3,7 @@ package com.qendolin.betterclouds.mixin.required;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.qendolin.betterclouds.compat.IrisCompat;
-import com.qendolin.betterclouds.rendering.MatrixCapture;
+import com.qendolin.betterclouds.rendering.CloudRenderCoordinator;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.GameRenderer;
 import org.joml.Matrix4f;
@@ -35,7 +35,6 @@ public abstract class GameRendererMixin {
             // Iris moves bob/hurt from the projection matrix onto the model-view matrix right before LevelRenderer.renderLevel
             capturedViewMatrix.mulLocal(bobStack.last().pose());
         }
-        MatrixCapture.capturedViewMat = capturedViewMatrix;
-        MatrixCapture.capturedProjMat = new Matrix4f(projectionMatrix);
+        CloudRenderCoordinator.instance.captureMatrices(capturedViewMatrix, projectionMatrix);
     }
 }

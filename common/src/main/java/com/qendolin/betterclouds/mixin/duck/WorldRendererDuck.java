@@ -1,8 +1,8 @@
 package com.qendolin.betterclouds.mixin.duck;
 
-import com.qendolin.betterclouds.rendering.opengl.OpenGLRenderer;
+import com.qendolin.betterclouds.rendering.CloudRenderer;
 
 public interface WorldRendererDuck {
-    OpenGLRenderer betterclouds$getRenderer();
+    CloudRenderer betterclouds$getRenderer();
 
 }

@@ -3,6 +3,7 @@ package com.qendolin.betterclouds.rendering.opengl;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.datafixers.util.Pair;
 import com.qendolin.betterclouds.compat.GLCompat;
+import com.qendolin.betterclouds.rendering.CloudRenderCoordinator;
 import com.qendolin.betterclouds.rendering.GraphicsCompat;
 import net.minecraft.world.phys.AABB;
 import org.joml.Vector3d;
@@ -58,8 +59,8 @@ public class Debug {
             drawFrustumCulledBoxes(vertices, cam);
 
             res.debugShader().bind();
-            res.debugShader().uModelViewMatrix.setMat4(RenderHelper.getViewMatrix());
-            res.debugShader().uProjectionMatrix.setMat4(RenderHelper.getProjectionMatrix());
+            res.debugShader().uModelViewMatrix.setMat4(CloudRenderCoordinator.instance.capturedViewMat);
+            res.debugShader().uProjectionMatrix.setMat4(CloudRenderCoordinator.instance.capturedProjMat);
 
             MeshData built = vertices.build();
             if (built != null) {
