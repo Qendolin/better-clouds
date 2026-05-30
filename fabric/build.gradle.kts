@@ -65,8 +65,10 @@ dependencies {
     implementation(mcloApi)
     include(mcloApi)
 
-    compileOnly("maven.modrinth:1eAoo2KR:${property("deps.yacl")}")
-    compileOnly("com.terraformersmc:modmenu:${property("deps.modmenu")}")
+    implementation("com.terraformersmc:modmenu:${property("deps.modmenu")}")
+    implementation("maven.modrinth:1eAoo2KR:${property("deps.yacl")}")
+
+    compileOnly("maven.modrinth:4lDrPSXX:${property("deps.longview")}")
     compileOnly("maven.modrinth:Xs0XTOVv:${property("deps.distanthorizons_api")}")
     compileOnly("maven.modrinth:e0bNACJD:${property("deps.serene_seasons")}")
     compileOnly("maven.modrinth:2rL16t1O:${property("deps.enhanced_celestials")}-fabric")

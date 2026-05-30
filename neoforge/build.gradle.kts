@@ -1,8 +1,3 @@
-import org.gradle.api.tasks.SourceSetContainer
-import org.gradle.api.tasks.bundling.Jar
-import org.gradle.api.tasks.compile.JavaCompile
-import org.gradle.language.jvm.tasks.ProcessResources
-
 plugins {
     `java-library`
     id("net.neoforged.moddev") version "2.0.141"
@@ -107,6 +102,7 @@ dependencies {
     }
 
     implementation("gs.mclo:api:${property("deps.mclo_api")}")
+    compileOnly("maven.modrinth:4lDrPSXX:${property("deps.longview")}")
     compileOnly("maven.modrinth:Xs0XTOVv:${property("deps.distanthorizons_api")}")
     compileOnly("maven.modrinth:e0bNACJD:${property("deps.serene_seasons")}")
     compileOnly("maven.modrinth:2rL16t1O:${property("deps.enhanced_celestials")}-neoforge")
@@ -119,12 +115,12 @@ dependencies {
 tasks.named<JavaCompile>("compileJava") {
     dependsOn(commonJava)
     source(
-        commonJava.asFileTree.matching {
-            exclude(
-                "com/qendolin/betterclouds/compat/EnhancedCelestials2CompatImpl.java",
-                "com/qendolin/betterclouds/mixin/runtime/SodiumGameOptionPagesMixin.java",
-            )
-        },
+            commonJava.asFileTree.matching {
+                exclude(
+                        "com/qendolin/betterclouds/compat/EnhancedCelestials2CompatImpl.java",
+                        "com/qendolin/betterclouds/mixin/runtime/SodiumGameOptionPagesMixin.java",
+                )
+            },
     )
 }
 
@@ -133,8 +129,8 @@ tasks.named<ProcessResources>("processResources") {
     from(commonResources)
 
     val props = mutableMapOf<String, Any>(
-        "version" to project.version,
-        "loader" to loader,
+            "version" to project.version,
+            "loader" to loader,
     )
     props["mc_version_range"] = findProperty("deps.minecraft").toString().split(",").joinToString(",") {
         "[$it,)"
