@@ -1,9 +1,7 @@
 package com.qendolin.betterclouds.util;
 
 import net.minecraft.util.Mth;
-import org.joml.Matrix4d;
-import org.joml.Vector2d;
-import org.joml.Vector4d;
+import org.joml.*;
 
 public interface MathUtil {
 

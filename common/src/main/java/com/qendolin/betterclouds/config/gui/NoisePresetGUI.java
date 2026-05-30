@@ -4,9 +4,7 @@ import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.preset.NoisePresetConfig;
 import com.qendolin.betterclouds.gui.CustomButtonOption;
 import com.qendolin.betterclouds.gui.SelectDropdownController;
-import com.qendolin.betterclouds.mixin.duck.ListOptionDuck;
-import com.qendolin.betterclouds.mixin.duck.OptionDuck;
-import com.qendolin.betterclouds.mixin.duck.StringControllerDuck;
+import com.qendolin.betterclouds.mixin.duck.*;
 import com.qendolin.betterclouds.util.Tuple;
 import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.api.controller.StringControllerBuilder;
@@ -15,9 +13,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import static com.qendolin.betterclouds.config.gui.ConfigGUI.*;
 

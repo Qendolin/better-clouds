@@ -1,9 +1,7 @@
 package com.qendolin.betterclouds.config.gui;
 
 import com.qendolin.betterclouds.config.Config;
-import dev.isxander.yacl3.api.ListOption;
-import dev.isxander.yacl3.api.OptionDescription;
-import dev.isxander.yacl3.api.StateManager;
+import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.api.controller.StringControllerBuilder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;

@@ -2,8 +2,8 @@ package com.qendolin.betterclouds.rendering.debug;
 
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.datafixers.util.Pair;
-import com.qendolin.betterclouds.rendering.opengl.Resources;
 import com.qendolin.betterclouds.rendering.opengl.RenderHelper;
+import com.qendolin.betterclouds.rendering.opengl.Resources;
 import net.minecraft.world.phys.AABB;
 import org.joml.Vector3d;
 import org.lwjgl.opengl.GL32;

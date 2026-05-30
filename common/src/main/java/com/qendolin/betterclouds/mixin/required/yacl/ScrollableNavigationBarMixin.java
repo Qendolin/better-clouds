@@ -1,6 +1,5 @@
 package com.qendolin.betterclouds.mixin.required.yacl;
 
-import com.qendolin.betterclouds.gui.ConfigScreen;
 import com.qendolin.betterclouds.gui.CustomScrollableNavigationBar;
 import dev.isxander.yacl3.gui.tab.ScrollableNavigationBar;
 import net.minecraft.client.Minecraft;

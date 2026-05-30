@@ -20,8 +20,8 @@ public abstract class FabricSeasonsCompat {
 
     private static final AtomicBoolean initialized = new AtomicBoolean(false);
     private static final ModVersion.SemVer MINIMUM_VERSION = new ModVersion.SemVer(2, 4, 0);
+    private static final boolean isActive = false;
     private static FabricSeasonsCompat instance;
-    private static boolean isActive = false;
 
     public static void initialize() {
         if (initialized.getAndSet(true)) return;

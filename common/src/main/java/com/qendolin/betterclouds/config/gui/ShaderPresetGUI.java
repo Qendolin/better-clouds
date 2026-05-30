@@ -2,9 +2,7 @@ package com.qendolin.betterclouds.config.gui;
 
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.compat.ShaderPresetConfig;
-import com.qendolin.betterclouds.gui.CustomButtonOption;
-import com.qendolin.betterclouds.gui.CustomIntegerFieldController;
-import com.qendolin.betterclouds.gui.SelectDropdownController;
+import com.qendolin.betterclouds.gui.*;
 import com.qendolin.betterclouds.mixin.duck.OptionDuck;
 import com.qendolin.betterclouds.mixin.duck.StringControllerDuck;
 import com.qendolin.betterclouds.util.Tuple;

@@ -1,10 +1,7 @@
 package com.qendolin.betterclouds;
 
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.ArgumentType;
-import com.mojang.brigadier.arguments.BoolArgumentType;
-import com.mojang.brigadier.arguments.FloatArgumentType;
-import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.*;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -12,9 +9,7 @@ import com.mojang.serialization.Codec;
 import com.qendolin.betterclouds.compat.GLCompat;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.config.gui.ConfigGUI;
-import com.qendolin.betterclouds.renderdoc.CaptureManager;
-import com.qendolin.betterclouds.renderdoc.RenderDoc;
-import com.qendolin.betterclouds.renderdoc.RenderDocLoader;
+import com.qendolin.betterclouds.renderdoc.*;
 import com.qendolin.betterclouds.rendering.debug.Debug;
 import com.qendolin.betterclouds.util.ChatUtil;
 import net.minecraft.ChatFormatting;

@@ -3,9 +3,7 @@ package com.qendolin.betterclouds.mixin.required.yacl;
 import com.qendolin.betterclouds.mixin.duck.OptionDuck;
 import dev.isxander.yacl3.api.OptionDescription;
 import dev.isxander.yacl3.impl.OptionImpl;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.*;
 
 @Mixin(OptionImpl.class)
 public class OptionMixin implements OptionDuck {

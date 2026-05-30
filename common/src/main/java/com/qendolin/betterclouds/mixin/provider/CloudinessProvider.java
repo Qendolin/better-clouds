@@ -1,8 +1,6 @@
 package com.qendolin.betterclouds.mixin.provider;
 
-import com.qendolin.betterclouds.compat.FabricSeasonsCompat;
-import com.qendolin.betterclouds.compat.ModLoaded;
-import com.qendolin.betterclouds.compat.SereneSeasonsCompat;
+import com.qendolin.betterclouds.compat.*;
 import com.qendolin.betterclouds.mixin.duck.WorldDuck;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.util.Mth;

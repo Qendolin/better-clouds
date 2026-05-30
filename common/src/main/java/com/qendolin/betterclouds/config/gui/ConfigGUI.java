@@ -3,9 +3,7 @@ package com.qendolin.betterclouds.config.gui;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
-import com.qendolin.betterclouds.gui.ConfigScreen;
-import com.qendolin.betterclouds.gui.OptionGroupBuilderWrapper;
-import com.qendolin.betterclouds.gui.YACLOptionBuilder;
+import com.qendolin.betterclouds.gui.*;
 import com.qendolin.betterclouds.mixin.runtime.SimpleOptionAccessor;
 import com.qendolin.betterclouds.util.Tuple;
 import dev.isxander.yacl3.api.*;
@@ -20,10 +18,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
 
 public class ConfigGUI {

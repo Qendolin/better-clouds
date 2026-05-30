@@ -4,12 +4,8 @@ import com.google.gson.*;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.compat.BigGlobeCompat;
 import com.qendolin.betterclouds.compat.MiddleEarthCompat;
-import com.qendolin.betterclouds.config.compat.FabricSeasonsConfig;
-import com.qendolin.betterclouds.config.compat.SereneSeasonsConfig;
-import com.qendolin.betterclouds.config.compat.ShaderPresetConfig;
-import com.qendolin.betterclouds.config.preset.AbstractPresetConfig;
-import com.qendolin.betterclouds.config.preset.NoisePresetConfig;
-import com.qendolin.betterclouds.config.preset.PresetLoader;
+import com.qendolin.betterclouds.config.compat.*;
+import com.qendolin.betterclouds.config.preset.*;
 import com.qendolin.betterclouds.util.PreLaunchGuard;
 import dev.isxander.yacl3.api.NameableEnum;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
@@ -25,10 +21,7 @@ import net.minecraft.world.level.dimension.DimensionType;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Config {
     public static final String DEFAULT_PRESET_KEY = "default";

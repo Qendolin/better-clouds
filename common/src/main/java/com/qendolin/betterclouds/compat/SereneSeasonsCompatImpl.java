@@ -99,22 +99,8 @@ public class SereneSeasonsCompatImpl extends SereneSeasonsCompat {
         }
     }
 
-    private static final class Api {
-        private final Method getSeasonState;
-        private final Method getSubSeason;
-        private final Method getSeasonCycleTicks;
-        private final Method getSubSeasonDuration;
-        private final Method getDayDuration;
-        private final Object[] subSeasons;
-
-        private Api(Method getSeasonState, Method getSubSeason, Method getSeasonCycleTicks, Method getSubSeasonDuration, Method getDayDuration, Object[] subSeasons) {
-            this.getSeasonState = getSeasonState;
-            this.getSubSeason = getSubSeason;
-            this.getSeasonCycleTicks = getSeasonCycleTicks;
-            this.getSubSeasonDuration = getSubSeasonDuration;
-            this.getDayDuration = getDayDuration;
-            this.subSeasons = subSeasons;
-        }
+    private record Api(Method getSeasonState, Method getSubSeason, Method getSeasonCycleTicks,
+                       Method getSubSeasonDuration, Method getDayDuration, Object[] subSeasons) {
 
         private static Api load() {
             try {
