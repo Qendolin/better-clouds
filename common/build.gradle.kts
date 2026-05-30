@@ -1,6 +1,3 @@
-import org.gradle.api.tasks.compile.JavaCompile
-import org.gradle.api.tasks.testing.Test
-
 plugins {
     id("net.fabricmc.fabric-loom")
     `java-library`
@@ -30,6 +27,7 @@ dependencies {
 
     compileOnly("maven.modrinth:1eAoo2KR:${property("deps.yacl")}")
     compileOnly("maven.modrinth:YL57xq9U:${property("deps.iris")}-fabric")
+    compileOnly("maven.modrinth:4lDrPSXX:${property("deps.longview")}")
     compileOnly("gs.mclo:api:${property("deps.mclo_api")}")
     compileOnly("maven.modrinth:Xs0XTOVv:${property("deps.distanthorizons_api")}")
 

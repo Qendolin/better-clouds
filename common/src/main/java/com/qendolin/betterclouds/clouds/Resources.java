@@ -328,12 +328,7 @@ public class Resources implements Closeable {
         depthShader.uDepthTexture.setInt(6);
         glCompat.objectLabelDev(glCompat.GL_PROGRAM, depthShader.glId(), "depth");
 
-        coverageShader = CoverageShader.create(manager,
-                shaderParameters.configSizeXZ(),
-                shaderParameters.configSizeY(),
-                shaderParameters.useStencilTextureFallback(),
-                shaderParameters.useDistantHorizonsCompat(),
-                shaderParameters.worldCurvatureSize());
+        coverageShader = CoverageShader.create(manager, shaderParameters);
         coverageShader.bind();
         coverageShader.uDepthTexture.setInt(0);
         coverageShader.uNoiseTexture.setInt(5);

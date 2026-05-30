@@ -13,6 +13,7 @@ public class CoverageShader extends Shader {
     public static final String DEF_SIZE_Y_KEY = "_SIZE_Y_";
     public static final String DEF_POSITIONAL_COLORING = "_POSITIONAL_COLORING_";
     public static final String DEF_DISTANT_HORIZONS = "_DISTANT_HORIZONS_";
+    public static final String DEF_LONGVIEW = "_LONGVIEW_";
     public static final String DEF_WORLD_CURVATURE = "_WORLD_CURVATURE_";
 
     public static final Identifier VERTEX_SHADER_ID = Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "shaders/core/betterclouds_coverage.vsh");
@@ -49,13 +50,14 @@ public class CoverageShader extends Shader {
         uFogRange = getUniform("u_fog_range", true);
     }
 
-    public static CoverageShader create(ResourceManager manager, float sizeXZ, float sizeY, boolean stencilFallback, boolean dhCompat, int worldCurvatureSize) throws IOException {
+    public static CoverageShader create(ResourceManager manager, ShaderParameters shaderParameters) throws IOException {
         Map<String, String> defs = ImmutableMap.ofEntries(
-                Map.entry(CoverageShader.DEF_SIZE_XZ_KEY, Float.toString(sizeXZ)),
-                Map.entry(CoverageShader.DEF_SIZE_Y_KEY, Float.toString(sizeY)),
-                Map.entry(CoverageShader.DEF_POSITIONAL_COLORING, stencilFallback ? "0" : "1"),
-                Map.entry(CoverageShader.DEF_DISTANT_HORIZONS, dhCompat ? "1" : "0"),
-                Map.entry(CoverageShader.DEF_WORLD_CURVATURE, Integer.toString(worldCurvatureSize))
+                Map.entry(CoverageShader.DEF_SIZE_XZ_KEY, Float.toString(shaderParameters.configSizeXZ())),
+                Map.entry(CoverageShader.DEF_SIZE_Y_KEY, Float.toString(shaderParameters.configSizeY())),
+                Map.entry(CoverageShader.DEF_POSITIONAL_COLORING, shaderParameters.useStencilTextureFallback() ? "0" : "1"),
+                Map.entry(CoverageShader.DEF_DISTANT_HORIZONS, shaderParameters.useDistantHorizonsCompat() ? "1" : "0"),
+                Map.entry(CoverageShader.DEF_LONGVIEW, shaderParameters.useLongviewCompat() ? "1" : "0"),
+                Map.entry(CoverageShader.DEF_WORLD_CURVATURE, Integer.toString(shaderParameters.worldCurvatureSize()))
         );
         return new CoverageShader(manager, defs);
     }

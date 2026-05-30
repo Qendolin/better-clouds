@@ -3,6 +3,7 @@
 #extension GL_ARB_separate_shader_objects: enable
 
 #define DISTANT_HORIZONS _DISTANT_HORIZONS_
+#define LONGVIEW _LONGVIEW_
 
 const float dither_matrix[16] = float[](
 0.0, 0.5, 0.125, 0.625,
@@ -31,7 +32,11 @@ void main() {
     out_one = 0.0;
 
     float depth = texelFetch(u_depth_texture, ivec2(gl_FragCoord.xy), 0).r;
+    #if LONGVIEW
+    if (max(gl_FragCoord.z, -1) < depth) discard;   // max with zero could be possible with another variable, but i'm too lazy to implement
+    #else
     if (min(gl_FragCoord.z, 1.0) > depth) discard;
+    #endif
 
     #if DISTANT_HORIZONS
     // pass_dh_depth is always 0 if the depth texture cloud not be set.

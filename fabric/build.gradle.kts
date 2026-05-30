@@ -1,8 +1,4 @@
 import net.fabricmc.loom.task.prod.ClientProductionRunTask
-import org.gradle.api.tasks.SourceSetContainer
-import org.gradle.api.tasks.compile.JavaCompile
-import org.gradle.api.tasks.bundling.Jar
-import org.gradle.language.jvm.tasks.ProcessResources
 
 plugins {
     id("net.fabricmc.fabric-loom")
@@ -55,9 +51,6 @@ dependencies {
     implementation("net.fabricmc:fabric-loader:${property("loader.fabric")}")
     implementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
 
-    implementation("com.terraformersmc:modmenu:${property("deps.modmenu")}")
-    implementation("maven.modrinth:1eAoo2KR:${property("deps.yacl")}")
-
     compileOnly("maven.modrinth:KJe6y9Eu:${property("deps.fabric_seasons")}")
 
     val mixinSquared = "com.github.bawnorton.mixinsquared:mixinsquared-$loader:${property("deps.mixinsquared")}"
@@ -71,6 +64,9 @@ dependencies {
     val mcloApi = "gs.mclo:api:${property("deps.mclo_api")}"
     implementation(mcloApi)
     include(mcloApi)
+
+    compileOnly("maven.modrinth:1eAoo2KR:${property("deps.yacl")}")
+    compileOnly("com.terraformersmc:modmenu:${property("deps.modmenu")}")
     compileOnly("maven.modrinth:Xs0XTOVv:${property("deps.distanthorizons_api")}")
     compileOnly("maven.modrinth:e0bNACJD:${property("deps.serene_seasons")}")
     compileOnly("maven.modrinth:2rL16t1O:${property("deps.enhanced_celestials")}-fabric")
@@ -88,14 +84,14 @@ tasks.register<ClientProductionRunTask>("runGameTest") {
 
 tasks.named<ProcessResources>("processResources") {
     val props = mutableMapOf<String, Any>(
-        "version" to project.version,
-        "loader" to loader,
+            "version" to project.version,
+            "loader" to loader,
     )
     props["mc_version_range"] = findProperty("deps.minecraft").toString()
-        .replace("-rc-", "-rc.")
-        .replace("-pre-", "-pre.")
-        .split(",")
-        .joinToString(", ") { "\"~$it\"" }
+            .replace("-rc-", "-rc.")
+            .replace("-pre-", "-pre.")
+            .split(",")
+            .joinToString(", ") { "\"~$it\"" }
 
     inputs.properties(props)
 

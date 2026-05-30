@@ -8,6 +8,7 @@ import com.qendolin.betterclouds.clouds.shaders.ShaderParameters;
 import com.qendolin.betterclouds.compat.ArsNouveauCompat;
 import com.qendolin.betterclouds.compat.DistantHorizonsCompat;
 import com.qendolin.betterclouds.compat.IrisCompat;
+import com.qendolin.betterclouds.compat.LongviewCompat;
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.duck.BiomeManagerDuck;
@@ -120,6 +121,7 @@ public class Renderer implements AutoCloseable {
                 config.blockDistance(), config.sizeXZ, config.sizeY, config.celestialBodyHalo,
                 glCompat.useDepthWriteFallback(), glCompat.useStencilTextureFallback(),
                 DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled(),
+                LongviewCompat.instance.isReverseZ(),
                 config.shaderPreset().worldCurvatureSize
         );
     }
@@ -228,7 +230,7 @@ public class Renderer implements AutoCloseable {
         GlStateManager._viewport(0, 0, res.fboWidth(), res.fboHeight());
         GlStateManager._glBindFramebuffer(GL_DRAW_FRAMEBUFFER, res.oitFbo());
         glClearColor(0, 0, 0, 0);
-        glClearDepth(1);
+        RenderHelper.clearDepth();
         drawCoverage(ticks + tickDelta, cam, frustumPos, frustum, fog);
 
         // Draw to game framebuffer
@@ -251,7 +253,7 @@ public class Renderer implements AutoCloseable {
         GlStateManager._enableDepthTest();
         RenderHelper.depthMask(true);
         RenderHelper.restoreDepthMask();
-        GlStateManager._depthFunc(GL_LEQUAL);
+        RenderHelper.depthFuncLEqual();
         GlStateManager._activeTexture(GL_TEXTURE0);
         RenderHelper.colorMask(true, true, true, true);
         RenderHelper.restoreColorMask();
@@ -297,7 +299,7 @@ public class Renderer implements AutoCloseable {
             glCompat.blendFunci(1, GL_ONE, GL_ONE);
             glDisable(GL_STENCIL_TEST);
         } else {
-            GlStateManager._depthFunc(GL_LEQUAL);
+            RenderHelper.depthFuncLEqual();
             GlStateManager._disableBlend();
             glEnable(GL_STENCIL_TEST);
             glStencilMask(0xff);
@@ -430,7 +432,7 @@ public class Renderer implements AutoCloseable {
 
     private void drawShading(float tickDelta, FogProvider.Fog fog, Vector3d cam) {
         Config config = ConfigManager.instance();
-        GlStateManager._depthFunc(GL_LEQUAL);
+        RenderHelper.depthFuncLEqual();
 
         if (!glCompat.useDepthWriteFallback()) {
             RenderHelper.depthMask(true);

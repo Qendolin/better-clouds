@@ -3,12 +3,17 @@ package com.qendolin.betterclouds.util;
 import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.opengl.GlTexture;
 import com.mojang.blaze3d.textures.GpuTexture;
+import com.qendolin.betterclouds.compat.LongviewCompat;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import org.joml.Matrix4f;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL32;
 
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
+
+import static org.lwjgl.opengl.GL11.GL_GEQUAL;
+import static org.lwjgl.opengl.GL11.GL_LEQUAL;
 
 public abstract class RenderHelper {
 
@@ -83,6 +88,17 @@ public abstract class RenderHelper {
 
     public static void restoreDepthMask() {
         depthMask(savedDepthMask);
+    }
+
+    public static void clearDepth() {
+        int depth = 1;
+        if (LongviewCompat.instance.isReverseZ())
+            depth = LongviewCompat.instance.isZClipped() ? 0 : -1;
+        GL11.glClearDepth(depth);
+    }
+
+    public static void depthFuncLEqual() {
+        GlStateManager._depthFunc(LongviewCompat.instance.isReverseZ() ? GL_GEQUAL : GL_LEQUAL);
     }
 
     public static Matrix4f getProjectionMatrix() {
