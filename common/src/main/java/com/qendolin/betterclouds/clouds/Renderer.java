@@ -228,7 +228,8 @@ public class Renderer implements AutoCloseable {
         GlStateManager._viewport(0, 0, res.fboWidth(), res.fboHeight());
         GlStateManager._glBindFramebuffer(GL_DRAW_FRAMEBUFFER, res.oitFbo());
         glClearColor(0, 0, 0, 0);
-        glClearDepth(1);
+        glClearDepth(0);
+        GlStateManager._depthFunc(GL_GEQUAL);
         drawCoverage(ticks + tickDelta, cam, frustumPos, frustum, fog);
 
         // Draw to game framebuffer
@@ -247,11 +248,11 @@ public class Renderer implements AutoCloseable {
         getProfiler().popPush("render_cleanup");
         rt.end();
         res.generator().unbind();
-        glDisable(GL_BLEND);
+        GlStateManager._disableBlend(0);
         GlStateManager._enableDepthTest();
         RenderHelper.depthMask(true);
         RenderHelper.restoreDepthMask();
-        GlStateManager._depthFunc(GL_LEQUAL);
+        GlStateManager._depthFunc(GL_GEQUAL);
         GlStateManager._activeTexture(GL_TEXTURE0);
         RenderHelper.colorMask(true, true, true, true);
         RenderHelper.restoreColorMask();
@@ -290,15 +291,15 @@ public class Renderer implements AutoCloseable {
 
         if (glCompat.useStencilTextureFallback()) {
             GlStateManager._depthFunc(GL_ALWAYS);
-            glEnable(GL_BLEND);
+            GlStateManager._enableBlend(0);
             glBlendEquation(GL_FUNC_ADD);
             // FIXME: buf0 needs depth sorting
             glCompat.blendFunci(0, GL_ONE, GL_ZERO);
             glCompat.blendFunci(1, GL_ONE, GL_ONE);
             glDisable(GL_STENCIL_TEST);
         } else {
-            GlStateManager._depthFunc(GL_LEQUAL);
-            glDisable(GL_BLEND);
+            GlStateManager._depthFunc(GL_GEQUAL);
+            GlStateManager._disableBlend(0);
             glEnable(GL_STENCIL_TEST);
             glStencilMask(0xff);
             glClearStencil(0);
@@ -430,7 +431,7 @@ public class Renderer implements AutoCloseable {
 
     private void drawShading(float tickDelta, FogProvider.Fog fog, Vector3d cam) {
         Config config = ConfigManager.instance();
-        GlStateManager._depthFunc(GL_LEQUAL);
+        GlStateManager._depthFunc(GL_GEQUAL);
 
         if (!glCompat.useDepthWriteFallback()) {
             RenderHelper.depthMask(true);
@@ -439,7 +440,7 @@ public class Renderer implements AutoCloseable {
             GlStateManager._disableDepthTest();
         }
 
-        glEnable(GL_BLEND);
+        GlStateManager._enableBlend(0);
         glBlendEquation(GL_FUNC_ADD);
         // sync up state manager state, can be desynced by use of blendFunci
         GlStateManager._blendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
