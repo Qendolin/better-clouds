@@ -9,7 +9,7 @@ import com.qendolin.betterclouds.mixin.duck.WorldRendererDuck;
 import com.qendolin.betterclouds.platform.EventHooks;
 import com.qendolin.betterclouds.platform.ModLoader;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
-import com.qendolin.betterclouds.rendering.opengl.OpenGLRenderer;
+import com.qendolin.betterclouds.rendering.CloudRenderer;
 import com.qendolin.betterclouds.util.*;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import net.minecraft.client.Minecraft;
@@ -90,7 +90,7 @@ public class BetterClouds extends BetterCloudsStatic {
     }
 
     @Nullable
-    public static OpenGLRenderer getCloudsRenderer() {
+    public static CloudRenderer getCloudsRenderer() {
         Minecraft client = Minecraft.getInstance();
         if (client.levelRenderer instanceof WorldRendererDuck duck) {
             return duck.betterclouds$getRenderer();

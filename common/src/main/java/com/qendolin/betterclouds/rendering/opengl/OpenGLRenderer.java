@@ -11,6 +11,7 @@ import com.qendolin.betterclouds.mixin.duck.BiomeManagerDuck;
 import com.qendolin.betterclouds.mixin.provider.*;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import com.qendolin.betterclouds.rendering.*;
+import com.qendolin.betterclouds.rendering.opengl.internal.Buffer;
 import com.qendolin.betterclouds.rendering.opengl.internal.Mesh;
 import com.qendolin.betterclouds.rendering.opengl.shaders.ShaderParameters;
 import com.qendolin.betterclouds.util.ChatUtil;
@@ -43,6 +44,7 @@ public class OpenGLRenderer extends CloudRenderer {
     private final Vector3f tempVector = new Vector3f();
     private final Frustum tempFrustum = new Frustum(new Matrix4f().identity(), new Matrix4f().identity());
     private final Resources res = new Resources();
+    private Buffer buffer;
     GLCompat glCompat = (GLCompat) GraphicsCompat.instance;
     private ClientLevel world = null;
     private float cloudsHeight;
@@ -72,6 +74,7 @@ public class OpenGLRenderer extends CloudRenderer {
         res.reloadShaders(manager, shaderParameters);
         BetterCloudsStatic.getLogger().debug("[2/6] Reloading generator");
         res.reloadGenerator(getWorldSeed(), useCubeClouds());
+        reloadBuffer(ConfigManager.instance(), useCubeClouds());
         BetterCloudsStatic.getLogger().debug("[3/6] Reloading textures");
         res.reloadTextures(client);
         BetterCloudsStatic.getLogger().debug("[4/6] Reloading primitive meshes");
@@ -98,6 +101,34 @@ public class OpenGLRenderer extends CloudRenderer {
 
     private int scaledFramebufferHeight() {
         return (int) (ConfigManager.instance().shaderPreset().upscaleResolutionFactor * client.gameRenderer.mainRenderTarget().height);
+    }
+
+    private static int calcBufferSize(Config options) {
+        int distance = options.blockDistance();
+        int size = Mth.floor(distance / options.spacing) + Mth.ceil(distance / options.spacing);
+        return size > 0 ? size : 8 * 16;
+    }
+
+    private void reloadBuffer(Config options, boolean fancy) {
+        if (buffer != null) buffer.close();
+        buffer = new Buffer(calcBufferSize(options), fancy, options.usePersistentBuffers);
+        buffer.unbind();
+    }
+
+    private boolean reallocateBufferIfStale(Config options, boolean fancy) {
+        if (buffer == null || buffer.hasChanged(calcBufferSize(options), fancy, options.usePersistentBuffers)) {
+            reloadBuffer(options, fancy);
+            return true;
+        }
+        return false;
+    }
+
+    private void uploadPointsToBuffer(List<ChunkedGenerator.Point> points) {
+        buffer.clear();
+        for (ChunkedGenerator.Point point : points) {
+            buffer.put(point.x(), point.y(), point.z());
+        }
+        buffer.swap();
     }
 
     private ShaderParameters createShaderParameters(Config config) {
@@ -132,13 +163,13 @@ public class OpenGLRenderer extends CloudRenderer {
 
         cloudsHeight = world.environmentAttributes().getValue(EnvironmentAttributes.CLOUD_HEIGHT, new Vec3(cam.x, cam.y, cam.z));
 
-        res.generator().bind();
+        boolean reallocatedBuffer = reallocateBufferIfStale(config, useCubeClouds());
+        buffer.bind();
         ShaderParameters currentShaderParameters = createShaderParameters(config);
         if (!Objects.equals(currentShaderParameters, shaderParameters)) {
             shaderParameters = currentShaderParameters;
             res.reloadShaders(client.getResourceManager(), shaderParameters);
         }
-        res.generator().reallocateIfStale(config, useCubeClouds());
 
         float cloudiness = CloudinessProvider.getCloudiness(client.level, tickDelta);
         Config options = ConfigManager.instance();
@@ -153,7 +184,12 @@ public class OpenGLRenderer extends CloudRenderer {
         if (res.generator().canSwap()) {
             getProfiler().popPush("swap");
             res.generator().swap();
+            uploadPointsToBuffer(res.generator().points());
+            reallocatedBuffer = false;
             getProfiler().popPush("render_setup");
+        }
+        if (reallocatedBuffer && res.generator().canRender()) {
+            uploadPointsToBuffer(res.generator().points());
         }
 
         // This is fixes issue #14, not entirely sure why, but it forces the matrix to be homogenous
@@ -235,7 +271,7 @@ public class OpenGLRenderer extends CloudRenderer {
         // Restore state
         getProfiler().popPush("render_cleanup");
         rt.end();
-        res.generator().unbind();
+        if (buffer != null) buffer.unbind();
         GlStateManager._disableBlend(0);
         GlStateManager._enableDepthTest();
         RenderHelper.depthMask(true);
@@ -342,9 +378,9 @@ public class OpenGLRenderer extends CloudRenderer {
         GlStateManager._activeTexture(GL_TEXTURE5);
         RenderHelper.bindTexture(client.getTextureManager().getTexture(Resources.NOISE_TEXTURE));
 
-        res.generator().bind();
+        buffer.bind();
         if (glCompat.useBaseInstanceFallback()) {
-            res.generator().buffer().bindDrawBuffer();
+            buffer.bindDrawBuffer();
         }
 
         setFrustumTo(tempFrustum, frustum);
@@ -384,9 +420,9 @@ public class OpenGLRenderer extends CloudRenderer {
                 Debug.addFrustumCulledBox(bounds, false);
                 if (runCount != 0) {
                     if (glCompat.useBaseInstanceFallback()) {
-                        res.generator().buffer().setVAPointerToInstance(runStart);
+                        buffer.setVAPointerToInstance(runStart);
                     }
-                    glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
+                    glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, buffer.instanceVertexCount(), runCount, runStart);
                 }
                 runStart = -1;
                 runCount = 0;
@@ -398,9 +434,9 @@ public class OpenGLRenderer extends CloudRenderer {
         }
         if (runCount != 0) {
             if (glCompat.useBaseInstanceFallback()) {
-                res.generator().buffer().setVAPointerToInstance(runStart);
+                buffer.setVAPointerToInstance(runStart);
             }
-            glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), runCount, runStart);
+            glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, buffer.instanceVertexCount(), runCount, runStart);
         }
     }
 
@@ -413,9 +449,9 @@ public class OpenGLRenderer extends CloudRenderer {
         int start = first.start();
         int count = last.start() + last.count();
         if (glCompat.useBaseInstanceFallback()) {
-            res.generator().buffer().setVAPointerToInstance(start);
+            buffer.setVAPointerToInstance(start);
         }
-        glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, res.generator().instanceVertexCount(), count, start);
+        glCompat.drawArraysInstancedBaseInstanceFallback(GL_TRIANGLE_STRIP, 0, buffer.instanceVertexCount(), count, start);
     }
 
     private void drawShading(float tickDelta, FogProvider.Fog fog, Vector3d cam) {
@@ -497,6 +533,10 @@ public class OpenGLRenderer extends CloudRenderer {
     }
 
     public void close() {
+        if (buffer != null) {
+            buffer.close();
+            buffer = null;
+        }
         res.close();
     }
 }

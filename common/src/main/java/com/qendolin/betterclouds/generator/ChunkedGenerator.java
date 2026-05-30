@@ -4,7 +4,6 @@ import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.rendering.opengl.Debug;
-import com.qendolin.betterclouds.rendering.opengl.internal.Buffer;
 import com.qendolin.betterclouds.util.ChatUtil;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -33,8 +32,6 @@ public class ChunkedGenerator implements AutoCloseable {
     private float lastTickIncrement = 1;
     private boolean queueCacheClear = false;
 
-    private Buffer buffer;
-    @Nullable
     private Task queuedTask;
     @Nullable
     private Task runningTask;
@@ -51,12 +48,6 @@ public class ChunkedGenerator implements AutoCloseable {
         int gridWidth = (int) (options.blockDistance() / options.spacing / options.chunkSize * 2);
         // default capacity: number of chunks in the grid + some extra for when camera position changes
         pointCache = options.useSamplerCaching ? new ChunkCache(gridWidth * gridWidth + gridWidth * 2) : new DummyCache();
-    }
-
-    private static int calcBufferSize(Config options) {
-        int distance = options.blockDistance();
-        int size = Mth.floor(distance / options.spacing) + Mth.ceil(distance / options.spacing);
-        return size > 0 ? size : 8 * 16;
     }
 
     private static int floorCloudChunk(double coord, int chunkSize) {
@@ -76,7 +67,7 @@ public class ChunkedGenerator implements AutoCloseable {
     }
 
     public synchronized boolean canRender() {
-        return completedTask != null;
+        return swappedTask != null;
     }
 
     public synchronized List<ChunkIndex> chunks() {
@@ -84,13 +75,9 @@ public class ChunkedGenerator implements AutoCloseable {
         return swappedTask.chunks();
     }
 
-    public Buffer buffer() {
-        return buffer;
-    }
-
-    public synchronized int instanceVertexCount() {
-        if (swappedTask == null) return 0;
-        return swappedTask.instanceVertexCount();
+    public synchronized List<Point> points() {
+        if (swappedTask == null) return List.of();
+        return swappedTask.points();
     }
 
     public double originX() {
@@ -123,28 +110,6 @@ public class ChunkedGenerator implements AutoCloseable {
     @Override
     public void close() {
         clear();
-        if (buffer != null) buffer.close();
-    }
-
-    public void bind() {
-        buffer.bind();
-    }
-
-    public void unbind() {
-        buffer.unbind();
-    }
-
-    @SuppressWarnings("UnusedReturnValue")
-    public synchronized boolean reallocateIfStale(Config options, boolean fancy) {
-        int bufferSize = calcBufferSize(options);
-
-        if (buffer.hasChanged(bufferSize, fancy, options.usePersistentBuffers)) {
-            clear();
-            buffer.close();
-            buffer = new Buffer(bufferSize, fancy, options.usePersistentBuffers);
-            return true;
-        }
-        return false;
     }
 
     public synchronized void clear() {
@@ -156,13 +121,6 @@ public class ChunkedGenerator implements AutoCloseable {
         runningTask = null;
         completedTask = null;
         swappedTask = null;
-    }
-
-    public synchronized void allocate(Config options, boolean fancy) {
-        clear();
-        int bufferSize = calcBufferSize(options);
-        if (buffer != null) buffer.close();
-        buffer = new Buffer(bufferSize, fancy, options.usePersistentBuffers);
     }
 
     public synchronized void update(Vector3d camera, long cloudTicks, int rendererTicks, float tickDelta, Config options, float cloudiness) {
@@ -193,13 +151,11 @@ public class ChunkedGenerator implements AutoCloseable {
             float prevCloudiness = prevTask.cloudiness();
             boolean cloudinessChanged = Math.ceil(cloudiness * 100) != Math.ceil(prevCloudiness * 100);
 
-            boolean bufferCleared = buffer.swapCount() == 0 && queuedTask == null && runningTask == null && (completedTask == null || completedTask == swappedTask);
-
             if (optionsChanged || cloudinessChanged) {
                 BetterCloudsStatic.getLogger().info((optionsChanged ? "Configuration" : "Cloudiness") + " changed, updating geometry");
                 queueCacheClear = true;
             }
-            updateGeometry = chunkChanged || optionsChanged || cloudinessChanged || bufferCleared;
+            updateGeometry = chunkChanged || optionsChanged || cloudinessChanged;
         } else {
             BetterCloudsStatic.getLogger().debug("No tasks, updating geometry");
             updateGeometry = true;
@@ -286,7 +242,6 @@ public class ChunkedGenerator implements AutoCloseable {
             return;
         }
 
-        completedTask.generator.buffer.swap();
         swappedTask = completedTask;
 
         if (Debug.isProfilingEnabled()) {
@@ -315,6 +270,7 @@ public class ChunkedGenerator implements AutoCloseable {
         private final AtomicBoolean cancelled = new AtomicBoolean();
         private final AtomicBoolean completed = new AtomicBoolean();
         private final List<ChunkIndex> chunks = new ArrayList<>();
+        private final List<Point> points = new ArrayList<>();
         private int cloudCount;
 
         private long startTime;
@@ -365,10 +321,6 @@ public class ChunkedGenerator implements AutoCloseable {
             return chunkZ;
         }
 
-        public int instanceVertexCount() {
-            return generator.buffer.instanceVertexCount();
-        }
-
         public Config options() {
             return options;
         }
@@ -379,6 +331,10 @@ public class ChunkedGenerator implements AutoCloseable {
 
         public List<ChunkIndex> chunks() {
             return chunks;
+        }
+
+        public List<Point> points() {
+            return points;
         }
 
         public boolean ran() {
@@ -416,7 +372,6 @@ public class ChunkedGenerator implements AutoCloseable {
             int gridOriginX = Mth.floor((chunkX * options.chunkSize) / spacing);
             int gridOriginZ = Mth.floor((chunkZ * options.chunkSize) / spacing);
 
-            generator.buffer.clear();
             cacheHit = 0;
             cacheMiss = 0;
 
@@ -447,11 +402,11 @@ public class ChunkedGenerator implements AutoCloseable {
                     }
 
                     for (AABB point : samplePoints.points()) {
-                        generator.buffer.put(
+                        points.add(new Point(
                                 (float) (point.minX - this.chunkX * options.chunkSize),
                                 (float) point.minY,
                                 (float) (point.minZ - this.chunkZ * options.chunkSize)
-                        );
+                        ));
                     }
                     cloudCount += samplePoints.points().size();
 
@@ -535,6 +490,9 @@ public class ChunkedGenerator implements AutoCloseable {
         private int roundToMultiple(int n, int base) {
             return Math.floorDiv(n, base) * base;
         }
+    }
+
+    public record Point(float x, float y, float z) {
     }
 
     private record SamplePoints(AABB bounds, ObjectArrayList<AABB> points) {

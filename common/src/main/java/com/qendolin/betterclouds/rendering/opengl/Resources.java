@@ -5,7 +5,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.Commands;
 import com.qendolin.betterclouds.compat.GLCompat;
-import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.generator.ChunkedGenerator;
 import com.qendolin.betterclouds.rendering.GraphicsCompat;
 import com.qendolin.betterclouds.rendering.PerfTimer;
@@ -186,9 +185,7 @@ public class Resources implements Closeable {
         deleteGenerator();
 
         generator = new ChunkedGenerator(seed);
-        generator.allocate(ConfigManager.instance(), fancy);
         generator.clear();
-        generator.unbind();
     }
 
     public void deleteGenerator() {
