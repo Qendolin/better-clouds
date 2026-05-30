@@ -33,7 +33,7 @@ void main() {
 
     float depth = texelFetch(u_depth_texture, ivec2(gl_FragCoord.xy), 0).r;
     #if LONGVIEW
-    if (max(gl_FragCoord.z, -1) < depth) discard;   // max with zero could be possible with another variable, but i'm too lazy to implement
+    if (max(gl_FragCoord.z, -1.0) < depth) discard;   // max with zero could be possible with another variable, but i'm too lazy to implement
     #else
     if (min(gl_FragCoord.z, 1.0) > depth) discard;
     #endif
@@ -43,7 +43,11 @@ void main() {
     // This is a "safety" check to prevent reading from an unbound texture
     if (pass_dh_depth != 0) {
         depth = texelFetch(u_dh_depth_texture, ivec2(gl_FragCoord.xy), 0).r;
+        #if LONGVIEW
+        if (pass_dh_depth < depth) discard;
+        #else
         if (pass_dh_depth > depth) discard;
+        #endif
     }
     #endif
 
