@@ -1,8 +1,10 @@
 package com.qendolin.betterclouds.rendering;
 
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.mixin.duck.BiomeManagerDuck;
 import com.qendolin.betterclouds.rendering.opengl.Debug;
+import com.qendolin.betterclouds.util.ChatUtil;
 import net.minecraft.client.CloudStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -32,7 +34,7 @@ public abstract class CloudRenderer implements AutoCloseable {
     }
 
     @NonNull
-    public abstract PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, int ticks, float tickDelta, Vector3d cam);
+    public abstract PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, int rendererTicks, float tickDelta, Vector3d cam);
 
     public abstract void render(int ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum);
 
@@ -53,6 +55,29 @@ public abstract class CloudRenderer implements AutoCloseable {
 
     public PerfTimer timer() {
         return timer;
+    }
+
+    protected void stopTiming() {
+        if (!Debug.isProfilingEnabled() || timer == null) return;
+        timer.stop();
+
+        if (timer.frames() >= Debug.profileInterval) {
+            PerfTimer.Stats gpu = PerfTimer.Stats.of(timer.gpu());
+            PerfTimer.Stats cpu = PerfTimer.Stats.of(timer.cpu());
+            BetterCloudsStatic.getLogger().info("GPU Times (msec):\n" + gpu);
+            BetterCloudsStatic.getLogger().info("CPU Times (msec):\n" + cpu);
+            ChatUtil.debugChatMessage("profiling.gpuTimes", gpu.formatted());
+            ChatUtil.debugChatMessage("profiling.cpuTimes", cpu.formatted());
+            timer.reset();
+        }
+    }
+
+    protected void startTiming() {
+        if (!Debug.isProfilingEnabled()) return;
+        if (timer == null)
+            reloadTimer();
+        if (timer != null)
+            timer.start();
     }
 
     public void reloadTimer() {

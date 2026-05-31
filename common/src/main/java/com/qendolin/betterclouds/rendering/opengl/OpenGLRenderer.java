@@ -13,7 +13,6 @@ import com.qendolin.betterclouds.rendering.*;
 import com.qendolin.betterclouds.rendering.opengl.internal.Buffer;
 import com.qendolin.betterclouds.rendering.opengl.internal.Mesh;
 import com.qendolin.betterclouds.rendering.opengl.shaders.ShaderParameters;
-import com.qendolin.betterclouds.util.ChatUtil;
 import com.qendolin.betterclouds.util.MathUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.culling.Frustum;
@@ -120,7 +119,7 @@ public class OpenGLRenderer extends CloudRenderer {
         );
     }
 
-    public @NonNull PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, int ticks, float tickDelta, Vector3d cam) {
+    public @NonNull PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, int rendererTicks, float tickDelta, Vector3d cam) {
         assert RenderSystem.isOnRenderThread();
         getProfiler().popPush("render_setup");
         Config config = ConfigManager.instance();
@@ -153,7 +152,7 @@ public class OpenGLRenderer extends CloudRenderer {
         float cloudiness = CloudinessProvider.getCloudiness(level, tickDelta);
         Config options = ConfigManager.instance();
 
-        res.generator().update(cam, options.getCloudTicks(client, ticks), ticks, tickDelta, options, cloudiness);
+        res.generator().update(cam, options.getCloudTicks(client, rendererTicks), rendererTicks, tickDelta, options, cloudiness);
         if (res.generator().canSwap()) {
             getProfiler().popPush("swap");
             res.generator().swap();
@@ -206,12 +205,7 @@ public class OpenGLRenderer extends CloudRenderer {
         if (res.failedToLoadCritical()) return;
 
         getProfiler().popPush("render_setup");
-        if (Debug.isProfilingEnabled()) {
-            if (timer == null)
-                reloadTimer();
-            if (timer != null)
-                timer.start();
-        }
+        startTiming();
 
         // Unbind vanilla shader, this is for compatability (with iris)
         RenderHelper.saveShader();
@@ -266,19 +260,7 @@ public class OpenGLRenderer extends CloudRenderer {
             glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
         }
 
-        if (Debug.isProfilingEnabled() && timer != null) {
-            timer.stop();
-
-            if (timer.frames() >= Debug.profileInterval) {
-                PerfTimer.Stats gpu = PerfTimer.Stats.of(timer.gpu());
-                PerfTimer.Stats cpu = PerfTimer.Stats.of(timer.cpu());
-                BetterCloudsStatic.getLogger().info("GPU Times (msec):\n" + gpu);
-                BetterCloudsStatic.getLogger().info("CPU Times (msec):\n" + cpu);
-                ChatUtil.debugChatMessage("profiling.gpuTimes", gpu.formatted());
-                ChatUtil.debugChatMessage("profiling.cpuTimes", cpu.formatted());
-                timer.reset();
-            }
-        }
+        stopTiming();
     }
 
     private boolean isFramebufferStale() {
