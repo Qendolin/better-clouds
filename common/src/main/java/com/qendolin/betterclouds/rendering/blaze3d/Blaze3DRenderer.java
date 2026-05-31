@@ -1,17 +1,16 @@
 package com.qendolin.betterclouds.rendering.blaze3d;
 
-import com.mojang.blaze3d.GpuFormat;
-import com.mojang.blaze3d.PrimitiveTopology;
+import com.mojang.blaze3d.*;
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.pipeline.*;
 import com.mojang.blaze3d.platform.CompareOp;
 import com.mojang.blaze3d.shaders.UniformType;
-import com.mojang.blaze3d.systems.GpuDevice;
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.systems.*;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
+import com.qendolin.betterclouds.config.compat.ShaderPresetConfig;
 import com.qendolin.betterclouds.generator.ChunkedGenerator;
 import com.qendolin.betterclouds.mixin.provider.CloudinessProvider;
 import com.qendolin.betterclouds.rendering.CloudRenderer;
@@ -25,8 +24,8 @@ import org.joml.Matrix4f;
 import org.joml.Vector3d;
 import org.jspecify.annotations.NonNull;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import java.util.Optional;
+import java.util.OptionalDouble;
 
 import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
 
@@ -79,6 +78,8 @@ public class Blaze3DRenderer extends CloudRenderer {
             .addAttribute("LocalPosition", GpuFormat.RGB32_FLOAT)    // xyz position of vertex in cube model (local)
             .build();
     final BindGroupLayout SHADER_PARAMS = BindGroupLayout.builder()
+            .withUniform("uTime", UniformType.UNIFORM_BUFFER)
+            .withUniform("uPartialTime", UniformType.UNIFORM_BUFFER)
             .withUniform("uTint", UniformType.UNIFORM_BUFFER)
             .build();
     final RenderPipeline CLOUD_PIPELINE = RenderPipeline.builder()
@@ -94,12 +95,25 @@ public class Blaze3DRenderer extends CloudRenderer {
             .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
             .build();
 
-    private ChunkedGenerator generator;
-    private GpuBuffer modelBuffer, indexBuffer, cloudPositionsBuffer;
+    private final ChunkedGenerator generator = new ChunkedGenerator(getWorldSeed());
+
+    // models
+    private final ReadOnlyBuffer modelVertexBuffer = new ReadOnlyBuffer("cloudModelVertices");
+    private final ReadOnlyBuffer modelIndexBuffer = new ReadOnlyBuffer("cloudModelIndices");
+
+    // cloud position xyz, capacity can change, so must recreate every time cloud positions change
+    private final ReadOnlyBuffer worldCloudPosBuffer = new ReadOnlyBuffer("cloudPositions");
+
+    // Uniforms
+    private final WritableBuffer uTimeBuffer = new WritableBuffer("uTime", Float.BYTES, GpuBuffer.USAGE_UNIFORM);
+    private final WritableBuffer uPartialTimeBuffer = new WritableBuffer("uPartialTime", Float.BYTES, GpuBuffer.USAGE_UNIFORM);
+    private final WritableBuffer uTintBuffer = new WritableBuffer("uTint", Float.BYTES * 4, GpuBuffer.USAGE_UNIFORM);     // rgba
+    private RenderTarget cloudsTarget;
 
     public Blaze3DRenderer(Minecraft client) {
         super(client);
-        buildModelBuffers();
+        reloadModelBuffers();
+        reloadOptionBuffers();
     }
 
     private static GpuDevice gpu() {
@@ -130,7 +144,8 @@ public class Blaze3DRenderer extends CloudRenderer {
             getProfiler().popPush("render_setup");
         }
 
-        if (cloudPositionsBuffer == null || cloudPositionsBuffer.size() == 0) {
+        cloudsTarget = client.levelRenderer.cloudsTarget();
+        if (worldCloudPosBuffer.size() == 0 || cloudsTarget == null) {
             return PrepareResult.NO_RENDER;
         }
 
@@ -138,65 +153,48 @@ public class Blaze3DRenderer extends CloudRenderer {
         return PrepareResult.RENDER;
     }
 
-    @Override
-    public void render(int ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
-        startTiming();
-        getProfiler().popPush("render_setup");
-        stopTiming();
-    }
-
     public ChunkedGenerator getGenerator() {
         return generator;
     }
 
-    public void closeGpuBuffer(GpuBuffer buffer) {
-        if (buffer != null)
-            buffer.close();
+    @Override
+    public void render(int ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
+        startTiming();
+
+        getProfiler().popPush("render_setup");
+        uTimeBuffer.write(b -> b.putFloat(ticks));
+        uPartialTimeBuffer.write(b -> b.putFloat(tickDelta));
+
+        getProfiler().popPush("render_clouds");
+        try (RenderPass pass = gpu().createCommandEncoder().createRenderPass(
+                () -> BetterCloudsStatic.MODID + ":" + "renderClouds",
+                cloudsTarget.getColorTextureView(),
+                Optional.empty(),
+                cloudsTarget.getDepthTextureView(),
+                OptionalDouble.empty()
+        )) {
+            pass.setPipeline(CLOUD_PIPELINE);
+            pass.setUniform("uTime", uTimeBuffer.gpuBuffer());
+            pass.setUniform("uPartialTime", uPartialTimeBuffer.gpuBuffer());
+            pass.setUniform("uTint", uTintBuffer.gpuBuffer());
+            pass.setVertexBuffer(0, modelVertexBuffer.gpuBuffer().slice());
+            pass.setVertexBuffer(1, worldCloudPosBuffer.gpuBuffer().slice());
+            pass.setIndexBuffer(modelIndexBuffer.gpuBuffer(), IndexType.SHORT);
+        }
+        stopTiming();
     }
 
     public void updateCloudPositionsBuffer() {
-        closeGpuBuffer(cloudPositionsBuffer);
-
-        ByteBuffer pb = ByteBuffer.allocateDirect(generator.points().size() * 3 * Float.BYTES)
-                .order(ByteOrder.nativeOrder());
-        for (ChunkedGenerator.Point p : generator.points()) {
-            pb.putFloat(p.x());
-            pb.putFloat(p.y());
-            pb.putFloat(p.z());
-        }
-        pb.flip();
-
-        cloudPositionsBuffer = gpu().createBuffer(
-                () -> "cloud_positions",
+        worldCloudPosBuffer.recreate(
+                generator.points().size() * 3 * Float.BYTES,
                 GpuBuffer.USAGE_VERTEX,
-                pb
-        );
-    }
-
-    public void buildModelBuffers() {
-        closeGpuBuffer(modelBuffer);
-        closeGpuBuffer(indexBuffer);
-
-        ByteBuffer vb = ByteBuffer.allocateDirect(CUBE_VERTICES.length * Float.BYTES)
-                .order(ByteOrder.nativeOrder());
-        for (float u : CUBE_VERTICES) vb.putFloat(u);
-        vb.flip();
-
-        modelBuffer = gpu().createBuffer(
-                () -> "cube_vertices",
-                GpuBuffer.USAGE_VERTEX,
-                vb
-        );
-
-        ByteBuffer ib = ByteBuffer.allocateDirect(CUBE_INDICES.length * Short.BYTES)
-                .order(ByteOrder.nativeOrder());
-        for (short s : CUBE_INDICES) ib.putShort(s);
-        ib.flip();
-
-        indexBuffer = gpu().createBuffer(
-                () -> "cube_element_indices",
-                GpuBuffer.USAGE_INDEX,
-                ib
+                b -> {
+                    for (ChunkedGenerator.Point p : generator.points()) {
+                        b.putFloat(p.x());
+                        b.putFloat(p.y());
+                        b.putFloat(p.z());
+                    }
+                }
         );
     }
 
@@ -204,8 +202,39 @@ public class Blaze3DRenderer extends CloudRenderer {
     public void close() {
         super.close();
         generator.close();
-        closeGpuBuffer(modelBuffer);
-        closeGpuBuffer(indexBuffer);
-        closeGpuBuffer(cloudPositionsBuffer);
+        modelVertexBuffer.close();
+        modelIndexBuffer.close();
+        worldCloudPosBuffer.close();
+    }
+
+    public void reloadModelBuffers() {
+        modelVertexBuffer.recreate(
+                CUBE_VERTICES.length * Float.BYTES,
+                GpuBuffer.USAGE_VERTEX,
+                b -> {
+                    for (float f : CUBE_VERTICES)
+                        b.putFloat(f);
+                }
+        );
+
+        modelIndexBuffer.recreate(
+                CUBE_INDICES.length * Short.BYTES,
+                GpuBuffer.USAGE_INDEX,
+                b -> {
+                    for (short s : CUBE_INDICES)
+                        b.putShort(s);
+                }
+        );
+    }
+
+    public void reloadOptionBuffers() {
+        Config options = ConfigManager.instance();
+        ShaderPresetConfig sp = options.shaderPreset();
+
+        uTintBuffer.write(b -> {
+            b.putFloat(sp.tintRed);
+            b.putFloat(sp.tintGreen);
+            b.putFloat(sp.tintBlue);
+        });
     }
 }
