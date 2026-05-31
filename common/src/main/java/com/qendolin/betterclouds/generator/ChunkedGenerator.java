@@ -24,7 +24,7 @@ public class ChunkedGenerator implements AutoCloseable {
     private static int cacheHit = 0;
     private static int cacheMiss = 0;
     private final long seed;
-    private final ObjectArrayList<Point> cloudPoints = new ObjectArrayList<>();
+    private ObjectArrayList<Point> readPoints = new ObjectArrayList<>(), writePoints = new ObjectArrayList<>();
     private Sampler sampler;
     private DummyCache pointCache;
     private double originX, originZ;
@@ -77,7 +77,7 @@ public class ChunkedGenerator implements AutoCloseable {
     }
 
     public synchronized List<Point> points() {
-        return cloudPoints;
+        return readPoints;
     }
 
     public double originX() {
@@ -121,7 +121,8 @@ public class ChunkedGenerator implements AutoCloseable {
         runningTask = null;
         completedTask = null;
         swappedTask = null;
-        cloudPoints.clear();
+        readPoints.clear();
+        writePoints.clear();
     }
 
     public synchronized void update(Vector3d camera, long cloudTicks, int rendererTicks, float tickDelta, Config options, float cloudiness) {
@@ -368,7 +369,7 @@ public class ChunkedGenerator implements AutoCloseable {
             int gridOriginX = Mth.floor((chunkX * options.chunkSize) / spacing);
             int gridOriginZ = Mth.floor((chunkZ * options.chunkSize) / spacing);
 
-            generator.cloudPoints.clear();
+            generator.writePoints.clear();
             cacheHit = 0;
             cacheMiss = 0;
 
@@ -399,7 +400,7 @@ public class ChunkedGenerator implements AutoCloseable {
                     }
 
                     for (AABB point : samplePoints.points()) {
-                        generator.cloudPoints.add(new Point(
+                        generator.writePoints.add(new Point(
                                 (float) (point.minX - this.chunkX * options.chunkSize),
                                 (float) point.minY,
                                 (float) (point.minZ - this.chunkZ * options.chunkSize)
@@ -419,6 +420,10 @@ public class ChunkedGenerator implements AutoCloseable {
                     }
                 }
             }
+
+            var tmp = generator.readPoints;
+            generator.readPoints = generator.writePoints;
+            generator.writePoints = tmp;
 
             generator.pointCache.swap();
             completed.set(true);

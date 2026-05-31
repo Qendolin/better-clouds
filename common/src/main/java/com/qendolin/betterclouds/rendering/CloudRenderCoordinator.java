@@ -2,8 +2,7 @@ package com.qendolin.betterclouds.rendering;
 
 import com.mojang.blaze3d.framegraph.FrameGraphBuilder;
 import com.mojang.blaze3d.framegraph.FramePass;
-import com.qendolin.betterclouds.BetterClouds;
-import com.qendolin.betterclouds.BetterCloudsStatic;
+import com.qendolin.betterclouds.*;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import com.qendolin.betterclouds.rendering.blaze3d.Blaze3DRenderer;
@@ -33,7 +32,8 @@ public class CloudRenderCoordinator {
 
     public void initialize(Minecraft client) {
         if (GraphicsCompat.instance.isIncompatible()) return;
-        renderer = GraphicsCompat.isOpenGL ? new OpenGLRenderer(client) : new Blaze3DRenderer(client);
+        if (GraphicsCompat.isOpenGL)
+            renderer = new OpenGLRenderer(client);
     }
 
     public CloudRenderer getRenderer() {
@@ -64,6 +64,17 @@ public class CloudRenderCoordinator {
     }
 
     public boolean renderClouds(FrameGraphBuilder frameGraphBuilder, LevelTargetBundle targets, Vec3 cameraPos, long gameTime, float ticksInput) {
+        try {
+            return renderCloudsInternal(frameGraphBuilder, targets, cameraPos, gameTime, ticksInput);
+        } catch (Exception e) {
+            BetterCloudsStatic.getLogger().error("Failed to render clouds", e);
+            Commands.sendCrashChatMessage();
+            renderer.close();
+        }
+        return false;
+    }
+
+    protected boolean renderCloudsInternal(FrameGraphBuilder frameGraphBuilder, LevelTargetBundle targets, Vec3 cameraPos, long gameTime, float ticksInput) {
         double camX = cameraPos.x, camY = cameraPos.y, camZ = cameraPos.z;
         float tickDelta = Mth.frac(ticksInput);
         if (!shouldRenderClouds()) return false;

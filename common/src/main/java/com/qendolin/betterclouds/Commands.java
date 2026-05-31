@@ -10,6 +10,7 @@ import com.qendolin.betterclouds.compat.GLCompat;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.config.gui.ConfigGUI;
 import com.qendolin.betterclouds.renderdoc.*;
+import com.qendolin.betterclouds.rendering.CloudRenderCoordinator;
 import com.qendolin.betterclouds.rendering.GraphicsCompat;
 import com.qendolin.betterclouds.rendering.opengl.Debug;
 import com.qendolin.betterclouds.util.ChatUtil;
@@ -69,7 +70,7 @@ public class Commands {
                         .executes(_ -> {
                             ChatUtil.debugChatMessage("profiling.disabled");
                             Debug.profileInterval = 0;
-                            var renderer = BetterClouds.getCloudsRenderer();
+                            var renderer = CloudRenderCoordinator.instance.getRenderer();
                             if (renderer != null) {
                                 var timer = renderer.timer();
                                 if (timer != null)
@@ -358,6 +359,10 @@ public class Commands {
                                 .withStyle(style -> style.withItalic(true).withUnderlined(true).withColor(ChatFormatting.GRAY)
                                         .withClickEvent(createCommandClickEvent(
                                                 "/betterclouds:config set gpuIncompatibleMessage false")))));
+    }
+
+    public static void sendCrashChatMessage() {
+        ChatUtil.debugChatMessage(Component.translatable(ChatUtil.debugChatMessageKey("crashMessage")));
     }
 
     private static ClickEvent createCommandClickEvent(String command) {

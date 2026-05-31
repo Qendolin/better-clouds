@@ -23,6 +23,7 @@ public class ReadOnlyBuffer implements AutoCloseable {
         close();
         ByteBuffer buf = ByteBuffer.allocateDirect(capacity).order(ByteOrder.nativeOrder());
         bufferFiller.accept(buf);
+        buf.flip();
         gpuBuffer = RenderSystem.getDevice().createBuffer(() -> name, usage, buf);
     }
 

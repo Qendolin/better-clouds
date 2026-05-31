@@ -204,6 +204,7 @@
   "betterclouds.message.gpuIncompatible" : "§c§l[!]§r Your GPU is not compatible with Better Clouds.",
   "betterclouds.message.gpuPartiallyIncompatible" : "§c§l[!]§r Your GPU is not fully compatible with Better Clouds. This might affect the game's performance and some features might not be available.",
   "betterclouds.message.hwMaybeIncompatible" : "§c§l[!]§r Some users of Better Clouds have reported issues with your CPU / GPU Model (§o%s§r with §o%s§r).",
+  "betterclouds.message.crashMessage" : "Better Clouds has encountered an error and §nhas been disabled§r! Please report this to the developer.",
   "betterclouds.message.profiling.cpuTimes" : "§3CPU Times§r (msec):\n%s",
   "betterclouds.message.profiling.disabled" : "Disabled profiling.",
   "betterclouds.message.profiling.enabled" : "Enabled profiling over %d frames, performance will suffer.",

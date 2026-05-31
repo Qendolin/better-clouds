@@ -5,16 +5,12 @@ import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.config.preset.PresetLoader;
 import com.qendolin.betterclouds.generator.RandomPath;
-import com.qendolin.betterclouds.mixin.duck.WorldRendererDuck;
 import com.qendolin.betterclouds.platform.EventHooks;
 import com.qendolin.betterclouds.platform.ModLoader;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
-import com.qendolin.betterclouds.rendering.CloudRenderer;
 import com.qendolin.betterclouds.util.*;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
-import net.minecraft.client.Minecraft;
 import org.apache.logging.log4j.LogManager;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -87,15 +83,6 @@ public class BetterClouds extends BetterCloudsStatic {
 
         PresetLoader.ALL_PRESETS.forEach(presetLoader -> EventHooks.instance.onClientResourcesReload(() -> presetLoader));
         EventHooks.instance.onClientCommandRegistration(Commands::register);
-    }
-
-    @Nullable
-    public static CloudRenderer getCloudsRenderer() {
-        Minecraft client = Minecraft.getInstance();
-        if (client.levelRenderer instanceof WorldRendererDuck duck) {
-            return duck.betterclouds$getRenderer();
-        }
-        return null;
     }
 
     public static boolean isEnabled() {

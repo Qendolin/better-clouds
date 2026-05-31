@@ -19,11 +19,15 @@ import org.jspecify.annotations.NonNull;
 public abstract class CloudRenderer implements AutoCloseable {
     protected final Minecraft client;
     protected ClientLevel level;
-    protected PerfTimer timer = new PerfTimer();
+    protected PerfTimer timer;
     protected float cloudHeight;
+
+    protected boolean closed = false;
 
     public CloudRenderer(Minecraft client) {
         this.client = client;
+        if (GraphicsCompat.isOpenGL)
+            this.timer = new PerfTimer();
     }
 
     public void setLevel(ClientLevel level) {
@@ -40,7 +44,9 @@ public abstract class CloudRenderer implements AutoCloseable {
 
     @Override
     public void close() {
-        timer.close();
+        closed = true;
+        if (timer != null)
+            timer.close();
     }
 
     public long getWorldSeed() {

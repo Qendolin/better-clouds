@@ -120,6 +120,9 @@ public class OpenGLRenderer extends CloudRenderer {
     }
 
     public @NonNull PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, int rendererTicks, float tickDelta, Vector3d cam) {
+        if (closed)
+            return PrepareResult.FALLBACK;
+
         assert RenderSystem.isOnRenderThread();
         getProfiler().popPush("render_setup");
         Config config = ConfigManager.instance();

@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 /**
  * Writable GPU buffer; data can change without recreating buffers, but data must always be a fixed size
  */
-public class WritableBuffer {
+public class WritableBuffer implements AutoCloseable {
     private final ByteBuffer buffer;
     private final GpuBuffer gpuBuffer;
 
@@ -34,5 +34,10 @@ public class WritableBuffer {
         bufferFiller.accept(buffer);
         buffer.flip();
         RenderSystem.getDevice().createCommandEncoder().writeToBuffer(gpuBuffer.slice(), buffer);
+    }
+
+    @Override
+    public void close() {
+        gpuBuffer.close();
     }
 }
