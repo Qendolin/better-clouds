@@ -1,5 +1,6 @@
 package com.qendolin.betterclouds.rendering;
 
+import com.qendolin.betterclouds.rendering.opengl.Debug;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.culling.Frustum;
@@ -11,6 +12,7 @@ import org.jspecify.annotations.NonNull;
 public abstract class CloudRenderer implements AutoCloseable {
     protected final Minecraft client;
     protected ClientLevel level;
+    protected PerfTimer timer = new PerfTimer();
 
     public CloudRenderer(Minecraft client) {
         this.client = client;
@@ -28,5 +30,22 @@ public abstract class CloudRenderer implements AutoCloseable {
     public abstract void render(int ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum);
 
     @Override
-    public abstract void close();
+    public void close() {
+        timer.close();
+    }
+
+    public PerfTimer timer() {
+        return timer;
+    }
+
+    public void reloadTimer() {
+        deleteTimer();
+        if (!Debug.isProfilingEnabled()) return;
+        timer = new PerfTimer();
+    }
+
+    public void deleteTimer() {
+        if (timer != null) timer.close();
+        timer = null;
+    }
 }

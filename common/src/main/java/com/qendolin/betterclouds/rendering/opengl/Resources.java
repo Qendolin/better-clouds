@@ -7,7 +7,6 @@ import com.qendolin.betterclouds.Commands;
 import com.qendolin.betterclouds.compat.GLCompat;
 import com.qendolin.betterclouds.generator.ChunkedGenerator;
 import com.qendolin.betterclouds.rendering.GraphicsCompat;
-import com.qendolin.betterclouds.rendering.PerfTimer;
 import com.qendolin.betterclouds.rendering.opengl.internal.Mesh;
 import com.qendolin.betterclouds.rendering.opengl.shaders.*;
 import net.minecraft.client.Minecraft;
@@ -48,7 +47,6 @@ public class Resources implements Closeable {
     private int oitCoverageTexture;
     private int fboWidth;
     private int fboHeight;
-    private PerfTimer timer;
 
     public static void unbindVao() {
         glBindVertexArray(0);
@@ -98,10 +96,6 @@ public class Resources implements Closeable {
         return oitCoverageTexture;
     }
 
-    public PerfTimer timer() {
-        return timer;
-    }
-
     public int fboWidth() {
         return fboWidth;
     }
@@ -119,18 +113,6 @@ public class Resources implements Closeable {
         if (oitDataTexture == UNASSIGNED || oitCoverageTexture == UNASSIGNED)
             return true;
         return cubeVao == UNASSIGNED || cubeVbo == UNASSIGNED;
-    }
-
-    public void reloadTimer() {
-        deleteTimer();
-        if (!Debug.isProfilingEnabled()) return;
-
-        timer = new PerfTimer();
-    }
-
-    public void deleteTimer() {
-        if (timer != null) timer.close();
-        timer = null;
     }
 
     public void reloadMeshPrimitives() {
@@ -370,6 +352,5 @@ public class Resources implements Closeable {
         deleteMeshPrimitives();
         deleteGenerator();
         deleteShaders();
-        deleteTimer();
     }
 }

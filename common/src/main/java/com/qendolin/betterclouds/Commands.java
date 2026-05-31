@@ -71,7 +71,7 @@ public class Commands {
                             Debug.profileInterval = 0;
                             var renderer = BetterClouds.getCloudsRenderer();
                             if (renderer != null) {
-                                var timer = renderer.resources().timer();
+                                var timer = renderer.timer();
                                 if (timer != null)
                                     timer.reset();
                             }

@@ -36,6 +36,6 @@ public class Blaze3DRenderer extends CloudRenderer {
 
     @Override
     public void close() {
-
+        super.close();
     }
 }

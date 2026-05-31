@@ -18,7 +18,6 @@ import com.qendolin.betterclouds.util.ChatUtil;
 import com.qendolin.betterclouds.util.MathUtil;
 import net.minecraft.client.CloudStatus;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.Mth;
@@ -44,9 +43,8 @@ public class OpenGLRenderer extends CloudRenderer {
     private final Vector3f tempVector = new Vector3f();
     private final Frustum tempFrustum = new Frustum(new Matrix4f().identity(), new Matrix4f().identity());
     private final Resources res = new Resources();
-    private Buffer buffer;
     GLCompat glCompat = (GLCompat) GraphicsCompat.instance;
-    private ClientLevel world = null;
+    private Buffer buffer;
     private float cloudsHeight;
     private ShaderParameters shaderParameters = null;
 
@@ -58,13 +56,15 @@ public class OpenGLRenderer extends CloudRenderer {
         dst.set(src);
     }
 
-    public void setWorld(ClientLevel world) {
-        this.world = world;
+    private static int calcBufferSize(Config options) {
+        int distance = options.blockDistance();
+        int size = Mth.floor(distance / options.spacing) + Mth.ceil(distance / options.spacing);
+        return size > 0 ? size : 8 * 16;
     }
 
     public long getWorldSeed() {
-        if (client.level == null) return 0;
-        return ((BiomeManagerDuck) client.level.getBiomeManager()).better_clouds$biomeSeed();
+        if (level == null) return 0;
+        return ((BiomeManagerDuck) level.getBiomeManager()).better_clouds$biomeSeed();
     }
 
     public void reload(ResourceManager manager) {
@@ -82,7 +82,7 @@ public class OpenGLRenderer extends CloudRenderer {
         BetterCloudsStatic.getLogger().debug("[5/6] Reloading framebuffer");
         res.reloadFramebuffer(scaledFramebufferWidth(), scaledFramebufferHeight());
         BetterCloudsStatic.getLogger().debug("[6/6] Reloading timers");
-        res.reloadTimer();
+        reloadTimer();
         BetterCloudsStatic.getLogger().info("Cloud renderer initialized");
     }
 
@@ -101,12 +101,6 @@ public class OpenGLRenderer extends CloudRenderer {
 
     private int scaledFramebufferHeight() {
         return (int) (ConfigManager.instance().shaderPreset().upscaleResolutionFactor * client.gameRenderer.mainRenderTarget().height);
-    }
-
-    private static int calcBufferSize(Config options) {
-        int distance = options.blockDistance();
-        int size = Mth.floor(distance / options.spacing) + Mth.ceil(distance / options.spacing);
-        return size > 0 ? size : 8 * 16;
     }
 
     private void reloadBuffer(Config options, boolean fancy) {
@@ -161,7 +155,7 @@ public class OpenGLRenderer extends CloudRenderer {
             return PrepareResult.NO_RENDER;
         }
 
-        cloudsHeight = world.environmentAttributes().getValue(EnvironmentAttributes.CLOUD_HEIGHT, new Vec3(cam.x, cam.y, cam.z));
+        cloudsHeight = level.environmentAttributes().getValue(EnvironmentAttributes.CLOUD_HEIGHT, new Vec3(cam.x, cam.y, cam.z));
 
         boolean reallocatedBuffer = reallocateBufferIfStale(config, useCubeClouds());
         buffer.bind();
@@ -171,7 +165,7 @@ public class OpenGLRenderer extends CloudRenderer {
             res.reloadShaders(client.getResourceManager(), shaderParameters);
         }
 
-        float cloudiness = CloudinessProvider.getCloudiness(client.level, tickDelta);
+        float cloudiness = CloudinessProvider.getCloudiness(level, tickDelta);
         Config options = ConfigManager.instance();
 
         res.generator().update(cam, options.getCloudTicks(client, ticks), ticks, tickDelta, options, cloudiness);
@@ -228,10 +222,10 @@ public class OpenGLRenderer extends CloudRenderer {
 
         getProfiler().popPush("render_setup");
         if (Debug.isProfilingEnabled()) {
-            if (res.timer() == null)
-                res.reloadTimer();
-            if (res.timer() != null)
-                res.timer().start();
+            if (timer == null)
+                reloadTimer();
+            if (timer != null)
+                timer.start();
         }
 
         // Unbind vanilla shader, this is for compatability (with iris)
@@ -287,17 +281,17 @@ public class OpenGLRenderer extends CloudRenderer {
             glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
         }
 
-        if (Debug.isProfilingEnabled() && res.timer() != null) {
-            res.timer().stop();
+        if (Debug.isProfilingEnabled() && timer != null) {
+            timer.stop();
 
-            if (res.timer().frames() >= Debug.profileInterval) {
-                PerfTimer.Stats gpu = PerfTimer.Stats.of(res.timer().gpu());
-                PerfTimer.Stats cpu = PerfTimer.Stats.of(res.timer().cpu());
+            if (timer.frames() >= Debug.profileInterval) {
+                PerfTimer.Stats gpu = PerfTimer.Stats.of(timer.gpu());
+                PerfTimer.Stats cpu = PerfTimer.Stats.of(timer.cpu());
                 BetterCloudsStatic.getLogger().info("GPU Times (msec):\n" + gpu);
                 BetterCloudsStatic.getLogger().info("CPU Times (msec):\n" + cpu);
                 ChatUtil.debugChatMessage("profiling.gpuTimes", gpu.formatted());
                 ChatUtil.debugChatMessage("profiling.cpuTimes", cpu.formatted());
-                res.timer().reset();
+                timer.reset();
             }
         }
     }
@@ -491,15 +485,15 @@ public class OpenGLRenderer extends CloudRenderer {
         RenderHelper.bindTexture(client.getTextureManager().getTexture(Resources.LIGHTING_TEXTURE));
 
         Vector3f effectTint = EffectTintProvider.getEffectTint(client, fog, tickDelta, cam);
-        long skyTime = world.getOverworldClockTime() % 24000;
-        float skyAngleRad = EffectTintProvider.getSunAngleRadians(client.level, cam);
+        long skyTime = level.getOverworldClockTime() % 24000;
+        float skyAngleRad = EffectTintProvider.getSunAngleRadians(level, cam);
         float sunPathAngleRad = config.shaderPreset().sunPathAngle * Mth.DEG_TO_RAD;
         float dayNightFactor = MathUtil.interpolateDayNightFactor(skyTime, config.shaderPreset().sunriseStartTime, config.shaderPreset().sunriseEndTime, config.shaderPreset().sunsetStartTime, config.shaderPreset().sunsetEndTime);
         float brightness = (1 - dayNightFactor) * config.shaderPreset().nightBrightness + dayNightFactor * config.shaderPreset().dayBrightness;
         float sunAxisY = Mth.sin(sunPathAngleRad);
         float sunAxisZ = Mth.cos(sunPathAngleRad);
         Vector3f sunDir = tempVector.set(1, 0, 0).rotateAxis(skyAngleRad + Mth.HALF_PI, 0, sunAxisY, sunAxisZ);
-        float dayTime = world.getOverworldClockTime() % 24000;
+        float dayTime = level.getOverworldClockTime() % 24000;
         float mappedTime = MathUtil.mapTimeOfDay(dayTime, config.shaderPreset().sunriseStartTime, config.shaderPreset().sunriseEndTime, config.shaderPreset().sunsetStartTime, config.shaderPreset().sunsetEndTime);
 
         res.shadingShader().bind();
@@ -532,6 +526,7 @@ public class OpenGLRenderer extends CloudRenderer {
     }
 
     public void close() {
+        super.close();
         if (buffer != null) {
             buffer.close();
             buffer = null;

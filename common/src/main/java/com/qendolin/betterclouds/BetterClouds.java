@@ -44,6 +44,7 @@ public class BetterClouds extends BetterCloudsStatic {
     public static void initializeClient() {
         if (!BetterCloudsStatic.IS_CLIENT)
             throw new IllegalStateException("Minecraft environment is not 'client' but the client initializer was called");
+
         if (isInitialized()) return;
         initialized = true;
 
@@ -52,7 +53,6 @@ public class BetterClouds extends BetterCloudsStatic {
         SereneSeasonsCompat.initialize();
         FabricSeasonsCompat.initialize();
         EnhancedCelestialsCompat.initialize();
-
         RandomPath.initialize();
 
         DataDirectoryMigration.runMigration();
