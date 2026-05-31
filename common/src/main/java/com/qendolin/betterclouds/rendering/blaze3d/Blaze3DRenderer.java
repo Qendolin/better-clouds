@@ -2,6 +2,7 @@ package com.qendolin.betterclouds.rendering.blaze3d;
 
 import com.mojang.blaze3d.*;
 import com.mojang.blaze3d.buffers.GpuBuffer;
+import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.pipeline.*;
 import com.mojang.blaze3d.platform.CompareOp;
 import com.mojang.blaze3d.shaders.UniformType;
@@ -12,15 +13,14 @@ import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.generator.ChunkedGenerator;
 import com.qendolin.betterclouds.mixin.provider.CloudinessProvider;
-import com.qendolin.betterclouds.rendering.CloudRenderer;
-import com.qendolin.betterclouds.rendering.PrepareResult;
+import com.qendolin.betterclouds.rendering.*;
 import com.qendolin.betterclouds.rendering.opengl.Debug;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.BindGroupLayouts;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.material.FogType;
-import org.joml.Matrix4f;
-import org.joml.Vector3d;
+import org.joml.*;
 import org.jspecify.annotations.NonNull;
 
 import java.util.Optional;
@@ -70,23 +70,25 @@ public class Blaze3DRenderer extends CloudRenderer {
             6, 7, 3
     };
 
+    final VertexFormat MODEL_FORMAT = VertexFormat.builder(0)
+            .addAttribute("LocalPosition", GpuFormat.RGB32_FLOAT)    // xyz position of vertex in cube model (local)
+            .build();
     final VertexFormat POSITION_FORMAT = VertexFormat.builder(1)
             .addAttribute("WorldPosition", GpuFormat.RGB32_FLOAT)    // xyz position of cube center (world)
             .build();
-    final VertexFormat MODEL_FORMAT = VertexFormat.builder(1)
-            .addAttribute("LocalPosition", GpuFormat.RGB32_FLOAT)    // xyz position of vertex in cube model (local)
-            .build();
-    final BindGroupLayout SHADER_PARAMS = BindGroupLayout.builder()
-            .withUniform("CloudInfo", UniformType.UNIFORM_BUFFER)
+    final BindGroupLayout SHADER_BIND_GROUP = BindGroupLayout.builder()
+            .withUniform("CloudVertexData", UniformType.UNIFORM_BUFFER)
             .build();
     final RenderPipeline CLOUD_PIPELINE = RenderPipeline.builder()
             .withLocation(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "blaze_3d_renderer"))
             .withVertexShader(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "blaze3d/clouds"))
             .withFragmentShader(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "blaze3d/clouds"))
-            .withVertexBinding(0, POSITION_FORMAT)
-            .withVertexBinding(1, MODEL_FORMAT)
+            .withVertexBinding(0, MODEL_FORMAT)
+            .withVertexBinding(1, POSITION_FORMAT)
             .withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
-            .withBindGroupLayout(SHADER_PARAMS)
+            .withBindGroupLayout(BindGroupLayouts.MATRICES_PROJECTION)
+            .withBindGroupLayout(BindGroupLayouts.FOG)
+            .withBindGroupLayout(SHADER_BIND_GROUP)
             .withCull(false)
             .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, false))
             .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
@@ -104,7 +106,8 @@ public class Blaze3DRenderer extends CloudRenderer {
     private final ReadOnlyBuffer worldCloudPosBuffer = new ReadOnlyBuffer("cloudPositions");
 
     // uniforms
-    private final WritableBuffer uCloudInfo = new WritableBuffer("uCloudInfo", Float.BYTES * 7, GpuBuffer.USAGE_UNIFORM);
+    private final WritableBuffer uCloudVertexData = new WritableBuffer("uCloudVertexData", Float.BYTES * 4, GpuBuffer.USAGE_UNIFORM);
+    private final WritableBuffer uCloudFragData = new WritableBuffer("uCloudFragData", Float.BYTES * 4, GpuBuffer.USAGE_UNIFORM);
 
     public Blaze3DRenderer(Minecraft client) {
         super(client);
@@ -164,15 +167,13 @@ public class Blaze3DRenderer extends CloudRenderer {
         getProfiler().popPush("render_setup");
 
         Config options = ConfigManager.instance();
+        var sp = options.shaderPreset();
 
-        uCloudInfo.write(b -> {
+        uCloudVertexData.write(b -> {
             b.putFloat(ticks);
             b.putFloat(tickDelta);
             b.putFloat(options.sizeXZ);
             b.putFloat(options.sizeY);
-            b.putFloat(options.shaderPreset().tintRed);
-            b.putFloat(options.shaderPreset().tintGreen);
-            b.putFloat(options.shaderPreset().tintBlue);
         });
 
         getProfiler().popPush("render_clouds");
@@ -182,6 +183,11 @@ public class Blaze3DRenderer extends CloudRenderer {
         if (cloudsTarget.getColorTextureView() == null)
             return;
 
+        GpuBufferSlice dynamicTransform = RenderSystem.getDynamicUniforms().writeTransform(
+                CloudRenderCoordinator.instance.capturedViewMat,
+                new Vector4f(1, sp.tintRed, sp.tintGreen, sp.tintBlue)
+        );
+
         try (RenderPass pass = gpu().createCommandEncoder().createRenderPass(
                 () -> BetterCloudsStatic.MODID + ":" + "renderClouds",
                 cloudsTarget.getColorTextureView(),
@@ -190,7 +196,9 @@ public class Blaze3DRenderer extends CloudRenderer {
                 OptionalDouble.empty()
         )) {
             pass.setPipeline(CLOUD_PIPELINE);
-            pass.setUniform("CloudInfo", uCloudInfo.gpuBuffer());
+            RenderSystem.bindDefaultUniforms(pass);
+            pass.setUniform("CloudVertexData", uCloudVertexData.gpuBuffer());
+            pass.setUniform("DynamicTransforms", dynamicTransform);
             pass.setVertexBuffer(0, modelVertexBuffer.gpuBuffer().slice());
             pass.setVertexBuffer(1, worldCloudPosBuffer.gpuBuffer().slice());
             pass.setIndexBuffer(modelIndexBuffer.gpuBuffer(), IndexType.SHORT);
@@ -206,9 +214,8 @@ public class Blaze3DRenderer extends CloudRenderer {
                 GpuBuffer.USAGE_VERTEX,
                 b -> {
                     for (ChunkedGenerator.Point p : generator.points()) {
-                        assert p != null;
                         b.putFloat(p.x());
-                        b.putFloat(p.y());
+                        b.putFloat(p.y() + cloudHeight);
                         b.putFloat(p.z());
                     }
                 }
@@ -222,7 +229,7 @@ public class Blaze3DRenderer extends CloudRenderer {
         modelVertexBuffer.close();
         modelIndexBuffer.close();
         worldCloudPosBuffer.close();
-        uCloudInfo.close();
+        uCloudVertexData.close();
     }
 
     public void reloadModelBuffers() {
