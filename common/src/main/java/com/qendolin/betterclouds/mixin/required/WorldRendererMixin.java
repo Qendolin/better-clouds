@@ -3,9 +3,7 @@ package com.qendolin.betterclouds.mixin.required;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.framegraph.FrameGraphBuilder;
 import com.mojang.blaze3d.resource.GraphicsResourceAllocator;
-import com.qendolin.betterclouds.mixin.duck.WorldRendererDuck;
 import com.qendolin.betterclouds.rendering.CloudRenderCoordinator;
-import com.qendolin.betterclouds.rendering.CloudRenderer;
 import net.minecraft.client.*;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.LevelTargetBundle;
@@ -20,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = LevelRenderer.class, priority = 900)
-public abstract class WorldRendererMixin implements WorldRendererDuck {
+public abstract class WorldRendererMixin {
 
     @Accessor("targets")
     protected abstract LevelTargetBundle better_clouds$getTargets();
@@ -28,11 +26,6 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
     @Inject(method = "<init>", at = @At("TAIL"))
     private void init(CallbackInfo ci) {
         CloudRenderCoordinator.instance.initialize(Minecraft.getInstance());
-    }
-
-    @Override
-    public CloudRenderer betterclouds$getRenderer() {
-        return CloudRenderCoordinator.instance.getRenderer();
     }
 
     @Inject(at = @At("HEAD"), method = "render")

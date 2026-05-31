@@ -14,6 +14,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LevelTargetBundle;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.joml.*;
@@ -48,6 +49,18 @@ public class CloudRenderCoordinator {
         frustum = cameraState.cullFrustum;
         Vec3 cameraPos = cameraState.pos;
         frustum.prepare(cameraPos.x, cameraPos.y, cameraPos.z);
+    }
+
+    public void setLevel(ClientLevel level) {
+        renderer.setLevel(level);
+    }
+
+    public void reload(ResourceManager manager) {
+        if (!GraphicsCompat.isOpenGL) {
+            if (renderer != null) renderer.close();
+            renderer = new Blaze3DRenderer(Minecraft.getInstance());
+        }
+        renderer.reload(manager);
     }
 
     public boolean renderClouds(FrameGraphBuilder frameGraphBuilder, LevelTargetBundle targets, Vec3 cameraPos, long gameTime, float ticksInput) {

@@ -7,7 +7,6 @@ import com.qendolin.betterclouds.compat.*;
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.generator.ChunkedGenerator;
-import com.qendolin.betterclouds.mixin.duck.BiomeManagerDuck;
 import com.qendolin.betterclouds.mixin.provider.*;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import com.qendolin.betterclouds.rendering.*;
@@ -16,15 +15,12 @@ import com.qendolin.betterclouds.rendering.opengl.internal.Mesh;
 import com.qendolin.betterclouds.rendering.opengl.shaders.ShaderParameters;
 import com.qendolin.betterclouds.util.ChatUtil;
 import com.qendolin.betterclouds.util.MathUtil;
-import net.minecraft.client.CloudStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.Mth;
-import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.world.level.material.FogType;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 import org.joml.*;
 import org.jspecify.annotations.NonNull;
 
@@ -45,7 +41,6 @@ public class OpenGLRenderer extends CloudRenderer {
     private final Resources res = new Resources();
     GLCompat glCompat = (GLCompat) GraphicsCompat.instance;
     private Buffer buffer;
-    private float cloudsHeight;
     private ShaderParameters shaderParameters = null;
 
     public OpenGLRenderer(Minecraft client) {
@@ -60,11 +55,6 @@ public class OpenGLRenderer extends CloudRenderer {
         int distance = options.blockDistance();
         int size = Mth.floor(distance / options.spacing) + Mth.ceil(distance / options.spacing);
         return size > 0 ? size : 8 * 16;
-    }
-
-    public long getWorldSeed() {
-        if (level == null) return 0;
-        return ((BiomeManagerDuck) level.getBiomeManager()).better_clouds$biomeSeed();
     }
 
     public void reload(ResourceManager manager) {
@@ -88,11 +78,6 @@ public class OpenGLRenderer extends CloudRenderer {
 
     public Resources resources() {
         return res;
-    }
-
-    // Used to be called isFancyMode
-    private boolean useCubeClouds() {
-        return Minecraft.getInstance().options.getCloudStatus() == CloudStatus.FANCY && ConfigManager.instance().sizeY > 0;
     }
 
     private int scaledFramebufferWidth() {
@@ -155,7 +140,7 @@ public class OpenGLRenderer extends CloudRenderer {
             return PrepareResult.NO_RENDER;
         }
 
-        cloudsHeight = level.environmentAttributes().getValue(EnvironmentAttributes.CLOUD_HEIGHT, new Vec3(cam.x, cam.y, cam.z));
+        updateCloudHeight(cam);
 
         boolean reallocatedBuffer = reallocateBufferIfStale(config, useCubeClouds());
         buffer.bind();
@@ -200,7 +185,7 @@ public class OpenGLRenderer extends CloudRenderer {
         rotationProjectionMatrix.set(projMat);
         rotationProjectionMatrix.mul(tempMatrix);
 
-        tempMatrix.translate((float) res.generator().renderOriginX(cam.x), (float) (cloudsHeight - cam.y), (float) res.generator().renderOriginZ(cam.z));
+        tempMatrix.translate((float) res.generator().renderOriginX(cam.x), (float) (cloudHeight - cam.y), (float) res.generator().renderOriginZ(cam.z));
         tempMatrix.m33(1);
 
         pMatrix.set(projMat);
@@ -333,7 +318,7 @@ public class OpenGLRenderer extends CloudRenderer {
 
         res.coverageShader().bind();
         res.coverageShader().uMVPMatrix.setMat4(mvpMatrix);
-        res.coverageShader().uOriginOffset.setVec3((float) -res.generator().renderOriginX(cam.x), (float) cam.y - cloudsHeight, (float) -res.generator().renderOriginZ(cam.z));
+        res.coverageShader().uOriginOffset.setVec3((float) -res.generator().renderOriginX(cam.x), (float) cam.y - cloudHeight, (float) -res.generator().renderOriginZ(cam.z));
         res.coverageShader().uBoundingBox.setVec4((float) cam.x, (float) cam.z, generatorConfig.blockDistance() - generatorConfig.chunkSize / 2f, generatorConfig.yRange + config.sizeY);
         res.coverageShader().uTime.setFloat(ticks / 20);
         res.coverageShader().uMiscellaneous.setVec3(config.scaleFalloffMin, config.windEffectFactor, config.windSpeedFactor);
@@ -408,7 +393,7 @@ public class OpenGLRenderer extends CloudRenderer {
         int runStart = -1;
         int runCount = 0;
         for (ChunkedGenerator.ChunkIndex chunk : res.generator().chunks()) {
-            AABB bounds = chunk.bounds(cloudsHeight, config.sizeXZ, config.sizeY);
+            AABB bounds = chunk.bounds(cloudHeight, config.sizeXZ, config.sizeY);
             if (!frustumAtOrigin.isVisible(bounds)) {
                 Debug.addFrustumCulledBox(bounds, false);
                 if (runCount != 0) {

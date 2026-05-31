@@ -1,9 +1,8 @@
 package com.qendolin.betterclouds.mixin.required;
 
 import com.qendolin.betterclouds.BetterClouds;
-import com.qendolin.betterclouds.mixin.duck.WorldRendererDuck;
 import com.qendolin.betterclouds.renderdoc.CaptureManager;
-import com.qendolin.betterclouds.rendering.CloudRenderer;
+import com.qendolin.betterclouds.rendering.CloudRenderCoordinator;
 import net.minecraft.client.GameLoadCookie;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -36,20 +35,13 @@ public abstract class MinecraftMixin {
 
     @Inject(at = @At("TAIL"), method = "setLevel(Lnet/minecraft/client/multiplayer/ClientLevel;)V")
     private void setBetterCloudsWorld(ClientLevel level, CallbackInfo ci) {
-        CloudRenderer renderer = better_clouds$getRenderer();
-        if (renderer != null) renderer.setLevel(level);
+        CloudRenderCoordinator.instance.setLevel(level);
     }
 
     @Inject(at = @At("TAIL"), method = "onResourceLoadFinished(Lnet/minecraft/client/GameLoadCookie;)V")
     private void reloadBetterCloudsRenderer(GameLoadCookie loadCookie, CallbackInfo ci) {
         if (!BetterClouds.isInitialized()) return;
         if (instance.isIncompatible()) return;
-        CloudRenderer renderer = better_clouds$getRenderer();
-        if (renderer != null) renderer.reload(getResourceManager());
-    }
-
-    @Unique
-    private CloudRenderer better_clouds$getRenderer() {
-        return ((WorldRendererDuck) levelRenderer).betterclouds$getRenderer();
+        CloudRenderCoordinator.instance.reload(getResourceManager());
     }
 }

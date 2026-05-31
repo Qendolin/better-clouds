@@ -24,10 +24,9 @@ public class ChunkedGenerator implements AutoCloseable {
     private static int cacheHit = 0;
     private static int cacheMiss = 0;
     private final long seed;
+    private final ObjectArrayList<Point> cloudPoints = new ObjectArrayList<>();
     private Sampler sampler;
     private DummyCache pointCache;
-    private ObjectArrayList<Point> readPoints = new ObjectArrayList<>();
-    private ObjectArrayList<Point> writePoints = new ObjectArrayList<>();
     private double originX, originZ;
     private long lastCloudTicks;
     private int lastRendererTicks;
@@ -78,7 +77,7 @@ public class ChunkedGenerator implements AutoCloseable {
     }
 
     public synchronized List<Point> points() {
-        return readPoints;
+        return cloudPoints;
     }
 
     public double originX() {
@@ -122,8 +121,7 @@ public class ChunkedGenerator implements AutoCloseable {
         runningTask = null;
         completedTask = null;
         swappedTask = null;
-        readPoints.clear();
-        writePoints.clear();
+        cloudPoints.clear();
     }
 
     public synchronized void update(Vector3d camera, long cloudTicks, int rendererTicks, float tickDelta, Config options, float cloudiness) {
@@ -245,9 +243,6 @@ public class ChunkedGenerator implements AutoCloseable {
             return;
         }
 
-        ObjectArrayList<Point> prevReadPoints = readPoints;
-        readPoints = writePoints;
-        writePoints = prevReadPoints;
         swappedTask = completedTask;
 
         if (Debug.isProfilingEnabled()) {
@@ -373,7 +368,7 @@ public class ChunkedGenerator implements AutoCloseable {
             int gridOriginX = Mth.floor((chunkX * options.chunkSize) / spacing);
             int gridOriginZ = Mth.floor((chunkZ * options.chunkSize) / spacing);
 
-            generator.writePoints.clear();
+            generator.cloudPoints.clear();
             cacheHit = 0;
             cacheMiss = 0;
 
@@ -404,7 +399,7 @@ public class ChunkedGenerator implements AutoCloseable {
                     }
 
                     for (AABB point : samplePoints.points()) {
-                        generator.writePoints.add(new Point(
+                        generator.cloudPoints.add(new Point(
                                 (float) (point.minX - this.chunkX * options.chunkSize),
                                 (float) point.minY,
                                 (float) (point.minZ - this.chunkZ * options.chunkSize)
