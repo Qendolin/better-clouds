@@ -1,4 +1,4 @@
-#version 330 core
+#version 320 core
 
 #moj_import <minecraft:fog.glsl>
 
@@ -9,11 +9,13 @@ layout (std140) uniform CloudFragData {
     float opacity;
     float opacityFactor;
     float opacityExponent;
+    float brightness;
     float tintRed;
     float tintGreen;
     float tintBlue;
 };
 
 void main() {
-    fragColor = vec4(tintRed, tintGreen, tintBlue, opacity * fogFade);
+    vec3 color = vec3(tintRed, tintGreen, tintBlue) * brightness;
+    fragColor = vec4(color, opacity * fogFade);
 }

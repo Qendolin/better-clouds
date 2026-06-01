@@ -1,4 +1,4 @@
-#version 330 core
+#version 320 core
 
 #moj_import <minecraft:dynamictransforms.glsl>
 #moj_import <minecraft:projection.glsl>

@@ -7,6 +7,7 @@ import com.mojang.blaze3d.pipeline.*;
 import com.mojang.blaze3d.platform.CompareOp;
 import com.mojang.blaze3d.shaders.UniformType;
 import com.mojang.blaze3d.systems.*;
+import com.mojang.blaze3d.textures.*;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.Config;
@@ -17,6 +18,7 @@ import com.qendolin.betterclouds.mixin.provider.FogProvider;
 import com.qendolin.betterclouds.rendering.*;
 import com.qendolin.betterclouds.rendering.opengl.Debug;
 import com.qendolin.betterclouds.rendering.opengl.Resources;
+import com.qendolin.betterclouds.util.MathUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BindGroupLayouts;
 import net.minecraft.client.renderer.culling.Frustum;
@@ -114,7 +116,8 @@ public class Blaze3DRenderer extends CloudRenderer {
 
     // uniforms
     private final WritableBuffer uCloudVertexData = new WritableBuffer("uCloudVertexData", Float.BYTES * 15, GpuBuffer.USAGE_UNIFORM);
-    private final WritableBuffer uCloudFragData = new WritableBuffer("uCloudFragData", Float.BYTES * 6, GpuBuffer.USAGE_UNIFORM);
+    private final WritableBuffer uCloudFragData = new WritableBuffer("uCloudFragData", Float.BYTES * 7, GpuBuffer.USAGE_UNIFORM);
+    private final GpuSampler noiseSampler = gpu().createSampler(AddressMode.REPEAT, AddressMode.REPEAT, FilterMode.LINEAR, FilterMode.LINEAR, 1, OptionalDouble.empty());
 
     public Blaze3DRenderer(Minecraft client) {
         super(client);
@@ -180,15 +183,19 @@ public class Blaze3DRenderer extends CloudRenderer {
     public void render(int ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
         getProfiler().popPush("render_setup");
 
-        Config options = ConfigManager.instance();
+        Config config = ConfigManager.instance();
         Config generatorConfig = getGeneratorConfig();
-        var sp = options.shaderPreset();
-        FogProvider.Fog fog = FogProvider.instance.getFog(client, options, tickDelta);
+        var sp = config.shaderPreset();
+        FogProvider.Fog fog = FogProvider.instance.getFog(client, config, tickDelta);
+
         float cloudTimeSeconds = (Math.floorMod(ticks, CLOUD_TIME_PERIOD_TICKS) + tickDelta) / 20.0f;
+        long skyTime = level.getOverworldClockTime() % 24000;
+        float dayNightFactor = MathUtil.interpolateDayNightFactor(skyTime, config.shaderPreset().sunriseStartTime, config.shaderPreset().sunriseEndTime, config.shaderPreset().sunsetStartTime, config.shaderPreset().sunsetEndTime);
+        float brightness = (1 - dayNightFactor) * config.shaderPreset().nightBrightness + dayNightFactor * config.shaderPreset().dayBrightness;
 
         uCloudVertexData.write(b -> {
-            b.putFloat(options.sizeXZ);
-            b.putFloat(options.sizeY);
+            b.putFloat(config.sizeXZ);
+            b.putFloat(config.sizeY);
             b.putFloat(cloudTimeSeconds);
 
             b.putFloat((float) -generator.renderOriginX(cam.x));
@@ -199,15 +206,15 @@ public class Blaze3DRenderer extends CloudRenderer {
             b.putFloat((float) cam.z);
 
             b.putFloat(generatorConfig.blockDistance() - generatorConfig.chunkSize / 2f);
-            b.putFloat(generatorConfig.yRange + options.sizeY);
+            b.putFloat(generatorConfig.yRange + config.sizeY);
 
-            b.putFloat(options.scaleFalloffMin);
-            b.putFloat(options.windEffectFactor);
-            b.putFloat(options.windSpeedFactor);
+            b.putFloat(config.scaleFalloffMin);
+            b.putFloat(config.windEffectFactor);
+            b.putFloat(config.windSpeedFactor);
 
             if (fog == null) {
-                b.putFloat(options.blockDistance() - 8);
-                b.putFloat(options.blockDistance());
+                b.putFloat(config.blockDistance() - 8);
+                b.putFloat(config.blockDistance());
             } else {
                 b.putFloat(fog.start());
                 b.putFloat(fog.end());
@@ -217,6 +224,7 @@ public class Blaze3DRenderer extends CloudRenderer {
             b.putFloat(sp.opacity);
             b.putFloat(sp.opacityFactor);
             b.putFloat(sp.opacityExponent);
+            b.putFloat(brightness);
             b.putFloat(sp.tintRed);
             b.putFloat(sp.tintGreen);
             b.putFloat(sp.tintBlue);
@@ -247,7 +255,7 @@ public class Blaze3DRenderer extends CloudRenderer {
             pass.setUniform("CloudFragData", uCloudFragData.gpuBuffer());
             pass.setUniform("DynamicTransforms", dynamicTransform);
             var noiseTexture = client.getTextureManager().getTexture(Resources.NOISE_TEXTURE);
-            pass.bindTexture("NoiseTexture", noiseTexture.getTextureView(), noiseTexture.getSampler());
+            pass.bindTexture("NoiseTexture", noiseTexture.getTextureView(), noiseSampler);
             pass.setVertexBuffer(0, modelVertexBuffer.gpuBuffer().slice());
             pass.setVertexBuffer(1, worldCloudPosBuffer.gpuBuffer().slice());
             pass.setIndexBuffer(modelIndexBuffer.gpuBuffer(), IndexType.SHORT);
@@ -292,6 +300,7 @@ public class Blaze3DRenderer extends CloudRenderer {
         worldCloudPosBuffer.close();
         uCloudVertexData.close();
         uCloudFragData.close();
+        noiseSampler.close();
     }
 
     public void reloadModelBuffers() {
