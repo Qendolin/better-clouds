@@ -13,8 +13,10 @@ import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.generator.ChunkedGenerator;
 import com.qendolin.betterclouds.mixin.provider.CloudinessProvider;
+import com.qendolin.betterclouds.mixin.provider.FogProvider;
 import com.qendolin.betterclouds.rendering.*;
 import com.qendolin.betterclouds.rendering.opengl.Debug;
+import com.qendolin.betterclouds.rendering.opengl.Resources;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BindGroupLayouts;
 import net.minecraft.client.renderer.culling.Frustum;
@@ -23,6 +25,7 @@ import net.minecraft.world.level.material.FogType;
 import org.joml.*;
 import org.jspecify.annotations.NonNull;
 
+import java.lang.Math;
 import java.util.Optional;
 import java.util.OptionalDouble;
 
@@ -32,6 +35,8 @@ import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
  * Rendering is hard
  */
 public class Blaze3DRenderer extends CloudRenderer {
+    private static final int CLOUD_TIME_PERIOD_TICKS = 320_000;
+
     final float[] CUBE_VERTICES = {
             // x,    y,    z
             -0.5f, -0.5f, -0.5f, // 0: left  bottom back
@@ -77,6 +82,7 @@ public class Blaze3DRenderer extends CloudRenderer {
             .addAttribute("WorldPosition", GpuFormat.RGB32_FLOAT)    // xyz position of cube center (world)
             .build();
     final BindGroupLayout SHADER_BIND_GROUP = BindGroupLayout.builder()
+            .withSampler("NoiseTexture")
             .withUniform("CloudVertexData", UniformType.UNIFORM_BUFFER)
             .withUniform("CloudFragData", UniformType.UNIFORM_BUFFER)
             .build();
@@ -107,8 +113,8 @@ public class Blaze3DRenderer extends CloudRenderer {
     private final ReadOnlyBuffer worldCloudPosBuffer = new ReadOnlyBuffer("cloudPositions");
 
     // uniforms
-    private final WritableBuffer uCloudVertexData = new WritableBuffer("uCloudVertexData", Float.BYTES * 4, GpuBuffer.USAGE_UNIFORM);
-    private final WritableBuffer uCloudFragData = new WritableBuffer("uCloudFragData", Float.BYTES * 5, GpuBuffer.USAGE_UNIFORM);
+    private final WritableBuffer uCloudVertexData = new WritableBuffer("uCloudVertexData", Float.BYTES * 15, GpuBuffer.USAGE_UNIFORM);
+    private final WritableBuffer uCloudFragData = new WritableBuffer("uCloudFragData", Float.BYTES * 6, GpuBuffer.USAGE_UNIFORM);
 
     public Blaze3DRenderer(Minecraft client) {
         super(client);
@@ -135,6 +141,8 @@ public class Blaze3DRenderer extends CloudRenderer {
             return PrepareResult.NO_RENDER;
         }
 
+        updateCloudHeight(cam);
+
         float cloudiness = CloudinessProvider.getCloudiness(level, tickDelta);
         Config options = ConfigManager.instance();
 
@@ -155,7 +163,6 @@ public class Blaze3DRenderer extends CloudRenderer {
             return PrepareResult.NO_RENDER;
         }
 
-        updateCloudHeight(cam);
         return PrepareResult.RENDER;
     }
 
@@ -163,21 +170,51 @@ public class Blaze3DRenderer extends CloudRenderer {
         return generator;
     }
 
+    private Config getGeneratorConfig() {
+        Config config = generator.config();
+        if (config != null) return config;
+        return ConfigManager.instance();
+    }
+
     @Override
     public void render(int ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
         getProfiler().popPush("render_setup");
 
         Config options = ConfigManager.instance();
+        Config generatorConfig = getGeneratorConfig();
         var sp = options.shaderPreset();
+        FogProvider.Fog fog = FogProvider.instance.getFog(client, options, tickDelta);
+        float cloudTimeSeconds = (Math.floorMod(ticks, CLOUD_TIME_PERIOD_TICKS) + tickDelta) / 20.0f;
 
         uCloudVertexData.write(b -> {
-            b.putFloat(ticks);
-            b.putFloat(tickDelta);
             b.putFloat(options.sizeXZ);
             b.putFloat(options.sizeY);
+            b.putFloat(cloudTimeSeconds);
+
+            b.putFloat((float) -generator.renderOriginX(cam.x));
+            b.putFloat((float) cam.y - cloudHeight);
+            b.putFloat((float) -generator.renderOriginZ(cam.z));
+
+            b.putFloat((float) cam.x);
+            b.putFloat((float) cam.z);
+
+            b.putFloat(generatorConfig.blockDistance() - generatorConfig.chunkSize / 2f);
+            b.putFloat(generatorConfig.yRange + options.sizeY);
+
+            b.putFloat(options.scaleFalloffMin);
+            b.putFloat(options.windEffectFactor);
+            b.putFloat(options.windSpeedFactor);
+
+            if (fog == null) {
+                b.putFloat(options.blockDistance() - 8);
+                b.putFloat(options.blockDistance());
+            } else {
+                b.putFloat(fog.start());
+                b.putFloat(fog.end());
+            }
         });
         uCloudFragData.write(b -> {
-            b.putFloat(sp.opacity / 2);
+            b.putFloat(sp.opacity);
             b.putFloat(sp.opacityFactor);
             b.putFloat(sp.opacityExponent);
             b.putFloat(sp.tintRed);
@@ -193,7 +230,7 @@ public class Blaze3DRenderer extends CloudRenderer {
             return;
 
         GpuBufferSlice dynamicTransform = RenderSystem.getDynamicUniforms().writeTransform(
-                CloudRenderCoordinator.instance.capturedViewMat,
+                createCloudModelViewMatrix(cam),
                 new Vector4f(1, sp.tintRed, sp.tintGreen, sp.tintBlue)
         );
 
@@ -209,6 +246,8 @@ public class Blaze3DRenderer extends CloudRenderer {
             pass.setUniform("CloudVertexData", uCloudVertexData.gpuBuffer());
             pass.setUniform("CloudFragData", uCloudFragData.gpuBuffer());
             pass.setUniform("DynamicTransforms", dynamicTransform);
+            var noiseTexture = client.getTextureManager().getTexture(Resources.NOISE_TEXTURE);
+            pass.bindTexture("NoiseTexture", noiseTexture.getTextureView(), noiseTexture.getSampler());
             pass.setVertexBuffer(0, modelVertexBuffer.gpuBuffer().slice());
             pass.setVertexBuffer(1, worldCloudPosBuffer.gpuBuffer().slice());
             pass.setIndexBuffer(modelIndexBuffer.gpuBuffer(), IndexType.SHORT);
@@ -226,11 +265,22 @@ public class Blaze3DRenderer extends CloudRenderer {
                 b -> {
                     for (ChunkedGenerator.Point p : generator.points()) {
                         b.putFloat(p.x());
-                        b.putFloat(p.y() + cloudHeight);
+                        b.putFloat(p.y());
                         b.putFloat(p.z());
                     }
                 }
         );
+    }
+
+    private Matrix4f createCloudModelViewMatrix(Vector3d cam) {
+        Matrix4f modelView = new Matrix4f(CloudRenderCoordinator.instance.capturedViewMat);
+        modelView.m33(0);
+        modelView.m23(0);
+        modelView.m13(0);
+        modelView.m03(0);
+        modelView.translate((float) generator.renderOriginX(cam.x), (float) (cloudHeight - cam.y), (float) generator.renderOriginZ(cam.z));
+        modelView.m33(1);
+        return modelView;
     }
 
     @Override
