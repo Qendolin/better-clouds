@@ -9,24 +9,17 @@ in vec3 LocalPosition;
 uniform sampler2D NoiseTexture;
 
 layout (std140) uniform CloudVertexData {
-    float uSizeXZ;
-    float uSizeY;
+    float uSizeXZ, uSizeY;
     float uTime;
-    float uOriginOffsetX;
-    float uOriginOffsetY;
-    float uOriginOffsetZ;
-    float uCameraX;
-    float uCameraZ;
-    float uBlockDistance;
-    float uCloudHeightRange;
-    float uScaleFalloffMin;
-    float uWindEffectFactor;
-    float uWindSpeedFactor;
-    float uFogStart;
-    float uFogEnd;
+    float uOriginOffsetX, uOriginOffsetY, uOriginOffsetZ;
+    float uCameraX, uCameraZ;
+    float uBlockDistance, uCloudHeightRange, uScaleFalloffMin;
+    float uWindEffectFactor, uWindSpeedFactor;
+    float uFogStart, uFogEnd;
 };
 
 out float fogFade;
+out vec3 lightSampleDir;
 
 float linearFogFade(float distance, float fogStart, float fogEnd) {
     float f = clamp(1.0 - (distance - fogStart) / (fogEnd - fogStart), 0, 1);
@@ -56,6 +49,7 @@ void main() {
     vec3 pos = scale * LocalPosition + cloudPos;
     vec3 localWorldVertexPos = pos - originOffset;
     fogFade = linearFogFade(length(localWorldVertexPos.xyz), uFogStart, uFogEnd);
+    lightSampleDir = localWorldVertexPos;
 
     gl_Position = ProjMat * ModelViewMat * vec4(pos, 1);
 }

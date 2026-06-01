@@ -13,8 +13,7 @@ import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.generator.ChunkedGenerator;
-import com.qendolin.betterclouds.mixin.provider.CloudinessProvider;
-import com.qendolin.betterclouds.mixin.provider.FogProvider;
+import com.qendolin.betterclouds.mixin.provider.*;
 import com.qendolin.betterclouds.rendering.*;
 import com.qendolin.betterclouds.rendering.opengl.Debug;
 import com.qendolin.betterclouds.rendering.opengl.Resources;
@@ -23,6 +22,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BindGroupLayouts;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.material.FogType;
 import org.joml.*;
 import org.jspecify.annotations.NonNull;
@@ -85,6 +85,7 @@ public class Blaze3DRenderer extends CloudRenderer {
             .build();
     final BindGroupLayout SHADER_BIND_GROUP = BindGroupLayout.builder()
             .withSampler("NoiseTexture")
+            .withSampler("LightTexture")
             .withUniform("CloudVertexData", UniformType.UNIFORM_BUFFER)
             .withUniform("CloudFragData", UniformType.UNIFORM_BUFFER)
             .build();
@@ -116,8 +117,9 @@ public class Blaze3DRenderer extends CloudRenderer {
 
     // uniforms
     private final WritableBuffer uCloudVertexData = new WritableBuffer("uCloudVertexData", Float.BYTES * 15, GpuBuffer.USAGE_UNIFORM);
-    private final WritableBuffer uCloudFragData = new WritableBuffer("uCloudFragData", Float.BYTES * 7, GpuBuffer.USAGE_UNIFORM);
+    private final WritableBuffer uCloudFragData = new WritableBuffer("uCloudFragData", Float.BYTES * 11, GpuBuffer.USAGE_UNIFORM);
     private final GpuSampler noiseSampler = gpu().createSampler(AddressMode.REPEAT, AddressMode.REPEAT, FilterMode.LINEAR, FilterMode.LINEAR, 1, OptionalDouble.empty());
+    private final GpuSampler lightSampler = gpu().createSampler(AddressMode.CLAMP_TO_EDGE, AddressMode.REPEAT, FilterMode.LINEAR, FilterMode.LINEAR, 1, OptionalDouble.empty());
 
     public Blaze3DRenderer(Minecraft client) {
         super(client);
@@ -192,6 +194,16 @@ public class Blaze3DRenderer extends CloudRenderer {
         long skyTime = level.getOverworldClockTime() % 24000;
         float dayNightFactor = MathUtil.interpolateDayNightFactor(skyTime, config.shaderPreset().sunriseStartTime, config.shaderPreset().sunriseEndTime, config.shaderPreset().sunsetStartTime, config.shaderPreset().sunsetEndTime);
         float brightness = (1 - dayNightFactor) * config.shaderPreset().nightBrightness + dayNightFactor * config.shaderPreset().dayBrightness;
+        Vector3f effectTint = EffectTintProvider.getEffectTint(client, fog, tickDelta, cam);
+
+        float skyAngleRad = EffectTintProvider.getSunAngleRadians(level, cam);
+        float sunPathAngleRad = config.shaderPreset().sunPathAngle * Mth.DEG_TO_RAD;
+        float sunAxisY = Mth.sin(sunPathAngleRad);
+        float sunAxisZ = Mth.cos(sunPathAngleRad);
+        Vector3f sunDir = new Vector3f(1, 0, 0).rotateAxis(skyAngleRad + Mth.HALF_PI, 0, sunAxisY, sunAxisZ);
+        float dayTime = level.getOverworldClockTime() % 24000;
+        float mappedTime = MathUtil.mapTimeOfDay(dayTime, config.shaderPreset().sunriseStartTime, config.shaderPreset().sunriseEndTime, config.shaderPreset().sunsetStartTime, config.shaderPreset().sunsetEndTime);
+
 
         uCloudVertexData.write(b -> {
             b.putFloat(config.sizeXZ);
@@ -225,9 +237,15 @@ public class Blaze3DRenderer extends CloudRenderer {
             b.putFloat(sp.opacityFactor);
             b.putFloat(sp.opacityExponent);
             b.putFloat(brightness);
-            b.putFloat(sp.tintRed);
-            b.putFloat(sp.tintGreen);
-            b.putFloat(sp.tintBlue);
+
+            b.putFloat(sp.tintRed * effectTint.x);
+            b.putFloat(sp.tintGreen * effectTint.y);
+            b.putFloat(sp.tintBlue * effectTint.z);
+
+            b.putFloat(sunDir.x);
+            b.putFloat(sunDir.y);
+            b.putFloat(sunDir.z);
+            b.putFloat(mappedTime / 24000);
         });
 
         getProfiler().popPush("render_clouds");
@@ -256,6 +274,8 @@ public class Blaze3DRenderer extends CloudRenderer {
             pass.setUniform("DynamicTransforms", dynamicTransform);
             var noiseTexture = client.getTextureManager().getTexture(Resources.NOISE_TEXTURE);
             pass.bindTexture("NoiseTexture", noiseTexture.getTextureView(), noiseSampler);
+            var lightTexture = client.getTextureManager().getTexture(Resources.LIGHTING_TEXTURE);
+            pass.bindTexture("LightTexture", lightTexture.getTextureView(), lightSampler);
             pass.setVertexBuffer(0, modelVertexBuffer.gpuBuffer().slice());
             pass.setVertexBuffer(1, worldCloudPosBuffer.gpuBuffer().slice());
             pass.setIndexBuffer(modelIndexBuffer.gpuBuffer(), IndexType.SHORT);
@@ -301,6 +321,7 @@ public class Blaze3DRenderer extends CloudRenderer {
         uCloudVertexData.close();
         uCloudFragData.close();
         noiseSampler.close();
+        lightSampler.close();
     }
 
     public void reloadModelBuffers() {
