@@ -523,7 +523,7 @@ public class ChunkedGenerator implements AutoCloseable {
 
                         // global/world block coordinates for cached sample points
                         float x = sampleX + generator.sampler.randomOffsetX(sampleX, sampleZ, pass) * options.randomPlacement * spacing;
-                        float y = cloudHeight + options.yOffset;
+                        float y = cloudHeight;
                         float z = sampleZ + generator.sampler.randomOffsetZ(sampleX, sampleZ, pass) * options.randomPlacement * spacing;
 
                         AABB pointAABB = new AABB(x, y, z, x, y, z);

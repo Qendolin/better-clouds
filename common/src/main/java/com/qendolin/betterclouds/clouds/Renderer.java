@@ -146,7 +146,7 @@ public class Renderer implements AutoCloseable {
             return PrepareResult.NO_RENDER;
         }
 
-        cloudsHeight = world.environmentAttributes().getValue(EnvironmentAttributes.CLOUD_HEIGHT, new Vec3(cam.x, cam.y, cam.z));
+        cloudsHeight = world.environmentAttributes().getValue(EnvironmentAttributes.CLOUD_HEIGHT, new Vec3(cam.x, cam.y, cam.z)) + config.yOffset;
 
         res.generator().bind();
         ShaderParameters currentShaderParameters = createShaderParameters(config);
