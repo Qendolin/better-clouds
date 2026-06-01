@@ -4,14 +4,11 @@
 
 out vec4 fragColor;
 
-layout (std140) uniform CloudVertexData {
-    float ticks;
-    float partialTicks;
-
-    float uSizeXZ;
-    float uSizeY;
+layout (std140) uniform CloudFragData {
+    float opacity, opacityFactor, opacityExponent;
+    vec3 tint;
 };
 
 void main() {
-    fragColor = vec4(tint.rgb, 0.2);
+    fragColor = vec4(tint.rgb, opacity);
 }

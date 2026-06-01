@@ -6,14 +6,9 @@
 in vec3 WorldPosition;
 in vec3 LocalPosition;
 
-layout (std140) uniform CloudData {
-    float ticks;
-    float partialTicks;
-
-    float uSizeXZ;
-    float uSizeY;
-
-    vec3 tint;
+layout (std140) uniform CloudVertexData {
+    float ticks, partialTicks;
+    float uSizeXZ, uSizeY;
 };
 
 void main() {
