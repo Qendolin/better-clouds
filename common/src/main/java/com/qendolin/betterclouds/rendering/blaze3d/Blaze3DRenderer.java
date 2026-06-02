@@ -96,6 +96,8 @@ public class Blaze3DRenderer extends CloudRenderer {
             .withVertexBinding(0, MODEL_FORMAT)
             .withVertexBinding(1, POSITION_FORMAT)
             .withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
+            .withShaderDefine("SUN_HALO_ENABLED", ConfigManager.instance().celestialBodyHalo ? 1 : 0)     // FIXME: get cloud pipeline reloading working
+            .withShaderDefine("SUN_HALO_SIZE", 0.1f)     // Higher values -> smaller size TODO: turn this into option
             .withBindGroupLayout(BindGroupLayouts.MATRICES_PROJECTION)
             .withBindGroupLayout(BindGroupLayouts.FOG)
             .withBindGroupLayout(SHADER_BIND_GROUP)
@@ -155,12 +157,12 @@ public class Blaze3DRenderer extends CloudRenderer {
         if (generator.canSwap()) {
             getProfiler().popPush("swap");
             generator.swap();
+            updateCloudPositionsBuffer();
             getProfiler().popPush("render_setup");
         }
         if (generator.canGenerate() && !generator.generating() && !Debug.generatorPause) {
             getProfiler().popPush("generate_clouds");
             generator.generate();
-            updateCloudPositionsBuffer();
             getProfiler().popPush("render_setup");
         }
 
