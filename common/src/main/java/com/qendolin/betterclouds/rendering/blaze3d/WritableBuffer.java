@@ -16,10 +16,10 @@ public class WritableBuffer implements AutoCloseable {
     private final GpuBuffer gpuBuffer;
 
     public WritableBuffer(String name, int capacity, int usage) {
-        String name1 = BetterCloudsStatic.MODID + ":" + name;
+        String nameWithModId = BetterCloudsStatic.MODID + ":" + name;
         this.buffer = ByteBuffer.allocateDirect(capacity).order(ByteOrder.nativeOrder());
         this.gpuBuffer = RenderSystem.getDevice().createBuffer(
-                () -> name1,
+                () -> nameWithModId,
                 usage | GpuBuffer.USAGE_COPY_DST,
                 capacity
         );

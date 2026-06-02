@@ -99,7 +99,6 @@ public class Blaze3DRenderer extends CloudRenderer {
             .withShaderDefine("CELESTIAL_BODY_HALO", ConfigManager.instance().celestialBodyHalo ? 1 : 0)     // FIXME: get cloud pipeline reloading working
             .withShaderDefine("HALO_SIZE", 3f)     // Higher values -> smaller size TODO: turn this into option
             .withBindGroupLayout(BindGroupLayouts.MATRICES_PROJECTION)
-            .withBindGroupLayout(BindGroupLayouts.FOG)
             .withBindGroupLayout(SHADER_BIND_GROUP)
             .withCull(false)
             .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, false))
@@ -120,6 +119,8 @@ public class Blaze3DRenderer extends CloudRenderer {
     // uniforms
     private final WritableBuffer uCloudVertexData = new WritableBuffer("uCloudVertexData", Float.BYTES * 15, GpuBuffer.USAGE_UNIFORM);
     private final WritableBuffer uCloudFragData = new WritableBuffer("uCloudFragData", Float.BYTES * 11, GpuBuffer.USAGE_UNIFORM);
+
+    // samplers
     private final GpuSampler noiseSampler = gpu().createSampler(AddressMode.REPEAT, AddressMode.REPEAT, FilterMode.LINEAR, FilterMode.LINEAR, 1, OptionalDouble.empty());
     private final GpuSampler lightSampler = gpu().createSampler(AddressMode.CLAMP_TO_EDGE, AddressMode.REPEAT, FilterMode.LINEAR, FilterMode.LINEAR, 1, OptionalDouble.empty());
 
@@ -144,6 +145,7 @@ public class Blaze3DRenderer extends CloudRenderer {
 
         getProfiler().popPush("render_setup");
 
+        // Rendering clouds when underwater was making them very visible in unloaded chunks
         if (client.gameRenderer.mainCamera().getFluidInCamera() != FogType.NONE) {
             return PrepareResult.NO_RENDER;
         }
@@ -208,14 +210,17 @@ public class Blaze3DRenderer extends CloudRenderer {
 
 
         uCloudVertexData.write(b -> {
+            // size and time
             b.putFloat(config.sizeXZ);
             b.putFloat(config.sizeY);
             b.putFloat(cloudTimeSeconds);
 
+            // cloud matrix origin position
             b.putFloat((float) -generator.renderOriginX(cam.x));
             b.putFloat((float) cam.y - cloudHeight);
             b.putFloat((float) -generator.renderOriginZ(cam.z));
 
+            // camera position (for sampling the noise texture)
             b.putFloat((float) cam.x);
             b.putFloat((float) cam.z);
 
@@ -227,9 +232,11 @@ public class Blaze3DRenderer extends CloudRenderer {
             b.putFloat(config.windSpeedFactor);
 
             if (fog == null) {
+                // fog off, just use blockDistance
                 b.putFloat(config.blockDistance() - 8);
                 b.putFloat(config.blockDistance());
             } else {
+                // fog start and end
                 b.putFloat(fog.start());
                 b.putFloat(fog.end());
             }
@@ -254,8 +261,10 @@ public class Blaze3DRenderer extends CloudRenderer {
         RenderTarget cloudsTarget = client.levelRenderer.cloudsTarget();
         if (cloudsTarget == null)
             cloudsTarget = client.gameRenderer.mainRenderTarget();
-        if (cloudsTarget.getColorTextureView() == null)
+        if (cloudsTarget.getColorTextureView() == null) {
+            // idk
             return;
+        }
 
         GpuBufferSlice dynamicTransform = RenderSystem.getDynamicUniforms().writeTransform(
                 createCloudModelViewMatrix(cam),
@@ -302,6 +311,9 @@ public class Blaze3DRenderer extends CloudRenderer {
         );
     }
 
+    /**
+     * Aligns the model view matrix with the generator origin
+     */
     private Matrix4f createCloudModelViewMatrix(Vector3d cam) {
         Matrix4f modelView = new Matrix4f(CloudRenderCoordinator.instance.capturedViewMat);
         modelView.m33(0);
