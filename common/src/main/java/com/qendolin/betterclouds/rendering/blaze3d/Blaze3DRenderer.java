@@ -96,8 +96,8 @@ public class Blaze3DRenderer extends CloudRenderer {
             .withVertexBinding(0, MODEL_FORMAT)
             .withVertexBinding(1, POSITION_FORMAT)
             .withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
-            .withShaderDefine("SUN_HALO_ENABLED", ConfigManager.instance().celestialBodyHalo ? 1 : 0)     // FIXME: get cloud pipeline reloading working
-            .withShaderDefine("SUN_HALO_SIZE", 0.1f)     // Higher values -> smaller size TODO: turn this into option
+            .withShaderDefine("CELESTIAL_BODY_HALO", ConfigManager.instance().celestialBodyHalo ? 1 : 0)     // FIXME: get cloud pipeline reloading working
+            .withShaderDefine("HALO_SIZE", 3f)     // Higher values -> smaller size TODO: turn this into option
             .withBindGroupLayout(BindGroupLayouts.MATRICES_PROJECTION)
             .withBindGroupLayout(BindGroupLayouts.FOG)
             .withBindGroupLayout(SHADER_BIND_GROUP)

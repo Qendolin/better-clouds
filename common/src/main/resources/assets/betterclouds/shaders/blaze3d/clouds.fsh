@@ -21,7 +21,7 @@ void main() {
     vec3 fragDir = normalize(lightSampleDir);
     float lightUvX = dot(sunDir, fragDir) * 0.9;
 
-    # if SUN_HALO_ENABLED
+    # if CELESTIAL_BODY_HALO
     vec3 xzProj = fragDir - sunDir * dot(fragDir, sunDir);
     float projAngle = acos(dot(normalize(xzProj), sunDir));
     float superellipseFalloff = dot(sunDir, fragDir);
@@ -29,7 +29,7 @@ void main() {
 
     // i still have no idea how this formula works but it seems to work fine
     float superellipse = (
-    (1.0 + (1.0 / 3.0) * (pow(sin(2.0 * projAngle + pi / 2.0), 2.0))) * (SUN_HALO_SIZE - abs(superellipseFalloff) * SUN_HALO_SIZE) - 1.0
+    (1.0 + (1.0 / 3.0) * (pow(sin(2.0 * projAngle + pi / 2.0), 2.0))) * (HALO_SIZE - abs(superellipseFalloff) * HALO_SIZE) - 1.0
     ) * sign(-superellipseFalloff);
 
     lightUvX = mix(sphere, superellipse, smoothstep(0.75, 1.0, abs(sphere)));
