@@ -266,6 +266,11 @@ public class OpenGLRenderer extends CloudRenderer {
         stopTiming();
     }
 
+    @Override
+    public ChunkedGenerator generator() {
+        return res.generator();
+    }
+
     private boolean isFramebufferStale() {
         return res.fboWidth() != scaledFramebufferWidth() || res.fboHeight() != scaledFramebufferHeight();
     }

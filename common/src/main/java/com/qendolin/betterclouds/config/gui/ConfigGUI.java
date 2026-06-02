@@ -5,6 +5,7 @@ import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.gui.*;
 import com.qendolin.betterclouds.mixin.runtime.SimpleOptionAccessor;
+import com.qendolin.betterclouds.rendering.CloudRenderCoordinator;
 import com.qendolin.betterclouds.util.Tuple;
 import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.gui.controllers.BooleanController;
@@ -395,6 +396,7 @@ public class ConfigGUI {
                     config.sortShaderPresets();
                     config.selectedNoisePreset = Mth.clamp(config.selectedNoisePreset, 0, config.noisePresets.size());
                     config.sortNoisePresets();
+                    CloudRenderCoordinator.instance.onConfigSave();
                     ConfigManager.handler().save();
                 })
                 .title(Component.translatable(LANG_KEY_PREFIX + ".title"));

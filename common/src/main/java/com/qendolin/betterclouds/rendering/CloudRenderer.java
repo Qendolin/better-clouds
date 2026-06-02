@@ -2,6 +2,7 @@ package com.qendolin.betterclouds.rendering;
 
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.ConfigManager;
+import com.qendolin.betterclouds.generator.ChunkedGenerator;
 import com.qendolin.betterclouds.mixin.duck.BiomeManagerDuck;
 import com.qendolin.betterclouds.rendering.opengl.Debug;
 import com.qendolin.betterclouds.util.ChatUtil;
@@ -41,6 +42,8 @@ public abstract class CloudRenderer implements AutoCloseable {
     public abstract PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, int rendererTicks, float tickDelta, Vector3d cam);
 
     public abstract void render(int ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum);
+
+    public abstract ChunkedGenerator generator();
 
     @Override
     public void close() {
@@ -99,5 +102,9 @@ public abstract class CloudRenderer implements AutoCloseable {
 
     public void updateCloudHeight(Vector3d cam) {
         cloudHeight = level.environmentAttributes().getValue(EnvironmentAttributes.CLOUD_HEIGHT, new Vec3(cam.x, cam.y, cam.z)) + ConfigManager.instance().yOffset;
+    }
+
+    public void onConfigSave() {
+
     }
 }

@@ -97,7 +97,7 @@ public class Blaze3DRenderer extends CloudRenderer {
             .withVertexBinding(1, POSITION_FORMAT)
             .withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
             .withShaderDefine("CELESTIAL_BODY_HALO", ConfigManager.instance().celestialBodyHalo ? 1 : 0)     // FIXME: get cloud pipeline reloading working
-            .withShaderDefine("HALO_SIZE", 3f)     // Higher values -> smaller size TODO: turn this into option
+            .withShaderDefine("HALO_SIZE", 3f)     // Higher values -> smaller size
             .withBindGroupLayout(BindGroupLayouts.MATRICES_PROJECTION)
             .withBindGroupLayout(SHADER_BIND_GROUP)
             .withCull(false)
@@ -293,6 +293,17 @@ public class Blaze3DRenderer extends CloudRenderer {
 
             pass.drawIndexed(CUBE_INDICES.length, generator.points().size(), 0, 0, 0);
         }
+    }
+
+    @Override
+    public void onConfigSave() {
+        if (generator.config().celestialBodyHalo != ConfigManager.instance().celestialBodyHalo)
+            CloudRenderCoordinator.instance.renderer = new Blaze3DRenderer(client);
+    }
+
+    @Override
+    public ChunkedGenerator generator() {
+        return generator;
     }
 
     public void updateCloudPositionsBuffer() {

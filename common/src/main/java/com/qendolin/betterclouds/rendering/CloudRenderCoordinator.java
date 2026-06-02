@@ -123,6 +123,10 @@ public class CloudRenderCoordinator {
         if (renderer != null) renderer.close();
     }
 
+    public void onConfigSave() {
+        renderer.onConfigSave();
+    }
+
     private boolean shouldRenderClouds() {
         if (renderer == null) return false;
         if (GraphicsCompat.instance.isIncompatible()) return false;
