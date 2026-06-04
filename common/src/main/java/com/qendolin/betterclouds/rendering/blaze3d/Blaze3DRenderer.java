@@ -297,7 +297,7 @@ public class Blaze3DRenderer extends CloudRenderer {
 
     @Override
     public void onConfigSave() {
-        if (generator.config().celestialBodyHalo != ConfigManager.instance().celestialBodyHalo)
+        if (generator.config() != null && generator.config().celestialBodyHalo != ConfigManager.instance().celestialBodyHalo)
             CloudRenderCoordinator.instance.renderer = new Blaze3DRenderer(client);
     }
 

@@ -12,10 +12,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(value = ScrollableNavigationBar.class, remap = false)
 public abstract class ScrollableNavigationBarMixin {
 
-    @Inject(method = "extractRenderState", at = @At("HEAD"))
+    @Inject(method = "extractWidgetRenderState", at = @At("HEAD"))
     private void betterclouds$drawTranslucentBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
         Minecraft client = Minecraft.getInstance();
-        if (client == null || !CustomScrollableNavigationBar.betterclouds$useTranslucentTheme(client)) {
+        if (!CustomScrollableNavigationBar.betterclouds$useTranslucentTheme(client)) {
             return;
         }
 

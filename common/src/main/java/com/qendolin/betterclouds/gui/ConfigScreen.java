@@ -39,7 +39,7 @@ public class ConfigScreen extends YACLScreen {
                     return tab;
                 }).toList());
         tabNavigationBar.selectTab(currentTab, false);
-        tabNavigationBar.arrangeElements();
+        tabNavigationBar.arrangeElements(this.width);
         tabManager.setTabArea(tabArea);
         addRenderableWidget(tabNavigationBar);
 
