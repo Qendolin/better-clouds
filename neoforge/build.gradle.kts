@@ -106,7 +106,6 @@ dependencies {
         compileOnly("maven.modrinth:JaCEZUhg:${property("deps.terra_firma_craft")}")
     }
 
-    implementation("gs.mclo:api:${property("deps.mclo_api")}")
     compileOnly("maven.modrinth:Xs0XTOVv:${property("deps.distanthorizons_api")}")
     compileOnly("maven.modrinth:e0bNACJD:${property("deps.serene_seasons")}")
     compileOnly("maven.modrinth:2rL16t1O:${property("deps.enhanced_celestials")}-neoforge")
@@ -119,12 +118,12 @@ dependencies {
 tasks.named<JavaCompile>("compileJava") {
     dependsOn(commonJava)
     source(
-        commonJava.asFileTree.matching {
-            exclude(
-                "com/qendolin/betterclouds/compat/EnhancedCelestials2CompatImpl.java",
-                "com/qendolin/betterclouds/mixin/runtime/SodiumGameOptionPagesMixin.java",
-            )
-        },
+            commonJava.asFileTree.matching {
+                exclude(
+                        "com/qendolin/betterclouds/compat/EnhancedCelestials2CompatImpl.java",
+                        "com/qendolin/betterclouds/mixin/runtime/SodiumGameOptionPagesMixin.java",
+                )
+            },
     )
 }
 
@@ -133,8 +132,8 @@ tasks.named<ProcessResources>("processResources") {
     from(commonResources)
 
     val props = mutableMapOf<String, Any>(
-        "version" to project.version,
-        "loader" to loader,
+            "version" to project.version,
+            "loader" to loader,
     )
     props["mc_version_range"] = findProperty("deps.minecraft").toString().split(",").joinToString(",") {
         "[$it,)"
