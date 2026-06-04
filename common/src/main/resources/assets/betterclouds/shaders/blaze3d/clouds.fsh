@@ -1,7 +1,5 @@
-#version 320 core
+#version 330 core
 #define pi 3.1415926536
-
-#moj_import <minecraft:fog.glsl>
 
 out vec4 fragColor;
 in float fogFade;

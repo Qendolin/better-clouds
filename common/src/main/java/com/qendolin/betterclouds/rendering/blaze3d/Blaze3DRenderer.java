@@ -226,8 +226,8 @@ public class Blaze3DRenderer extends CloudRenderer {
 
             b.putFloat(generatorConfig.blockDistance() - generatorConfig.chunkSize / 2f);
             b.putFloat(generatorConfig.yRange + config.sizeY);
-
             b.putFloat(config.scaleFalloffMin);
+
             b.putFloat(config.windEffectFactor);
             b.putFloat(config.windSpeedFactor);
 

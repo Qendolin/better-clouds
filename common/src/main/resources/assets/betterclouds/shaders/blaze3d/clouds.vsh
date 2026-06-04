@@ -1,4 +1,4 @@
-#version 320 core
+#version 330 core
 
 #moj_import <minecraft:dynamictransforms.glsl>
 #moj_import <minecraft:projection.glsl>
@@ -42,7 +42,7 @@ void main() {
     waveScale = mix(mix(waveScale, 1.0, max(smallWaves, 0.0)), 0.0, max(-smallWaves, 0.0));
 
     // make cloud tops wobble less
-    float fDynScale = 1.0 - smoothstep(0.0, uCloudHeightRange / 4.0, LocalPosition.y + 0.5);
+    float fDynScale = 1.0 - smoothstep(0.0, uCloudHeightRange / 4.0, WorldPosition.y + 0.5);
     float dynScale = mix(1.0, waveScale, fDynScale * uWindEffectFactor);
     vec3 scale = vec3(uSizeXZ, uSizeY, uSizeXZ) * dynScale * scaleFalloff;
 
