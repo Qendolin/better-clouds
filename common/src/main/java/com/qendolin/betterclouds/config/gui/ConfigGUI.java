@@ -39,6 +39,8 @@ public class ConfigGUI {
     public final Option<Float> randomPlacement;
     public final Option<Float> yRange;
     public final Option<Float> yOffset;
+    public final Option<Config.Renderer> renderer;
+    public final LabelOption rendererRequiresRestart;
     public final Option<Config.TimeSource> timeSource;
     public final Option<Float> bottomSparsity;
     public final Option<Float> samplingScale;
@@ -125,6 +127,11 @@ public class ConfigGUI {
                 .binding(defaults.yOffset, () -> config.yOffset, val -> config.yOffset = val)
                 .customController(opt -> new FloatSliderController(opt, -384, 256, 8))
                 .build();
+        this.renderer = createOption(Config.Renderer.class, "renderer")
+                .binding(defaults.renderer, () -> config.renderer, val -> config.renderer = val)
+                .customController(opt -> new EnumController<>(opt, Config.Renderer.class))
+                .build();
+        this.rendererRequiresRestart = LabelOption.create(groupLabel("common.rendererRequiresRestart"));
         this.timeSource = createOption(Config.TimeSource.class, "timeSource")
                 .binding(defaults.timeSource, () -> config.timeSource, val -> config.timeSource = val)
                 .customController(opt -> new EnumController<>(opt, Config.TimeSource.class))
@@ -298,7 +305,7 @@ public class ConfigGUI {
 
         performanceCategory.add(new Tuple<>(OptionGroup.createBuilder()
                 .name(groupLabel("performance.technical")), performanceTechnicalGroup));
-        performanceTechnicalGroup.addAll(List.of(usePersistentBuffers, useFrustumCulling, useSamplerCaching));
+        performanceTechnicalGroup.addAll(List.of(usePersistentBuffers, useFrustumCulling, useSamplerCaching, renderer, rendererRequiresRestart));
 
         categories.add(new Tuple<>(ConfigCategory.createBuilder()
                 .name(categoryLabel("shaders")), shaderPresetGUI.shadersCategory));
