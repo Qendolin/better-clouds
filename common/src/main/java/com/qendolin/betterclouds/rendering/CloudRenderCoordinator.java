@@ -46,7 +46,7 @@ public class CloudRenderCoordinator {
     }
 
     public void captureFrustum(CameraRenderState cameraState) {
-        frustum = cameraState.cullFrustum;
+        frustum = new Frustum(cameraState.cullFrustum);
         Vec3 cameraPos = cameraState.pos;
         frustum.prepare(cameraPos.x, cameraPos.y, cameraPos.z);
     }

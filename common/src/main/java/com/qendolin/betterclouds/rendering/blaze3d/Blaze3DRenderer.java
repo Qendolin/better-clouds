@@ -9,6 +9,7 @@ import com.mojang.blaze3d.shaders.UniformType;
 import com.mojang.blaze3d.systems.*;
 import com.mojang.blaze3d.textures.*;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.datafixers.util.Pair;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
@@ -21,9 +22,12 @@ import com.qendolin.betterclouds.util.MathUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BindGroupLayouts;
 import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.gizmos.GizmoStyle;
+import net.minecraft.gizmos.Gizmos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.material.FogType;
+import net.minecraft.world.phys.AABB;
 import org.joml.*;
 import org.jspecify.annotations.NonNull;
 
@@ -291,7 +295,53 @@ public class Blaze3DRenderer extends CloudRenderer {
             pass.setVertexBuffer(1, worldCloudPosBuffer.gpuBuffer().slice());
             pass.setIndexBuffer(modelIndexBuffer.gpuBuffer(), IndexType.SHORT);
 
-            pass.drawIndexed(CUBE_INDICES.length, generator.points().size(), 0, 0, 0);
+            frustum.prepare(frustumPos.x - generator.originX(), frustumPos.y, frustumPos.z - generator.originZ());
+
+            if (!config.useFrustumCulling)
+                pass.drawIndexed(CUBE_INDICES.length, generator.points().size(), 0, 0, 0);
+            else
+                drawWithFrustumCulling(pass, frustum);
+        }
+    }
+
+    private void drawWithFrustumCulling(RenderPass pass, Frustum frustumAtOrigin) {
+        // This algorithm loops over chunks, which are in a line-by-line order.
+        // When a visible chunk is found it's marked as a run start. The run continues until
+        // the next non-visible chunk is found. At the end of a run the entire run is rendered as once.
+        // This is possible due to the memory layout of the instance buffers.
+        Config config = ConfigManager.instance();
+        Debug.frustumCulledBoxes.clear();
+
+        int runStart = -1;
+        int runCount = 0;
+        for (ChunkedGenerator.ChunkIndex chunk : generator.chunks()) {
+            AABB bounds = chunk.bounds(cloudHeight, config.sizeXZ, config.sizeY);
+            if (!frustumAtOrigin.isVisible(bounds)) {
+                Debug.addFrustumCulledBox(bounds, false);
+                if (runCount != 0) {
+                    pass.drawIndexed(CUBE_INDICES.length, runCount, 0, 0, runStart);
+                }
+                runStart = -1;
+                runCount = 0;
+            } else {
+                Debug.addFrustumCulledBox(bounds, true);
+                if (runStart == -1) runStart = chunk.start();
+                runCount += chunk.count();
+            }
+        }
+        if (runCount != 0) {
+            pass.drawIndexed(CUBE_INDICES.length, runCount, 0, 0, runStart);
+        }
+        if (Debug.frustumCulling) {
+            try (var ignored = Minecraft.getInstance().levelRenderer.collectPerFrameRenderThreadGizmos()) {
+                int visible = 0xFF99FF80;
+                int culled = 0xFFFF9977;
+
+                for (Pair<AABB, Boolean> box : Debug.frustumCulledBoxes) {
+                    Gizmos.cuboid(box.getFirst(), GizmoStyle.stroke(box.getSecond() ? visible : culled, 1.0f))
+                            .setAlwaysOnTop();
+                }
+            }
         }
     }
 

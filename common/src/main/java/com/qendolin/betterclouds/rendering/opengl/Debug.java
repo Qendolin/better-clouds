@@ -5,18 +5,18 @@ import com.mojang.datafixers.util.Pair;
 import com.qendolin.betterclouds.compat.GLCompat;
 import com.qendolin.betterclouds.rendering.CloudRenderCoordinator;
 import com.qendolin.betterclouds.rendering.GraphicsCompat;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.world.phys.AABB;
 import org.joml.Vector3d;
 import org.lwjgl.opengl.GL32;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.qendolin.betterclouds.compat.GLCompat.instance;
 
 public class Debug {
-    public static final List<Pair<AABB, Boolean>> frustumCulledBoxes = new ArrayList<>();
+    public static final List<Pair<AABB, Boolean>> frustumCulledBoxes = new ObjectArrayList<>();
     public static int profileInterval = 0;
     public static boolean frustumCulling = false;
     public static boolean generatorPause = false;
