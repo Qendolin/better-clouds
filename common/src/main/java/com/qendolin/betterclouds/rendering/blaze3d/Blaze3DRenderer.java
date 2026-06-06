@@ -41,9 +41,9 @@ import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
  * Rendering is hard
  */
 public class Blaze3DRenderer extends CloudRenderer {
-    private static final int CLOUD_TIME_PERIOD_TICKS = 320_000;
+    public static final int CLOUD_TIME_PERIOD_TICKS = 320_000;
 
-    final float[] CUBE_VERTICES = {
+    public static final float[] CUBE_VERTICES = {
             // x,    y,    z
             -0.5f, -0.5f, -0.5f, // 0: left  bottom back
             0.5f, -0.5f, -0.5f, // 1: right bottom back
@@ -55,7 +55,7 @@ public class Blaze3DRenderer extends CloudRenderer {
             0.5f, 0.5f, 0.5f, // 6: right top    front
             -0.5f, 0.5f, 0.5f  // 7: left  top    front
     };
-    final short[] CUBE_INDICES = {
+    public static final short[] CUBE_INDICES = {
             // back face, z = -1
             0, 1, 2,
             2, 3, 0,
