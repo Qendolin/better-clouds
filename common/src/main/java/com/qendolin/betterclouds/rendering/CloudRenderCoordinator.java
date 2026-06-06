@@ -124,7 +124,8 @@ public class CloudRenderCoordinator {
     }
 
     public void onConfigSave() {
-        renderer.onConfigSave();
+        if (renderer != null)
+            renderer.onConfigSave();
     }
 
     private boolean shouldRenderClouds() {
