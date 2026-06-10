@@ -58,19 +58,19 @@ public class OpenGLRenderer extends CloudRenderer {
 
     public void reload(ResourceManager manager) {
         BetterCloudsStatic.getLogger().info("Reloading cloud renderer...");
-        BetterCloudsStatic.getLogger().debug("[1/6] Reloading shaders");
+        BetterCloudsStatic.getLogger().info("[1/6] Reloading shaders");
         shaderParameters = createShaderParameters(ConfigManager.instance());
         res.reloadShaders(manager, shaderParameters);
-        BetterCloudsStatic.getLogger().debug("[2/6] Reloading generator");
+        BetterCloudsStatic.getLogger().info("[2/6] Reloading generator");
         res.reloadGenerator(getWorldSeed(), useCubeClouds());
         reloadBuffer(ConfigManager.instance(), useCubeClouds());
-        BetterCloudsStatic.getLogger().debug("[3/6] Reloading textures");
+        BetterCloudsStatic.getLogger().info("[3/6] Reloading textures");
         res.reloadTextures(client);
-        BetterCloudsStatic.getLogger().debug("[4/6] Reloading primitive meshes");
+        BetterCloudsStatic.getLogger().info("[4/6] Reloading primitive meshes");
         res.reloadMeshPrimitives();
-        BetterCloudsStatic.getLogger().debug("[5/6] Reloading framebuffer");
+        BetterCloudsStatic.getLogger().info("[5/6] Reloading framebuffer");
         res.reloadFramebuffer(scaledFramebufferWidth(), scaledFramebufferHeight());
-        BetterCloudsStatic.getLogger().debug("[6/6] Reloading timers");
+        BetterCloudsStatic.getLogger().info("[6/6] Reloading timers");
         reloadTimer();
         BetterCloudsStatic.getLogger().info("Cloud renderer initialized");
     }
