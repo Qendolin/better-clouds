@@ -25,6 +25,7 @@ import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.gizmos.GizmoStyle;
 import net.minecraft.gizmos.Gizmos;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.material.FogType;
 import net.minecraft.world.phys.AABB;
@@ -93,43 +94,25 @@ public class Blaze3DRenderer extends CloudRenderer {
             .withUniform("CloudVertexData", UniformType.UNIFORM_BUFFER)
             .withUniform("CloudFragData", UniformType.UNIFORM_BUFFER)
             .build();
-    final RenderPipeline CLOUD_PIPELINE = RenderPipeline.builder()
-            .withLocation(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "blaze_3d_renderer"))
-            .withVertexShader(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "blaze3d/clouds"))
-            .withFragmentShader(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "blaze3d/clouds"))
-            .withVertexBinding(0, MODEL_FORMAT)
-            .withVertexBinding(1, POSITION_FORMAT)
-            .withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
-            .withShaderDefine("CELESTIAL_BODY_HALO", ConfigManager.instance().celestialBodyHalo ? 1 : 0)     // FIXME: get cloud pipeline reloading working
-            .withShaderDefine("HALO_SIZE", 3f)     // Higher values -> smaller size
-            .withBindGroupLayout(BindGroupLayouts.MATRICES_PROJECTION)
-            .withBindGroupLayout(SHADER_BIND_GROUP)
-            .withCull(false)
-            .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, false))
-            .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
-            .build();
-
     private final ChunkedGenerator generator = new ChunkedGenerator(getWorldSeed());
-
-    // don't forget to close your buffers!
-
     // models
     private final ReadOnlyBuffer modelVertexBuffer = new ReadOnlyBuffer("cloudModelVertices");
-    private final ReadOnlyBuffer modelIndexBuffer = new ReadOnlyBuffer("cloudModelIndices");
 
+    // don't forget to close your buffers!
+    private final ReadOnlyBuffer modelIndexBuffer = new ReadOnlyBuffer("cloudModelIndices");
     // cloud position xyz, capacity can change, so must recreate every time cloud positions change
     private final ReadOnlyBuffer worldCloudPosBuffer = new ReadOnlyBuffer("cloudPositions");
-
     // uniforms
     private final WritableBuffer uCloudVertexData = new WritableBuffer("uCloudVertexData", Float.BYTES * 15, GpuBuffer.USAGE_UNIFORM);
     private final WritableBuffer uCloudFragData = new WritableBuffer("uCloudFragData", Float.BYTES * 11, GpuBuffer.USAGE_UNIFORM);
-
     // samplers
     private final GpuSampler noiseSampler = gpu().createSampler(AddressMode.REPEAT, AddressMode.REPEAT, FilterMode.LINEAR, FilterMode.LINEAR, 1, OptionalDouble.empty());
     private final GpuSampler lightSampler = gpu().createSampler(AddressMode.CLAMP_TO_EDGE, AddressMode.REPEAT, FilterMode.LINEAR, FilterMode.LINEAR, 1, OptionalDouble.empty());
+    RenderPipeline CLOUD_RENDERER_PIPELINE;
 
     public Blaze3DRenderer(Minecraft client) {
         super(client);
+        buildRenderPipeline();
         reloadModelBuffers();
     }
 
@@ -177,16 +160,6 @@ public class Blaze3DRenderer extends CloudRenderer {
         }
 
         return PrepareResult.RENDER;
-    }
-
-    public ChunkedGenerator getGenerator() {
-        return generator;
-    }
-
-    private Config getGeneratorConfig() {
-        Config config = generator.config();
-        if (config != null) return config;
-        return ConfigManager.instance();
     }
 
     @Override
@@ -282,7 +255,7 @@ public class Blaze3DRenderer extends CloudRenderer {
                 cloudsTarget.getDepthTextureView(),
                 OptionalDouble.empty()
         )) {
-            pass.setPipeline(CLOUD_PIPELINE);
+            pass.setPipeline(CLOUD_RENDERER_PIPELINE);
             RenderSystem.bindDefaultUniforms(pass);
             pass.setUniform("CloudVertexData", uCloudVertexData.gpuBuffer());
             pass.setUniform("CloudFragData", uCloudFragData.gpuBuffer());
@@ -302,6 +275,36 @@ public class Blaze3DRenderer extends CloudRenderer {
             else
                 drawWithFrustumCulling(pass, frustum);
         }
+    }
+
+    private Config getGeneratorConfig() {
+        Config config = generator.config();
+        if (config != null) return config;
+        return ConfigManager.instance();
+    }
+
+    public void reload(ResourceManager manager) {
+        buildRenderPipeline();
+    }
+
+    public void buildRenderPipeline() {
+        CLOUD_RENDERER_PIPELINE = RenderPipeline.builder()
+                .withLocation(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "blaze_3d_renderer"))
+                .withVertexShader(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "blaze3d/clouds"))
+                .withFragmentShader(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "blaze3d/clouds"))
+                .withVertexBinding(0, MODEL_FORMAT)
+                .withVertexBinding(1, POSITION_FORMAT)
+                .withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
+                .withShaderDefine("CELESTIAL_BODY_HALO", ConfigManager.instance().celestialBodyHalo ? 1 : 0)
+                .withShaderDefine("HALO_SIZE", 3f)     // Higher values -> smaller size
+                .withShaderDefine("NEAR_CLOUD_FADE", ConfigManager.instance().nearCloudFade ? 1 : 0)
+                .withShaderDefine("NEAR_FADE_DIST", 40)
+                .withBindGroupLayout(BindGroupLayouts.MATRICES_PROJECTION)
+                .withBindGroupLayout(SHADER_BIND_GROUP)
+                .withCull(false)
+                .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, false))
+                .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
+                .build();
     }
 
     private void drawWithFrustumCulling(RenderPass pass, Frustum frustumAtOrigin) {
@@ -343,12 +346,6 @@ public class Blaze3DRenderer extends CloudRenderer {
                 }
             }
         }
-    }
-
-    @Override
-    public void onConfigSave() {
-        if (generator.config() != null && generator.config().celestialBodyHalo != ConfigManager.instance().celestialBodyHalo)
-            CloudRenderCoordinator.instance.renderer = new Blaze3DRenderer(client);
     }
 
     @Override
