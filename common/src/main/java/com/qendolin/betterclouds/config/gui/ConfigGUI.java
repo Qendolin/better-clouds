@@ -5,7 +5,6 @@ import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.gui.*;
 import com.qendolin.betterclouds.mixin.runtime.SimpleOptionAccessor;
-import com.qendolin.betterclouds.rendering.CloudRenderCoordinator;
 import com.qendolin.betterclouds.util.Tuple;
 import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.gui.controllers.BooleanController;
@@ -52,6 +51,7 @@ public class ConfigGUI {
     public final Option<Float> windSpeedFactor;
     public final Option<Float> colorVariationFactor;
     public final Option<Boolean> celestialBodyHalo;
+    public final Option<Boolean> nearCloudFade;
 
     public final Option<Boolean> enabled;
     public final Option<Float> fogRangeFactor;
@@ -176,6 +176,10 @@ public class ConfigGUI {
                 .binding(defaults.celestialBodyHalo, () -> config.celestialBodyHalo, val -> config.celestialBodyHalo = val)
                 .customController(TickBoxController::new)
                 .build();
+        this.nearCloudFade = createOption(boolean.class, "nearCloudFade")
+                .binding(defaults.nearCloudFade, () -> config.nearCloudFade, val -> config.nearCloudFade = val)
+                .customController(TickBoxController::new)
+                .build();
         this.enabled = createOption(boolean.class, "enabled")
                 .binding(defaults.enabled, () -> config.enabled, val -> config.enabled = val)
                 .customController(opt -> new BooleanController(opt, val -> Component.translatable(LANG_KEY_PREFIX + ".entry.enabled." + val), false))
@@ -288,7 +292,10 @@ public class ConfigGUI {
 
         appearanceCategory.add(new Tuple<>(OptionGroup.createBuilder()
                 .name(groupLabel("appearance.sky")), appearanceSkyGroup));
-        appearanceSkyGroup.add(celestialBodyHalo);
+        appearanceSkyGroup.addAll(List.of(
+                celestialBodyHalo,
+                nearCloudFade
+        ));
 
         categories.add(new Tuple<>(ConfigCategory.createBuilder()
                 .name(categoryLabel("performance")), performanceCategory));
@@ -403,7 +410,6 @@ public class ConfigGUI {
                     config.sortShaderPresets();
                     config.selectedNoisePreset = Mth.clamp(config.selectedNoisePreset, 0, config.noisePresets.size());
                     config.sortNoisePresets();
-                    CloudRenderCoordinator.instance.onConfigSave();
                     ConfigManager.handler().save();
                 })
                 .title(Component.translatable(LANG_KEY_PREFIX + ".title"));

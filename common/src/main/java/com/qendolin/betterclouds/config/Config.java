@@ -65,6 +65,8 @@ public class Config {
     @SerialEntry
     public boolean celestialBodyHalo = true;
     @SerialEntry
+    public boolean nearCloudFade = false;
+    @SerialEntry
     public int chunkSize = 32;
     @SerialEntry
     public float samplingScale = 1;

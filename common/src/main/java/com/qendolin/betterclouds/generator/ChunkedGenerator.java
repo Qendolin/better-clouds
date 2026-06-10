@@ -3,6 +3,8 @@ package com.qendolin.betterclouds.generator;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
+import com.qendolin.betterclouds.rendering.CloudRenderCoordinator;
+import com.qendolin.betterclouds.rendering.GraphicsCompat;
 import com.qendolin.betterclouds.rendering.opengl.Debug;
 import com.qendolin.betterclouds.util.ChatUtil;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
@@ -24,6 +26,7 @@ public class ChunkedGenerator implements AutoCloseable {
     private static int cacheHit = 0;
     private static int cacheMiss = 0;
     private final long seed;
+    public boolean queueCacheClear = false;
     private ObjectArrayList<Point> readPoints = new ObjectArrayList<>(), writePoints = new ObjectArrayList<>();
     private Sampler sampler;
     private DummyCache pointCache;
@@ -31,8 +34,6 @@ public class ChunkedGenerator implements AutoCloseable {
     private long lastCloudTicks;
     private int lastRendererTicks;
     private float lastTickIncrement = 1;
-    private boolean queueCacheClear = false;
-
     private Task queuedTask;
     @Nullable
     private Task runningTask;
@@ -155,30 +156,40 @@ public class ChunkedGenerator implements AutoCloseable {
 
             if (optionsChanged || cloudinessChanged) {
                 BetterCloudsStatic.getLogger().info((optionsChanged ? "Configuration" : "Cloudiness") + " changed, updating geometry");
+                if (optionsChanged)
+                    onConfigChange(options, prevTask.options);
                 queueCacheClear = true;
             }
             updateGeometry = chunkChanged || optionsChanged || cloudinessChanged;
         } else {
-            BetterCloudsStatic.getLogger().debug("No tasks, updating geometry");
+            BetterCloudsStatic.getLogger().info("No tasks, updating geometry");
             updateGeometry = true;
         }
 
         if (Debug.generatorChangeCacheSize >= 30) {
             pointCache = new ChunkCache(Debug.generatorChangeCacheSize);
-            BetterCloudsStatic.getLogger().debug("Changing cache size and invalidating cache");
+            BetterCloudsStatic.getLogger().info("Changing cache size and invalidating cache");
             Debug.generatorForceUpdate = true;
             Debug.generatorChangeCacheSize = 0;
         }
 
         if (Debug.generatorForceUpdate) {
             Debug.generatorForceUpdate = false;
-            BetterCloudsStatic.getLogger().debug("Forcibly updating geometry");
+            BetterCloudsStatic.getLogger().info("Forcibly updating geometry");
             updateGeometry = true;
         }
 
         if (updateGeometry) {
             queuedTask = new Task(chunkX, chunkZ, new Config(options), distance, cloudiness, this);
         }
+    }
+
+    public void onConfigChange(Config options, Config prevOptions) {
+        if (GraphicsCompat.isOpenGL) return;
+        if (options.celestialBodyHalo == prevOptions.celestialBodyHalo && options.nearCloudFade == prevOptions.nearCloudFade)
+            return;
+        CloudRenderCoordinator.instance.reload(null);
+        BetterCloudsStatic.getLogger().info("Shader define options changed, reloading renderer");
     }
 
     public synchronized void generate() {
@@ -293,7 +304,7 @@ public class ChunkedGenerator implements AutoCloseable {
                     notify();
                     return;
                 }
-                BetterCloudsStatic.getLogger().debug("Generator task #{} cancelled", id);
+                BetterCloudsStatic.getLogger().info("Generator task #{} cancelled", id);
                 try {
                     wait();
                 } catch (InterruptedException e) {

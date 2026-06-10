@@ -32,8 +32,7 @@ public class CloudRenderCoordinator {
 
     public void initialize(Minecraft client) {
         if (GraphicsCompat.instance.isIncompatible()) return;
-        if (GraphicsCompat.isOpenGL)
-            renderer = new OpenGLRenderer(client);
+        renderer = GraphicsCompat.isOpenGL ? new OpenGLRenderer(client) : new Blaze3DRenderer(client);
     }
 
     public CloudRenderer getRenderer() {
@@ -56,11 +55,7 @@ public class CloudRenderCoordinator {
     }
 
     public void reload(ResourceManager manager) {
-        if (!GraphicsCompat.isOpenGL) {
-            if (renderer != null) renderer.close();
-            renderer = new Blaze3DRenderer(Minecraft.getInstance());
-        }
-        renderer.reload(manager);
+        if (renderer != null) renderer.reload(manager);
     }
 
     public boolean renderClouds(FrameGraphBuilder frameGraphBuilder, LevelTargetBundle targets, Vec3 cameraPos, long gameTime, float ticksInput) {
@@ -69,7 +64,7 @@ public class CloudRenderCoordinator {
         } catch (Exception e) {
             BetterCloudsStatic.getLogger().error("Failed to render clouds", e);
             Commands.sendCrashChatMessage();
-            renderer.close();
+            if (renderer != null) renderer.close();
         }
         return false;
     }
@@ -121,11 +116,6 @@ public class CloudRenderCoordinator {
 
     public void close() {
         if (renderer != null) renderer.close();
-    }
-
-    public void onConfigSave() {
-        if (renderer != null)
-            renderer.onConfigSave();
     }
 
     private boolean shouldRenderClouds() {

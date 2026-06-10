@@ -103,8 +103,4 @@ public abstract class CloudRenderer implements AutoCloseable {
     public void updateCloudHeight(Vector3d cam) {
         cloudHeight = level.environmentAttributes().getValue(EnvironmentAttributes.CLOUD_HEIGHT, new Vec3(cam.x, cam.y, cam.z)) + ConfigManager.instance().yOffset;
     }
-
-    public void onConfigSave() {
-
-    }
 }
