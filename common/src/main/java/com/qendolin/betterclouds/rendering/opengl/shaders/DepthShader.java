@@ -1,0 +1,25 @@
+package com.qendolin.betterclouds.rendering.opengl.shaders;
+
+import com.qendolin.betterclouds.BetterCloudsStatic;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.resources.ResourceManager;
+
+import java.io.IOException;
+import java.util.Map;
+
+public class DepthShader extends Shader {
+    public static final Identifier VERTEX_SHADER_ID = Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "shaders/opengl/betterclouds_depth.vsh");
+    public static final Identifier FRAGMENT_SHADER_ID = Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "shaders/opengl/betterclouds_depth.fsh");
+
+    public final Uniform uDepthTexture;
+
+    public DepthShader(ResourceManager resMan, Map<String, String> defs) throws IOException {
+        super(resMan, VERTEX_SHADER_ID, FRAGMENT_SHADER_ID, defs);
+
+        uDepthTexture = getUniform("u_depth_texture", false);
+    }
+
+    public static DepthShader create(ResourceManager manager) throws IOException {
+        return new DepthShader(manager, Map.of());
+    }
+}

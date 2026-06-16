@@ -5,10 +5,7 @@ import dev.isxander.yacl3.gui.AbstractWidget;
 import dev.isxander.yacl3.gui.controllers.PopupControllerScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -57,10 +54,10 @@ public abstract class AbstractWidgetMixin {
         if (client == null || client.level == null) {
             return false;
         }
-        if (client.screen instanceof ConfigScreen) {
+        if (client.gui.screen() instanceof ConfigScreen) {
             return true;
         }
-        if (client.screen instanceof PopupControllerScreen popupScreen) {
+        if (client.gui.screen() instanceof PopupControllerScreen popupScreen) {
             return ((PopupControllerScreenAccessor) popupScreen).getBackgroundYaclScreen() instanceof ConfigScreen;
         }
         return false;

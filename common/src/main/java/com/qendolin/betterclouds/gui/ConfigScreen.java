@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds.gui;
 
-import com.qendolin.betterclouds.duck.CustomCategoryTabDuck;
+import com.qendolin.betterclouds.mixin.duck.CustomCategoryTabDuck;
 import dev.isxander.yacl3.api.PlaceholderCategory;
 import dev.isxander.yacl3.api.YetAnotherConfigLib;
 import dev.isxander.yacl3.api.utils.OptionUtils;
@@ -39,7 +39,7 @@ public class ConfigScreen extends YACLScreen {
                     return tab;
                 }).toList());
         tabNavigationBar.selectTab(currentTab, false);
-        tabNavigationBar.arrangeElements();
+        tabNavigationBar.arrangeElements(this.width);
         tabManager.setTabArea(tabArea);
         addRenderableWidget(tabNavigationBar);
 

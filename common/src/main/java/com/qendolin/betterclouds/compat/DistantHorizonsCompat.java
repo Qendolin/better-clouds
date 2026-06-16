@@ -43,11 +43,7 @@ public abstract class DistantHorizonsCompat {
 
         try {
             switch (apiVersion) {
-                case 6 -> {
-                    BetterCloudsStatic.getLogger().info("Using DistantHorizons 6 compat");
-                    instance = new DistantHorizons6CompatImpl();
-                }
-                case 3, 4, 5 -> {
+                case 3 -> {
                     BetterCloudsStatic.getLogger().info("Using DistantHorizons 3 compat");
                     instance = new DistantHorizons3CompatImpl();
                 }
@@ -56,7 +52,7 @@ public abstract class DistantHorizonsCompat {
                     instance = new DistantHorizons2CompatImpl();
                 }
                 default -> {
-                    BetterCloudsStatic.getLogger().info("Using Distant Horizons 6 compat for version " + apiVersion + ", hopefully it still works! ;-;");
+                    BetterCloudsStatic.getLogger().info("Using Distant Horizons 3 compat for version " + apiVersion + ", hopefully it still works! ;-;");
                     instance = new DistantHorizons3CompatImpl();
                 }
             }

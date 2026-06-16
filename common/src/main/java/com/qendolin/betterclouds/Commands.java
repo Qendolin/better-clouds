@@ -1,21 +1,18 @@
 package com.qendolin.betterclouds;
 
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.ArgumentType;
-import com.mojang.brigadier.arguments.BoolArgumentType;
-import com.mojang.brigadier.arguments.FloatArgumentType;
-import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.*;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.serialization.Codec;
-import com.qendolin.betterclouds.clouds.Debug;
 import com.qendolin.betterclouds.compat.GLCompat;
-import com.qendolin.betterclouds.config.ConfigGUI;
 import com.qendolin.betterclouds.config.ConfigManager;
-import com.qendolin.betterclouds.renderdoc.CaptureManager;
-import com.qendolin.betterclouds.renderdoc.RenderDoc;
-import com.qendolin.betterclouds.renderdoc.RenderDocLoader;
+import com.qendolin.betterclouds.config.gui.ConfigGUI;
+import com.qendolin.betterclouds.renderdoc.*;
+import com.qendolin.betterclouds.rendering.CloudRenderCoordinator;
+import com.qendolin.betterclouds.rendering.GraphicsCompat;
+import com.qendolin.betterclouds.rendering.opengl.Debug;
 import com.qendolin.betterclouds.util.ChatUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -73,9 +70,9 @@ public class Commands {
                         .executes(_ -> {
                             ChatUtil.debugChatMessage("profiling.disabled");
                             Debug.profileInterval = 0;
-                            var renderer = BetterClouds.getCloudsRenderer();
+                            var renderer = CloudRenderCoordinator.instance.getRenderer();
                             if (renderer != null) {
-                                var timer = renderer.resources().timer();
+                                var timer = renderer.timer();
                                 if (timer != null)
                                     timer.reset();
                             }
@@ -85,12 +82,12 @@ public class Commands {
         dispatcher.register(literal(BetterCloudsStatic.MODID + ":frustum")
                 .then(literal("capture")
                         .executes(_ -> {
-                            ChatUtil.debugChatMessage(Component.literal("Frustum capture is not available on Minecraft 26.1"));
+                            ChatUtil.debugChatMessage(Component.literal("Frustum capture is not available on Minecraft 26.2"));
                             return 1;
                         }))
                 .then(literal("release")
                         .executes(_ -> {
-                            ChatUtil.debugChatMessage(Component.literal("Frustum capture is not available on Minecraft 26.1"));
+                            ChatUtil.debugChatMessage(Component.literal("Frustum capture is not available on Minecraft 26.2"));
                             return 1;
                         }))
                 .then(literal("debugCulling")
@@ -146,7 +143,7 @@ public class Commands {
                 .then(literal("open").executes(_ -> {
                     // The chat screen will call setScreen(null) after the command handler
                     // which would override our call, so we delay it
-                    client.schedule(() -> client.setScreen(ConfigGUI.create(null)));
+                    client.schedule(() -> client.gui.setScreen(ConfigGUI.create(null)));
                     return 1;
                 }))
                 .then(literal("reload").executes(_ -> {
@@ -167,6 +164,14 @@ public class Commands {
                                             ChatUtil.debugChatMessage("updatedPreferences");
                                             return 1;
                                         })))
+                        .then(literal("cloudSpeed")
+                                .then(argument("speed", FloatArgumentType.floatArg(0, 1024))
+                                        .executes(context -> {
+                                            ConfigManager.instance().travelSpeed = FloatArgumentType.getFloat(context, "speed") / 20;
+                                            return 1;
+                                        })
+                                )
+                        )
                 )
         );
         dispatcher.register(literal(BetterCloudsStatic.MODID + ":dimension")
@@ -199,13 +204,19 @@ public class Commands {
                             return 1;
                         })));
 
+        registerOpenGLCommands(dispatcher, client);
+    }
+
+    private static void registerOpenGLCommands(CommandDispatcher<Object> dispatcher, Minecraft client) {
+        if (!GraphicsCompat.isOpenGL) return;
+
         dispatcher.register(literal(BetterCloudsStatic.MODID + ":debug")
                 .then(renderdocCommands())
                 .then(literal("fallback")
                         .then(argument("name", FallbackArgumentType.fallback())
                                 .executes(context -> {
                                     FallbackArgument fallback = FallbackArgumentType.getFallback(context, "name");
-                                    boolean enabled = fallback.get(GLCompat.glCompat);
+                                    boolean enabled = fallback.get((GLCompat) GLCompat.instance);
                                     ChatUtil.debugChatMessage(Component.literal(String.format("Fallback %s is currently %s", fallback.getSerializedName(), enabled ? "enabled" : "disabled")));
                                     return 1;
                                 })
@@ -213,21 +224,12 @@ public class Commands {
                                         .executes(context -> {
                                             FallbackArgument fallback = FallbackArgumentType.getFallback(context, "name");
                                             boolean enable = BoolArgumentType.getBool(context, "enable");
-                                            fallback.set(GLCompat.glCompat, enable);
+                                            fallback.set((GLCompat) GLCompat.instance, enable);
                                             client.reloadResourcePacks().whenComplete((_, _) -> ChatUtil.debugChatMessage(Component.literal(String.format("Fallback %s is now %s", fallback.getSerializedName(), enable ? "enabled" : "disabled"))));
                                             return 1;
                                         })))
                 )
-                .then(literal("cloud_speed")
-                        .then(argument("speed", FloatArgumentType.floatArg(0, 1024))
-                                .executes(context -> {
-                                    ConfigManager.instance().travelSpeed = FloatArgumentType.getFloat(context, "speed") / 20;
-                                    return 1;
-                                })
-                        )
-                )
         );
-
     }
 
     private static LiteralArgumentBuilder<Object> renderdocCommands() {
@@ -357,6 +359,10 @@ public class Commands {
                                 .withStyle(style -> style.withItalic(true).withUnderlined(true).withColor(ChatFormatting.GRAY)
                                         .withClickEvent(createCommandClickEvent(
                                                 "/betterclouds:config set gpuIncompatibleMessage false")))));
+    }
+
+    public static void sendCrashChatMessage() {
+        ChatUtil.debugChatMessage(Component.translatable(ChatUtil.debugChatMessageKey("crashMessage")));
     }
 
     private static ClickEvent createCommandClickEvent(String command) {

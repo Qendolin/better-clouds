@@ -51,6 +51,10 @@ dependencies {
     implementation("net.fabricmc:fabric-loader:${property("loader.fabric")}")
     implementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
 
+    // fixme: revert to implementation when modmenu for 26.2 comes out
+    compileOnly("com.terraformersmc:modmenu:${property("deps.modmenu")}")
+    implementation("maven.modrinth:1eAoo2KR:${property("deps.yacl")}")
+
     compileOnly("maven.modrinth:KJe6y9Eu:${property("deps.fabric_seasons")}")
 
     val mixinSquared = "com.github.bawnorton.mixinsquared:mixinsquared-$loader:${property("deps.mixinsquared")}"
@@ -61,21 +65,15 @@ dependencies {
     implementation(mixinExtras)
     include(mixinExtras)
 
-    val mcloApi = "gs.mclo:api:${property("deps.mclo_api")}"
-    implementation(mcloApi)
-    include(mcloApi)
-
-    implementation("com.terraformersmc:modmenu:${property("deps.modmenu")}")
-    implementation("maven.modrinth:1eAoo2KR:${property("deps.yacl")}")
-
-    compileOnly("maven.modrinth:4lDrPSXX:${property("deps.longview")}")
     compileOnly("maven.modrinth:Xs0XTOVv:${property("deps.distanthorizons_api")}")
     compileOnly("maven.modrinth:e0bNACJD:${property("deps.serene_seasons")}")
     compileOnly("maven.modrinth:2rL16t1O:${property("deps.enhanced_celestials")}-fabric")
     compileOnly("maven.modrinth:z2XEADmE:${property("deps.data_anchor")}-fabric")
 
     add("productionRuntimeMods", "maven.modrinth:1eAoo2KR:${property("deps.yacl")}")
-    add("productionRuntimeMods", "net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
+    add("productionRuntimeMods", "net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}") {
+        exclude(group = "net.fabricmc.fabric-api", module = "fabric-client-gametest-api-v1")
+    }
 }
 
 tasks.register<ClientProductionRunTask>("runGameTest") {

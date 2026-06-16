@@ -1,7 +1,7 @@
 package com.qendolin.betterclouds.compat;
 
 import com.qendolin.betterclouds.BetterCloudsStatic;
-import com.qendolin.betterclouds.config.FabricSeasonsConfig;
+import com.qendolin.betterclouds.config.compat.FabricSeasonsConfig;
 import com.qendolin.betterclouds.platform.ModLoader;
 import com.qendolin.betterclouds.platform.ModVersion;
 import net.minecraft.world.level.Level;
@@ -20,8 +20,8 @@ public abstract class FabricSeasonsCompat {
 
     private static final AtomicBoolean initialized = new AtomicBoolean(false);
     private static final ModVersion.SemVer MINIMUM_VERSION = new ModVersion.SemVer(2, 4, 0);
+    private static final boolean isActive = false;
     private static FabricSeasonsCompat instance;
-    private static boolean isActive = false;
 
     public static void initialize() {
         if (initialized.getAndSet(true)) return;
@@ -40,7 +40,7 @@ public abstract class FabricSeasonsCompat {
             return;
         }
 
-        BetterCloudsStatic.getLogger().warn("FabricSeasons compat is temporarily disabled on Minecraft 26.1 until an official-mappings build is available");
+        BetterCloudsStatic.getLogger().warn("FabricSeasons compat is temporarily disabled on Minecraft 26.2 until an official-mappings build is available");
         instance = new Stub();
     }
 

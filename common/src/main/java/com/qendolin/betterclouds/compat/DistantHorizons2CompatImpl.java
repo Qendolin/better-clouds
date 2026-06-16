@@ -2,9 +2,7 @@ package com.qendolin.betterclouds.compat;
 
 import com.seibel.distanthorizons.api.methods.events.sharedParameterObjects.DhApiRenderParam;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 
 class DistantHorizons2CompatImpl extends DistantHorizonsSharedCompatImpl {
 

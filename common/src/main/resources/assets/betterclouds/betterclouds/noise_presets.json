@@ -4,7 +4,7 @@
     "description" : "Varied patches of clouds. Creates different cloud patterns every day!",
     "octaves" : [
       [-1, 0, 1, 2],
-      [-3, -1, 0, 1, 2],
+      [-2, -1, 0, 1, 2],
       [-2, 0, 1, 2],
       [0, 1, 2]
     ]
@@ -20,7 +20,7 @@
     "title" : "Grand",
     "description" : "Grand, vast fields of clouds. May be too performance-heavy on high render distance.",
     "octaves" : [
-      [-3, -1, 0, 1, 2]
+      [-2, -1, 0, 1, 2]
     ]
   },
   "medium" : {

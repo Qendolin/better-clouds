@@ -9,8 +9,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public abstract class EnhancedCelestialsCompat {
 
     private static final AtomicBoolean initialized = new AtomicBoolean(false);
+    private static final boolean isActive = false;
     private static EnhancedCelestialsCompat instance;
-    private static boolean isActive = false;
 
     public static void initialize() {
         if (initialized.getAndSet(true)) return;
@@ -23,7 +23,7 @@ public abstract class EnhancedCelestialsCompat {
 
         BetterCloudsStatic.getLogger().info("EnhancedCelestials: initializing compat");
 
-        BetterCloudsStatic.getLogger().warn("EnhancedCelestials compat is temporarily disabled on Minecraft 26.1 until an official-mappings build is available");
+        BetterCloudsStatic.getLogger().warn("EnhancedCelestials compat is temporarily disabled on Minecraft 26.2 until an official-mappings build is available");
         instance = new Stub();
     }
 

@@ -19,7 +19,7 @@ dependencies {
     "minecraft"("com.mojang:minecraft:$mcVersion")
 
     compileOnly("org.jetbrains:annotations:26.0.2")
-    compileOnly("net.fabricmc:sponge-mixin:0.17.0+mixin.0.8.7")
+    compileOnly("net.fabricmc:sponge-mixin:0.17.2+mixin.0.8.7")
     compileOnly("com.github.bawnorton.mixinsquared:mixinsquared-common:${property("deps.mixinsquared")}")
     compileOnly("io.github.llamalad7:mixinextras-common:${property("deps.mixin_extras")}")
 
@@ -27,8 +27,6 @@ dependencies {
 
     compileOnly("maven.modrinth:1eAoo2KR:${property("deps.yacl")}")
     compileOnly("maven.modrinth:YL57xq9U:${property("deps.iris")}-fabric")
-    compileOnly("maven.modrinth:4lDrPSXX:${property("deps.longview")}")
-    compileOnly("gs.mclo:api:${property("deps.mclo_api")}")
     compileOnly("maven.modrinth:Xs0XTOVv:${property("deps.distanthorizons_api")}")
 
     testImplementation(platform("org.junit:junit-bom:5.12.2"))

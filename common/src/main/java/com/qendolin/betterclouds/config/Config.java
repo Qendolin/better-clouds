@@ -4,6 +4,8 @@ import com.google.gson.*;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.compat.BigGlobeCompat;
 import com.qendolin.betterclouds.compat.MiddleEarthCompat;
+import com.qendolin.betterclouds.config.compat.*;
+import com.qendolin.betterclouds.config.preset.*;
 import com.qendolin.betterclouds.util.PreLaunchGuard;
 import dev.isxander.yacl3.api.NameableEnum;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
@@ -19,10 +21,7 @@ import net.minecraft.world.level.dimension.DimensionType;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Config {
     public static final String DEFAULT_PRESET_KEY = "default";
@@ -66,6 +65,8 @@ public class Config {
     @SerialEntry
     public boolean celestialBodyHalo = true;
     @SerialEntry
+    public boolean nearCloudFade = false;
+    @SerialEntry
     public int chunkSize = 32;
     @SerialEntry
     public float samplingScale = 1;
@@ -89,6 +90,8 @@ public class Config {
     public boolean cloudOverride = true;
     @SerialEntry
     public boolean useIrisFBO = true;
+    @SerialEntry
+    public Renderer renderer = Renderer.OPENGL;
 
     @SerialEntry
     public int selectedPreset = 0;
@@ -116,16 +119,6 @@ public class Config {
     @SuppressWarnings("CopyConstructorMissesField")
     public Config(Config other) {
         Configs.copy(this, other);
-    }
-
-    private static boolean isPresetEqualToEmpty(AbstractPresetConfig preset) {
-        if (preset == null) return true;
-        String title = preset.title;
-        // The title does not matter
-        preset.title = preset.getEmptyPreset().title;
-        boolean equal = preset.isEqualTo(preset.getEmptyPreset());
-        preset.title = title;
-        return equal;
     }
 
     public static List<ResourceKey<DimensionType>> getDefaultDimensions() {
@@ -210,6 +203,15 @@ public class Config {
             selectedNoisePreset = noisePresets.indexOf(selected);
     }
 
+    public long getCloudTicks(Minecraft client, int rendererTicks) {
+        if (client.level == null) return rendererTicks;
+        return switch (timeSource) {
+            case WORLD -> client.level.getOverworldClockTime();
+            case PLAYTIME -> client.level.getGameTime();
+            case RENDERER -> rendererTicks;
+        };
+    }
+
     public int blockDistance() {
         return Minecraft.getInstance().options.cloudRange().get() * 16;
     }
@@ -224,6 +226,15 @@ public class Config {
     @Override
     public int hashCode() {
         return Configs.hashCode(this);
+    }
+
+    public enum Renderer implements NameableEnum {
+        OPENGL, BLAZE3D;
+
+        @Override
+        public Component getDisplayName() {
+            return Component.translatable("betterclouds.config.entry.renderer.option." + name().toLowerCase());
+        }
     }
 
     public enum TimeSource implements NameableEnum {

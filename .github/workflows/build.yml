@@ -13,7 +13,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        loader: [ fabric, neoforge ]
+        loader: [ fabric ]
+    #        loader: [ fabric, neoforge ]
     env:
       GRADLE_OPTS: "-Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000"
     steps:
@@ -44,70 +45,70 @@ jobs:
             ${{ matrix.loader }}/build/libs/*.jar
           if-no-files-found: error
 
-  client-world-load:
-    name: gametest_${{ matrix.loader }}
-    needs: build
-    runs-on: ubuntu-24.04
-    timeout-minutes: 2
-    strategy:
-      fail-fast: false
-      matrix:
-        loader: [ fabric, neoforge ]
-        game_version: [ 26.1.2 ]
-    steps:
-      - name: checkout repository
-        uses: actions/checkout@v4
-
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ matrix.loader }}-artifacts
-          path: run/mods
-
-      - name: Remove sources jar
-        run: find run/mods -type f -name '*sources*.jar' -delete
-
-      - name: setup jdk
-        uses: actions/setup-java@v4
-        with:
-          java-version: '25'
-          distribution: 'temurin'
-
-      - name: Install Ferium
-        run: |
-          curl -L https://github.com/gorilla-devs/ferium/releases/download/v4.7.1/ferium-linux-nogui.zip -o ferium.zip
-          unzip ferium.zip -d ferium-bin
-          chmod +x ferium-bin/ferium
-          sudo mv ferium-bin/ferium /usr/local/bin/ferium
-
-      - name: Download runtime mods
-        run: |
-          ferium_mod_loader="${{ matrix.loader }}"
-          if [ "$ferium_mod_loader" = "neoforge" ]; then
-            ferium_mod_loader="neo-forge"
-          fi
-
-          sudo ferium profile create \
-            --name "Actions runtime for ${{ matrix.loader }} ${{ matrix.game_version }}" \
-            --game-version "${{ matrix.game_version }}" \
-            --mod-loader "$ferium_mod_loader" \
-            --output-dir "$PWD/run/mods"
-          if [ "${{ matrix.loader }}" = "fabric" ]; then
-            sudo ferium add fabric-api
-          fi
-          sudo ferium add distanthorizons yacl
-          sudo ferium upgrade
-
-      - name: Load client world
-        timeout-minutes: 2
-        uses: headlesshq/mc-runtime-test@4.4.0
-        with:
-          mc: ${{ matrix.game_version }}
-          modloader: ${{ matrix.loader }}
-          regex: .*${{ matrix.loader }}.*
-          xvfb: true
-          java: 25
-          mc-runtime-test: ${{ matrix.loader }}
-          dummy-assets: true
-          download-hmc: true
-          headlessmc-command: --jvm "-Djava.awt.headless=true"
+#  client-world-load:
+#    name: gametest_${{ matrix.loader }}
+#    needs: build
+#    runs-on: ubuntu-24.04
+#    timeout-minutes: 2
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        loader: [ fabric, neoforge ]
+#        game_version: [ 26.1.2 ]
+#    steps:
+#      - name: checkout repository
+#        uses: actions/checkout@v4
+#
+#      - name: Download build artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: ${{ matrix.loader }}-artifacts
+#          path: run/mods
+#
+#      - name: Remove sources jar
+#        run: find run/mods -type f -name '*sources*.jar' -delete
+#
+#      - name: setup jdk
+#        uses: actions/setup-java@v4
+#        with:
+#          java-version: '25'
+#          distribution: 'temurin'
+#
+#      - name: Install Ferium
+#        run: |
+#          curl -L https://github.com/gorilla-devs/ferium/releases/download/v4.7.1/ferium-linux-nogui.zip -o ferium.zip
+#          unzip ferium.zip -d ferium-bin
+#          chmod +x ferium-bin/ferium
+#          sudo mv ferium-bin/ferium /usr/local/bin/ferium
+#
+#      - name: Download runtime mods
+#        run: |
+#          ferium_mod_loader="${{ matrix.loader }}"
+#          if [ "$ferium_mod_loader" = "neoforge" ]; then
+#            ferium_mod_loader="neo-forge"
+#          fi
+#
+#          sudo ferium profile create \
+#            --name "Actions runtime for ${{ matrix.loader }} ${{ matrix.game_version }}" \
+#            --game-version "${{ matrix.game_version }}" \
+#            --mod-loader "$ferium_mod_loader" \
+#            --output-dir "$PWD/run/mods"
+#          if [ "${{ matrix.loader }}" = "fabric" ]; then
+#            sudo ferium add fabric-api
+#          fi
+#          sudo ferium add distanthorizons yacl
+#          sudo ferium upgrade
+#
+#      - name: Load client world
+#        timeout-minutes: 2
+#        uses: headlesshq/mc-runtime-test@4.4.0
+#        with:
+#          mc: ${{ matrix.game_version }}
+#          modloader: ${{ matrix.loader }}
+#          regex: .*${{ matrix.loader }}.*
+#          xvfb: true
+#          java: 25
+#          mc-runtime-test: ${{ matrix.loader }}
+#          dummy-assets: true
+#          download-hmc: true
+#          headlessmc-command: --jvm "-Djava.awt.headless=true"

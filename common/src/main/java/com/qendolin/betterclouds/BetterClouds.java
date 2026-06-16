@@ -1,28 +1,21 @@
 package com.qendolin.betterclouds;
 
-import com.qendolin.betterclouds.clouds.RandomPath;
-import com.qendolin.betterclouds.clouds.Renderer;
 import com.qendolin.betterclouds.compat.*;
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
-import com.qendolin.betterclouds.config.PresetLoader;
-import com.qendolin.betterclouds.duck.WorldRendererDuck;
+import com.qendolin.betterclouds.config.preset.PresetLoader;
+import com.qendolin.betterclouds.generator.RandomPath;
 import com.qendolin.betterclouds.platform.EventHooks;
 import com.qendolin.betterclouds.platform.ModLoader;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
-import com.qendolin.betterclouds.util.ChatUtil;
-import com.qendolin.betterclouds.util.DataDirectoryMigration;
-import com.qendolin.betterclouds.util.NamedLogger;
-import com.qendolin.betterclouds.util.PreLaunchGuard;
+import com.qendolin.betterclouds.util.*;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
-import net.minecraft.client.Minecraft;
 import org.apache.logging.log4j.LogManager;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import static com.qendolin.betterclouds.compat.GLCompat.glCompat;
+import static com.qendolin.betterclouds.compat.GLCompat.instance;
 
 public class BetterClouds extends BetterCloudsStatic {
 
@@ -47,16 +40,15 @@ public class BetterClouds extends BetterCloudsStatic {
     public static void initializeClient() {
         if (!BetterCloudsStatic.IS_CLIENT)
             throw new IllegalStateException("Minecraft environment is not 'client' but the client initializer was called");
+
         if (isInitialized()) return;
         initialized = true;
 
         DistantHorizonsCompat.initialize();
         IrisCompat.initialize();
-        LongviewCompat.initialize();
         SereneSeasonsCompat.initialize();
         FabricSeasonsCompat.initialize();
         EnhancedCelestialsCompat.initialize();
-
         RandomPath.initialize();
 
         DataDirectoryMigration.runMigration();
@@ -67,16 +59,16 @@ public class BetterClouds extends BetterCloudsStatic {
 
     public static void initializeClientEvents() {
         EventHooks.instance.onClientStarted(_ -> {
-            if (glCompat == null) {
-                throw new IllegalStateException("OpenGL compat not initialized yet. This should not happen!");
-            }
-            glCompat.enableDebugOutputSynchronousDev();
+            if (instance == null)
+                throw new IllegalStateException("Compat not initialized yet. This should not happen!");
+            if (BetterCloudsStatic.IS_DEV)
+                instance.initDev();
         });
         EventHooks.instance.onWorldJoin(client -> {
-            if (glCompat.isIncompatible()) {
+            if (instance.isIncompatible()) {
                 CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
                         .execute(() -> client.execute(Commands::sendGpuIncompatibleChatMessage));
-            } else if (glCompat.isPartiallyIncompatible()) {
+            } else if (instance.isPartiallyIncompatible()) {
                 CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
                         .execute(() -> client.execute(Commands::sendGpuPartiallyIncompatibleChatMessage));
             }
@@ -91,15 +83,6 @@ public class BetterClouds extends BetterCloudsStatic {
 
         PresetLoader.ALL_PRESETS.forEach(presetLoader -> EventHooks.instance.onClientResourcesReload(() -> presetLoader));
         EventHooks.instance.onClientCommandRegistration(Commands::register);
-    }
-
-    @Nullable
-    public static Renderer getCloudsRenderer() {
-        Minecraft client = Minecraft.getInstance();
-        if (client.levelRenderer instanceof WorldRendererDuck duck) {
-            return duck.betterclouds$getRenderer();
-        }
-        return null;
     }
 
     public static boolean isEnabled() {

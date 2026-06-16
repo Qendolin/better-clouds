@@ -1,0 +1,356 @@
+package com.qendolin.betterclouds.rendering.opengl;
+
+import com.mojang.blaze3d.opengl.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.qendolin.betterclouds.BetterCloudsStatic;
+import com.qendolin.betterclouds.Commands;
+import com.qendolin.betterclouds.compat.GLCompat;
+import com.qendolin.betterclouds.generator.ChunkedGenerator;
+import com.qendolin.betterclouds.rendering.GraphicsCompat;
+import com.qendolin.betterclouds.rendering.opengl.internal.Mesh;
+import com.qendolin.betterclouds.rendering.opengl.shaders.*;
+import net.minecraft.client.Minecraft;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.resources.ResourceManager;
+
+import java.io.Closeable;
+import java.io.IOException;
+
+import static com.qendolin.betterclouds.BetterCloudsStatic.getLogger;
+import static org.lwjgl.opengl.GL32.*;
+
+public class Resources implements Closeable {
+    // Texture Unit 5
+    public static final Identifier NOISE_TEXTURE = Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "textures/environment/cloud_noise_rgb.png");
+    // Texture Unit 4
+    public static final Identifier LIGHTING_TEXTURE = Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "textures/environment/cloud_light_gradient.png");
+
+    private static final int UNASSIGNED = 0;
+    private final GLCompat glCompat = (GLCompat) GraphicsCompat.instance;
+    // Shaders
+    private DepthShader depthShader = null;
+    private CoverageShader coverageShader = null;
+    private ShadingShader shadingShader = null;
+    private DebugShader debugShader = null;
+    // Generator
+    private ChunkedGenerator generator = null;
+    // Meshes
+    private int cubeVbo;
+    private int cubeVao;
+    // FBO
+    private int oitFbo;
+    // Texture Unit 1
+    private int oitCoverageDepthTexture;
+    // Texture Unit 2
+    private int oitDataTexture;
+    // Texture Unit 3
+    private int oitCoverageTexture;
+    private int fboWidth;
+    private int fboHeight;
+
+    public static void unbindVao() {
+        glBindVertexArray(0);
+    }
+
+    public static void unbindVbo() {
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+
+    public ChunkedGenerator generator() {
+        return generator;
+    }
+
+    public DepthShader depthShader() {
+        return depthShader;
+    }
+
+    public CoverageShader coverageShader() {
+        return coverageShader;
+    }
+
+    public ShadingShader shadingShader() {
+        return shadingShader;
+    }
+
+    public DebugShader debugShader() {
+        return debugShader;
+    }
+
+    public int cubeVao() {
+        return cubeVao;
+    }
+
+    public int oitFbo() {
+        return oitFbo;
+    }
+
+    public int oitCoverageDepthTexture() {
+        return oitCoverageDepthTexture;
+    }
+
+    public int oitDataTexture() {
+        return oitDataTexture;
+    }
+
+    public int oitCoverageTexture() {
+        return oitCoverageTexture;
+    }
+
+    public int fboWidth() {
+        return fboWidth;
+    }
+
+    public int fboHeight() {
+        return fboHeight;
+    }
+
+    public boolean failedToLoadCritical() {
+        if (depthShader == null || coverageShader == null || shadingShader == null) return true;
+        if (depthShader.isIncomplete() || coverageShader.isIncomplete() || shadingShader.isIncomplete() || debugShader.isIncomplete())
+            return true;
+        if (generator == null) return true;
+        if (oitFbo == UNASSIGNED) return true;
+        if (oitDataTexture == UNASSIGNED || oitCoverageTexture == UNASSIGNED)
+            return true;
+        return cubeVao == UNASSIGNED || cubeVbo == UNASSIGNED;
+    }
+
+    public void reloadMeshPrimitives() {
+        deleteMeshPrimitives();
+
+        cubeVao = glGenVertexArrays();
+        glBindVertexArray(cubeVao);
+        glCompat.objectLabelDev(glCompat.GL_VERTEX_ARRAY, cubeVao, "cube");
+
+        cubeVbo = glGenBuffers();
+        glBindBuffer(GL_ARRAY_BUFFER, cubeVbo);
+        glCompat.objectLabelDev(glCompat.GL_BUFFER, cubeVbo, "cube");
+
+        glBufferData(GL_ARRAY_BUFFER, Mesh.CUBE_MESH, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+
+        unbindVao();
+        unbindVbo();
+    }
+
+    public void deleteMeshPrimitives() {
+        if (cubeVbo != 0) glDeleteBuffers(cubeVbo);
+        if (cubeVao != 0) glDeleteVertexArrays(cubeVao);
+        cubeVbo = UNASSIGNED;
+        cubeVao = UNASSIGNED;
+    }
+
+    public void reloadTextures(Minecraft client) {
+
+        RenderSystem.assertOnRenderThread();
+        int noiseTexture = RenderHelper.getTextureId(client.getTextureManager().getTexture(NOISE_TEXTURE));
+        GlStateManager._activeTexture(GL_TEXTURE0);
+        RenderHelper.bindTexture(noiseTexture);
+        glCompat.objectLabelDev(GL_TEXTURE, noiseTexture, "noise");
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        int lightingTexture = RenderHelper.getTextureId(client.getTextureManager().getTexture(LIGHTING_TEXTURE));
+        GlStateManager._bindTexture(lightingTexture);
+        glCompat.objectLabelDev(GL_TEXTURE, lightingTexture, "lighting");
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        GlStateManager._bindTexture(0);
+    }
+
+    public void reloadGenerator(long seed, boolean fancy) {
+        deleteGenerator();
+
+        generator = new ChunkedGenerator(seed);
+        generator.clear();
+    }
+
+    public void deleteGenerator() {
+        if (generator != null) generator.close();
+        generator = null;
+    }
+
+    public void reloadFramebuffer(int width, int height) {
+        if (width == 0 || height == 0) {
+            getLogger().warn("Cannot create framebuffer with size 0 ({}x{})! Skipping framebuffer creation to avoid an error.", width, height);
+            return;
+        }
+        deleteFramebuffer();
+
+        oitFbo = glGenFramebuffers();
+        GlStateManager._glBindFramebuffer(GL_DRAW_FRAMEBUFFER, oitFbo);
+        glCompat.objectLabelDev(GL_FRAMEBUFFER, oitFbo, "coverage");
+
+        fboWidth = width;
+        fboHeight = height;
+
+        oitDataTexture = glGenTextures();
+        GlStateManager._activeTexture(GL_TEXTURE0);
+        GlStateManager._bindTexture(oitDataTexture);
+        glCompat.objectLabelDev(GL_TEXTURE, oitDataTexture, "coverage_color");
+        glCompat.texStorage2DFallback(GL_TEXTURE_2D, 1, GL_RGB8, fboWidth, fboHeight, GL_RGB, GL_BYTE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, oitDataTexture, 0);
+        glDrawBuffers(new int[] { GL_COLOR_ATTACHMENT0 });
+
+        boolean useStencilTextureFallback = glCompat.useStencilTextureFallback();
+        boolean useDepthWriteFallback = glCompat.useDepthWriteFallback();
+        boolean[][] configurations = { { false, false }, { true, false }, { true, true } };
+        int configurationIndex = -1;
+
+        while (true) {
+            createFramebufferAttachments(useStencilTextureFallback, useDepthWriteFallback);
+            int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+            if (status == GL_FRAMEBUFFER_COMPLETE) {
+                BetterCloudsStatic.getLogger().info("Framebuffer complete. useStencilTextureFallback={}, useDepthWriteFallback={}", useStencilTextureFallback, useDepthWriteFallback);
+                if (configurationIndex != -1) {
+                    glCompat.setUseStencilTextureFallback(useStencilTextureFallback);
+                    glCompat.setUseDepthWriteFallback(useDepthWriteFallback);
+                }
+                break;
+            }
+
+            deleteFramebufferAttachments();
+
+            configurationIndex++;
+            if (configurationIndex >= configurations.length) {
+                throw new IllegalStateException("Better Clouds framebuffer incomplete, exhausted all options, your GPU is likely incompatible, status: " + status);
+            }
+
+            BetterCloudsStatic.getLogger().warn("Framebuffer incomplete, trying different creation configuration. useStencilTextureFallback={}, useDepthWriteFallback={}, status={}", useStencilTextureFallback, useDepthWriteFallback, status);
+            useStencilTextureFallback = configurations[configurationIndex][0];
+            useDepthWriteFallback = configurations[configurationIndex][1];
+        }
+    }
+
+    private void createFramebufferAttachments(boolean useStencilTextureFallback, boolean useDepthWriteFallback) {
+        if (useStencilTextureFallback) {
+            oitCoverageTexture = glGenTextures();
+            GlStateManager._bindTexture(oitCoverageTexture);
+            glCompat.objectLabelDev(GL_TEXTURE, oitCoverageTexture, "coverage_color_fallback");
+            glCompat.texStorage2DFallback(GL_TEXTURE_2D, 1, GL_R8, fboWidth, fboHeight, GL_RED, GL_UNSIGNED_BYTE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, oitCoverageTexture, 0);
+            glDrawBuffers(new int[] { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
+
+            oitCoverageDepthTexture = glGenTextures();
+            glBindTexture(GL_TEXTURE_2D, oitCoverageDepthTexture);
+            glCompat.objectLabelDev(GL_TEXTURE, oitCoverageDepthTexture, "coverage_depth");
+            glCompat.texStorage2DFallback(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT24, fboWidth, fboHeight, GL_DEPTH_COMPONENT, GL_FLOAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, oitCoverageDepthTexture, 0);
+        } else {
+            oitCoverageTexture = glGenTextures();
+            GlStateManager._bindTexture(oitCoverageTexture);
+            glCompat.objectLabelDev(GL_TEXTURE, oitCoverageTexture, "coverage_stencil");
+            glCompat.texStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH24_STENCIL8, fboWidth, fboHeight);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, glCompat.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_STENCIL_INDEX);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, oitCoverageTexture, 0);
+
+            if (useDepthWriteFallback) {
+                oitCoverageDepthTexture = oitCoverageTexture;
+            } else {
+                oitCoverageDepthTexture = glGenTextures();
+                glCompat.textureView(oitCoverageDepthTexture, GL_TEXTURE_2D, oitCoverageTexture, GL_DEPTH24_STENCIL8, 0, 1, 0, 1);
+                glBindTexture(GL_TEXTURE_2D, oitCoverageDepthTexture);
+                glCompat.objectLabelDev(GL_TEXTURE, oitCoverageDepthTexture, "coverage_depth");
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, glCompat.GL_DEPTH_STENCIL_TEXTURE_MODE, GL_DEPTH_COMPONENT);
+            }
+        }
+        GlStateManager._bindTexture(0);
+    }
+
+    public void deleteFramebuffer() {
+        if (oitFbo != 0) glDeleteFramebuffers(oitFbo);
+        deleteFramebufferAttachments();
+        oitFbo = UNASSIGNED;
+    }
+
+    private void deleteFramebufferAttachments() {
+        if (oitDataTexture != 0) GlStateManager._deleteTexture(oitDataTexture);
+        if (oitCoverageTexture != 0) GlStateManager._deleteTexture(oitCoverageTexture);
+        if (oitCoverageDepthTexture != 0) GlStateManager._deleteTexture(oitCoverageDepthTexture);
+        oitDataTexture = UNASSIGNED;
+        oitCoverageTexture = UNASSIGNED;
+        oitCoverageDepthTexture = UNASSIGNED;
+    }
+
+    public void reloadShaders(ResourceManager manager, ShaderParameters shaderParameters) {
+        RenderHelper.saveShader();
+        try {
+            reloadShadersInternal(manager, shaderParameters);
+        } catch (Exception e) {
+            Commands.sendGpuIncompatibleChatMessage();
+            BetterCloudsStatic.getLogger().error(e);
+            deleteShaders();
+        }
+        RenderHelper.restoreShader();
+    }
+
+    protected void reloadShadersInternal(ResourceManager manager, ShaderParameters shaderParameters) throws IOException {
+        deleteShaders();
+
+        depthShader = DepthShader.create(manager);
+        depthShader.bind();
+        depthShader.uDepthTexture.setInt(6);
+
+        glCompat.objectLabelDev(glCompat.GL_PROGRAM, depthShader.glId(), "depth");
+
+        coverageShader = CoverageShader.create(manager,
+                shaderParameters.configSizeXZ(),
+                shaderParameters.configSizeY(),
+                shaderParameters.useStencilTextureFallback(),
+                shaderParameters.useDistantHorizonsCompat(),
+                shaderParameters.worldCurvatureSize());
+        coverageShader.bind();
+        coverageShader.uDepthTexture.setInt(0);
+        coverageShader.uNoiseTexture.setInt(5);
+        coverageShader.uDhDepthTexture.setInt(6);
+        glCompat.objectLabelDev(glCompat.GL_PROGRAM, coverageShader.glId(), "coverage");
+
+        shadingShader = ShadingShader.create(manager,
+                shaderParameters.useDepthWriteFallback(),
+                shaderParameters.useStencilTextureFallback(),
+                shaderParameters.configCelestialBodyHalo());
+        shadingShader.bind();
+        shadingShader.uDepthTexture.setInt(1);
+        shadingShader.uDataTexture.setInt(2);
+        shadingShader.uCoverageTexture.setInt(3);
+        shadingShader.uLightTexture.setInt(4);
+        glCompat.objectLabelDev(glCompat.GL_PROGRAM, shadingShader.glId(), "shading");
+
+        debugShader = new DebugShader(manager);
+        debugShader.bind();
+        debugShader.uColorModulator.setVec4(1.0f, 1.0f, 1.0f, 1.0f);
+        glCompat.objectLabelDev(glCompat.GL_PROGRAM, debugShader.glId(), "debug");
+    }
+
+    public void deleteShaders() {
+        if (depthShader != null) depthShader.close();
+        if (coverageShader != null) coverageShader.close();
+        if (shadingShader != null) shadingShader.close();
+        depthShader = null;
+        coverageShader = null;
+        shadingShader = null;
+    }
+
+    @Override
+    public void close() {
+        deleteFramebuffer();
+        deleteMeshPrimitives();
+        deleteGenerator();
+        deleteShaders();
+    }
+}

@@ -70,27 +70,10 @@ public abstract class ModVersion {
         }
     }
 
-    public static final class SemVer implements Comparable<SemVer> {
-        public final int major;
-        public final int minor;
-        public final int patch;
-        public final String build;
-        public final String prerelease;
-
+    public record SemVer(int major, int minor, int patch, String build,
+                         String prerelease) implements Comparable<SemVer> {
         public SemVer(int major, int minor, int patch) {
-            this.major = major;
-            this.minor = minor;
-            this.patch = patch;
-            this.build = "";
-            this.prerelease = "";
-        }
-
-        public SemVer(int major, int minor, int patch, String build, String prerelease) {
-            this.major = major;
-            this.minor = minor;
-            this.patch = patch;
-            this.build = build;
-            this.prerelease = prerelease;
+            this(major, minor, patch, "", "");
         }
 
 

@@ -1,9 +1,11 @@
 package com.qendolin.betterclouds.compat;
 
-import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.platform.GLX;
 import com.qendolin.betterclouds.BetterCloudsStatic;
+import com.qendolin.betterclouds.rendering.GraphicsCompat;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWVulkan;
@@ -12,11 +14,11 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GLCompat {
-    public static GLCompat glCompat = null;
+public class GLCompat extends GraphicsCompat {
     public final int GL_VERTEX_ARRAY;
     public final int GL_BUFFER;
     public final int GL_PROGRAM;
@@ -137,6 +139,123 @@ public class GLCompat {
         extShaderImageLoadStore = hasContext && caps.GL_EXT_shader_image_load_store;
         arbExplicitAttribLocation = hasContext && caps.GL_ARB_explicit_attrib_location;
 
+        List<String> supportedExtensions = getSupportedExtensions();
+        supportedCheckedExtensions = ImmutableList.copyOf(supportedExtensions);
+
+        glObjectLabel = hasContext && caps.glObjectLabel != MemoryUtil.NULL;
+        glPushDebugGroup = hasContext && caps.glPushDebugGroup != MemoryUtil.NULL;
+        glPopDebugGroup = hasContext && caps.glPopDebugGroup != MemoryUtil.NULL;
+        glDebugMessageInsert = hasContext && caps.glDebugMessageInsert != MemoryUtil.NULL;
+        glTextureView = hasContext && caps.glTextureView != MemoryUtil.NULL;
+        glDrawArraysInstancedBaseInstance = hasContext && caps.glDrawArraysInstancedBaseInstance != MemoryUtil.NULL;
+        glTexStorage2D = hasContext && caps.glTexStorage2D != MemoryUtil.NULL;
+        glBufferStorage = hasContext && caps.glBufferStorage != MemoryUtil.NULL;
+        glVertexAttribDivisor = hasContext && caps.glVertexAttribDivisor != MemoryUtil.NULL;
+        glBlendFunci = hasContext && caps.glBlendFunci != MemoryUtil.NULL;
+        glBlendEquationi = hasContext && caps.glBlendEquationi != MemoryUtil.NULL;
+
+        List<String> supportedFunctions = getSupportedFunctions();
+        supportedCheckedFunctions = ImmutableList.copyOf(supportedFunctions);
+
+        boolean supportsBaseInstance = glDrawArraysInstancedBaseInstance || arbBaseInstance;
+        boolean supportsTextureStorage = glTexStorage2D || arbTextureStorage || extTextureStorage;
+        boolean supportsTextureView = supportsTextureStorage && (glTextureView || arbTextureView);
+        boolean supportsStencilTexturing = arbStencilTexturing || openGl43;
+
+        //noinspection UnnecessaryLocalVariable
+        boolean canReadStencil = supportsStencilTexturing;
+
+        String reason = getCompatibilityReason(supportsStencilTexturing);
+
+        compatible = reason == null;
+        if (reason != null) {
+            BetterCloudsStatic.getLogger().warn("OpenGL compatibility check failed: " + reason);
+        }
+
+        useBaseInstanceFallback = !supportsBaseInstance;
+        useStencilTextureFallback = !canReadStencil;
+        useTexStorageFallback = !supportsTextureStorage;
+        useDepthWriteFallback = !supportsTextureView && canReadStencil;
+
+        partiallyIncompatible = useBaseInstanceFallback || useStencilTextureFallback || useDepthWriteFallback;
+
+        GL_VERTEX_ARRAY = GL32.GL_VERTEX_ARRAY;
+        GL_BUFFER = KHRDebug.GL_BUFFER;
+        GL_PROGRAM = KHRDebug.GL_PROGRAM;
+        GL_TEXTURE = GL32.GL_TEXTURE;
+        GL_FRAMEBUFFER = GL32.GL_FRAMEBUFFER;
+        GL_SHADER = KHRDebug.GL_SHADER;
+        GL_QUERY = KHRDebug.GL_QUERY;
+
+        GL_DEPTH_STENCIL_TEXTURE_MODE = ARBStencilTexturing.GL_DEPTH_STENCIL_TEXTURE_MODE;
+
+        GL_MAP_PERSISTENT_BIT = ARBBufferStorage.GL_MAP_PERSISTENT_BIT;
+        GL_MAP_COHERENT_BIT = ARBBufferStorage.GL_MAP_COHERENT_BIT;
+    }
+
+    public static String getCpuInfo() {
+        return GLX._getCpuInfo();
+    }
+
+    public static String getRenderer() {
+        return GL32.glGetString(GL32.GL_RENDERER);
+    }
+
+    public static String getVersion() {
+        return GL32.glGetString(GL32.GL_VERSION);
+    }
+
+    private static @NonNull String getFullLabel(int type, String label) {
+        String typeString = switch (type) {
+            case GL43.GL_TEXTURE -> "tex";
+            case GL43.GL_BUFFER -> "buf";
+            case GL43.GL_VERTEX_ARRAY -> "va";
+            case GL43.GL_FRAMEBUFFER -> "fb";
+            case GL43.GL_SHADER -> "sh";
+            case GL43.GL_PROGRAM -> "shp";
+            case GL43.GL_QUERY -> "qry";
+            case GL43.GL_PROGRAM_PIPELINE -> "spp";
+            case GL43.GL_TRANSFORM_FEEDBACK -> "tff";
+            case GL43.GL_SAMPLER -> "ts";
+            case GL43.GL_RENDERBUFFER -> "rb";
+            default -> "unk";
+        };
+        return BetterCloudsStatic.MODID + ":" + label + ":" + typeString;
+    }
+
+    private @Nullable String getCompatibilityReason(boolean supportsStencilTexturing) {
+        String reason = null;
+        if (hasContext) {
+            if (!openGl32) {
+                reason = "OpenGL 3.2 is required";
+            } else if (!(openGl33 || (glVertexAttribDivisor || arbInstancedArrays))) {
+                reason = "OpenGL 3.3, glVertexAttribDivisor, or arbInstancedArrays is required";
+            } else if (!(supportsStencilTexturing || (openGl40 || (glBlendFunci && glBlendEquationi) || arbDrawBuffersBlend))) {
+                reason = "OpenGL 4.0, arbStencilTexturing, glBlendFunci and glBlendEquationi, or arbDrawBuffersBlend is required";
+            }
+        } else {
+            reason = "No OpenGL Context";
+        }
+        return reason;
+    }
+
+    private @NonNull List<String> getSupportedFunctions() {
+        List<String> supportedFunctions = new ArrayList<>();
+        if (glObjectLabel) supportedFunctions.add("glObjectLabel");
+        if (glPushDebugGroup) supportedFunctions.add("glPushDebugGroup");
+        if (glPopDebugGroup) supportedFunctions.add("glPopDebugGroup");
+        if (glDebugMessageInsert) supportedFunctions.add("glDebugMessageInsert");
+        if (glTextureView) supportedFunctions.add("glTextureView");
+        if (glDrawArraysInstancedBaseInstance) supportedFunctions.add("glDrawArraysInstancedBaseInstance");
+        if (glTexStorage2D) supportedFunctions.add("glTexStorage2D");
+        if (glBufferStorage) supportedFunctions.add("glBufferStorage");
+        if (glVertexAttribDivisor) supportedFunctions.add("glVertexAttribDivisor");
+        if (glBlendFunci) supportedFunctions.add("glBlendFunci");
+        if (glBlendEquationi) supportedFunctions.add("glBlendEquationi");
+        return supportedFunctions;
+    }
+
+    private @NonNull List<String> getSupportedExtensions() {
         List<String> supportedExtensions = new ArrayList<>();
         if (khrDebug) supportedExtensions.add("GL_KHR_debug");
         if (amdDebugOutput) supportedExtensions.add("GL_AMD_debug_output");
@@ -159,112 +278,23 @@ public class GLCompat {
         if (extShaderImageLoadStore) supportedExtensions.add("GL_EXT_shader_image_load_store");
         if (arbExplicitAttribLocation) supportedExtensions.add("GL_ARB_explicit_attrib_location");
         if (arbDrawBuffersBlend) supportedExtensions.add("GL_ARB_draw_buffers_blend");
-        supportedCheckedExtensions = ImmutableList.copyOf(supportedExtensions);
-
-        glObjectLabel = hasContext && caps.glObjectLabel != MemoryUtil.NULL;
-        glPushDebugGroup = hasContext && caps.glPushDebugGroup != MemoryUtil.NULL;
-        glPopDebugGroup = hasContext && caps.glPopDebugGroup != MemoryUtil.NULL;
-        glDebugMessageInsert = hasContext && caps.glDebugMessageInsert != MemoryUtil.NULL;
-        glTextureView = hasContext && caps.glTextureView != MemoryUtil.NULL;
-        glDrawArraysInstancedBaseInstance = hasContext && caps.glDrawArraysInstancedBaseInstance != MemoryUtil.NULL;
-        glTexStorage2D = hasContext && caps.glTexStorage2D != MemoryUtil.NULL;
-        glBufferStorage = hasContext && caps.glBufferStorage != MemoryUtil.NULL;
-        glVertexAttribDivisor = hasContext && caps.glVertexAttribDivisor != MemoryUtil.NULL;
-        glBlendFunci = hasContext && caps.glBlendFunci != MemoryUtil.NULL;
-        glBlendEquationi = hasContext && caps.glBlendEquationi != MemoryUtil.NULL;
-
-        List<String> supportedFunctions = new ArrayList<>();
-        if (glObjectLabel) supportedFunctions.add("glObjectLabel");
-        if (glPushDebugGroup) supportedFunctions.add("glPushDebugGroup");
-        if (glPopDebugGroup) supportedFunctions.add("glPopDebugGroup");
-        if (glDebugMessageInsert) supportedFunctions.add("glDebugMessageInsert");
-        if (glTextureView) supportedFunctions.add("glTextureView");
-        if (glDrawArraysInstancedBaseInstance) supportedFunctions.add("glDrawArraysInstancedBaseInstance");
-        if (glTexStorage2D) supportedFunctions.add("glTexStorage2D");
-        if (glBufferStorage) supportedFunctions.add("glBufferStorage");
-        if (glVertexAttribDivisor) supportedFunctions.add("glVertexAttribDivisor");
-        if (glBlendFunci) supportedFunctions.add("glBlendFunci");
-        if (glBlendEquationi) supportedFunctions.add("glBlendEquationi");
-        supportedCheckedFunctions = ImmutableList.copyOf(supportedFunctions);
-
-        boolean supportsBaseInstance = glDrawArraysInstancedBaseInstance || arbBaseInstance;
-        boolean supportsTextureStorage = glTexStorage2D || arbTextureStorage || extTextureStorage;
-        boolean supportsTextureView = supportsTextureStorage && (glTextureView || arbTextureView);
-        boolean supportsStencilTexturing = arbStencilTexturing || openGl43;
-
-        //noinspection UnnecessaryLocalVariable
-        boolean canReadStencil = supportsStencilTexturing;
-
-        String reason = null;
-        if (hasContext) {
-            if (!openGl32) {
-                reason = "OpenGL 3.2 is required";
-            } else if (!(openGl33 || (glVertexAttribDivisor || arbInstancedArrays))) {
-                reason = "OpenGL 3.3, glVertexAttribDivisor, or arbInstancedArrays is required";
-            } else if (!(supportsStencilTexturing || (openGl40 || (glBlendFunci && glBlendEquationi) || arbDrawBuffersBlend))) {
-                reason = "OpenGL 4.0, arbStencilTexturing, glBlendFunci and glBlendEquationi, or arbDrawBuffersBlend is required";
-            }
-        } else {
-            reason = "No OpenGL Context";
-        }
-
-        compatible = reason == null;
-        if (reason != null) {
-            BetterCloudsStatic.getLogger().warn("OpenGL compatibility check failed: " + reason);
-        }
-
-        useBaseInstanceFallback = !supportsBaseInstance;
-        useStencilTextureFallback = !canReadStencil;
-        useTexStorageFallback = !supportsTextureStorage;
-        useDepthWriteFallback = !supportsTextureView && canReadStencil;
-
-        partiallyIncompatible = useBaseInstanceFallback || useStencilTextureFallback || useDepthWriteFallback || useTexStorageFallback;
-
-        GL_VERTEX_ARRAY = GL32.GL_VERTEX_ARRAY;
-        GL_BUFFER = KHRDebug.GL_BUFFER;
-        GL_PROGRAM = KHRDebug.GL_PROGRAM;
-        GL_TEXTURE = GL32.GL_TEXTURE;
-        GL_FRAMEBUFFER = GL32.GL_FRAMEBUFFER;
-        GL_SHADER = KHRDebug.GL_SHADER;
-        GL_QUERY = KHRDebug.GL_QUERY;
-
-        GL_DEPTH_STENCIL_TEXTURE_MODE = ARBStencilTexturing.GL_DEPTH_STENCIL_TEXTURE_MODE;
-
-        GL_MAP_PERSISTENT_BIT = ARBBufferStorage.GL_MAP_PERSISTENT_BIT;
-        GL_MAP_COHERENT_BIT = ARBBufferStorage.GL_MAP_COHERENT_BIT;
+        return supportedExtensions;
     }
 
-    public static String getVendor() {
-        return GL32.glGetString(GL32.GL_VENDOR);
-    }
-
-    public static String getCpuInfo() {
-        return GLX._getCpuInfo();
-    }
-
-    public static String getRenderer() {
-        return GL32.glGetString(GL32.GL_RENDERER);
-    }
-
-    public static String getVersion() {
-        return GL32.glGetString(GL32.GL_VERSION);
-    }
-
-    public static void initGlCompat() {
+    public void init() {
         BetterCloudsStatic.getLogger().info("Initializing OpenGL compat");
-        glCompat = new GLCompat(BetterCloudsStatic.IS_DEV);
 
-        if (glCompat.isIncompatible()) {
+        if (isIncompatible()) {
             BetterCloudsStatic.getLogger().warn("Your GPU (or configuration) is not compatible with Better Clouds. Try updating your drivers?");
-            BetterCloudsStatic.getLogger().info(" - Vendor:       {}", glCompat.getString(GL32.GL_VENDOR));
-            BetterCloudsStatic.getLogger().info(" - Renderer:     {}", glCompat.getString(GL32.GL_RENDERER));
-            BetterCloudsStatic.getLogger().info(" - GL Version:   {}", glCompat.getString(GL32.GL_VERSION));
-            BetterCloudsStatic.getLogger().info(" - GLSL Version: {}", glCompat.getString(GL32.GL_SHADING_LANGUAGE_VERSION));
-            BetterCloudsStatic.getLogger().info(" - Extensions:   {}", String.join(", ", glCompat.supportedCheckedExtensions));
-            BetterCloudsStatic.getLogger().info(" - Functions:    {}", String.join(", ", glCompat.supportedCheckedFunctions));
-        } else if (glCompat.isPartiallyIncompatible()) {
+            BetterCloudsStatic.getLogger().info(" - Vendor:       {}", getString(GL32.GL_VENDOR));
+            BetterCloudsStatic.getLogger().info(" - Renderer:     {}", getString(GL32.GL_RENDERER));
+            BetterCloudsStatic.getLogger().info(" - GL Version:   {}", getString(GL32.GL_VERSION));
+            BetterCloudsStatic.getLogger().info(" - GLSL Version: {}", getString(GL32.GL_SHADING_LANGUAGE_VERSION));
+            BetterCloudsStatic.getLogger().info(" - Extensions:   {}", String.join(", ", supportedCheckedExtensions));
+            BetterCloudsStatic.getLogger().info(" - Functions:    {}", String.join(", ", supportedCheckedFunctions));
+        } else if (isPartiallyIncompatible()) {
             BetterCloudsStatic.getLogger().warn("Your GPU is not fully compatible with Better Clouds.");
-            for (String fallback : glCompat.usedFallbacks()) {
+            for (String fallback : usedFallbacks()) {
                 BetterCloudsStatic.getLogger().info("- Using {} fallback", fallback);
             }
         }
@@ -284,21 +314,7 @@ public class GLCompat {
     }
 
     public void objectLabel(int type, int name, String label) {
-        String typeString = switch (type) {
-            case GL43.GL_TEXTURE -> "tex";
-            case GL43.GL_BUFFER -> "buf";
-            case GL43.GL_VERTEX_ARRAY -> "va";
-            case GL43.GL_FRAMEBUFFER -> "fb";
-            case GL43.GL_SHADER -> "sh";
-            case GL43.GL_PROGRAM -> "shp";
-            case GL43.GL_QUERY -> "qry";
-            case GL43.GL_PROGRAM_PIPELINE -> "spp";
-            case GL43.GL_TRANSFORM_FEEDBACK -> "tff";
-            case GL43.GL_SAMPLER -> "ts";
-            case GL43.GL_RENDERBUFFER -> "rb";
-            default -> "unk";
-        };
-        String fullLabel = BetterCloudsStatic.MODID + ":" + label + ":" + typeString;
+        String fullLabel = getFullLabel(type, label);
         if (glObjectLabel) {
             GL43.glObjectLabel(type, name, fullLabel);
         } else if (khrDebug) {
@@ -322,9 +338,9 @@ public class GLCompat {
         }
     }
 
-    public void pushDebugGroupDev(String name) {
+    public void pushDebugGroupDev(String groupName) {
         if (!isDev) return;
-        pushDebugGroup(name);
+        pushDebugGroup(groupName);
     }
 
     public void pushDebugGroup(String name) {
@@ -352,11 +368,6 @@ public class GLCompat {
         }
     }
 
-    public void debugMessageDev(String message) {
-        if (!isDev) return;
-        debugMessage(message);
-    }
-
     public void debugMessage(String message) {
         if (glDebugMessageInsert) {
             GL43.glDebugMessageInsert(GL43.GL_DEBUG_SOURCE_APPLICATION, GL43.GL_DEBUG_TYPE_OTHER, 0, GL43.GL_DEBUG_SEVERITY_NOTIFICATION, message + "\0");
@@ -367,7 +378,7 @@ public class GLCompat {
         }
     }
 
-    public void enableDebugOutputSynchronousDev() {
+    public void initDev() {
         if (!isDev) return;
         BetterCloudsStatic.getLogger().warn("Enabling synchronous OpenGL debug output");
         enableDebugOutputSynchronous();
@@ -380,42 +391,6 @@ public class GLCompat {
             GL32.glEnable(ARBDebugOutput.GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
         } else if (khrDebug) {
             GL32.glEnable(KHRDebug.GL_DEBUG_OUTPUT_SYNCHRONOUS);
-        }
-    }
-
-    public void debugMessageCallbackDev(GLDebugMessageCallbackI callback) {
-        if (!isDev) return;
-        debugMessageCallback(callback);
-    }
-
-    public void debugMessageCallback(GLDebugMessageCallbackI callback) {
-        if (openGl43) {
-            GL43.glDebugMessageCallback(GLX.make(() -> {
-                return GLDebugMessageCallback.create(callback);
-            }), 0);
-        } else if (arbDebugOutput) {
-            ARBDebugOutput.glDebugMessageCallbackARB(GLX.make(() -> {
-                return GLDebugMessageARBCallback.create(callback::invoke);
-            }), 0);
-        } else if (khrDebug) {
-            KHRDebug.glDebugMessageCallback(GLX.make(() -> {
-                return GLDebugMessageCallback.create(callback);
-            }), 0);
-        }
-    }
-
-    public void debugMessageControlDev(int source, int type, int severity, int[] ids, boolean enabled) {
-        if (!isDev) return;
-        debugMessageControl(source, type, severity, ids, enabled);
-    }
-
-    public void debugMessageControl(int source, int type, int severity, int[] ids, boolean enabled) {
-        if (openGl43) {
-            GL43.glDebugMessageControl(source, type, severity, ids, enabled);
-        } else if (arbDebugOutput) {
-            ARBDebugOutput.glDebugMessageControlARB(source, type, severity, ids, enabled);
-        } else if (khrDebug) {
-            KHRDebug.glDebugMessageControl(source, type, severity, ids, enabled);
         }
     }
 
@@ -478,14 +453,6 @@ public class GLCompat {
         }
     }
 
-    public void blendEquationi(int buf, int mode) {
-        if (glBlendFunci) {
-            GL40.glBlendEquationi(buf, mode);
-        } else if (arbDrawBuffersBlend) {
-            ARBDrawBuffersBlend.glBlendEquationiARB(buf, mode);
-        }
-    }
-
     public void blendFunci(int buf, int sfactor, int dfactor) {
         if (glBlendFunci) {
             GL40.glBlendFunci(buf, sfactor, dfactor);
@@ -502,14 +469,6 @@ public class GLCompat {
                 return "Vulkan";
             }
             return "unknown";
-        }
-    }
-
-    public int getInteger(int pname) {
-        if (hasContext) {
-            return GL32.glGetInteger(pname);
-        } else {
-            return 0;
         }
     }
 
@@ -556,7 +515,7 @@ public class GLCompat {
 
     public void shaderSource(int shader, String source) {
         // Fixes https://github.com/Qendolin/better-clouds/issues/218 hopefully
-        byte[] sourceBytes = source.getBytes(Charsets.UTF_8);
+        byte[] sourceBytes = source.getBytes(StandardCharsets.UTF_8);
         ByteBuffer buffer = MemoryUtil.memAlloc(sourceBytes.length + 1);
         buffer.put(sourceBytes);
         buffer.put((byte) 0);

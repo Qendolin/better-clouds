@@ -19,9 +19,7 @@
 package com.qendolin.betterclouds.renderdoc;
 
 import com.sun.jna.*;
-import com.sun.jna.ptr.IntByReference;
-import com.sun.jna.ptr.LongByReference;
-import com.sun.jna.ptr.PointerByReference;
+import com.sun.jna.ptr.*;
 
 public interface RenderDocLibrary extends Library {
 

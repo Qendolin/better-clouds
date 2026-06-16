@@ -366,8 +366,8 @@ public class SelectDropdownController<T> implements Controller<Integer> {
             if (screen.currentPopupController == this) {
                 screen.currentPopupController = null;
             }
-            if (Minecraft.getInstance().screen != screen) {
-                Minecraft.getInstance().setScreen(screen);
+            if (Minecraft.getInstance().gui.screen() != screen) {
+                Minecraft.getInstance().gui.setScreen(screen);
             }
         }
 

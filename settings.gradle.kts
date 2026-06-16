@@ -29,4 +29,4 @@ buildscript {
 rootProject.name = "better-clouds"
 include("common")
 include("fabric")
-include("neoforge")
+// include("neoforge")

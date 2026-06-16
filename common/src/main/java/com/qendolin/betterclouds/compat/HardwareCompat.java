@@ -1,9 +1,13 @@
 package com.qendolin.betterclouds.compat;
 
+import com.qendolin.betterclouds.rendering.GraphicsCompat;
+
 import java.util.stream.Stream;
 
 public class HardwareCompat {
     public static boolean isMaybeIncompatible() {
+        if (!GraphicsCompat.isOpenGL) return false;
+
         String cpu = GLCompat.getCpuInfo();
         if (cpu == null) cpu = "";
         String cpuNormalized = cpu.toLowerCase();

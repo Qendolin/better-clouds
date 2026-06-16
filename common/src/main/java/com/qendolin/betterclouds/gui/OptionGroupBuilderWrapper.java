@@ -1,9 +1,6 @@
 package com.qendolin.betterclouds.gui;
 
-import dev.isxander.yacl3.api.ListOption;
-import dev.isxander.yacl3.api.Option;
-import dev.isxander.yacl3.api.OptionDescription;
-import dev.isxander.yacl3.api.OptionGroup;
+import dev.isxander.yacl3.api.*;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 

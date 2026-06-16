@@ -43,6 +43,7 @@ val publishTargetDefinitions = linkedMapOf(
                         incompatible = listOf("vulkanmod", "immersive-portals-mod"),
                 ),
         ),
+        /*
         "neoforge" to PublishTargetDefinition(
                 projectPath = ":neoforge",
                 loader = "neoforge",
@@ -58,6 +59,7 @@ val publishTargetDefinitions = linkedMapOf(
                         incompatible = emptyList(),
                 ),
         ),
+        */
 )
 
 val parseBooleanGradleProperty: (String, Boolean) -> Provider<Boolean> = { name, defaultValue ->
