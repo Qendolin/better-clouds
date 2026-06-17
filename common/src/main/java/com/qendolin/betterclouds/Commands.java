@@ -365,6 +365,10 @@ public class Commands {
         ChatUtil.debugChatMessage(Component.translatable(ChatUtil.debugChatMessageKey("crashMessage")));
     }
 
+    public static void sendIrisIncompatibleMessage() {
+        ChatUtil.debugChatMessage(Component.translatable(ChatUtil.debugChatMessageKey("irisIncompatibleMessage")));
+    }
+
     private static ClickEvent createCommandClickEvent(String command) {
         return new ClickEvent.RunCommand(command);
     }

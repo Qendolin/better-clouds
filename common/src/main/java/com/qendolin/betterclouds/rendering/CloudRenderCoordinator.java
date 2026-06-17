@@ -3,6 +3,7 @@ package com.qendolin.betterclouds.rendering;
 import com.mojang.blaze3d.framegraph.FrameGraphBuilder;
 import com.mojang.blaze3d.framegraph.FramePass;
 import com.qendolin.betterclouds.*;
+import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import com.qendolin.betterclouds.rendering.blaze3d.Blaze3DRenderer;
@@ -64,6 +65,11 @@ public class CloudRenderCoordinator {
     public boolean renderClouds(FrameGraphBuilder frameGraphBuilder, LevelTargetBundle targets, Vec3 cameraPos, long gameTime, float ticksInput) {
         if (renderer == null) return false;
         try {
+            if (IrisCompat.instance().isShadersEnabled() && !GraphicsCompat.isOpenGL) {
+                renderer = null;
+                Commands.sendIrisIncompatibleMessage();
+                return false;
+            }
             return renderCloudsInternal(frameGraphBuilder, targets, cameraPos, gameTime, ticksInput);
         } catch (Exception e) {
             BetterCloudsStatic.getLogger().error("Failed to render clouds", e);
