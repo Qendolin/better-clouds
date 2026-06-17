@@ -55,16 +55,21 @@ public class CloudRenderCoordinator {
     }
 
     public void reload(ResourceManager manager) {
-        if (renderer != null) renderer.reload(manager);
+        if (renderer != null)
+            renderer.reload(manager);
+        else
+            renderer = GraphicsCompat.isOpenGL ? new OpenGLRenderer(Minecraft.getInstance()) : new Blaze3DRenderer(Minecraft.getInstance());
     }
 
     public boolean renderClouds(FrameGraphBuilder frameGraphBuilder, LevelTargetBundle targets, Vec3 cameraPos, long gameTime, float ticksInput) {
+        if (renderer == null) return false;
         try {
             return renderCloudsInternal(frameGraphBuilder, targets, cameraPos, gameTime, ticksInput);
         } catch (Exception e) {
             BetterCloudsStatic.getLogger().error("Failed to render clouds", e);
             Commands.sendCrashChatMessage();
             if (renderer != null) renderer.close();
+            renderer = null;
         }
         return false;
     }
@@ -103,7 +108,14 @@ public class CloudRenderCoordinator {
             renderPass.executes(() -> {
                 getProfiler().push("clouds");
                 GraphicsCompat.instance.pushDebugGroupDev("Better Clouds");
-                renderer.render(fticks, ftickDelta, cam, cam, frustum);
+                try {
+                    renderer.render(fticks, ftickDelta, cam, cam, frustum);
+                } catch (Exception e) {
+                    BetterCloudsStatic.getLogger().error("Failed to render clouds", e);
+                    renderer.close();
+                    renderer = null;
+                    Commands.sendCrashChatMessage();
+                }
                 getProfiler().pop();
                 GraphicsCompat.instance.popDebugGroupDev();
             });
