@@ -21,7 +21,7 @@ layout (std140) uniform CloudVertexData {
 out float fogFade;
 out vec3 lightSampleDir;
 
-float fogFade(float distance, float fogStart, float fogEnd) {
+float calcFogFade(float distance, float fogStart, float fogEnd) {
     #if NEAR_CLOUD_FADE
     float nearFade = clamp(distance / NEAR_FADE_DIST, 0, 1);
     #else
@@ -53,7 +53,7 @@ void main() {
 
     vec3 pos = scale * LocalPosition + cloudPos;
     vec3 localWorldVertexPos = pos - originOffset;
-    fogFade = fogFade(length(localWorldVertexPos.xyz), uFogStart, uFogEnd);
+    fogFade = calcFogFade(length(localWorldVertexPos.xyz), uFogStart, uFogEnd);
     lightSampleDir = localWorldVertexPos;
 
     gl_Position = ProjMat * ModelViewMat * vec4(pos, 1);
