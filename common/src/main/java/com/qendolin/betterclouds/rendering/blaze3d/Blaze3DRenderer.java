@@ -270,7 +270,7 @@ public class Blaze3DRenderer extends CloudRenderer {
 
             frustum.prepare(frustumPos.x - generator.originX(), frustumPos.y, frustumPos.z - generator.originZ());
 
-            if (!config.useFrustumCulling)
+            if (!config.useFrustumCulling || !gpu().getDeviceInfo().features().nonZeroFirstInstance())
                 pass.drawIndexed(CUBE_INDICES.length, generator.points().size(), 0, 0, 0);
             else
                 drawWithFrustumCulling(pass, frustum);
