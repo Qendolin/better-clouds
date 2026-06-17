@@ -3,12 +3,13 @@
 #extension GL_ARB_separate_shader_objects: enable
 
 #define DISTANT_HORIZONS _DISTANT_HORIZONS_
+#define IRIS _IRIS_
 
 const float dither_matrix[16] = float[](
-0.0, 0.5, 0.125, 0.625,
-0.75, 0.25, 0.875, 0.375,
-0.0625, 0.5625, 0.03125, 0.53125,
-0.8125, 0.4375, 0.78125, 0.40625
+        0.0, 0.5, 0.125, 0.625,
+        0.75, 0.25, 0.875, 0.375,
+        0.0625, 0.5625, 0.03125, 0.53125,
+        0.8125, 0.4375, 0.78125, 0.40625
 );
 
 
@@ -31,14 +32,22 @@ void main() {
     out_one = 0.0;
 
     float depth = texelFetch(u_depth_texture, ivec2(gl_FragCoord.xy), 0).r;
+    #if IRIS
+    if (min(gl_FragCoord.z, 1.0) > depth) discard;
+    #else
     if (max(gl_FragCoord.z, -1.0) < depth) discard;
+    #endif
 
     #if DISTANT_HORIZONS
     // pass_dh_depth is always 0 if the depth texture cloud not be set.
     // This is a "safety" check to prevent reading from an unbound texture
     if (pass_dh_depth != 0) {
         depth = texelFetch(u_dh_depth_texture, ivec2(gl_FragCoord.xy), 0).r;
+        #if IRIS
+        if (pass_dh_depth > depth) discard;
+        #else
         if (pass_dh_depth < depth) discard;
+        #endif
     }
     #endif
 

@@ -38,7 +38,7 @@ public class OpenGLRenderer extends CloudRenderer {
     private final Vector3f tempVector = new Vector3f();
     private final Frustum tempFrustum = new Frustum(new Matrix4f().identity(), new Matrix4f().identity());
     private final Resources res = new Resources();
-    GLCompat glCompat = (GLCompat) GraphicsCompat.instance;
+    private final GLCompat glCompat = (GLCompat) GraphicsCompat.instance;
     private Buffer buffer;
     private ShaderParameters shaderParameters = null;
 
@@ -115,6 +115,7 @@ public class OpenGLRenderer extends CloudRenderer {
                 config.blockDistance(), config.sizeXZ, config.sizeY, config.celestialBodyHalo,
                 glCompat.useDepthWriteFallback(), glCompat.useStencilTextureFallback(),
                 DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled(),
+                IrisCompat.instance().isShadersEnabled(),
                 config.shaderPreset().worldCurvatureSize
         );
     }
@@ -228,7 +229,7 @@ public class OpenGLRenderer extends CloudRenderer {
         GlStateManager._glBindFramebuffer(GL_DRAW_FRAMEBUFFER, res.oitFbo());
         glClearColor(0, 0, 0, 0);
         glClearDepth(0);
-        GlStateManager._depthFunc(GL_GEQUAL);
+        setDepthFuncGEqual();
         drawCoverage(ticks + tickDelta, cam, frustumPos, frustum, fog);
 
         // Draw to game framebuffer
@@ -251,7 +252,7 @@ public class OpenGLRenderer extends CloudRenderer {
         GlStateManager._enableDepthTest();
         RenderHelper.depthMask(true);
         RenderHelper.restoreDepthMask();
-        GlStateManager._depthFunc(GL_GEQUAL);
+        setDepthFuncGEqual();
         GlStateManager._activeTexture(GL_TEXTURE0);
         RenderHelper.colorMask(true, true, true, true);
         RenderHelper.restoreColorMask();
@@ -275,6 +276,11 @@ public class OpenGLRenderer extends CloudRenderer {
         return res.fboWidth() != scaledFramebufferWidth() || res.fboHeight() != scaledFramebufferHeight();
     }
 
+    private void setDepthFuncGEqual() {
+        // iris isn't using reverse z
+        GlStateManager._depthFunc(IrisCompat.instance().isShadersEnabled() ? GL_LEQUAL : GL_GEQUAL);
+    }
+
     private void drawCoverage(float ticks, Vector3d cam, Vector3d frustumPos, Frustum frustum, FogProvider.Fog fog) {
         GlStateManager._enableDepthTest();
         RenderHelper.colorMask(true, true, true, true);
@@ -290,7 +296,7 @@ public class OpenGLRenderer extends CloudRenderer {
             glCompat.blendFunci(1, GL_ONE, GL_ONE);
             glDisable(GL_STENCIL_TEST);
         } else {
-            GlStateManager._depthFunc(GL_GEQUAL);
+            setDepthFuncGEqual();
             GlStateManager._disableBlend(0);
             glEnable(GL_STENCIL_TEST);
             glStencilMask(0xff);
@@ -425,7 +431,7 @@ public class OpenGLRenderer extends CloudRenderer {
     private void drawShading(float tickDelta, FogProvider.Fog fog, Vector3d cam) {
 
         Config config = ConfigManager.instance();
-        GlStateManager._depthFunc(GL_GEQUAL);
+        setDepthFuncGEqual();
 
         if (!glCompat.useDepthWriteFallback()) {
             RenderHelper.depthMask(true);

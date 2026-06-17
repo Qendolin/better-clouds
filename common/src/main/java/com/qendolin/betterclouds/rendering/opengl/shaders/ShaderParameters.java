@@ -11,6 +11,7 @@ public record ShaderParameters(
         boolean useDepthWriteFallback,
         boolean useStencilTextureFallback,
         boolean useDistantHorizonsCompat,
+        boolean useIrisCompat,
         int worldCurvatureSize
 ) {
 }
