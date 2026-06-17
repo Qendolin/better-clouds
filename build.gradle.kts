@@ -43,7 +43,6 @@ val publishTargetDefinitions = linkedMapOf(
                         incompatible = listOf("vulkanmod", "immersive-portals-mod"),
                 ),
         ),
-        /*
         "neoforge" to PublishTargetDefinition(
                 projectPath = ":neoforge",
                 loader = "neoforge",
@@ -58,8 +57,7 @@ val publishTargetDefinitions = linkedMapOf(
                         optional = listOf("sodium", "irisshaders"),
                         incompatible = emptyList(),
                 ),
-        ),
-        */
+        )
 )
 
 val parseBooleanGradleProperty: (String, Boolean) -> Provider<Boolean> = { name, defaultValue ->
@@ -181,7 +179,7 @@ val configurePublishProject: (String, PublishTargetDefinition) -> Unit = { targe
     targetProject.pluginManager.withPlugin("me.modmuss50.mod-publish-plugin") {
         targetProject.extensions.configure<ModPublishExtension>("publishMods") {
             val targetReleaseType = targetProject.property("mod.release").toString()
-            val releaseName = targetReleaseType.replaceFirstChar { it.titlecase(Locale.ROOT) }
+            val releaseName = targetReleaseType.substringBefore(".").replaceFirstChar { it.titlecase(Locale.ROOT) }
             val targetModVersion = targetProject.property("mod.version").toString()
             val mcVersions = targetProject.findProperty("deps.minecraft").toString().split(",").map {
                 it.trim().replace(".0", "")
