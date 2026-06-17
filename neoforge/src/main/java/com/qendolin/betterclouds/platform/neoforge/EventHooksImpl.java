@@ -2,7 +2,7 @@ package com.qendolin.betterclouds.platform.neoforge;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.qendolin.betterclouds.BetterCloudsStatic;
-import com.qendolin.betterclouds.config.PresetLoader;
+import com.qendolin.betterclouds.config.preset.PresetLoader;
 import com.qendolin.betterclouds.platform.EventHooks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;

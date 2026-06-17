@@ -5,7 +5,7 @@ import java.io.InputStreamReader
 import java.util.*
 
 plugins {
-    id("net.fabricmc.fabric-loom") version "1.15.5" apply false
+    id("net.fabricmc.fabric-loom") version "1.17.11" apply false
     id("dev.architectury.loom") version "1.13.469" apply false
     id("architectury-plugin") version "3.4.162" apply false
     id("me.modmuss50.mod-publish-plugin") version "1.1.0" apply false
@@ -151,7 +151,7 @@ val loadPublishSecrets: () -> Properties = {
 
 val releaseTypeEnum: () -> ReleaseType = {
     val releaseType = property("mod.release").toString()
-    when (releaseType.lowercase(Locale.ROOT)) {
+    when (releaseType.substringBefore(".").lowercase(Locale.ROOT)) {
         "release" -> ReleaseType.STABLE
         "beta" -> ReleaseType.BETA
         "alpha" -> ReleaseType.ALPHA
@@ -162,18 +162,18 @@ val releaseTypeEnum: () -> ReleaseType = {
 val releaseType = property("mod.release").toString()
 val modVersion = property("mod.version").toString()
 val mcVersion = findProperty("deps.minecraft").toString()
-val buildVersionString: (String) -> String = { loader ->
-    var semver = modVersion
+val releaseVersionString = run {
     val isPrerelease = releaseTypeEnum() != ReleaseType.STABLE
-    if (isPrerelease) semver += "-$releaseType"
-    semver += "+$mcVersion-$loader"
-    if (isPrerelease) semver += ".rev.${gitOutput(listOf("git", "rev-parse", "--short", "HEAD"))}"
-    semver
+    if (isPrerelease) "$modVersion-$releaseType" else modVersion
+}
+val buildVersionString: (String) -> String = { loader ->
+    "$releaseVersionString+$mcVersion-$loader"
 }
 
 extra["releaseType"] = releaseType
 extra["modVersion"] = modVersion
 extra["mcVersion"] = mcVersion
+extra["releaseVersionString"] = releaseVersionString
 extra["buildVersionString"] = buildVersionString
 
 val configurePublishProject: (String, PublishTargetDefinition) -> Unit = { target, targetConfig ->
@@ -190,13 +190,14 @@ val configurePublishProject: (String, PublishTargetDefinition) -> Unit = { targe
             file.set(targetProject.tasks.named<Jar>("jar").flatMap { it.archiveFile })
             changelog.set(rootProject.providers.fileContents(rootProject.layout.projectDirectory.file("changelog.md")).asText)
             displayName.set("$releaseName $targetModVersion for $mcVersion ${targetConfig.loaderName}")
-            version.set("$targetModVersion+$mcVersion-${targetConfig.loader}-$targetReleaseType")
+            version.set(buildVersionString(targetConfig.loader))
             type.set(releaseTypeEnum())
             modLoaders.add(targetConfig.loader)
 
             modrinth {
                 accessToken.set(rootProject.providers.provider { loadPublishSecrets().getProperty("MODRINTH") })
                 projectId.set("5srFLIaK")
+                version.set(releaseVersionString)
                 minecraftVersions.addAll(mcVersions)
                 targetConfig.modrinth.requires.forEach { requires(it) }
                 targetConfig.modrinth.optional.forEach { optional(it) }
@@ -235,9 +236,9 @@ val configurePublishProject: (String, PublishTargetDefinition) -> Unit = { targe
                     val githubReleaseType = rootProject.property("mod.release").toString()
                     val githubModVersion = rootProject.property("mod.version").toString()
                     var tag = "v$githubModVersion"
-                    val isPrerelease = githubReleaseType != "release"
+                    val isPrerelease = releaseTypeEnum() != ReleaseType.STABLE
                     if (isPrerelease) {
-                        tag += "-$githubReleaseType.rev.${gitOutput(listOf("git", "rev-parse", "--short", "HEAD"))}"
+                        tag += "-$githubReleaseType"
                     }
 
                     val title = tag

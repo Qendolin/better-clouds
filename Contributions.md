@@ -24,6 +24,8 @@
     - Provide russian translation – [#212](https://github.com/Qendolin/better-clouds/pull/212)
 - justliliandev
     - Fix Ars Nouveau flickering issue – [#222](https://github.com/Qendolin/better-clouds/pull/222)
+- Villhume
+    - Fix DH support for 1.21.1 - [#306](https://github.com/Qendolin/better-clouds/pull/306)
 
 ... got a PR accepted
 

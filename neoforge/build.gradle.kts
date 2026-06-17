@@ -38,6 +38,7 @@ neoForge {
             systemProperty("forge.logging.console.level", "debug")
             loggingConfigFile = layout.projectDirectory.file("../log4j-dev.xml")
             jvmArgument("-Xmx2560M")
+            jvmArgument("-Dorg.lwjgl.system.allocator=system")
         }
 
         create("gameTest") {
@@ -48,6 +49,7 @@ neoForge {
             systemProperty("neoforge.enableGameTest", "true")
             loggingConfigFile = layout.projectDirectory.file("../log4j-dev.xml")
             jvmArgument("-Xmx2560M")
+            jvmArgument("-Dorg.lwjgl.system.allocator=system")
         }
 
         create("server") {

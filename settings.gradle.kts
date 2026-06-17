@@ -17,6 +17,10 @@ pluginManagement {
     }
 }
 
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+}
+
 // Force gradle-idea-ext 1.4.1 (Groovy 4 / Gradle 9 compatible) over the 1.2
 // pulled in by net.neoforged.moddev. See: https://github.com/neoforged/ModDevGradle/issues/67
 buildscript {
@@ -29,4 +33,4 @@ buildscript {
 rootProject.name = "better-clouds"
 include("common")
 include("fabric")
-// include("neoforge")
+include("neoforge")

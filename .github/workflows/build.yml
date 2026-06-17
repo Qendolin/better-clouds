@@ -13,8 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        loader: [ fabric ]
-    #        loader: [ fabric, neoforge ]
+        loader: [ fabric, neoforge ]
     env:
       GRADLE_OPTS: "-Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000"
     steps:

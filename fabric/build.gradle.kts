@@ -44,7 +44,7 @@ loom {
 
 dependencies {
     implementation(project(":common"))
-    "minecraft"("com.mojang:minecraft:$mcVersion")
+    minecraft("com.mojang:minecraft:$mcVersion")
 
     annotationProcessor("io.github.llamalad7:mixinextras-common:${property("deps.mixin_extras")}")
 
@@ -80,6 +80,7 @@ tasks.register<ClientProductionRunTask>("runGameTest") {
     group = "loom"
     description = "Launches the Fabric client with the Fabric client game test flag."
     jvmArgs.add("-Dfabric.client.gametest")
+    jvmArgs.add("-Dorg.lwjgl.system.allocator=system")
 }
 
 tasks.named<ProcessResources>("processResources") {
