@@ -27,8 +27,12 @@ import net.minecraft.gizmos.Gizmos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.Mth;
+import net.minecraft.world.attribute.EnvironmentAttributes;
+import net.minecraft.world.level.MoonPhase;
+import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.material.FogType;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import org.joml.*;
 import org.jspecify.annotations.NonNull;
 
@@ -104,7 +108,7 @@ public class Blaze3DRenderer extends CloudRenderer {
     private final ReadOnlyBuffer worldCloudPosBuffer = new ReadOnlyBuffer("cloudPositions");
     // uniforms
     private final WritableBuffer uCloudVertexData = new WritableBuffer("uCloudVertexData", Float.BYTES * 15, GpuBuffer.USAGE_UNIFORM);
-    private final WritableBuffer uCloudFragData = new WritableBuffer("uCloudFragData", Float.BYTES * 11, GpuBuffer.USAGE_UNIFORM);
+    private final WritableBuffer uCloudFragData = new WritableBuffer("uCloudFragData", Float.BYTES * 12, GpuBuffer.USAGE_UNIFORM);
     // samplers
     private final GpuSampler noiseSampler = gpu().createSampler(AddressMode.REPEAT, AddressMode.REPEAT, FilterMode.LINEAR, FilterMode.LINEAR, 1, OptionalDouble.empty());
     private final GpuSampler lightSampler = gpu().createSampler(AddressMode.CLAMP_TO_EDGE, AddressMode.REPEAT, FilterMode.LINEAR, FilterMode.LINEAR, 1, OptionalDouble.empty());
@@ -185,6 +189,11 @@ public class Blaze3DRenderer extends CloudRenderer {
         float dayTime = level.getOverworldClockTime() % 24000;
         float mappedTime = MathUtil.mapTimeOfDay(dayTime, config.shaderPreset().sunriseStartTime, config.shaderPreset().sunriseEndTime, config.shaderPreset().sunsetStartTime, config.shaderPreset().sunsetEndTime);
 
+        MoonPhase moonPhase = level.environmentAttributes().getValue(EnvironmentAttributes.MOON_PHASE, new Vec3(cam.x, cam.y, cam.z));
+        float haloSize = dayTime > config.shaderPreset().sunsetEndTime ?
+                // apply halo sizing formula based on moon phase during nighttime
+                (float) (5 * Math.pow(0.06217, DimensionType.MOON_BRIGHTNESS_PER_PHASE[moonPhase.index()])) :
+                1;
 
         uCloudVertexData.write(b -> {
             // size and time
@@ -227,6 +236,7 @@ public class Blaze3DRenderer extends CloudRenderer {
             b.putFloat(sp.tintRed * effectTint.x);
             b.putFloat(sp.tintGreen * effectTint.y);
             b.putFloat(sp.tintBlue * effectTint.z);
+            b.putFloat(haloSize);
 
             b.putFloat(sunDir.x);
             b.putFloat(sunDir.y);
@@ -296,7 +306,6 @@ public class Blaze3DRenderer extends CloudRenderer {
                 .withVertexBinding(1, POSITION_FORMAT)
                 .withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
                 .withShaderDefine("CELESTIAL_BODY_HALO", ConfigManager.instance().celestialBodyHalo ? 1 : 0)
-                .withShaderDefine("HALO_SIZE", 3f)     // Higher values -> smaller size
                 .withShaderDefine("NEAR_CLOUD_FADE", ConfigManager.instance().nearCloudFade ? 1 : 0)
                 .withShaderDefine("NEAR_FADE_DIST", 40)
                 .withBindGroupLayout(BindGroupLayouts.MATRICES_PROJECTION)

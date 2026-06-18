@@ -1,5 +1,5 @@
 #version 330 core
-#define pi 3.1415926536
+#define pi 3.1415926536f
 
 out vec4 fragColor;
 in float fogFade;
@@ -10,7 +10,7 @@ uniform sampler2D LightTexture;
 layout (std140) uniform CloudFragData {
 // note to self: don't mix floats and vecs, otherwise padding issues may occur
     float opacity, opacityFactor, opacityExponent, brightness;
-    float tintRed, tintGreen, tintBlue;
+    float tintRed, tintGreen, tintBlue, haloSize;
     float sunX, sunY, sunZ, mappedTime;
 };
 
@@ -27,10 +27,10 @@ void main() {
 
     // i still have no idea how this formula works but it seems to work fine
     float superellipse = (
-    (1.0 + (1.0 / 3.0) * (pow(sin(2.0 * projAngle + pi / 2.0), 2.0))) * (HALO_SIZE - abs(superellipseFalloff) * HALO_SIZE) - 1.0
+    (1.0 + (1.0 / 3.0) * (pow(cos(2.0 * projAngle), 2.0))) * haloSize * (1.0 - abs(superellipseFalloff)) - 1.0
     ) * sign(-superellipseFalloff);
 
-    lightUvX = mix(sphere, superellipse, smoothstep(0.75, 1.0, abs(sphere)));
+    lightUvX = mix(sphere, superellipse, smoothstep(0.0, 0.5, abs(sphere)));
     #endif
 
     // i give up trying to figure out how all this works, lets just do a direct port of the shader code
@@ -46,7 +46,6 @@ void main() {
     // prevent sampling the horizontally interpolated vertical edges
     lightUv.x -= (lightUv.x - 0.5) / textureSize(LightTexture, 0).x;
 
-    // minimum brightness so clouds are partially visible at night + tint + brightness
     vec3 color = (0.15 + 0.85 * texture(LightTexture, lightUv).rgb) * vec3(tintRed, tintGreen, tintBlue) * brightness;
     float alpha = opacityFactor * opacity * pow(fogFade, opacityExponent);
     fragColor = vec4(color, alpha);
