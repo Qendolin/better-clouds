@@ -30,7 +30,7 @@ void main() {
     (1.0 + (1.0 / 3.0) * (pow(cos(2.0 * projAngle), 2.0))) * haloSize * (1.0 - abs(superellipseFalloff)) - 1.0
     ) * sign(-superellipseFalloff);
 
-    lightUvX = mix(sphere, superellipse, smoothstep(0.0, 0.5, abs(sphere)));
+    lightUvX = mix(sphere, superellipse, smoothstep(0, 1, abs(sphere)));
     #endif
 
     // i give up trying to figure out how all this works, lets just do a direct port of the shader code
