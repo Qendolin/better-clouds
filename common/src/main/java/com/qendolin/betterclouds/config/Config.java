@@ -62,10 +62,16 @@ public class Config {
     public float windSpeedFactor = 0.8f;
     @SerialEntry
     public float colorVariationFactor = 0.8f;
+
     @SerialEntry
     public boolean celestialBodyHalo = true;
     @SerialEntry
+    public float sunHaloSizeMultiplier = 1f;
+    @SerialEntry
+    public float moonHaloSizeMultiplier = 0.75f;
+    @SerialEntry
     public boolean nearCloudFade = false;
+
     @SerialEntry
     public int chunkSize = 32;
     @SerialEntry

@@ -190,10 +190,9 @@ public class Blaze3DRenderer extends CloudRenderer {
         float mappedTime = MathUtil.mapTimeOfDay(dayTime, config.shaderPreset().sunriseStartTime, config.shaderPreset().sunriseEndTime, config.shaderPreset().sunsetStartTime, config.shaderPreset().sunsetEndTime);
 
         MoonPhase moonPhase = level.environmentAttributes().getValue(EnvironmentAttributes.MOON_PHASE, new Vec3(cam.x, cam.y, cam.z));
-        float haloSize = dayTime > config.shaderPreset().sunsetEndTime ?
-                // apply halo sizing formula based on moon phase during nighttime
-                (float) (5 * Math.pow(0.06217, DimensionType.MOON_BRIGHTNESS_PER_PHASE[moonPhase.index()])) :
-                1;
+        float haloSize = dayTime < config.shaderPreset().sunsetEndTime ?
+                2 - config.sunHaloSizeMultiplier :
+                (float) (5 * Math.pow(0.06217, config.moonHaloSizeMultiplier * DimensionType.MOON_BRIGHTNESS_PER_PHASE[moonPhase.index()]));    // curve fit for ideal moon halo size based on phase
 
         uCloudVertexData.write(b -> {
             // size and time

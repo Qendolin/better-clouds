@@ -51,6 +51,8 @@ public class ConfigGUI {
     public final Option<Float> windSpeedFactor;
     public final Option<Float> colorVariationFactor;
     public final Option<Boolean> celestialBodyHalo;
+    public final Option<Float> sunHaloSizeMultiplier;
+    public final Option<Float> moonHaloSizeMultiplier;
     public final Option<Boolean> nearCloudFade;
 
     public final Option<Boolean> enabled;
@@ -176,6 +178,14 @@ public class ConfigGUI {
                 .binding(defaults.celestialBodyHalo, () -> config.celestialBodyHalo, val -> config.celestialBodyHalo = val)
                 .customController(TickBoxController::new)
                 .build();
+        this.sunHaloSizeMultiplier = createOption(float.class, "sunHaloSizeMultiplier")
+                .binding(defaults.sunHaloSizeMultiplier, () -> config.sunHaloSizeMultiplier, val -> config.sunHaloSizeMultiplier = val)
+                .customController(opt -> new FloatSliderController(opt, 0.1f, 2, 0.01f, ConfigGUI::formatAsPercent))
+                .build();
+        this.moonHaloSizeMultiplier = createOption(float.class, "moonHaloSizeMultiplier")
+                .binding(defaults.moonHaloSizeMultiplier, () -> config.moonHaloSizeMultiplier, val -> config.moonHaloSizeMultiplier = val)
+                .customController(opt -> new FloatSliderController(opt, 0.1f, 2, 0.01f, ConfigGUI::formatAsPercent))
+                .build();
         this.nearCloudFade = createOption(boolean.class, "nearCloudFade")
                 .binding(defaults.nearCloudFade, () -> config.nearCloudFade, val -> config.nearCloudFade = val)
                 .customController(TickBoxController::new)
@@ -293,8 +303,10 @@ public class ConfigGUI {
         appearanceCategory.add(new Tuple<>(OptionGroup.createBuilder()
                 .name(groupLabel("appearance.sky")), appearanceSkyGroup));
         appearanceSkyGroup.addAll(List.of(
+                nearCloudFade,
                 celestialBodyHalo,
-                nearCloudFade
+                sunHaloSizeMultiplier,
+                moonHaloSizeMultiplier
         ));
 
         categories.add(new Tuple<>(ConfigCategory.createBuilder()
