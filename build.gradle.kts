@@ -35,12 +35,12 @@ val publishTargetDefinitions = linkedMapOf(
                 modrinth = PlatformDependencies(
                         requires = listOf("yacl", "fabric-api"),
                         optional = listOf("modmenu", "sodium", "iris"),
-                        incompatible = listOf("vulkanmod", "immersiveportals"),
+                        incompatible = listOf(),
                 ),
                 curseforge = PlatformDependencies(
                         requires = listOf("yacl", "fabric-api"),
                         optional = listOf("modmenu", "sodium", "irisshaders"),
-                        incompatible = listOf("vulkanmod", "immersive-portals-mod"),
+                        incompatible = listOf(),
                 ),
         ),
         "neoforge" to PublishTargetDefinition(
