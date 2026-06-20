@@ -9,9 +9,6 @@
 
 **Please, feel free to [report](https://github.com/Qendolin/better-clouds/issues) any issues**
 
-> hi everyone, i'm the new maintainer now. the mod is no longer discontinued. cheers  
-> -orangishcat
-
 ---
 
 Better Clouds adds volumetric clouds to Minecraft, in a simple, blocky style that matches the rest of the game.
@@ -38,7 +35,7 @@ Minecraft.
 ## Contributions
 
 Thanks to everyone who has contributed to the project!  
-See the full list [here](https://github.com/Qendolin/better-clouds/blob/main/Contributions.md).
+See the full list [here](https://github.com/Qendolin/better-clouds/blob/development/Contributions.md).
 
 ## Wiki
 
