@@ -180,11 +180,11 @@ public class ConfigGUI {
                 .build();
         this.sunHaloSizeMultiplier = createOption(float.class, "sunHaloSizeMultiplier")
                 .binding(defaults.sunHaloSizeMultiplier, () -> config.sunHaloSizeMultiplier, val -> config.sunHaloSizeMultiplier = val)
-                .customController(opt -> new FloatSliderController(opt, 0.1f, 2, 0.01f, ConfigGUI::formatAsPercent))
+                .customController(opt -> new FloatSliderController(opt, 0.05f, 2, 0.01f, ConfigGUI::formatAsPercent))
                 .build();
         this.moonHaloSizeMultiplier = createOption(float.class, "moonHaloSizeMultiplier")
                 .binding(defaults.moonHaloSizeMultiplier, () -> config.moonHaloSizeMultiplier, val -> config.moonHaloSizeMultiplier = val)
-                .customController(opt -> new FloatSliderController(opt, 0.1f, 2, 0.01f, ConfigGUI::formatAsPercent))
+                .customController(opt -> new FloatSliderController(opt, 0.05f, 2, 0.01f, ConfigGUI::formatAsPercent))
                 .build();
         this.nearCloudFade = createOption(boolean.class, "nearCloudFade")
                 .binding(defaults.nearCloudFade, () -> config.nearCloudFade, val -> config.nearCloudFade = val)

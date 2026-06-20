@@ -68,7 +68,7 @@ public class Config {
     @SerialEntry
     public float sunHaloSizeMultiplier = 1f;
     @SerialEntry
-    public float moonHaloSizeMultiplier = 0.75f;
+    public float moonHaloSizeMultiplier = 1f;
     @SerialEntry
     public boolean nearCloudFade = false;
 
