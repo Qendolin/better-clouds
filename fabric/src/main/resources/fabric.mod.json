@@ -44,7 +44,6 @@
     "betterclouds.optional.mixins.json",
     "betterclouds.runtime.mixins.json"
   ],
-  "accessWidener" : "betterclouds.accesswidener",
   "depends" : {
     "fabricloader" : ">=0.17.2",
     "minecraft" : [

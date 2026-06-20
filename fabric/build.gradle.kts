@@ -17,7 +17,6 @@ val commonSourceSets = project(":common").extensions.getByType<SourceSetContaine
 version = buildVersionString(loader)
 
 loom {
-    accessWidenerPath.set(project(":common").file("src/main/resources/betterclouds.accesswidener"))
     log4jConfigs.from(rootProject.file("log4j-dev.xml"))
 
     mods {

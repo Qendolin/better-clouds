@@ -11,10 +11,6 @@ val mcVersion = rootProject.extra["mcVersion"].toString()
 
 version = "${property("mod.version")}+${property("deps.minecraft")}-common"
 
-loom {
-    accessWidenerPath.set(file("src/main/resources/betterclouds.accesswidener"))
-}
-
 dependencies {
     "minecraft"("com.mojang:minecraft:$mcVersion")
 
