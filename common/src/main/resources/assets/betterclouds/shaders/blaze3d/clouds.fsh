@@ -46,7 +46,8 @@ void main() {
     // prevent sampling the horizontally interpolated vertical edges
     lightUv.x -= (lightUv.x - 0.5) / textureSize(LightTexture, 0).x;
 
-    vec3 color = (0.15 + 0.85 * texture(LightTexture, lightUv).rgb) * vec3(tintRed, tintGreen, tintBlue) * brightness;
+    vec3 lightColor = max(texture(LightTexture, lightUv).rgb, vec3(0.15));
+    vec3 color = lightColor * vec3(tintRed, tintGreen, tintBlue) * brightness;
     float alpha = opacityFactor * opacity * pow(fogFade, opacityExponent);
     fragColor = vec4(color, alpha);
 }

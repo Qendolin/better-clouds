@@ -31,7 +31,8 @@ public class CloudRenderCoordinator {
     public Matrix4f capturedProjMat;
     public Frustum frustum;
 
-    public void initialize(Minecraft client) {
+    public void initialize() {
+        Minecraft client = Minecraft.getInstance();
         if (GraphicsCompat.instance.isIncompatible()) return;
         renderer = GraphicsCompat.isOpenGL ? new OpenGLRenderer(client) : new Blaze3DRenderer(client);
     }
@@ -49,10 +50,6 @@ public class CloudRenderCoordinator {
         frustum = new Frustum(cameraState.cullFrustum);
         Vec3 cameraPos = cameraState.pos;
         frustum.prepare(cameraPos.x, cameraPos.y, cameraPos.z);
-    }
-
-    public void setLevel(ClientLevel level) {
-        renderer.setLevel(level);
     }
 
     public void reload(ResourceManager manager) {
