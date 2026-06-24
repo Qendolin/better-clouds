@@ -329,7 +329,7 @@ public class Blaze3DRenderer extends CloudRenderer {
                 .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
                 .build();
 
-        IrisCompat.instance().registerCloudPipeline(CLOUD_RENDERER_PIPELINE);
+//        IrisCompat.instance().registerCloudPipeline(CLOUD_RENDERER_PIPELINE);
     }
 
     private void drawWithFrustumCulling(RenderPass pass, Frustum frustumAtOrigin) {
