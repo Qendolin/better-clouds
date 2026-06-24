@@ -1,9 +1,12 @@
 package com.qendolin.betterclouds.compat;
 
 import com.mojang.blaze3d.opengl.GlProgram;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.qendolin.betterclouds.mixin.optional.ExtendedShaderAccessor;
 import com.qendolin.betterclouds.mixin.optional.FallbackShaderAccessor;
 import net.irisshaders.iris.Iris;
+import net.irisshaders.iris.api.v0.IrisApi;
+import net.irisshaders.iris.api.v0.IrisProgram;
 import net.irisshaders.iris.gl.framebuffer.GlFramebuffer;
 import net.irisshaders.iris.pipeline.IrisRenderingPipeline;
 import net.irisshaders.iris.pipeline.WorldRenderingPipeline;
@@ -59,5 +62,10 @@ public class IrisCompatImpl extends IrisCompat {
         } else {
             after.bindAsDrawBuffer();
         }
+    }
+
+    @Override
+    public void registerCloudPipeline(RenderPipeline cloudPipeline) {
+        IrisApi.getInstance().assignPipeline(cloudPipeline, IrisProgram.CLOUDS);
     }
 }

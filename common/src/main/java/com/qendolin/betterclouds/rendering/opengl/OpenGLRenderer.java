@@ -228,7 +228,7 @@ public class OpenGLRenderer extends CloudRenderer {
         GlStateManager._viewport(0, 0, res.fboWidth(), res.fboHeight());
         GlStateManager._glBindFramebuffer(GL_DRAW_FRAMEBUFFER, res.oitFbo());
         glClearColor(0, 0, 0, 0);
-        glClearDepth(0);
+        clearDepth();
         setDepthFuncGEqual();
         drawCoverage(ticks + tickDelta, cam, frustumPos, frustum, fog);
 
@@ -274,6 +274,11 @@ public class OpenGLRenderer extends CloudRenderer {
 
     private boolean isFramebufferStale() {
         return res.fboWidth() != scaledFramebufferWidth() || res.fboHeight() != scaledFramebufferHeight();
+    }
+
+    private void clearDepth() {
+        // iris isn't using reverse z
+        glClearDepth(IrisCompat.instance().isShadersEnabled() ? 1 : 0);
     }
 
     private void setDepthFuncGEqual() {

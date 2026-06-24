@@ -3,8 +3,6 @@ package com.qendolin.betterclouds.generator;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
-import com.qendolin.betterclouds.rendering.CloudRenderCoordinator;
-import com.qendolin.betterclouds.rendering.GraphicsCompat;
 import com.qendolin.betterclouds.rendering.opengl.Debug;
 import com.qendolin.betterclouds.util.ChatUtil;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
@@ -156,8 +154,6 @@ public class ChunkedGenerator implements AutoCloseable {
 
             if (optionsChanged || cloudinessChanged) {
                 BetterCloudsStatic.getLogger().info((optionsChanged ? "Configuration" : "Cloudiness") + " changed, updating geometry");
-                if (optionsChanged)
-                    onConfigChange(options, prevTask.options);
                 queueCacheClear = true;
             }
             updateGeometry = chunkChanged || optionsChanged || cloudinessChanged;
@@ -182,14 +178,6 @@ public class ChunkedGenerator implements AutoCloseable {
         if (updateGeometry) {
             queuedTask = new Task(chunkX, chunkZ, new Config(options), distance, cloudiness, this);
         }
-    }
-
-    public void onConfigChange(Config options, Config prevOptions) {
-        if (GraphicsCompat.isOpenGL) return;
-        if (options.celestialBodyHalo == prevOptions.celestialBodyHalo && options.nearCloudFade == prevOptions.nearCloudFade)
-            return;
-        CloudRenderCoordinator.instance.reload(null);
-        BetterCloudsStatic.getLogger().info("Shader define options changed, reloading renderer");
     }
 
     public synchronized void generate() {

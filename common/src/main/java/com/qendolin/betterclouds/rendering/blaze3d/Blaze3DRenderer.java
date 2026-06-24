@@ -11,6 +11,8 @@ import com.mojang.blaze3d.textures.*;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.datafixers.util.Pair;
 import com.qendolin.betterclouds.BetterCloudsStatic;
+import com.qendolin.betterclouds.compat.DistantHorizonsCompat;
+import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.generator.ChunkedGenerator;
@@ -101,7 +103,6 @@ public class Blaze3DRenderer extends CloudRenderer {
     private final ChunkedGenerator generator = new ChunkedGenerator(getWorldSeed());
     // models
     private final ReadOnlyBuffer modelVertexBuffer = new ReadOnlyBuffer("cloudModelVertices");
-
     // don't forget to close your buffers!
     private final ReadOnlyBuffer modelIndexBuffer = new ReadOnlyBuffer("cloudModelIndices");
     // cloud position xyz, capacity can change, so must recreate every time cloud positions change
@@ -112,7 +113,7 @@ public class Blaze3DRenderer extends CloudRenderer {
     // samplers
     private final GpuSampler noiseSampler = gpu().createSampler(AddressMode.REPEAT, AddressMode.REPEAT, FilterMode.LINEAR, FilterMode.LINEAR, 1, OptionalDouble.empty());
     private final GpuSampler lightSampler = gpu().createSampler(AddressMode.CLAMP_TO_EDGE, AddressMode.REPEAT, FilterMode.LINEAR, FilterMode.LINEAR, 1, OptionalDouble.empty());
-    RenderPipeline CLOUD_RENDERER_PIPELINE;
+    RenderPipeline CLOUD_RENDERER_PIPELINE;     // not final because resource reload rebuilds the pipeline
 
     public Blaze3DRenderer(Minecraft client) {
         super(client);
@@ -145,6 +146,12 @@ public class Blaze3DRenderer extends CloudRenderer {
 
         float cloudiness = CloudinessProvider.getCloudiness(level, tickDelta);
         Config options = ConfigManager.instance();
+
+        if (PipelineParams.paramsChanged()) {
+            BetterCloudsStatic.getLogger().info("Pipeline parameters changed, reloading pipeline");
+            BetterCloudsStatic.getLogger().debug("Current: " + PipelineParams.prevParams);
+            reload(null);
+        }
 
         generator.update(cam, options.getCloudTicks(client, rendererTicks), rendererTicks, tickDelta, options, cloudiness);
         if (generator.canSwap()) {
@@ -299,6 +306,7 @@ public class Blaze3DRenderer extends CloudRenderer {
     }
 
     public void buildRenderPipeline() {
+        PipelineParams params = PipelineParams.getParameters();
         CLOUD_RENDERER_PIPELINE = RenderPipeline.builder()
                 .withLocation(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "blaze_3d_renderer"))
                 .withVertexShader(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "blaze3d/clouds"))
@@ -306,15 +314,19 @@ public class Blaze3DRenderer extends CloudRenderer {
                 .withVertexBinding(0, MODEL_FORMAT)
                 .withVertexBinding(1, POSITION_FORMAT)
                 .withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
-                .withShaderDefine("CELESTIAL_BODY_HALO", ConfigManager.instance().celestialBodyHalo ? 1 : 0)
-                .withShaderDefine("NEAR_CLOUD_FADE", ConfigManager.instance().nearCloudFade ? 1 : 0)
+                .withShaderDefine("CELESTIAL_BODY_HALO", params.celestialBodyHalo ? 1 : 0)
+                .withShaderDefine("NEAR_CLOUD_FADE", params.nearCloudFade ? 1 : 0)
                 .withShaderDefine("NEAR_FADE_DIST", 40)
+                .withShaderDefine("IRIS", params.iris ? 1 : 0)
+                .withShaderDefine("DISTANT_HORIZONS", params.distantHorizons ? 1 : 0)
                 .withBindGroupLayout(BindGroupLayouts.MATRICES_PROJECTION)
                 .withBindGroupLayout(SHADER_BIND_GROUP)
                 .withCull(false)
                 .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, false))
                 .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
                 .build();
+        
+        IrisCompat.instance().registerCloudPipeline(CLOUD_RENDERER_PIPELINE);
     }
 
     private void drawWithFrustumCulling(RenderPass pass, Frustum frustumAtOrigin) {
@@ -424,5 +436,23 @@ public class Blaze3DRenderer extends CloudRenderer {
                         b.putShort(s);
                 }
         );
+    }
+
+    public record PipelineParams(boolean celestialBodyHalo, boolean nearCloudFade, boolean iris,
+                                 boolean distantHorizons) {
+        private static PipelineParams prevParams;
+
+        public static PipelineParams getParameters() {
+            Config options = ConfigManager.instance();
+            return new PipelineParams(options.celestialBodyHalo, options.nearCloudFade,
+                    IrisCompat.instance().isShadersEnabled(), DistantHorizonsCompat.instance().isEnabled());
+        }
+
+        public static boolean paramsChanged() {
+            PipelineParams currentParams = PipelineParams.getParameters();
+            boolean changed = !currentParams.equals(prevParams);
+            prevParams = currentParams;
+            return changed;
+        }
     }
 }
