@@ -5,10 +5,9 @@ import com.qendolin.betterclouds.renderdoc.CaptureManager;
 import com.qendolin.betterclouds.rendering.CloudRenderCoordinator;
 import net.minecraft.client.GameLoadCookie;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.server.packs.resources.ResourceManager;
-import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -19,10 +18,6 @@ import static com.qendolin.betterclouds.compat.GLCompat.instance;
 public abstract class MinecraftMixin {
 
     @Shadow
-    @Final
-    public LevelRenderer levelRenderer;
-
-    @Shadow
     public abstract ResourceManager getResourceManager();
 
     @Inject(
@@ -31,11 +26,6 @@ public abstract class MinecraftMixin {
     )
     private void afterSwapBuffers(boolean advanceGameTime, CallbackInfo ci) {
         CaptureManager.onSwapBuffers();
-    }
-
-    @Inject(at = @At("TAIL"), method = "setLevel(Lnet/minecraft/client/multiplayer/ClientLevel;)V")
-    private void setBetterCloudsWorld(ClientLevel level, CallbackInfo ci) {
-        CloudRenderCoordinator.instance.setLevel(level);
     }
 
     @Inject(at = @At("TAIL"), method = "onResourceLoadFinished(Lnet/minecraft/client/GameLoadCookie;)V")

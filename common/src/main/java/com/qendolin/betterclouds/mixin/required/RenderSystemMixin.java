@@ -1,6 +1,7 @@
 package com.qendolin.betterclouds.mixin.required;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.qendolin.betterclouds.rendering.CloudRenderCoordinator;
 import com.qendolin.betterclouds.rendering.GraphicsCompat;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -12,5 +13,6 @@ public abstract class RenderSystemMixin {
     @Inject(method = "initRenderer", at = @At("TAIL"))
     private static void afterInitRenderer(CallbackInfo ci) {
         GraphicsCompat.initCompat();
+        CloudRenderCoordinator.instance.initialize();
     }
 }
