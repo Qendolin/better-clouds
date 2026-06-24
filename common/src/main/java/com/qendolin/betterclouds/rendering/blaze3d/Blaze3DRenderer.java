@@ -274,14 +274,17 @@ public class Blaze3DRenderer extends CloudRenderer {
                 OptionalDouble.empty()
         )) {
             pass.setPipeline(CLOUD_RENDERER_PIPELINE);
+
             RenderSystem.bindDefaultUniforms(pass);
             pass.setUniform("CloudVertexData", uCloudVertexData.gpuBuffer());
             pass.setUniform("CloudFragData", uCloudFragData.gpuBuffer());
             pass.setUniform("DynamicTransforms", dynamicTransform);
+
             var noiseTexture = client.getTextureManager().getTexture(Resources.NOISE_TEXTURE);
             pass.bindTexture("NoiseTexture", noiseTexture.getTextureView(), noiseSampler);
             var lightTexture = client.getTextureManager().getTexture(Resources.LIGHTING_TEXTURE);
             pass.bindTexture("LightTexture", lightTexture.getTextureView(), lightSampler);
+
             pass.setVertexBuffer(0, modelVertexBuffer.gpuBuffer().slice());
             pass.setVertexBuffer(1, worldCloudPosBuffer.gpuBuffer().slice());
             pass.setIndexBuffer(modelIndexBuffer.gpuBuffer(), IndexType.SHORT);
@@ -325,7 +328,7 @@ public class Blaze3DRenderer extends CloudRenderer {
                 .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, false))
                 .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
                 .build();
-        
+
         IrisCompat.instance().registerCloudPipeline(CLOUD_RENDERER_PIPELINE);
     }
 
