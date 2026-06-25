@@ -36,6 +36,7 @@ public class ShaderPresetGUI {
     public final Option<Integer> worldCurvatureSize; // option value is the index
     public final Option<Float> saturation;
     public final Option<Color> tint;
+    public final Option<Color> bottomTint;
     public final Option<Float> gamma;
     public final Option<Float> dayBrightness;
     public final Option<Float> nightBrightness;
@@ -106,6 +107,14 @@ public class ShaderPresetGUI {
                 })
                 .customController(ColorController::new)
                 .build();
+        this.bottomTint = createOption(Color.class, "bottomTint")
+                .binding(new Color(defaults.shaderPreset().bottomTintRed, defaults.shaderPreset().bottomTintGreen, defaults.shaderPreset().bottomTintBlue), () -> new Color(config.shaderPreset().bottomTintRed, config.shaderPreset().bottomTintGreen, config.shaderPreset().bottomTintBlue), val -> {
+                    config.shaderPreset().bottomTintRed = val.getRed() / 255f;
+                    config.shaderPreset().bottomTintGreen = val.getGreen() / 255f;
+                    config.shaderPreset().bottomTintBlue = val.getBlue() / 255f;
+                })
+                .customController(ColorController::new)
+                .build();
         this.gamma = createOption(float.class, "gamma")
                 .binding(defaults.shaderPreset().gamma, () -> config.shaderPreset().gamma, val -> config.shaderPreset().gamma = val)
                 .customController(opt -> new FloatSliderController(opt, -5, 5, 0.01f, ConfigGUI::formatAsTwoDecimals))
@@ -167,6 +176,7 @@ public class ShaderPresetGUI {
                 description,
                 saturation,
                 tint,
+                bottomTint,
                 gamma,
                 dayBrightness,
                 nightBrightness,
@@ -265,7 +275,8 @@ public class ShaderPresetGUI {
                 dayBrightness,
                 nightBrightness,
                 saturation,
-                tint
+                tint,
+                bottomTint
         ));
 
         shadersCategory.add(new Tuple<>(OptionGroup.createBuilder()
