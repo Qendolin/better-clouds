@@ -121,7 +121,10 @@ public class OpenGLRenderer extends CloudRenderer {
     }
 
     public @NonNull PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, int rendererTicks, float tickDelta, Vector3d cam) {
-        if (closed)
+        if (level == null)
+            setLevel(client.level);
+
+        if (closed || level == null)
             return PrepareResult.FALLBACK;
 
         assert RenderSystem.isOnRenderThread();
