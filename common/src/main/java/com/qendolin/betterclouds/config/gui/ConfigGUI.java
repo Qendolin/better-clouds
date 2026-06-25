@@ -297,7 +297,9 @@ public class ConfigGUI {
                 shaderPresetGUI.dayBrightness,
                 shaderPresetGUI.nightBrightness,
                 shaderPresetGUI.saturation,
-                shaderPresetGUI.tint
+                shaderPresetGUI.tint,
+                shaderPresetGUI.bottomTint,
+                shaderPresetGUI.bottomTransitionRange
         ));
 
         appearanceCategory.add(new Tuple<>(OptionGroup.createBuilder()
