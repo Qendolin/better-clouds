@@ -10,7 +10,7 @@ uniform sampler2D NoiseTexture;
 
 layout (std140) uniform CloudVertexData {
     float uSizeXZ, uSizeY;
-    float uTime;
+    float uTime, uTransitionRangePercent;
     float uOriginOffsetX, uOriginOffsetY, uOriginOffsetZ;
     float uCameraX, uCameraZ;
     float uBlockDistance, uCloudHeightRange, uScaleFalloffMin;
@@ -56,7 +56,7 @@ void main() {
     vec3 localWorldVertexPos = pos - originOffset;
     fogFade = calcFogFade(length(localWorldVertexPos.xyz), uFogStart, uFogEnd);
     lightSampleDir = localWorldVertexPos;
-    tintInterp = clamp((scale.y * LocalPosition.y + WorldPosition.y) / 2, 0, 1);
+    tintInterp = clamp((scale.y * LocalPosition.y + WorldPosition.y + uCloudHeightRange * 0.3f) / (uTransitionRangePercent * uCloudHeightRange), 0, 1);
 
     gl_Position = ProjMat * ModelViewMat * vec4(pos, 1);
 }

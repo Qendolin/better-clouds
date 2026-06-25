@@ -37,6 +37,7 @@ public class ShaderPresetGUI {
     public final Option<Float> saturation;
     public final Option<Color> tint;
     public final Option<Color> bottomTint;
+    public final Option<Float> bottomTransitionRange;
     public final Option<Float> gamma;
     public final Option<Float> dayBrightness;
     public final Option<Float> nightBrightness;
@@ -115,6 +116,10 @@ public class ShaderPresetGUI {
                 })
                 .customController(ColorController::new)
                 .build();
+        this.bottomTransitionRange = createOption(float.class, "bottomTransitionRange")
+                .binding(defaults.shaderPreset().bottomTransitionRange, () -> config.shaderPreset().bottomTransitionRange, val -> config.shaderPreset().bottomTransitionRange = val)
+                .customController(opt -> new FloatSliderController(opt, 0f, 1f, 0.01f, ConfigGUI::formatAsPercent))
+                .build();
         this.gamma = createOption(float.class, "gamma")
                 .binding(defaults.shaderPreset().gamma, () -> config.shaderPreset().gamma, val -> config.shaderPreset().gamma = val)
                 .customController(opt -> new FloatSliderController(opt, -5, 5, 0.01f, ConfigGUI::formatAsTwoDecimals))
@@ -177,6 +182,7 @@ public class ShaderPresetGUI {
                 saturation,
                 tint,
                 bottomTint,
+                bottomTransitionRange,
                 gamma,
                 dayBrightness,
                 nightBrightness,
@@ -276,7 +282,8 @@ public class ShaderPresetGUI {
                 nightBrightness,
                 saturation,
                 tint,
-                bottomTint
+                bottomTint,
+                bottomTransitionRange
         ));
 
         shadersCategory.add(new Tuple<>(OptionGroup.createBuilder()

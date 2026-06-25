@@ -140,7 +140,7 @@ public class ConfigGUI {
                 .build();
         this.bottomSparsity = createOption(float.class, "bottomSparsity")
                 .binding(defaults.bottomSparsity, () -> config.bottomSparsity, val -> config.bottomSparsity = val)
-                .customController(opt -> new FloatSliderController(opt, 0.1f, 1f, 0.01f))
+                .customController(opt -> new FloatSliderController(opt, 0f, 1f, 0.01f, ConfigGUI::formatAsPercent))
                 .build();
         this.samplingScale = createOption(float.class, "samplingScale")
                 .binding(defaults.samplingScale, () -> config.samplingScale, val -> config.samplingScale = val)

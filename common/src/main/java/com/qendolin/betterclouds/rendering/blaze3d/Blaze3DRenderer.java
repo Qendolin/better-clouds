@@ -108,7 +108,7 @@ public class Blaze3DRenderer extends CloudRenderer {
     // cloud position xyz, capacity can change, so must recreate every time cloud positions change
     private final ReadOnlyBuffer worldCloudPosBuffer = new ReadOnlyBuffer("cloudPositions");
     // uniforms
-    private final WritableBuffer uCloudVertexData = new WritableBuffer("uCloudVertexData", Float.BYTES * 15, GpuBuffer.USAGE_UNIFORM);
+    private final WritableBuffer uCloudVertexData = new WritableBuffer("uCloudVertexData", Float.BYTES * 16, GpuBuffer.USAGE_UNIFORM);
     private final WritableBuffer uCloudFragData = new WritableBuffer("uCloudFragData", Float.BYTES * 15, GpuBuffer.USAGE_UNIFORM);
     // samplers
     private final GpuSampler noiseSampler = gpu().createSampler(AddressMode.REPEAT, AddressMode.REPEAT, FilterMode.LINEAR, FilterMode.LINEAR, 1, OptionalDouble.empty());
@@ -222,7 +222,9 @@ public class Blaze3DRenderer extends CloudRenderer {
             // size and time
             b.putFloat(config.sizeXZ);
             b.putFloat(config.sizeY);
+
             b.putFloat(cloudTimeSeconds);
+            b.putFloat(sp.bottomTransitionRange);
 
             // cloud matrix origin position
             b.putFloat((float) -generator.renderOriginX(cam.x));
@@ -259,9 +261,11 @@ public class Blaze3DRenderer extends CloudRenderer {
             b.putFloat(sp.tintRed * effectTint.x);
             b.putFloat(sp.tintGreen * effectTint.y);
             b.putFloat(sp.tintBlue * effectTint.z);
+
             b.putFloat(sp.bottomTintRed * effectTint.x);
             b.putFloat(sp.bottomTintGreen * effectTint.y);
             b.putFloat(sp.bottomTintBlue * effectTint.z);
+
             b.putFloat(haloSize);
 
             b.putFloat(sunDir.x);
