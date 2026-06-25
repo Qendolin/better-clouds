@@ -212,7 +212,7 @@ public class Config {
     public long getCloudTicks(Minecraft client, int rendererTicks) {
         if (client.level == null) return rendererTicks;
         return switch (timeSource) {
-            case WORLD -> client.level.getOverworldClockTime();
+            case WORLD -> client.level.getDefaultClockTime();
             case PLAYTIME -> client.level.getGameTime();
             case RENDERER -> rendererTicks;
         };
