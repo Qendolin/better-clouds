@@ -197,9 +197,10 @@ public class Blaze3DRenderer extends CloudRenderer {
         var sp = config.shaderPreset();
         FogProvider.Fog fog = FogProvider.instance.getFog(client, config, tickDelta);
 
+        long dayTime = dayTime();
+
         float cloudTimeSeconds = (Math.floorMod(ticks, CLOUD_TIME_PERIOD_TICKS) + tickDelta) / 20.0f;
-        long skyTime = level.getDefaultClockTime() % 24000;
-        float dayNightFactor = MathUtil.interpolateDayNightFactor(skyTime, config.shaderPreset().sunriseStartTime, config.shaderPreset().sunriseEndTime, config.shaderPreset().sunsetStartTime, config.shaderPreset().sunsetEndTime);
+        float dayNightFactor = MathUtil.interpolateDayNightFactor(dayTime, config.shaderPreset().sunriseStartTime, config.shaderPreset().sunriseEndTime, config.shaderPreset().sunsetStartTime, config.shaderPreset().sunsetEndTime);
         float brightness = (1 - dayNightFactor) * config.shaderPreset().nightBrightness + dayNightFactor * config.shaderPreset().dayBrightness;
         Vector3f effectTint = EffectTintProvider.getEffectTint(client, fog, tickDelta, cam);
 
@@ -208,7 +209,6 @@ public class Blaze3DRenderer extends CloudRenderer {
         float sunAxisY = Mth.sin(sunPathAngleRad);
         float sunAxisZ = Mth.cos(sunPathAngleRad);
         Vector3f sunDir = new Vector3f(1, 0, 0).rotateAxis(skyAngleRad + Mth.HALF_PI, 0, sunAxisY, sunAxisZ);
-        float dayTime = level.getDefaultClockTime() % 24000;
         float mappedTime = MathUtil.mapTimeOfDay(dayTime, config.shaderPreset().sunriseStartTime, config.shaderPreset().sunriseEndTime, config.shaderPreset().sunsetStartTime, config.shaderPreset().sunsetEndTime);
 
         MoonPhase moonPhase = level.environmentAttributes().getValue(EnvironmentAttributes.MOON_PHASE, new Vec3(cam.x, cam.y, cam.z));

@@ -474,16 +474,15 @@ public class OpenGLRenderer extends CloudRenderer {
         RenderHelper.bindTexture(client.getTextureManager().getTexture(Resources.LIGHTING_TEXTURE));
 
         Vector3f effectTint = EffectTintProvider.getEffectTint(client, fog, tickDelta, cam);
-        long skyTime = level.getDefaultClockTime() % 24000;
         float skyAngleRad = EffectTintProvider.getSunAngleRadians(level, cam);
         float sunPathAngleRad = config.shaderPreset().sunPathAngle * Mth.DEG_TO_RAD;
-        float dayNightFactor = MathUtil.interpolateDayNightFactor(skyTime, config.shaderPreset().sunriseStartTime, config.shaderPreset().sunriseEndTime, config.shaderPreset().sunsetStartTime, config.shaderPreset().sunsetEndTime);
+        float dayNightFactor = MathUtil.interpolateDayNightFactor(dayTime(), config.shaderPreset().sunriseStartTime, config.shaderPreset().sunriseEndTime, config.shaderPreset().sunsetStartTime, config.shaderPreset().sunsetEndTime);
         float brightness = (1 - dayNightFactor) * config.shaderPreset().nightBrightness + dayNightFactor * config.shaderPreset().dayBrightness;
+
         float sunAxisY = Mth.sin(sunPathAngleRad);
         float sunAxisZ = Mth.cos(sunPathAngleRad);
         Vector3f sunDir = tempVector.set(1, 0, 0).rotateAxis(skyAngleRad + Mth.HALF_PI, 0, sunAxisY, sunAxisZ);
-        float dayTime = level.getDefaultClockTime() % 24000;
-        float mappedTime = MathUtil.mapTimeOfDay(dayTime, config.shaderPreset().sunriseStartTime, config.shaderPreset().sunriseEndTime, config.shaderPreset().sunsetStartTime, config.shaderPreset().sunsetEndTime);
+        float mappedTime = MathUtil.mapTimeOfDay(dayTime(), config.shaderPreset().sunriseStartTime, config.shaderPreset().sunriseEndTime, config.shaderPreset().sunsetStartTime, config.shaderPreset().sunsetEndTime);
 
         res.shadingShader().bind();
         res.shadingShader().uVPMatrix.setMat4(rotationProjectionMatrix);

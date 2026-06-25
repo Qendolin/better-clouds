@@ -31,6 +31,13 @@ public abstract class CloudRenderer implements AutoCloseable {
             this.timer = new PerfTimer();
     }
 
+    public long dayTime() {
+        long time = level.getDefaultClockTime();
+        if (level.dimensionType().hasFixedTime() && time == 0)
+            return 6000;        // noon
+        return time % 24000;
+    }
+
     public void reload(ResourceManager resourceManager) {
     }
 
