@@ -144,8 +144,4 @@ public class CloudRenderCoordinator {
 
         return BetterClouds.isEnabled();
     }
-
-    public void setLevel(ClientLevel level) {
-        renderer.setLevel(level);
-    }
 }
