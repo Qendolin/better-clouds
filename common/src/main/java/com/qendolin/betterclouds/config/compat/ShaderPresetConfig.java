@@ -48,7 +48,7 @@ public class ShaderPresetConfig extends AbstractPresetConfig {
     @SerialEntry
     public float bottomTintBlue = 0.75f;
     @SerialEntry
-    public float bottomTransitionRange = 0.75f;
+    public float bottomTransitionRange = 0.5f;
     @SerialEntry
     public int worldCurvatureSize = 0;
 
