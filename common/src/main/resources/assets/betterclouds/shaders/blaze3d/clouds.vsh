@@ -1,7 +1,7 @@
 #version 330 core
 
-#moj_import < minecraft:dynamictransforms.glsl >
-#moj_import < minecraft:projection.glsl >
+#moj_import <minecraft:dynamictransforms.glsl>
+#moj_import <minecraft:projection.glsl>
 
 in vec3 WorldPosition;
 in vec3 LocalPosition;
