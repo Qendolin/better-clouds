@@ -197,10 +197,8 @@ public class Blaze3DRenderer extends CloudRenderer {
         var sp = config.shaderPreset();
         FogProvider.Fog fog = FogProvider.instance.getFog(client, config, tickDelta);
 
-        long dayTime = dayTime();
-
         float cloudTimeSeconds = (Math.floorMod(ticks, CLOUD_TIME_PERIOD_TICKS) + tickDelta) / 20.0f;
-        float dayNightFactor = MathUtil.interpolateDayNightFactor(dayTime, config.shaderPreset().sunriseStartTime, config.shaderPreset().sunriseEndTime, config.shaderPreset().sunsetStartTime, config.shaderPreset().sunsetEndTime);
+        float dayNightFactor = MathUtil.interpolateDayNightFactor(dayTime(), config.shaderPreset().sunriseStartTime, config.shaderPreset().sunriseEndTime, config.shaderPreset().sunsetStartTime, config.shaderPreset().sunsetEndTime);
         float brightness = (1 - dayNightFactor) * config.shaderPreset().nightBrightness + dayNightFactor * config.shaderPreset().dayBrightness;
         Vector3f effectTint = EffectTintProvider.getEffectTint(client, fog, tickDelta, cam);
 
@@ -209,12 +207,12 @@ public class Blaze3DRenderer extends CloudRenderer {
         float sunAxisY = Mth.sin(sunPathAngleRad);
         float sunAxisZ = Mth.cos(sunPathAngleRad);
         Vector3f sunDir = new Vector3f(1, 0, 0).rotateAxis(skyAngleRad + Mth.HALF_PI, 0, sunAxisY, sunAxisZ);
-        float mappedTime = MathUtil.mapTimeOfDay(dayTime, config.shaderPreset().sunriseStartTime, config.shaderPreset().sunriseEndTime, config.shaderPreset().sunsetStartTime, config.shaderPreset().sunsetEndTime);
+        float mappedTime = MathUtil.mapTimeOfDay(dayTime(), config.shaderPreset().sunriseStartTime, config.shaderPreset().sunriseEndTime, config.shaderPreset().sunsetStartTime, config.shaderPreset().sunsetEndTime);
 
         MoonPhase moonPhase = level.environmentAttributes().getValue(EnvironmentAttributes.MOON_PHASE, new Vec3(cam.x, cam.y, cam.z));
 
         // larger value = smaller halo size
-        float haloSize = dayTime < config.shaderPreset().sunsetEndTime ?
+        float haloSize = dayTime() < config.shaderPreset().sunsetEndTime ?
                 2.05f - config.sunHaloSizeMultiplier :
                 (float) (5 * Math.pow(0.06217, config.moonHaloSizeMultiplier * DimensionType.MOON_BRIGHTNESS_PER_PHASE[moonPhase.index()]));    // curve fit for ideal moon halo size based on phase
 
