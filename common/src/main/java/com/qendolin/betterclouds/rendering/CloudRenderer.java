@@ -31,10 +31,6 @@ public abstract class CloudRenderer implements AutoCloseable {
             this.timer = new PerfTimer();
     }
 
-    public void setLevel(ClientLevel level) {
-        this.level = level;
-    }
-
     public void reload(ResourceManager resourceManager) {
     }
 
@@ -53,7 +49,10 @@ public abstract class CloudRenderer implements AutoCloseable {
     }
 
     public long getWorldSeed() {
-        if (level == null) return 0;
+        if (level == null) {
+            BetterCloudsStatic.getLogger().warn("No level when getWorldSeed was called?");
+            return 0;
+        }
         return ((BiomeManagerDuck) level.getBiomeManager()).better_clouds$biomeSeed();
     }
 
@@ -102,5 +101,9 @@ public abstract class CloudRenderer implements AutoCloseable {
 
     public void updateCloudHeight(Vector3d cam) {
         cloudHeight = level.environmentAttributes().getValue(EnvironmentAttributes.CLOUD_HEIGHT, new Vec3(cam.x, cam.y, cam.z)) + ConfigManager.instance().yOffset;
+    }
+
+    public void setLevel(ClientLevel level) {
+        this.level = level;
     }
 }

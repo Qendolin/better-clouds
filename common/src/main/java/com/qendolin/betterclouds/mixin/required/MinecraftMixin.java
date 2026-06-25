@@ -5,6 +5,7 @@ import com.qendolin.betterclouds.renderdoc.CaptureManager;
 import com.qendolin.betterclouds.rendering.CloudRenderCoordinator;
 import net.minecraft.client.GameLoadCookie;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.server.packs.resources.ResourceManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -26,6 +27,11 @@ public abstract class MinecraftMixin {
     )
     private void afterSwapBuffers(boolean advanceGameTime, CallbackInfo ci) {
         CaptureManager.onSwapBuffers();
+    }
+
+    @Inject(at = @At("TAIL"), method = "setLevel(Lnet/minecraft/client/multiplayer/ClientLevel;)V")
+    private void setBetterCloudsWorld(ClientLevel level, CallbackInfo ci) {
+        CloudRenderCoordinator.instance.setLevel(level);
     }
 
     @Inject(at = @At("TAIL"), method = "onResourceLoadFinished(Lnet/minecraft/client/GameLoadCookie;)V")

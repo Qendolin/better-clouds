@@ -22,6 +22,7 @@ import com.qendolin.betterclouds.rendering.opengl.Debug;
 import com.qendolin.betterclouds.rendering.opengl.Resources;
 import com.qendolin.betterclouds.util.MathUtil;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.BindGroupLayouts;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.gizmos.GizmoStyle;
@@ -100,7 +101,6 @@ public class Blaze3DRenderer extends CloudRenderer {
             .withUniform("CloudVertexData", UniformType.UNIFORM_BUFFER)
             .withUniform("CloudFragData", UniformType.UNIFORM_BUFFER)
             .build();
-    private final ChunkedGenerator generator = new ChunkedGenerator(getWorldSeed());
     // models
     private final ReadOnlyBuffer modelVertexBuffer = new ReadOnlyBuffer("cloudModelVertices");
     // don't forget to close your buffers!
@@ -113,12 +113,14 @@ public class Blaze3DRenderer extends CloudRenderer {
     // samplers
     private final GpuSampler noiseSampler = gpu().createSampler(AddressMode.REPEAT, AddressMode.REPEAT, FilterMode.LINEAR, FilterMode.LINEAR, 1, OptionalDouble.empty());
     private final GpuSampler lightSampler = gpu().createSampler(AddressMode.CLAMP_TO_EDGE, AddressMode.REPEAT, FilterMode.LINEAR, FilterMode.LINEAR, 1, OptionalDouble.empty());
-    RenderPipeline CLOUD_RENDERER_PIPELINE;     // not final because resource reload rebuilds the pipeline
+
+    // things affected by resource reload
+    RenderPipeline CLOUD_RENDERER_PIPELINE;
+    private ChunkedGenerator generator;
 
     public Blaze3DRenderer(Minecraft client) {
         super(client);
-        buildRenderPipeline();
-        reloadModelBuffers();
+        createModelBuffers();
     }
 
     private static GpuDevice gpu() {
@@ -126,14 +128,24 @@ public class Blaze3DRenderer extends CloudRenderer {
     }
 
     @Override
-    public @NonNull PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, int rendererTicks, float tickDelta, Vector3d cam) {
-        if (closed)
-            return PrepareResult.FALLBACK;
+    public void setLevel(ClientLevel level) {
+        super.setLevel(level);
+        reload(null);
+    }
 
-        if (level == null)
-            level = client.level;
-        if (level == null)
-            return PrepareResult.NO_RENDER;
+    public void reload(ResourceManager manager) {
+        buildRenderPipeline();
+        reloadGenerator();
+    }
+
+    private void reloadGenerator() {
+        generator = new ChunkedGenerator(getWorldSeed());
+    }
+
+    @Override
+    public @NonNull PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, int rendererTicks, float tickDelta, Vector3d cam) {
+        if (closed || level == null)
+            return PrepareResult.FALLBACK;
 
         getProfiler().popPush("render_setup");
 
@@ -304,10 +316,6 @@ public class Blaze3DRenderer extends CloudRenderer {
         return ConfigManager.instance();
     }
 
-    public void reload(ResourceManager manager) {
-        buildRenderPipeline();
-    }
-
     public void buildRenderPipeline() {
         PipelineParams params = PipelineParams.getParameters();
         CLOUD_RENDERER_PIPELINE = RenderPipeline.builder()
@@ -421,7 +429,7 @@ public class Blaze3DRenderer extends CloudRenderer {
         lightSampler.close();
     }
 
-    public void reloadModelBuffers() {
+    public void createModelBuffers() {
         modelVertexBuffer.recreate(
                 CUBE_VERTICES.length * Float.BYTES,
                 GpuBuffer.USAGE_VERTEX,
