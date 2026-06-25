@@ -109,7 +109,7 @@ public class Blaze3DRenderer extends CloudRenderer {
     private final ReadOnlyBuffer worldCloudPosBuffer = new ReadOnlyBuffer("cloudPositions");
     // uniforms
     private final WritableBuffer uCloudVertexData = new WritableBuffer("uCloudVertexData", Float.BYTES * 15, GpuBuffer.USAGE_UNIFORM);
-    private final WritableBuffer uCloudFragData = new WritableBuffer("uCloudFragData", Float.BYTES * 12, GpuBuffer.USAGE_UNIFORM);
+    private final WritableBuffer uCloudFragData = new WritableBuffer("uCloudFragData", Float.BYTES * 15, GpuBuffer.USAGE_UNIFORM);
     // samplers
     private final GpuSampler noiseSampler = gpu().createSampler(AddressMode.REPEAT, AddressMode.REPEAT, FilterMode.LINEAR, FilterMode.LINEAR, 1, OptionalDouble.empty());
     private final GpuSampler lightSampler = gpu().createSampler(AddressMode.CLAMP_TO_EDGE, AddressMode.REPEAT, FilterMode.LINEAR, FilterMode.LINEAR, 1, OptionalDouble.empty());
@@ -129,6 +129,7 @@ public class Blaze3DRenderer extends CloudRenderer {
 
     @Override
     public void setLevel(ClientLevel level) {
+        if (level == null) return;
         super.setLevel(level);
         reload(null);
     }
@@ -144,6 +145,8 @@ public class Blaze3DRenderer extends CloudRenderer {
 
     @Override
     public @NonNull PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, int rendererTicks, float tickDelta, Vector3d cam) {
+        if (level == null)
+            setLevel(client.level);
         if (closed || level == null)
             return PrepareResult.FALLBACK;
 
@@ -256,6 +259,9 @@ public class Blaze3DRenderer extends CloudRenderer {
             b.putFloat(sp.tintRed * effectTint.x);
             b.putFloat(sp.tintGreen * effectTint.y);
             b.putFloat(sp.tintBlue * effectTint.z);
+            b.putFloat(sp.bottomTintRed * effectTint.x);
+            b.putFloat(sp.bottomTintGreen * effectTint.y);
+            b.putFloat(sp.bottomTintBlue * effectTint.z);
             b.putFloat(haloSize);
 
             b.putFloat(sunDir.x);

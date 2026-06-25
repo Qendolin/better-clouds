@@ -1,7 +1,7 @@
 #version 330 core
 
-#moj_import <minecraft:dynamictransforms.glsl>
-#moj_import <minecraft:projection.glsl>
+#moj_import < minecraft:dynamictransforms.glsl >
+#moj_import < minecraft:projection.glsl >
 
 in vec3 WorldPosition;
 in vec3 LocalPosition;
@@ -19,6 +19,7 @@ layout (std140) uniform CloudVertexData {
 };
 
 out float fogFade;
+out float tintInterp;
 out vec3 lightSampleDir;
 
 float calcFogFade(float distance, float fogStart, float fogEnd) {
@@ -55,6 +56,7 @@ void main() {
     vec3 localWorldVertexPos = pos - originOffset;
     fogFade = calcFogFade(length(localWorldVertexPos.xyz), uFogStart, uFogEnd);
     lightSampleDir = localWorldVertexPos;
+    tintInterp = clamp((scale.y * LocalPosition.y + WorldPosition.y) / 2, 0, 1);
 
     gl_Position = ProjMat * ModelViewMat * vec4(pos, 1);
 }

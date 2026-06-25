@@ -3,6 +3,7 @@
 
 out vec4 fragColor;
 in float fogFade;
+in float tintInterp;
 in vec3 lightSampleDir;
 
 uniform sampler2D LightTexture;
@@ -10,8 +11,8 @@ uniform sampler2D LightTexture;
 layout (std140) uniform CloudFragData {
 // note to self: don't mix floats and vecs, otherwise padding issues may occur
     float opacity, opacityFactor, opacityExponent, brightness;
-    float tintRed, tintGreen, tintBlue, haloSize;
-    float sunX, sunY, sunZ, mappedTime;
+    float tintRed, tintGreen, tintBlue, bottomTintRed, bottomTintGreen, bottomTintBlue;
+    float haloSize, sunX, sunY, sunZ, mappedTime;
 };
 
 void main() {
@@ -47,7 +48,8 @@ void main() {
     lightUv.x -= (lightUv.x - 0.5) / textureSize(LightTexture, 0).x;
 
     vec3 lightColor = max(texture(LightTexture, lightUv).rgb, vec3(0.15));
-    vec3 color = lightColor * vec3(tintRed, tintGreen, tintBlue) * brightness;
+    vec3 rawColor = tintInterp * vec3(tintRed, tintGreen, tintBlue) + (1 - tintInterp) * vec3(bottomTintRed, bottomTintGreen, bottomTintBlue);
+    vec3 color = lightColor * rawColor * brightness;
     float alpha = opacityFactor * opacity * pow(fogFade, opacityExponent);
     fragColor = vec4(color, alpha);
 }
