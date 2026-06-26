@@ -94,7 +94,7 @@ public class CloudRenderCoordinator {
             tickDelta = 0;
         }
 
-        PrepareResult prepareResult = renderer.prepare(capturedViewMat, capturedProjMat, ticks, tickDelta, cam);
+        PrepareResult prepareResult = renderer.checkAndPrepare(capturedViewMat, capturedProjMat, ticks, tickDelta, cam);
         if (RenderDoc.isFrameCapturing())
             GraphicsCompat.instance.debugMessage("renderer prepare returned " + prepareResult.name());
 
@@ -112,7 +112,7 @@ public class CloudRenderCoordinator {
                 getProfiler().push("clouds");
                 GraphicsCompat.instance.pushDebugGroupDev("Better Clouds");
                 try {
-                    renderer.render(fticks, ftickDelta, cam, cam, frustum);
+                    renderer.checkAndRender(fticks, ftickDelta, cam, cam, frustum);
                 } catch (Exception e) {
                     BetterCloudsStatic.getLogger().error("Failed to render clouds", e);
                     renderer.close();

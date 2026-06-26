@@ -121,12 +121,6 @@ public class OpenGLRenderer extends CloudRenderer {
     }
 
     public @NonNull PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, int rendererTicks, float tickDelta, Vector3d cam) {
-        if (level == null)
-            setLevel(client.level);
-
-        if (closed || level == null)
-            return PrepareResult.FALLBACK;
-
         assert RenderSystem.isOnRenderThread();
         getProfiler().popPush("render_setup");
         Config config = ConfigManager.instance();
@@ -145,8 +139,6 @@ public class OpenGLRenderer extends CloudRenderer {
         if (ArsNouveauCompat.isSkyTextureCloudsRendering()) {
             return PrepareResult.NO_RENDER;
         }
-
-        updateCloudHeight(cam);
 
         boolean reallocatedBuffer = reallocateBufferIfStale(config, useCubeClouds());
         buffer.bind();
@@ -212,7 +204,6 @@ public class OpenGLRenderer extends CloudRenderer {
         if (res.failedToLoadCritical()) return;
 
         getProfiler().popPush("render_setup");
-        startTiming();
 
         // Unbind vanilla shader, this is for compatability (with iris)
         RenderHelper.saveShader();
@@ -268,11 +259,6 @@ public class OpenGLRenderer extends CloudRenderer {
         }
 
         stopTiming();
-    }
-
-    @Override
-    public ChunkedGenerator generator() {
-        return res.generator();
     }
 
     private boolean isFramebufferStale() {
@@ -373,7 +359,6 @@ public class OpenGLRenderer extends CloudRenderer {
             GlStateManager._enableCull();
             return;
         }
-
 
         boolean frustumCulling = config.useFrustumCulling;
         if (IrisCompat.instance().isFrustumCullingDisabled() || config.shaderPreset().worldCurvatureSize != 0) {

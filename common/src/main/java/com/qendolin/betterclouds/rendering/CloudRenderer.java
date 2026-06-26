@@ -12,6 +12,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.attribute.EnvironmentAttributes;
+import net.minecraft.world.level.material.FogType;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 import org.joml.Vector3d;
@@ -19,10 +20,10 @@ import org.jspecify.annotations.NonNull;
 
 public abstract class CloudRenderer implements AutoCloseable {
     protected final Minecraft client;
+    protected ChunkedGenerator generator;
     protected ClientLevel level;
     protected PerfTimer timer;
     protected float cloudHeight;
-
     protected boolean closed = false;
 
     public CloudRenderer(Minecraft client) {
@@ -41,12 +42,32 @@ public abstract class CloudRenderer implements AutoCloseable {
     public void reload(ResourceManager resourceManager) {
     }
 
-    @NonNull
-    public abstract PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, int rendererTicks, float tickDelta, Vector3d cam);
+    public @NonNull PrepareResult checkAndPrepare(Matrix4f viewMat, Matrix4f projMat, int rendererTicks, float tickDelta, Vector3d cam) {
+        if (!level.equals(client.level))
+            setLevel(level);
+        if (closed || level == null)
+            return PrepareResult.FALLBACK;
+        // Rendering clouds when underwater was making them very visible in unloaded chunks
+        if (client.gameRenderer.mainCamera().getFluidInCamera() != FogType.NONE)
+            return PrepareResult.NO_RENDER;
 
-    public abstract void render(int ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum);
+        cloudHeight = level.environmentAttributes().getValue(EnvironmentAttributes.CLOUD_HEIGHT, new Vec3(cam.x, cam.y, cam.z)) + ConfigManager.instance().yOffset;
+        return prepare(viewMat, projMat, rendererTicks, tickDelta, cam);
+    }
 
-    public abstract ChunkedGenerator generator();
+    public void checkAndRender(int ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
+        if (level == null)
+            return;
+
+        startTiming();
+        render(ticks, tickDelta, cam, frustumPos, frustum);
+        stopTiming();
+    }
+
+    protected @NonNull
+    abstract PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, int rendererTicks, float tickDelta, Vector3d cam);
+
+    protected abstract void render(int ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum);
 
     @Override
     public void close() {
@@ -106,10 +127,6 @@ public abstract class CloudRenderer implements AutoCloseable {
     public void deleteTimer() {
         if (timer != null) timer.close();
         timer = null;
-    }
-
-    public void updateCloudHeight(Vector3d cam) {
-        cloudHeight = level.environmentAttributes().getValue(EnvironmentAttributes.CLOUD_HEIGHT, new Vec3(cam.x, cam.y, cam.z)) + ConfigManager.instance().yOffset;
     }
 
     public void setLevel(ClientLevel level) {

@@ -33,7 +33,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.world.level.MoonPhase;
 import net.minecraft.world.level.dimension.DimensionType;
-import net.minecraft.world.level.material.FogType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.*;
@@ -116,7 +115,6 @@ public class Blaze3DRenderer extends CloudRenderer {
 
     // things affected by resource reload
     RenderPipeline CLOUD_RENDERER_PIPELINE;
-    private ChunkedGenerator generator;
 
     public Blaze3DRenderer(Minecraft client) {
         super(client);
@@ -131,12 +129,11 @@ public class Blaze3DRenderer extends CloudRenderer {
     public void setLevel(ClientLevel level) {
         if (level == null) return;
         super.setLevel(level);
-        reload(null);
+        reloadGenerator();
     }
 
     public void reload(ResourceManager manager) {
         buildRenderPipeline();
-        reloadGenerator();
     }
 
     private void reloadGenerator() {
@@ -145,28 +142,16 @@ public class Blaze3DRenderer extends CloudRenderer {
 
     @Override
     public @NonNull PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, int rendererTicks, float tickDelta, Vector3d cam) {
-        if (level == null)
-            setLevel(client.level);
-        if (closed || level == null)
-            return PrepareResult.FALLBACK;
-
         getProfiler().popPush("render_setup");
-
-        // Rendering clouds when underwater was making them very visible in unloaded chunks
-        if (client.gameRenderer.mainCamera().getFluidInCamera() != FogType.NONE) {
-            return PrepareResult.NO_RENDER;
-        }
-
-        updateCloudHeight(cam);
-
-        float cloudiness = CloudinessProvider.getCloudiness(level, tickDelta);
-        Config options = ConfigManager.instance();
 
         if (PipelineParams.paramsChanged()) {
             BetterCloudsStatic.getLogger().info("Pipeline parameters changed, reloading pipeline");
             BetterCloudsStatic.getLogger().debug("Current: " + PipelineParams.prevParams);
             reload(null);
         }
+
+        float cloudiness = CloudinessProvider.getCloudiness(level, tickDelta);
+        Config options = ConfigManager.instance();
 
         generator.update(cam, options.getCloudTicks(client, rendererTicks), rendererTicks, tickDelta, options, cloudiness);
         if (generator.canSwap()) {
@@ -181,10 +166,7 @@ public class Blaze3DRenderer extends CloudRenderer {
             getProfiler().popPush("render_setup");
         }
 
-        if (worldCloudPosBuffer.size() == 0) {
-            return PrepareResult.NO_RENDER;
-        }
-
+        if (worldCloudPosBuffer.size() <= 0) return PrepareResult.NO_RENDER;
         return PrepareResult.RENDER;
     }
 
@@ -387,11 +369,6 @@ public class Blaze3DRenderer extends CloudRenderer {
                 }
             }
         }
-    }
-
-    @Override
-    public ChunkedGenerator generator() {
-        return generator;
     }
 
     public void updateCloudPositionsBuffer() {
