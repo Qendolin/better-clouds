@@ -20,7 +20,7 @@ public class GlDebugMixin {
             int severity,
             int length,
             long message,
-            long l,
+            long userParam,
             CallbackInfo ci) {
 
         new Exception("Debug Message Stacktrace").printStackTrace();

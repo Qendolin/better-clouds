@@ -8,7 +8,7 @@ import net.minecraft.client.*;
 import org.spongepowered.asm.mixin.*;
 
 // Run before Iris (priority 1010)
-@Mixin(value = Options.class, priority = 1000)
+@Mixin(value = Options.class, priority = 1010)
 public abstract class CloudSettingMixin {
     @Shadow
     @Final

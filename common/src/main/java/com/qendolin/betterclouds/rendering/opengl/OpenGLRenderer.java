@@ -18,7 +18,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.Mth;
-import net.minecraft.world.level.material.FogType;
 import net.minecraft.world.phys.AABB;
 import org.joml.*;
 import org.jspecify.annotations.NonNull;
@@ -128,16 +127,6 @@ public class OpenGLRenderer extends CloudRenderer {
         if (res.failedToLoadCritical()) {
             if (RenderDoc.isFrameCapturing()) glCompat.debugMessage("prepare failed: critical resource not loaded");
             return PrepareResult.FALLBACK;
-        }
-
-        // Rendering clouds when underwater was making them very visible in unloaded chunks
-        if (client.gameRenderer.mainCamera().getFluidInCamera() != FogType.NONE) {
-            return PrepareResult.NO_RENDER;
-        }
-
-        // This doesn't make the Skyweave block work, but it prevents larger issues
-        if (ArsNouveauCompat.isSkyTextureCloudsRendering()) {
-            return PrepareResult.NO_RENDER;
         }
 
         boolean reallocatedBuffer = reallocateBufferIfStale(config, useCubeClouds());

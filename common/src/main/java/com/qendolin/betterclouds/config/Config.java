@@ -33,6 +33,14 @@ public class Config {
     }
 
     @SerialEntry
+    public final List<ShaderPresetConfig> presets = new ArrayList<>();
+    @SerialEntry
+    public final List<NoisePresetConfig> noisePresets = new ArrayList<>();
+    @SerialEntry
+    public final SereneSeasonsConfig sereneSeasonsConfig = new SereneSeasonsConfig();
+    @SerialEntry
+    public final FabricSeasonsConfig fabricSeasonsConfig = new FabricSeasonsConfig();
+    @SerialEntry
     public int migrationVersion = 0;
     @SerialEntry
     public boolean enabled = true;
@@ -62,7 +70,6 @@ public class Config {
     public float windSpeedFactor = 0.8f;
     @SerialEntry
     public float colorVariationFactor = 0.8f;
-
     @SerialEntry
     public boolean celestialBodyHalo = true;
     @SerialEntry
@@ -71,7 +78,6 @@ public class Config {
     public float moonHaloSizeMultiplier = 1f;
     @SerialEntry
     public boolean nearCloudFade = false;
-
     @SerialEntry
     public int chunkSize = 32;
     @SerialEntry
@@ -98,25 +104,14 @@ public class Config {
     public boolean useIrisFBO = true;
     @SerialEntry
     public Renderer renderer = Renderer.OPENGL;
-
     @SerialEntry
     public int selectedPreset = 0;
     @SerialEntry
-    public List<ShaderPresetConfig> presets = new ArrayList<>();
-
-    @SerialEntry
     public int selectedNoisePreset = 0;
-    @SerialEntry
-    public List<NoisePresetConfig> noisePresets = new ArrayList<>();
-
     @SerialEntry
     public boolean gpuIncompatibleMessageEnabled = true;
     @SerialEntry
     public List<ResourceKey<DimensionType>> enabledDimensions = new ArrayList<>(getDefaultDimensions());
-    @SerialEntry
-    public SereneSeasonsConfig sereneSeasonsConfig = new SereneSeasonsConfig();
-    @SerialEntry
-    public FabricSeasonsConfig fabricSeasonsConfig = new FabricSeasonsConfig();
 
     @SuppressWarnings("unused")
     public Config() {

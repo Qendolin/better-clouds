@@ -147,12 +147,11 @@ public class Debug {
         private final int vaoId;
         private int vboSize = 0;
 
-        private GLCompat glCompat = (GLCompat) instance;
-
         public BuiltBufferRenderer() {
             int prevVao = GL32.glGetInteger(GL32.GL_VERTEX_ARRAY_BINDING);
             vaoId = GL32.glGenVertexArrays();
             GL32.glBindVertexArray(vaoId);
+            GLCompat glCompat = (GLCompat) instance;
             glCompat.objectLabelDev(glCompat.GL_VERTEX_ARRAY, vaoId, "debug_vao");
             GL32.glEnableVertexAttribArray(0);
             GL32.glEnableVertexAttribArray(1);

@@ -70,8 +70,4 @@ public class NoisePresetConfig extends AbstractPresetConfig {
         return false;
     }
 
-    @Override
-    public AbstractPresetConfig getEmptyPreset() {
-        return EMPTY_PRESET;
-    }
 }

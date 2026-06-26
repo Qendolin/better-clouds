@@ -73,8 +73,4 @@ public class ShaderPresetConfig extends AbstractPresetConfig {
         }
     }
 
-    @Override
-    public AbstractPresetConfig getEmptyPreset() {
-        return EMPTY_PRESET;
-    }
 }

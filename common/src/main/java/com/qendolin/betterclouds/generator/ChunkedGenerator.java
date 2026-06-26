@@ -176,7 +176,7 @@ public class ChunkedGenerator implements AutoCloseable {
         }
 
         if (updateGeometry) {
-            queuedTask = new Task(chunkX, chunkZ, new Config(options), distance, cloudiness, this);
+            queuedTask = new Task(chunkX, chunkZ, new Config(options), cloudiness, this);
         }
     }
 
@@ -264,7 +264,6 @@ public class ChunkedGenerator implements AutoCloseable {
         private final int chunkX;
         private final int chunkZ;
         private final Config options;
-        private final float distance;
         private final float cloudiness;
         private final ChunkedGenerator generator;
         private final AtomicBoolean ran = new AtomicBoolean();
@@ -275,12 +274,11 @@ public class ChunkedGenerator implements AutoCloseable {
 
         private long startTime;
 
-        public Task(int chunkX, int chunkZ, Config options, float distance, float cloudiness, ChunkedGenerator generator) {
+        public Task(int chunkX, int chunkZ, Config options, float cloudiness, ChunkedGenerator generator) {
             this.id = nextId.getAndIncrement();
             this.chunkX = chunkX;
             this.chunkZ = chunkZ;
             this.options = options;
-            this.distance = distance;
             this.cloudiness = cloudiness;
             this.generator = generator;
         }
@@ -307,10 +305,6 @@ public class ChunkedGenerator implements AutoCloseable {
 
         public boolean completed() {
             return completed.get();
-        }
-
-        public int cloudCount() {
-            return cloudCount;
         }
 
         public int chunkX() {

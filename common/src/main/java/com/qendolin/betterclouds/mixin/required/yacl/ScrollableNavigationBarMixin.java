@@ -13,15 +13,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class ScrollableNavigationBarMixin {
 
     @Inject(method = "extractWidgetRenderState", at = @At("HEAD"))
-    private void betterclouds$drawTranslucentBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+    private void betterclouds$drawTranslucentBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, CallbackInfo ci) {
         Minecraft client = Minecraft.getInstance();
         if (!CustomScrollableNavigationBar.betterclouds$useTranslucentTheme(client)) {
             return;
         }
 
         if ((Object) this instanceof CustomScrollableNavigationBar custom) {
-            context.fill(0, 0, custom.width, 23, 0x6b000000);
-            context.fill(0, 23, custom.width, 24, 0xff000000);
+            graphics.fill(0, 0, custom.width, 23, 0x6b000000);
+            graphics.fill(0, 23, custom.width, 24, 0xff000000);
         }
     }
 }

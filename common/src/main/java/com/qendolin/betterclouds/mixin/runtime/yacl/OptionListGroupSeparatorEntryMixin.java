@@ -55,24 +55,24 @@ public abstract class OptionListGroupSeparatorEntryMixin extends ContainerObject
     }
 
     @Inject(method = "extractContent", at = @At("HEAD"), remap = false)
-    private void onBeforeRender(GuiGraphicsExtractor context, int mouseX, int mouseY, boolean hovered, float tickDelta, CallbackInfo ci) {
+    private void onBeforeRender(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float a, CallbackInfo ci) {
         if (better_clouds$beforeRender != null) {
             int x = ((OptionListWidget.Entry) (Object) this).getX();
             int y = ((OptionListWidget.Entry) (Object) this).getY();
             int w = ((OptionListWidget.Entry) (Object) this).getWidth();
             int h = ((OptionListWidget.Entry) (Object) this).getHeight();
-            better_clouds$beforeRender.onBeforeRender(this, context, x, y, w, h, mouseX, mouseY, hovered, tickDelta);
+            better_clouds$beforeRender.onBeforeRender(this, graphics, x, y, w, h, mouseX, mouseY, hovered, a);
         }
     }
 
     @Inject(method = "extractContent", at = @At("RETURN"), remap = false)
-    private void onAfterRender(GuiGraphicsExtractor context, int mouseX, int mouseY, boolean hovered, float tickDelta, CallbackInfo ci) {
+    private void onAfterRender(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float a, CallbackInfo ci) {
         if (better_clouds$afterRender != null) {
             int x = ((OptionListWidget.Entry) (Object) this).getX();
             int y = ((OptionListWidget.Entry) (Object) this).getY();
             int w = ((OptionListWidget.Entry) (Object) this).getWidth();
             int h = ((OptionListWidget.Entry) (Object) this).getHeight();
-            better_clouds$afterRender.onAfterRender(this, context, x, y, w, h, mouseX, mouseY, hovered, tickDelta);
+            better_clouds$afterRender.onAfterRender(this, graphics, x, y, w, h, mouseX, mouseY, hovered, a);
         }
     }
 

@@ -37,24 +37,24 @@ public abstract class OptionListOptionEntryMixin extends ContainerObjectSelectio
     }
 
     @Inject(method = "extractContent", at = @At("HEAD"), remap = false)
-    private void onBeforeRender(GuiGraphicsExtractor context, int mouseX, int mouseY, boolean hovered, float tickDelta, CallbackInfo ci) {
+    private void onBeforeRender(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float a, CallbackInfo ci) {
         if (better_clouds$beforeRender != null) {
             int x = widget.getDimension().x();
             int y = widget.getDimension().y();
             int w = widget.getDimension().width();
             int h = widget.getDimension().height();
-            better_clouds$beforeRender.onBeforeRender(this, context, x, y, w, h, mouseX, mouseY, hovered, tickDelta);
+            better_clouds$beforeRender.onBeforeRender(this, graphics, x, y, w, h, mouseX, mouseY, hovered, a);
         }
     }
 
     @Inject(method = "extractContent", at = @At("RETURN"), remap = false)
-    private void onAfterRender(GuiGraphicsExtractor context, int mouseX, int mouseY, boolean hovered, float tickDelta, CallbackInfo ci) {
+    private void onAfterRender(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float a, CallbackInfo ci) {
         if (better_clouds$afterRender != null) {
             int x = widget.getDimension().x();
             int y = widget.getDimension().y();
             int w = widget.getDimension().width();
             int h = widget.getDimension().height();
-            better_clouds$afterRender.onAfterRender(this, context, x, y, w, h, mouseX, mouseY, hovered, tickDelta);
+            better_clouds$afterRender.onAfterRender(this, graphics, x, y, w, h, mouseX, mouseY, hovered, a);
         }
     }
 

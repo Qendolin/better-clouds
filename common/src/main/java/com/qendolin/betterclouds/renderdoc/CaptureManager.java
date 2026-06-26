@@ -21,9 +21,7 @@ public class CaptureManager {
         int captureIndex = RenderDoc.getNumCaptures();
         RenderDoc.triggerCapture();
         synchronized (callbacks) {
-            callbacks.add(Map.entry(frameIndex.get() + 2, () -> {
-                callback.accept(RenderDoc.getCapture(captureIndex));
-            }));
+            callbacks.add(Map.entry(frameIndex.get() + 2, () -> callback.accept(RenderDoc.getCapture(captureIndex))));
         }
     }
 

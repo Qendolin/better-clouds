@@ -25,7 +25,7 @@ public abstract class AbstractWidgetMixin {
     }
 
     @Inject(method = "drawButtonRect", at = @At("HEAD"), cancellable = true)
-    private void onDrawButtonRect(GuiGraphicsExtractor context, int x1, int y1, int x2, int y2, boolean hovered, boolean enabled, CallbackInfo ci) {
+    private void onDrawButtonRect(GuiGraphicsExtractor graphics, int x1, int y1, int x2, int y2, boolean hovered, boolean enabled, CallbackInfo ci) {
         if (!betterclouds$useTranslucentTheme()) {
             return;
         }
@@ -45,8 +45,8 @@ public abstract class AbstractWidgetMixin {
         int color = enabled ? 0xffa09fa0 : 0xffa0a0a0;
         if (hovered) color = -1;
 
-        context.fill(x1, y1, x2, y2, 0x60000000);
-        betterclouds$drawOutline(context, x1, y1, x2, y2, 1, color);
+        graphics.fill(x1, y1, x2, y2, 0x60000000);
+        betterclouds$drawOutline(graphics, x1, y1, x2, y2, 1, color);
     }
 
     @Unique
