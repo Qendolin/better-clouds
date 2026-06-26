@@ -1,6 +1,7 @@
 package com.qendolin.betterclouds.config.compat;
 
 import com.google.gson.InstanceCreator;
+import com.qendolin.betterclouds.config.Configs;
 import com.qendolin.betterclouds.config.preset.AbstractPresetConfig;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
 
