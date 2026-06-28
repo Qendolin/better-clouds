@@ -464,7 +464,7 @@ public class OpenGLRenderer extends CloudRenderer {
         res.shadingShader().uSunAxis.setVec3(0, sunAxisY, sunAxisZ);
         res.shadingShader().uOpacity.setVec3(config.shaderPreset().opacity, config.shaderPreset().opacityFactor, config.shaderPreset().opacityExponent);
         res.shadingShader().uColorGrading.setVec4(brightness, 1f / config.shaderPreset().gamma(), 0.0f, config.shaderPreset().saturation);
-        res.shadingShader().uTint.setVec3(config.shaderPreset().tintRed * effectTint.x, config.shaderPreset().tintGreen * effectTint.y, config.shaderPreset().tintBlue * effectTint.z);
+        res.shadingShader().uTint.setVec3(config.shaderPreset().topColorRed * effectTint.x, config.shaderPreset().topColorGreen * effectTint.y, config.shaderPreset().topColorBlue * effectTint.z);
         res.shadingShader().uNoiseFactor.setFloat(config.colorVariationFactor);
 
         glBindVertexArray(res.cubeVao());

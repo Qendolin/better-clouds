@@ -35,9 +35,9 @@ public class ShaderPresetGUI {
     public final List<Integer> worldCurvatureValues = List.of(0, -256, -512, -1024, -2048, -4096, -8192, -16384, 16384, 8192, 4096, 2048, 1024, 512, 256, 128, 64, 32, 16);
     public final Option<Integer> worldCurvatureSize; // option value is the index
     public final Option<Float> saturation;
-    public final Option<Color> tint;
-    public final Option<Color> bottomTint;
-    public final Option<Float> bottomTransitionRange;
+    public final Option<Color> topColor;
+    public final Option<Color> bottomColor;
+    public final Option<Float> colorTransitionEnd;
     public final Option<Float> gamma;
     public final Option<Float> dayBrightness;
     public final Option<Float> nightBrightness;
@@ -100,24 +100,24 @@ public class ShaderPresetGUI {
                 .binding(defaults.shaderPreset().saturation, () -> config.shaderPreset().saturation, val -> config.shaderPreset().saturation = val)
                 .customController(opt -> new FloatSliderController(opt, 0, 2, 0.05f, ConfigGUI::formatAsPercent))
                 .build();
-        this.tint = createOption(Color.class, "tint")
-                .binding(new Color(defaults.shaderPreset().tintRed, defaults.shaderPreset().tintGreen, defaults.shaderPreset().tintBlue), () -> new Color(config.shaderPreset().tintRed, config.shaderPreset().tintGreen, config.shaderPreset().tintBlue), val -> {
-                    config.shaderPreset().tintRed = val.getRed() / 255f;
-                    config.shaderPreset().tintGreen = val.getGreen() / 255f;
-                    config.shaderPreset().tintBlue = val.getBlue() / 255f;
+        this.topColor = createOption(Color.class, "topColor")
+                .binding(new Color(defaults.shaderPreset().topColorRed, defaults.shaderPreset().topColorGreen, defaults.shaderPreset().topColorBlue), () -> new Color(config.shaderPreset().topColorRed, config.shaderPreset().topColorGreen, config.shaderPreset().topColorBlue), val -> {
+                    config.shaderPreset().topColorRed = val.getRed() / 255f;
+                    config.shaderPreset().topColorGreen = val.getGreen() / 255f;
+                    config.shaderPreset().topColorBlue = val.getBlue() / 255f;
                 })
                 .customController(ColorController::new)
                 .build();
-        this.bottomTint = createOption(Color.class, "bottomTint")
-                .binding(new Color(defaults.shaderPreset().bottomTintRed, defaults.shaderPreset().bottomTintGreen, defaults.shaderPreset().bottomTintBlue), () -> new Color(config.shaderPreset().bottomTintRed, config.shaderPreset().bottomTintGreen, config.shaderPreset().bottomTintBlue), val -> {
-                    config.shaderPreset().bottomTintRed = val.getRed() / 255f;
-                    config.shaderPreset().bottomTintGreen = val.getGreen() / 255f;
-                    config.shaderPreset().bottomTintBlue = val.getBlue() / 255f;
+        this.bottomColor = createOption(Color.class, "bottomColor")
+                .binding(new Color(defaults.shaderPreset().bottomColorRed, defaults.shaderPreset().bottomColorGreen, defaults.shaderPreset().bottomColorBlue), () -> new Color(config.shaderPreset().bottomColorRed, config.shaderPreset().bottomColorGreen, config.shaderPreset().bottomColorBlue), val -> {
+                    config.shaderPreset().bottomColorRed = val.getRed() / 255f;
+                    config.shaderPreset().bottomColorGreen = val.getGreen() / 255f;
+                    config.shaderPreset().bottomColorBlue = val.getBlue() / 255f;
                 })
                 .customController(ColorController::new)
                 .build();
-        this.bottomTransitionRange = createOption(float.class, "bottomTransitionRange")
-                .binding(defaults.shaderPreset().bottomTransitionRange, () -> config.shaderPreset().bottomTransitionRange, val -> config.shaderPreset().bottomTransitionRange = val)
+        this.colorTransitionEnd = createOption(float.class, "colorTransitionEnd")
+                .binding(defaults.shaderPreset().colorTransitionEnd, () -> config.shaderPreset().colorTransitionEnd, val -> config.shaderPreset().colorTransitionEnd = val)
                 .customController(opt -> new FloatSliderController(opt, 0f, 1f, 0.01f, ConfigGUI::formatAsPercent))
                 .build();
         this.gamma = createOption(float.class, "gamma")
@@ -180,9 +180,9 @@ public class ShaderPresetGUI {
                 presetTitle,
                 description,
                 saturation,
-                tint,
-                bottomTint,
-                bottomTransitionRange,
+                topColor,
+                bottomColor,
+                colorTransitionEnd,
                 gamma,
                 dayBrightness,
                 nightBrightness,
@@ -281,9 +281,9 @@ public class ShaderPresetGUI {
                 dayBrightness,
                 nightBrightness,
                 saturation,
-                tint,
-                bottomTint,
-                bottomTransitionRange
+                topColor,
+                bottomColor,
+                colorTransitionEnd
         ));
 
         shadersCategory.add(new Tuple<>(OptionGroup.createBuilder()

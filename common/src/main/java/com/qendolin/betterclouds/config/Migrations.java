@@ -22,6 +22,15 @@ public class Migrations {
                 config.enabledDimensions.add(MiddleEarthCompat.DIMENSION_KEY);
             }
         });
+        MIGRATIONS.add(config -> {
+            // todo: remove a few versions later
+            config.shaderPreset().topColorRed = config.shaderPreset().tintRed;
+            config.shaderPreset().topColorGreen = config.shaderPreset().tintGreen;
+            config.shaderPreset().topColorBlue = config.shaderPreset().tintBlue;
+            config.shaderPreset().bottomColorRed = config.shaderPreset().bottomTintRed;
+            config.shaderPreset().bottomColorGreen = config.shaderPreset().bottomTintGreen;
+            config.shaderPreset().bottomColorBlue = config.shaderPreset().bottomTintBlue;
+        });
     }
 
     public static int getCurrentVersion() {

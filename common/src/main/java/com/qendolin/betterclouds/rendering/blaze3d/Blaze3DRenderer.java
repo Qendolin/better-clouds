@@ -204,7 +204,7 @@ public class Blaze3DRenderer extends CloudRenderer {
             b.putFloat(config.sizeY);
 
             b.putFloat(cloudTimeSeconds);
-            b.putFloat(sp.bottomTransitionRange);
+            b.putFloat(sp.colorTransitionEnd);
 
             // cloud matrix origin position
             b.putFloat((float) -generator.renderOriginX(cam.x));
@@ -238,13 +238,13 @@ public class Blaze3DRenderer extends CloudRenderer {
             b.putFloat(sp.opacityExponent);
             b.putFloat(brightness);
 
-            b.putFloat(sp.tintRed * effectTint.x);
-            b.putFloat(sp.tintGreen * effectTint.y);
-            b.putFloat(sp.tintBlue * effectTint.z);
+            b.putFloat(sp.topColorRed * effectTint.x);
+            b.putFloat(sp.topColorGreen * effectTint.y);
+            b.putFloat(sp.topColorBlue * effectTint.z);
 
-            b.putFloat(sp.bottomTintRed * effectTint.x);
-            b.putFloat(sp.bottomTintGreen * effectTint.y);
-            b.putFloat(sp.bottomTintBlue * effectTint.z);
+            b.putFloat(sp.bottomColorRed * effectTint.x);
+            b.putFloat(sp.bottomColorGreen * effectTint.y);
+            b.putFloat(sp.bottomColorBlue * effectTint.z);
 
             b.putFloat(haloSize);
 
@@ -265,7 +265,7 @@ public class Blaze3DRenderer extends CloudRenderer {
 
         GpuBufferSlice dynamicTransform = RenderSystem.getDynamicUniforms().writeTransform(
                 createCloudModelViewMatrix(cam),
-                new Vector4f(1, sp.tintRed, sp.tintGreen, sp.tintBlue)
+                new Vector4f(1, sp.topColorRed, sp.topColorGreen, sp.topColorBlue)
         );
 
         try (RenderPass pass = gpu().createCommandEncoder().createRenderPass(
