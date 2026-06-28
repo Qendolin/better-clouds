@@ -19,6 +19,8 @@ import org.joml.Matrix4f;
 import org.joml.Vector3d;
 import org.jspecify.annotations.NonNull;
 
+import java.util.Objects;
+
 public abstract class CloudRenderer implements AutoCloseable {
     protected final Minecraft client;
     protected ChunkedGenerator generator;
@@ -44,8 +46,8 @@ public abstract class CloudRenderer implements AutoCloseable {
     }
 
     public @NonNull PrepareResult checkAndPrepare(Matrix4f viewMat, Matrix4f projMat, int rendererTicks, float tickDelta, Vector3d cam) {
-        if (!level.equals(client.level))
-            setLevel(level);
+        if (!Objects.equals(level, client.level))
+            setLevel(client.level);
         if (closed || level == null)
             return PrepareResult.FALLBACK;
 
