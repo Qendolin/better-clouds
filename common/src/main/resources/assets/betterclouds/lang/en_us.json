@@ -9,6 +9,7 @@
   "betterclouds.config.category.performance" : "Performance",
   "betterclouds.config.category.shaders" : "Shaders",
   "betterclouds.config.entry.bottomSparsity" : "Bottom sparsity",
+  "betterclouds.config.entry.bottomSparsity.description" : "The percentage of all cloud cubes that will generate with another cube placed in the same location at a lower height, to fill the missing bottom face of the cloud",
   "betterclouds.config.entry.celestialBodyHalo" : "Celestial Body Halo",
   "betterclouds.config.entry.celestialBodyHalo.description" : "A halo around the sun and moon, to simulate MIE scattering",
   "betterclouds.config.entry.sunHaloSizeMultiplier" : "Sun Halo Size Multiplier",
