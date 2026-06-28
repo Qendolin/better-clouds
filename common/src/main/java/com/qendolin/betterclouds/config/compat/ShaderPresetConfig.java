@@ -48,6 +48,8 @@ public class ShaderPresetConfig extends AbstractPresetConfig {
     @SerialEntry
     public float bottomTintBlue = 0.75f;
     @SerialEntry
+    public float bottomTransitionRange = 0.5f;
+    @SerialEntry
     public float topColorRed = 1f;
     @SerialEntry
     public float topColorGreen = 1f;

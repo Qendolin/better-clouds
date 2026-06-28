@@ -2,6 +2,7 @@ package com.qendolin.betterclouds.config;
 
 import com.qendolin.betterclouds.compat.BigGlobeCompat;
 import com.qendolin.betterclouds.compat.MiddleEarthCompat;
+import com.qendolin.betterclouds.config.compat.ShaderPresetConfig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,12 +25,15 @@ public class Migrations {
         });
         MIGRATIONS.add(config -> {
             // todo: remove a few versions later
-            config.shaderPreset().topColorRed = config.shaderPreset().tintRed;
-            config.shaderPreset().topColorGreen = config.shaderPreset().tintGreen;
-            config.shaderPreset().topColorBlue = config.shaderPreset().tintBlue;
-            config.shaderPreset().bottomColorRed = config.shaderPreset().bottomTintRed;
-            config.shaderPreset().bottomColorGreen = config.shaderPreset().bottomTintGreen;
-            config.shaderPreset().bottomColorBlue = config.shaderPreset().bottomTintBlue;
+            ShaderPresetConfig s = config.shaderPreset();
+            s.topColorRed = s.tintRed;
+            s.topColorGreen = s.tintGreen;
+            s.topColorBlue = s.tintBlue;
+            s.bottomColorRed = s.bottomTintRed;
+            s.bottomColorGreen = s.bottomTintGreen;
+            s.bottomColorBlue = s.bottomTintBlue;
+            s.colorTransitionEnd = s.bottomTransitionRange;
+            s.tintRed = s.tintGreen = s.tintBlue = s.bottomTintRed = s.bottomTintGreen = s.bottomTintBlue = s.bottomTransitionRange = 0;
         });
     }
 
