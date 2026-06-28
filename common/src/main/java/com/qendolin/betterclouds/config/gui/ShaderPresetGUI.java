@@ -68,7 +68,7 @@ public class ShaderPresetGUI {
         config.sortShaderPresets();
 
         this.presetTitle = createOption(String.class, "presetTitle", false)
-                .binding("", () -> config.shaderPreset().title, val -> config.shaderPreset().title = val)
+                .binding(config.shaderPreset().title, () -> config.shaderPreset().title, val -> config.shaderPreset().title = val)
                 .customController(StringController::new)
                 .build();
         this.description = createOption(String.class, "presetDescription", false)

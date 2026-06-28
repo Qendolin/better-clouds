@@ -41,7 +41,7 @@ public class NoisePresetGUI {
         config.sortNoisePresets();
 
         this.presetTitle = createOption(String.class, "presetTitle", false)
-                .binding("", () -> config.noisePreset().title, val -> config.noisePreset().title = val)
+                .binding(config.noisePreset().title, () -> config.noisePreset().title, val -> config.noisePreset().title = val)
                 .customController(StringController::new)
                 .build();
         this.description = createOption(String.class, "presetDescription", false)
