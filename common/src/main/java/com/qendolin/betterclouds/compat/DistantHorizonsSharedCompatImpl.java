@@ -5,9 +5,12 @@ import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.seibel.distanthorizons.api.DhApi;
 import com.seibel.distanthorizons.api.enums.rendering.EDhApiRenderPass;
 import com.seibel.distanthorizons.api.methods.events.DhApiEventRegister;
-import com.seibel.distanthorizons.api.methods.events.abstractEvents.*;
+import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiAfterDhInitEvent;
+import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiBeforeRenderEvent;
 import com.seibel.distanthorizons.api.methods.events.sharedParameterObjects.*;
 import com.seibel.distanthorizons.api.objects.DhApiResult;
+import com.seibel.distanthorizons.common.render.blaze.BlazeDhMetaRenderer;
+import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.BlazeTextureWrapper;
 import org.joml.Matrix4f;
 
 import java.util.Optional;
@@ -40,12 +43,6 @@ public abstract class DistantHorizonsSharedCompatImpl extends DistantHorizonsCom
                 }
             }
         });
-        DhApiEventRegister.on(DhApiColorDepthTextureCreatedEvent.class, new DhApiColorDepthTextureCreatedEvent() {
-            @Override
-            public void onResize(DhApiEventParam<EventParam> dhApiEventParam) {
-                textureCreateFlag = true;
-            }
-        });
     }
 
     @Override
@@ -76,6 +73,11 @@ public abstract class DistantHorizonsSharedCompatImpl extends DistantHorizonsCom
             return Optional.of(result.payload);
         }
         return Optional.empty();
+    }
+
+    @Override
+    public BlazeTextureWrapper getDepthTexture() {
+        return BlazeDhMetaRenderer.INSTANCE.dhDepthTextureWrapper;
     }
 
     @Override

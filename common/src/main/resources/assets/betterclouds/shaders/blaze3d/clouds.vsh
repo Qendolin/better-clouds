@@ -22,6 +22,13 @@ out float fogFade;
 out float tintInterp;
 out vec3 lightSampleDir;
 
+#if DISTANT_HORIZONS
+layout (std140) uniform DhProjMat {
+    mat4 uDhProjMat;
+};
+out float dhDepth;
+#endif
+
 float calcFogFade(float distance, float fogStart, float fogEnd) {
     #if NEAR_CLOUD_FADE
     float nearFade = clamp(distance / NEAR_FADE_DIST, 0, 1);
@@ -57,6 +64,11 @@ void main() {
     fogFade = calcFogFade(length(localWorldVertexPos.xyz), uFogStart, uFogEnd);
     lightSampleDir = localWorldVertexPos;
     tintInterp = clamp((scale.y * LocalPosition.y + WorldPosition.y + uCloudHeightRange * 0.3f) / (uTransitionRangePercent * uCloudHeightRange), 0, 1);
+
+    #if DISTANT_HORIZONS
+    vec4 dhPos = uDhProjMat * ModelViewMat * vec4(pos, 1);
+    dhDepth = (dhPos.z / dhPos.w) * 0.5 + 0.5;    // opengl [-1, 1] to texture [0, 1], may cause issues with reverse z
+    #endif
 
     gl_Position = ProjMat * ModelViewMat * vec4(pos, 1);
 }

@@ -24,6 +24,7 @@ dependencies {
     compileOnly("maven.modrinth:1eAoo2KR:${property("deps.yacl")}")
     compileOnly("maven.modrinth:YL57xq9U:${property("deps.iris")}-fabric")
     compileOnly("maven.modrinth:Xs0XTOVv:${property("deps.distanthorizons_api")}")
+    compileOnly("maven.modrinth:uCdwusMi:${property("deps.distanthorizons")}")
 
     testImplementation(platform("org.junit:junit-bom:5.12.2"))
     testImplementation("org.junit.jupiter:junit-jupiter")

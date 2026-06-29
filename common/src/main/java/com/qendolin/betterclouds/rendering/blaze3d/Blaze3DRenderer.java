@@ -21,6 +21,7 @@ import com.qendolin.betterclouds.rendering.*;
 import com.qendolin.betterclouds.rendering.opengl.Debug;
 import com.qendolin.betterclouds.rendering.opengl.Resources;
 import com.qendolin.betterclouds.util.MathUtil;
+import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.BlazeTextureWrapper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.BindGroupLayouts;
@@ -100,6 +101,10 @@ public class Blaze3DRenderer extends CloudRenderer {
             .withUniform("CloudVertexData", UniformType.UNIFORM_BUFFER)
             .withUniform("CloudFragData", UniformType.UNIFORM_BUFFER)
             .build();
+    final BindGroupLayout DH_BIND_GROUP = BindGroupLayout.builder()
+            .withSampler("DhDepthTexture")
+            .withUniform("DhProjMat", UniformType.UNIFORM_BUFFER)
+            .build();
     // models
     private final ReadOnlyBuffer modelVertexBuffer = new ReadOnlyBuffer("cloudModelVertices");
     // don't forget to close your buffers!
@@ -109,10 +114,11 @@ public class Blaze3DRenderer extends CloudRenderer {
     // uniforms
     private final WritableBuffer uCloudVertexData = new WritableBuffer("uCloudVertexData", Float.BYTES * 16, GpuBuffer.USAGE_UNIFORM);
     private final WritableBuffer uCloudFragData = new WritableBuffer("uCloudFragData", Float.BYTES * 15, GpuBuffer.USAGE_UNIFORM);
+    private final WritableBuffer uDhProjMat = new WritableBuffer("uDhProjMat", Float.BYTES * 16, GpuBuffer.USAGE_UNIFORM);
     // samplers
     private final GpuSampler noiseSampler = gpu().createSampler(AddressMode.REPEAT, AddressMode.REPEAT, FilterMode.LINEAR, FilterMode.LINEAR, 1, OptionalDouble.empty());
     private final GpuSampler lightSampler = gpu().createSampler(AddressMode.CLAMP_TO_EDGE, AddressMode.REPEAT, FilterMode.LINEAR, FilterMode.LINEAR, 1, OptionalDouble.empty());
-
+    private final float[] tempMatrixCopyArr = new float[16];
     // things affected by resource reload
     RenderPipeline CLOUD_RENDERER_PIPELINE;
 
@@ -254,6 +260,16 @@ public class Blaze3DRenderer extends CloudRenderer {
             b.putFloat(mappedTime / 24000);
         });
 
+        Matrix4f matrix = DistantHorizonsCompat.instance().getProjectionMatrix();
+        if (matrix != null) {
+            matrix.get(tempMatrixCopyArr);
+            uDhProjMat.write(b -> {
+                for (float value : tempMatrixCopyArr) {
+                    b.putFloat(value);
+                }
+            });
+        }
+
         getProfiler().popPush("render_clouds");
         RenderTarget cloudsTarget = client.levelRenderer.cloudsTarget();
         if (cloudsTarget == null)
@@ -286,6 +302,12 @@ public class Blaze3DRenderer extends CloudRenderer {
             pass.bindTexture("NoiseTexture", noiseTexture.getTextureView(), noiseSampler);
             var lightTexture = client.getTextureManager().getTexture(Resources.LIGHTING_TEXTURE);
             pass.bindTexture("LightTexture", lightTexture.getTextureView(), lightSampler);
+
+            BlazeTextureWrapper dhDepthTexture = DistantHorizonsCompat.instance().getDepthTexture();
+            if (dhDepthTexture != null) {
+                pass.bindTexture("DhDepthTexture", dhDepthTexture.getTextureView(), dhDepthTexture.getTextureSampler());
+                pass.setUniform("DhProjMat", uDhProjMat.gpuBuffer());
+            }
 
             pass.setVertexBuffer(0, modelVertexBuffer.gpuBuffer().slice());
             pass.setVertexBuffer(1, worldCloudPosBuffer.gpuBuffer().slice());
@@ -322,6 +344,7 @@ public class Blaze3DRenderer extends CloudRenderer {
                 .withShaderDefine("DISTANT_HORIZONS", params.distantHorizons ? 1 : 0)
                 .withBindGroupLayout(BindGroupLayouts.MATRICES_PROJECTION)
                 .withBindGroupLayout(SHADER_BIND_GROUP)
+                .withBindGroupLayout(DH_BIND_GROUP)
                 .withCull(false)
                 .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, false))
                 .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
@@ -410,6 +433,7 @@ public class Blaze3DRenderer extends CloudRenderer {
         worldCloudPosBuffer.close();
         uCloudVertexData.close();
         uCloudFragData.close();
+        uDhProjMat.close();
         noiseSampler.close();
         lightSampler.close();
     }
@@ -441,7 +465,8 @@ public class Blaze3DRenderer extends CloudRenderer {
         public static PipelineParams getParameters() {
             Config options = ConfigManager.instance();
             return new PipelineParams(options.celestialBodyHalo, options.nearCloudFade,
-                    IrisCompat.instance().isShadersEnabled(), DistantHorizonsCompat.instance().isEnabled());
+                    IrisCompat.instance().isShadersEnabled(),
+                    DistantHorizonsCompat.instance().isEnabled() && DistantHorizonsCompat.instance().getDepthTexture() != null);
         }
 
         public static boolean paramsChanged() {

@@ -15,7 +15,25 @@ layout (std140) uniform CloudFragData {
     float haloSize, sunX, sunY, sunZ, mappedTime;
 };
 
+#if DISTANT_HORIZONS
+in float dhDepth;
+uniform sampler2D DhDepthTexture;
+#endif
+
 void main() {
+    #if DISTANT_HORIZONS
+    // dhDepth is always 0 if the depth texture cloud not be set.
+    // This is a "safety" check to prevent reading from an unbound texture
+    if (dhDepth != 0) {
+        float depth = texelFetch(DhDepthTexture, ivec2(gl_FragCoord.xy), 0).r;
+        #if IRIS
+        if (dhDepth > depth) discard;
+        #else
+        if (dhDepth < depth) discard;
+        #endif
+    }
+    #endif
+
     vec3 sunDir = vec3(sunX, sunY, sunZ);
     vec3 fragDir = normalize(lightSampleDir);
     float lightUvX = dot(sunDir, fragDir) * 0.9;

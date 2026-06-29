@@ -2,6 +2,7 @@ package com.qendolin.betterclouds.compat;
 
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.seibel.distanthorizons.api.DhApi;
+import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.BlazeTextureWrapper;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
 
@@ -17,7 +18,6 @@ public abstract class DistantHorizonsCompat {
             new Vector4f(0, 0, 0, 0),
             new Vector4f(0, 0, -1, 1)
     );
-
     private static final AtomicBoolean initialized = new AtomicBoolean(false);
     private static DistantHorizonsCompat instance;
     private static boolean isActive = false;
@@ -83,6 +83,8 @@ public abstract class DistantHorizonsCompat {
 
     public abstract Optional<Integer> getDepthTextureId();
 
+    public abstract BlazeTextureWrapper getDepthTexture();
+
     public abstract void disableLodClouds();
 
     public abstract boolean isTextureCreateFlagSet();
@@ -113,6 +115,11 @@ public abstract class DistantHorizonsCompat {
         @Override
         public Optional<Integer> getDepthTextureId() {
             return Optional.empty();
+        }
+
+        @Override
+        public BlazeTextureWrapper getDepthTexture() {
+            return null;
         }
 
         @Override
