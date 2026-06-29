@@ -260,15 +260,12 @@ public class Blaze3DRenderer extends CloudRenderer {
             b.putFloat(mappedTime / 24000);
         });
 
-        Matrix4f matrix = DistantHorizonsCompat.instance().getProjectionMatrix();
-        if (matrix != null) {
-            matrix.get(tempMatrixCopyArr);
-            uDhProjMat.write(b -> {
-                for (float value : tempMatrixCopyArr) {
-                    b.putFloat(value);
-                }
-            });
-        }
+        DistantHorizonsCompat.instance().getProjectionMatrix().get(tempMatrixCopyArr);
+        uDhProjMat.write(b -> {
+            for (float value : tempMatrixCopyArr) {
+                b.putFloat(value);
+            }
+        });
 
         getProfiler().popPush("render_clouds");
         RenderTarget cloudsTarget = client.levelRenderer.cloudsTarget();
@@ -297,6 +294,7 @@ public class Blaze3DRenderer extends CloudRenderer {
             pass.setUniform("CloudVertexData", uCloudVertexData.gpuBuffer());
             pass.setUniform("CloudFragData", uCloudFragData.gpuBuffer());
             pass.setUniform("DynamicTransforms", dynamicTransform);
+            pass.setUniform("DhProjMat", uDhProjMat.gpuBuffer());
 
             var noiseTexture = client.getTextureManager().getTexture(Resources.NOISE_TEXTURE);
             pass.bindTexture("NoiseTexture", noiseTexture.getTextureView(), noiseSampler);
@@ -304,10 +302,8 @@ public class Blaze3DRenderer extends CloudRenderer {
             pass.bindTexture("LightTexture", lightTexture.getTextureView(), lightSampler);
 
             BlazeTextureWrapper dhDepthTexture = DistantHorizonsCompat.instance().getDepthTexture();
-            if (dhDepthTexture != null) {
+            if (dhDepthTexture != null)
                 pass.bindTexture("DhDepthTexture", dhDepthTexture.getTextureView(), dhDepthTexture.getTextureSampler());
-                pass.setUniform("DhProjMat", uDhProjMat.gpuBuffer());
-            }
 
             pass.setVertexBuffer(0, modelVertexBuffer.gpuBuffer().slice());
             pass.setVertexBuffer(1, worldCloudPosBuffer.gpuBuffer().slice());
