@@ -63,6 +63,7 @@ dependencies {
     implementation(mixinExtras)
     include(mixinExtras)
 
+    compileOnly("maven.modrinth:uCdwusMi:${property("deps.distanthorizons")}")
     compileOnly("maven.modrinth:Xs0XTOVv:${property("deps.distanthorizons_api")}")
     compileOnly("maven.modrinth:e0bNACJD:${property("deps.serene_seasons")}")
     compileOnly("maven.modrinth:2rL16t1O:${property("deps.enhanced_celestials")}-fabric")

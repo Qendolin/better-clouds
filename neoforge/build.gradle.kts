@@ -1,8 +1,3 @@
-import org.gradle.api.tasks.SourceSetContainer
-import org.gradle.api.tasks.bundling.Jar
-import org.gradle.api.tasks.compile.JavaCompile
-import org.gradle.language.jvm.tasks.ProcessResources
-
 plugins {
     `java-library`
     id("net.neoforged.moddev") version "2.0.141"
@@ -108,6 +103,7 @@ dependencies {
         compileOnly("maven.modrinth:JaCEZUhg:${property("deps.terra_firma_craft")}")
     }
 
+    compileOnly("maven.modrinth:uCdwusMi:${property("deps.distanthorizons")}")
     compileOnly("maven.modrinth:Xs0XTOVv:${property("deps.distanthorizons_api")}")
     compileOnly("maven.modrinth:e0bNACJD:${property("deps.serene_seasons")}")
     compileOnly("maven.modrinth:2rL16t1O:${property("deps.enhanced_celestials")}-neoforge")
