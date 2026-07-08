@@ -78,6 +78,10 @@ def isPublishTargetEnabled = { String target ->
 	parseBooleanGradleProperty("publish.${target}", true).get()
 }
 
+def isPublishConfirmationSkipped = {
+	parseBooleanGradleProperty("publish.skipConfirmation", false).get()
+}
+
 def requirePublishConfirmation = { List<String> warningLines ->
 	warningLines.each { warningLine -> println warningLine }
 	println "Press Enter to continue, or Ctrl+C to cancel."
@@ -551,7 +555,7 @@ if (stonecutter.current.active && !requestedPublishTaskNames.isEmpty()) {
 		throw new GradleException("publish target '${loader}' is disabled. Set publish.${loader}=true to publish it.")
 	}
 
-	if (!requestedPublishModsTaskNames.isEmpty()) {
+	if (!requestedPublishModsTaskNames.isEmpty() && !isPublishConfirmationSkipped()) {
 		requirePublishConfirmation([
 				"Requested publish task(s): ${requestedPublishModsTaskNames.join(", ")}",
 				buildVersionString(property("mod.version").toString(), property("mod.release").toString().toLowerCase(Locale.ROOT), mcVersion, loader)
