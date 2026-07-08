@@ -255,7 +255,7 @@ public class Resources implements Closeable {
             createFramebufferAttachments(useStencilTextureFallback, useDepthWriteFallback);
             int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
             if (status == GL_FRAMEBUFFER_COMPLETE) {
-                BetterCloudsStatic.getLogger().info("Framebuffer complete. useStencilTextureFallback={}, useDepthWriteFallback={}", useStencilTextureFallback, useDepthWriteFallback);
+                BetterCloudsStatic.getLogger().debug("Framebuffer complete. useStencilTextureFallback={}, useDepthWriteFallback={}", useStencilTextureFallback, useDepthWriteFallback);
                 if (configurationIndex != -1) {
                     glCompat.setUseStencilTextureFallback(useStencilTextureFallback);
                     glCompat.setUseDepthWriteFallback(useDepthWriteFallback);
