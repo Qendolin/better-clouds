@@ -378,7 +378,7 @@ public class ConfigGUI {
             .save(() -> {
                 shaderPresetGUI.onSave();
                 config.selectedPreset = MathHelper.clamp(config.selectedPreset, 0, config.presets.size());
-                config.sortPresets();
+                config.sortShaderPresets();
                 config.selectedNoisePreset = MathHelper.clamp(config.selectedNoisePreset, 0, config.noisePresets.size());
                 config.sortNoisePresets();
                 ConfigManager.handler().save();
@@ -406,7 +406,7 @@ public class ConfigGUI {
     static <T> YACLOptionBuilder<T> createOption(Class<T> typeClass, String key, boolean hasDescription) {
         YACLOptionBuilder<T> builder = YACLOptionBuilder.create(Option.<T>createBuilder())
             .name(optionLabel(key))
-            .instant(true);
+            .instant(false);
         if (hasDescription) builder.description(OptionDescription.of(optionDescription(key)));
         return builder;
     }

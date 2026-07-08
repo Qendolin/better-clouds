@@ -75,7 +75,7 @@ public class ShaderPresetGUI {
 
     public ShaderPresetGUI(Config defaults, Config config) {
         this.config = config;
-        config.sortPresets();
+        config.sortShaderPresets();
 
         // FIXME: defaults.preset() gives default values defined in the code, not from the `default` preset
 
@@ -102,84 +102,84 @@ public class ShaderPresetGUI {
                 }
                 for (Option<?> option : shaderConfigPresetOptions) {
                     option.forgetPendingValue();
-                    option.setAvailable(config.preset().editable);
+                    option.setAvailable(config.shaderPreset().editable);
                 }
                 updateNonResponsiveOptions();
             })
             .build();
         this.presetTitle = createOption(String.class, "presetTitle", false)
-            .binding("", () -> config.preset().title, val -> {
-                if (config.preset().editable) {
-                    config.preset().title = val;
+            .binding("", () -> config.shaderPreset().title, val -> {
+                if (config.shaderPreset().editable) {
+                    config.shaderPreset().title = val;
                 }
             })
             .customController(StringController::new)
             .build();
         this.saturation = createOption(float.class, "saturation")
-            .binding(defaults.preset().saturation, () -> config.preset().saturation, val -> config.preset().saturation = val)
+            .binding(defaults.shaderPreset().saturation, () -> config.shaderPreset().saturation, val -> config.shaderPreset().saturation = val)
             .customController(opt -> new FloatSliderController(opt, 0, 2, 0.05f, ConfigGUI::formatAsPercent))
             .build();
         this.tint = createOption(Color.class, "tint")
-            .binding(new Color(defaults.preset().tintRed, defaults.preset().tintGreen, defaults.preset().tintBlue), () -> new Color(config.preset().tintRed, config.preset().tintGreen, config.preset().tintBlue), val -> {
-                config.preset().tintRed = val.getRed() / 255f;
-                config.preset().tintGreen = val.getGreen() / 255f;
-                config.preset().tintBlue = val.getBlue() / 255f;
+            .binding(new Color(defaults.shaderPreset().tintRed, defaults.shaderPreset().tintGreen, defaults.shaderPreset().tintBlue), () -> new Color(config.shaderPreset().tintRed, config.shaderPreset().tintGreen, config.shaderPreset().tintBlue), val -> {
+                config.shaderPreset().tintRed = val.getRed() / 255f;
+                config.shaderPreset().tintGreen = val.getGreen() / 255f;
+                config.shaderPreset().tintBlue = val.getBlue() / 255f;
             })
             .customController(ColorController::new)
             .build();
         this.gamma = createOption(float.class, "gamma")
-            .binding(defaults.preset().gamma, () -> config.preset().gamma, val -> config.preset().gamma = val)
+            .binding(defaults.shaderPreset().gamma, () -> config.shaderPreset().gamma, val -> config.shaderPreset().gamma = val)
             .customController(opt -> new FloatSliderController(opt, -5, 5, 0.01f, ConfigGUI::formatAsTwoDecimals))
             .build();
         this.dayBrightness = createOption(float.class, "dayBrightness")
-            .binding(defaults.preset().dayBrightness, () -> config.preset().dayBrightness, val -> config.preset().dayBrightness = val)
+            .binding(defaults.shaderPreset().dayBrightness, () -> config.shaderPreset().dayBrightness, val -> config.shaderPreset().dayBrightness = val)
             .customController(opt -> new FloatSliderController(opt, 0.1f, 4, 0.01f, ConfigGUI::formatAsPercent))
             .build();
         this.nightBrightness = createOption(float.class, "nightBrightness")
-            .binding(defaults.preset().nightBrightness, () -> config.preset().nightBrightness, val -> config.preset().nightBrightness = val)
+            .binding(defaults.shaderPreset().nightBrightness, () -> config.shaderPreset().nightBrightness, val -> config.shaderPreset().nightBrightness = val)
             .customController(opt -> new FloatSliderController(opt, 0.1f, 4, 0.01f, ConfigGUI::formatAsPercent))
             .build();
         this.sunriseStartTime = createOption(int.class, "sunriseStartTime")
-            .binding(defaults.preset().sunriseStartTime, () -> config.preset().sunriseStartTime, val -> config.preset().sunriseStartTime = val)
+            .binding(defaults.shaderPreset().sunriseStartTime, () -> config.shaderPreset().sunriseStartTime, val -> config.shaderPreset().sunriseStartTime = val)
             .customController(opt -> new CustomIntegerFieldController(opt, -6000, 6000))
             .build();
         this.sunriseEndTime = createOption(int.class, "sunriseEndTime")
-            .binding(defaults.preset().sunriseEndTime, () -> config.preset().sunriseEndTime, val -> config.preset().sunriseEndTime = val)
+            .binding(defaults.shaderPreset().sunriseEndTime, () -> config.shaderPreset().sunriseEndTime, val -> config.shaderPreset().sunriseEndTime = val)
             .customController(opt -> new CustomIntegerFieldController(opt, -6000, 6000))
             .build();
         this.sunsetStartTime = createOption(int.class, "sunsetStartTime")
-            .binding(defaults.preset().sunsetStartTime, () -> config.preset().sunsetStartTime, val -> config.preset().sunsetStartTime = val)
+            .binding(defaults.shaderPreset().sunsetStartTime, () -> config.shaderPreset().sunsetStartTime, val -> config.shaderPreset().sunsetStartTime = val)
             .customController(opt -> new CustomIntegerFieldController(opt, 6000, 18000))
             .build();
         this.sunsetEndTime = createOption(int.class, "sunsetEndTime")
-            .binding(defaults.preset().sunsetEndTime, () -> config.preset().sunsetEndTime, val -> config.preset().sunsetEndTime = val)
+            .binding(defaults.shaderPreset().sunsetEndTime, () -> config.shaderPreset().sunsetEndTime, val -> config.shaderPreset().sunsetEndTime = val)
             .customController(opt -> new CustomIntegerFieldController(opt, 6000, 18000))
             .build();
         this.upscaleResolutionFactor = createOption(float.class, "upscaleResolutionFactor")
-            .binding(defaults.preset().upscaleResolutionFactor, () -> config.preset().upscaleResolutionFactor, val -> config.preset().upscaleResolutionFactor = val)
+            .binding(defaults.shaderPreset().upscaleResolutionFactor, () -> config.shaderPreset().upscaleResolutionFactor, val -> config.shaderPreset().upscaleResolutionFactor = val)
             .customController(opt -> new FloatSliderController(opt, 0.25f, 1.0f, 0.01f, ConfigGUI::formatAsPercent))
             .build();
         this.sunPathAngle = createOption(float.class, "sunPathAngle")
-            .binding(defaults.preset().sunPathAngle, () -> config.preset().sunPathAngle, val -> config.preset().sunPathAngle = val)
+            .binding(defaults.shaderPreset().sunPathAngle, () -> config.shaderPreset().sunPathAngle, val -> config.shaderPreset().sunPathAngle = val)
             .customController(opt -> new FloatSliderController(opt, -60f, 60f, 1f, ConfigGUI::formatAsDegrees))
             .build();
         this.opacityFactor = createOption(float.class, "opacityFactor")
-            .binding(defaults.preset().opacityFactor, () -> config.preset().opacityFactor, val -> config.preset().opacityFactor = val)
+            .binding(defaults.shaderPreset().opacityFactor, () -> config.shaderPreset().opacityFactor, val -> config.shaderPreset().opacityFactor = val)
             .customController(opt -> new FloatSliderController(opt, 0, 1, 0.01f, ConfigGUI::formatAsPercent))
             .build();
         this.opacityExponent = createOption(float.class, "opacityExponent")
-            .binding(defaults.preset().opacityExponent, () -> config.preset().opacityExponent, val -> config.preset().opacityExponent = val)
+            .binding(defaults.shaderPreset().opacityExponent, () -> config.shaderPreset().opacityExponent, val -> config.shaderPreset().opacityExponent = val)
             .customController(opt -> new FloatSliderController(opt, 0.25f, 4f, 0.01f, ConfigGUI::formatAsTwoDecimals))
             .build();
         this.opacity = createOption(float.class, "opacity")
-            .binding(defaults.preset().opacity, () -> config.preset().opacity, val -> config.preset().opacity = val)
+            .binding(defaults.shaderPreset().opacity, () -> config.shaderPreset().opacity, val -> config.shaderPreset().opacity = val)
             .customController(opt -> new FloatSliderController(opt, 0, 1, 0.01f, ConfigGUI::formatAsPercent))
             .build();
         this.worldCurvatureSize = createOption(int.class, "worldCurvatureSize")
             .binding(
-                Math.max(worldCurvatureValues.indexOf(defaults.preset().worldCurvatureSize), 0),
-                () -> Math.max(worldCurvatureValues.indexOf(config.preset().worldCurvatureSize), 0),
-                val -> config.preset().worldCurvatureSize = worldCurvatureValues.get(val))
+                Math.max(worldCurvatureValues.indexOf(defaults.shaderPreset().worldCurvatureSize), 0),
+                () -> Math.max(worldCurvatureValues.indexOf(config.shaderPreset().worldCurvatureSize), 0),
+                val -> config.shaderPreset().worldCurvatureSize = worldCurvatureValues.get(val))
             .customController(opt -> new IntegerSliderController(opt, 0, worldCurvatureValues.size() - 1, 1,
                 i -> i == 0 ? Text.translatable("options.off") : Text.literal(worldCurvatureValues.get(i).toString())))
             .build();
@@ -199,23 +199,23 @@ public class ShaderPresetGUI {
             opacityExponent,
             opacity,
             worldCurvatureSize));
-        shaderConfigPresetOptions.forEach(opt -> opt.setAvailable(config.preset().editable));
+        shaderConfigPresetOptions.forEach(opt -> opt.setAvailable(config.shaderPreset().editable));
 
         final Text removeButtonRemoveText = Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.remove");
         final Text removeButtonRestoreText = Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.restore");
 
         this.removePresetButton = CustomButtonOption.createBuilder()
-            .name(() -> presetsToBeDeleted.contains(config.preset()) ? removeButtonRestoreText : removeButtonRemoveText)
+            .name(() -> presetsToBeDeleted.contains(config.shaderPreset()) ? removeButtonRestoreText : removeButtonRemoveText)
             .available(config.presets.size() > 1)
             .action((screen, option) -> {
-                if (config.presets.size() <= 1 || !config.preset().editable) {
+                if (config.presets.size() <= 1 || !config.shaderPreset().editable) {
                     option.setAvailable(false);
                     return;
                 }
-                if (presetsToBeDeleted.contains(config.preset())) {
-                    presetsToBeDeleted.remove(config.preset());
+                if (presetsToBeDeleted.contains(config.shaderPreset())) {
+                    presetsToBeDeleted.remove(config.shaderPreset());
                 } else {
-                    presetsToBeDeleted.add(config.preset());
+                    presetsToBeDeleted.add(config.shaderPreset());
                 }
             })
             .build();
@@ -223,8 +223,8 @@ public class ShaderPresetGUI {
         this.copyPresetButton = CustomButtonOption.createBuilder()
             .name(() -> Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.copy"))
             .action((screen, buttonOption) -> {
-                ShaderPresetConfig preset = new ShaderPresetConfig(config.preset());
-                preset.title = Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.copyOf", config.preset().title).getString();
+                ShaderPresetConfig preset = new ShaderPresetConfig(config.shaderPreset());
+                preset.title = Text.translatable(LANG_KEY_PREFIX + ".entry.shaderPreset.copyOf", config.shaderPreset().title).getString();
                 preset.markAsCopy();
                 config.presets.add(0, preset);
                 selectedPreset.requestSet(0);
@@ -305,11 +305,11 @@ public class ShaderPresetGUI {
 
     private void updateNonResponsiveOptions() {
         if (removePresetButton != null) {
-            removePresetButton.setAvailable(config.preset().editable && config.presets.size() > 1);
+            removePresetButton.setAvailable(config.shaderPreset().editable && config.presets.size() > 1);
         }
         if (presetTitle != null) {
             // Yacl issue #263
-            String title = config.preset().title;
+            String title = config.shaderPreset().title;
             presetTitle.stateManager().set(title + " "); // some value that is not equal
             presetTitle.stateManager().set(title);
         }
@@ -318,7 +318,7 @@ public class ShaderPresetGUI {
     public void onSave() {
         if (presetsToBeDeleted.isEmpty()) return;
 
-        ShaderPresetConfig currentPreset = config.preset();
+        ShaderPresetConfig currentPreset = config.shaderPreset();
         for (ShaderPresetConfig preset : presetsToBeDeleted) {
             config.presets.remove(preset);
         }
