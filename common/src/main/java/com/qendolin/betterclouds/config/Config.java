@@ -103,7 +103,7 @@ public class Config {
     @SerialEntry
     public boolean useIrisFBO = true;
     @SerialEntry
-    public Renderer renderer = Renderer.OPENGL;
+    public Renderer renderer = Renderer.BLAZE3D;
     @SerialEntry
     public int selectedPreset = 0;
     @SerialEntry
