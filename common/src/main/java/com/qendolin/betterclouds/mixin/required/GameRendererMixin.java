@@ -30,11 +30,11 @@ public abstract class GameRendererMixin {
             @Local(name = "projectionMatrix") Matrix4f projectionMatrix,
             @Local(name = "bobStack") PoseStack bobStack
     ) {
-        Matrix4f capturedViewMatrix = new Matrix4f(modelViewMatrix);
+        Matrix4f capturedProjectionMatrix = new Matrix4f(projectionMatrix);
         if (IrisCompat.instance().isShadersEnabled()) {
-            // Iris moves bob/hurt from the projection matrix onto the model-view matrix right before LevelRenderer.renderLevel
-            capturedViewMatrix.mulLocal(bobStack.last().pose());
+            // Iris stores bob/hurt/nausea in bobStack, then moves it onto the model-view matrix before level rendering.
+            capturedProjectionMatrix.mul(bobStack.last().pose());
         }
-        CloudRenderCoordinator.instance.captureMatrices(capturedViewMatrix, projectionMatrix);
+        CloudRenderCoordinator.instance.captureMatrices(modelViewMatrix, capturedProjectionMatrix);
     }
 }
