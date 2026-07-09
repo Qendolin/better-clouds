@@ -260,12 +260,14 @@ public class Blaze3DRenderer extends CloudRenderer {
             b.putFloat(mappedTime / 24000);
         });
 
-        DistantHorizonsCompat.instance().getProjectionMatrix().get(tempMatrixCopyArr);
-        uDhProjMat.write(b -> {
-            for (float value : tempMatrixCopyArr) {
-                b.putFloat(value);
-            }
-        });
+        if (DistantHorizonsCompat.instance().isEnabled()) {
+            DistantHorizonsCompat.instance().getProjectionMatrix().get(tempMatrixCopyArr);
+            uDhProjMat.write(b -> {
+                for (float value : tempMatrixCopyArr) {
+                    b.putFloat(value);
+                }
+            });
+        }
 
         getProfiler().popPush("render_clouds");
         RenderTarget cloudsTarget = client.levelRenderer.cloudsTarget();
@@ -421,8 +423,7 @@ public class Blaze3DRenderer extends CloudRenderer {
     }
 
     @Override
-    public void close() {
-        super.close();
+    public void onClose() {
         generator.close();
         modelVertexBuffer.close();
         modelIndexBuffer.close();

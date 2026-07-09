@@ -487,8 +487,7 @@ public class OpenGLRenderer extends CloudRenderer {
         return ConfigManager.instance();
     }
 
-    public void close() {
-        super.close();
+    public void onClose() {
         if (buffer != null) {
             buffer.close();
             buffer = null;

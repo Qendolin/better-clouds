@@ -77,11 +77,22 @@ public abstract class CloudRenderer implements AutoCloseable {
 
     protected abstract void render(int ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum);
 
+    protected abstract void onClose();
+
     @Override
     public void close() {
+        if (closed) {
+            BetterCloudsStatic.getLogger().warn(getClass().getSimpleName() + " is already closed, skipping close");
+            return;
+        }
+        try {
+            onClose();
+            if (timer != null)
+                timer.close();
+        } catch (Exception e) {
+            BetterCloudsStatic.getLogger().error("Error while closing " + getClass().getSimpleName(), e);
+        }
         closed = true;
-        if (timer != null)
-            timer.close();
     }
 
     public long getWorldSeed() {
