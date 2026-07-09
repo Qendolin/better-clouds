@@ -36,20 +36,6 @@ public class ShaderPresetConfig extends AbstractPresetConfig {
     @SerialEntry
     public float opacityExponent = 1.5f;
     @SerialEntry
-    public float tintRed = 1f;
-    @SerialEntry
-    public float tintGreen = 1f;
-    @SerialEntry
-    public float tintBlue = 1f;
-    @SerialEntry
-    public float bottomTintRed = 0.75f;
-    @SerialEntry
-    public float bottomTintGreen = 0.75f;
-    @SerialEntry
-    public float bottomTintBlue = 0.75f;
-    @SerialEntry
-    public float bottomTransitionRange = 0.5f;
-    @SerialEntry
     public float topColorRed = 1f;
     @SerialEntry
     public float topColorGreen = 1f;
