@@ -62,10 +62,10 @@ public final class ModLoader {
             return modList.isLoaded(modId);
         }
         //? if >=1.21.9 {
-        /^LoadingModList loadingModList = FMLLoader.getCurrent().getLoadingModList();
-        ^///?} else {
-        LoadingModList loadingModList = LoadingModList.get();
-        //?}
+        LoadingModList loadingModList = FMLLoader.getCurrent().getLoadingModList();
+        //?} else {
+        /^LoadingModList loadingModList = LoadingModList.get();
+        ^///?}
         if(loadingModList != null) {
             return loadingModList.getModFileById(modId) != null;
         }
@@ -74,28 +74,28 @@ public final class ModLoader {
 
     public static boolean isDevelopmentEnvironment() {
         //? if >=1.21.9 {
-        /^return !FMLLoader.getCurrent().isProduction();
-        ^///?} else {
-        return !FMLLoader.isProduction();
-        //?}
+        return !FMLLoader.getCurrent().isProduction();
+        //?} else {
+        /^return !FMLLoader.isProduction();
+        ^///?}
     }
 
     public static boolean isClientEnvironment() {
         //? if >=1.21.9 {
-        /^return FMLLoader.getCurrent().getDist().isClient();
-        ^///?} else {
-        return FMLLoader.getDist().isClient();
-        //?}
+        return FMLLoader.getCurrent().getDist().isClient();
+        //?} else {
+        /^return FMLLoader.getDist().isClient();
+        ^///?}
     }
 
     public static ModVersion getModVersion(String modId) {
         ModList modList = ModList.get();
         if(modList == null) {
             //? if >=1.21.9 {
-            /^LoadingModList loadingModList = FMLLoader.getCurrent().getLoadingModList();
-             ^///?} else {
-            LoadingModList loadingModList = LoadingModList.get();
-            //?}
+            LoadingModList loadingModList = FMLLoader.getCurrent().getLoadingModList();
+             //?} else {
+            /^LoadingModList loadingModList = LoadingModList.get();
+            ^///?}
             for (ModInfo mod : loadingModList.getMods()) {
                 if(Objects.equals(mod.getModId(), modId)) {
                     return new ModVersionImpl(mod.getVersion());
