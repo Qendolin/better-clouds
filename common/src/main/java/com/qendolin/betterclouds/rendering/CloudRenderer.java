@@ -89,10 +89,10 @@ public abstract class CloudRenderer implements AutoCloseable {
             onClose();
             if (timer != null)
                 timer.close();
+            closed = true;
         } catch (Exception e) {
             BetterCloudsStatic.getLogger().error("Error while closing " + getClass().getSimpleName(), e);
         }
-        closed = true;
     }
 
     public long getWorldSeed() {
