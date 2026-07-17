@@ -17,7 +17,8 @@ import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
-import org.joml.*;
+import org.joml.Matrix4f;
+import org.joml.Vector3d;
 
 import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
 
@@ -41,9 +42,9 @@ public class CloudRenderCoordinator {
         return renderer;
     }
 
-    public void captureMatrices(Matrix4fc viewMatrix, Matrix4fc projectionMatrix) {
-        capturedViewMat = new Matrix4f(viewMatrix);
-        capturedProjMat = new Matrix4f(projectionMatrix);
+    public void captureMatrices(Matrix4f viewMatrix, Matrix4f projectionMatrix) {
+        capturedViewMat = viewMatrix;
+        capturedProjMat = projectionMatrix;
     }
 
     public void captureFrustum(CameraRenderState cameraState) {
