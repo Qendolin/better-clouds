@@ -153,7 +153,7 @@ public class ChunkedGenerator implements AutoCloseable {
             boolean cloudinessChanged = Math.ceil(cloudiness * 100) != Math.ceil(prevCloudiness * 100);
 
             if (optionsChanged || cloudinessChanged) {
-                BetterCloudsStatic.getLogger().info((optionsChanged ? "Configuration" : "Cloudiness") + " changed, updating geometry");
+                BetterCloudsStatic.getLogger().debug((optionsChanged ? "Configuration" : "Cloudiness") + " changed, updating geometry");
                 queueCacheClear = true;
             }
             updateGeometry = chunkChanged || optionsChanged || cloudinessChanged;
