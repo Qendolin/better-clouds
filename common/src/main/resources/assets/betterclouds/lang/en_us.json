@@ -140,6 +140,8 @@
   "betterclouds.config.entry.upscaleResolutionFactor.description" : "The resolution that is used for upscaling, for compatibility with shaders that support TAAU",
   "betterclouds.config.entry.useFrustumCulling" : "Frustum Culling",
   "betterclouds.config.entry.useFrustumCulling.description" : "Culls clouds not visible to the camera",
+  "betterclouds.config.entry.useFallbacks" : "Use graphics rendering fallbacks",
+  "betterclouds.config.entry.useFallbacks.description" : "If you are encountering graphical issues, this option §omight§r fix them. Restart required to take effect.",
   "betterclouds.config.entry.useIrisFBO" : "Use Iris FBO",
   "betterclouds.config.entry.useIrisFBO.description" : "Don't turn this off unless you are experiencing crashes",
   "betterclouds.config.entry.usePersistentBuffers" : "Persistent Buffers",

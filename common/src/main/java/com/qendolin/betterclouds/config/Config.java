@@ -111,6 +111,8 @@ public class Config {
     @SerialEntry
     public boolean gpuIncompatibleMessageEnabled = true;
     @SerialEntry
+    public boolean useFallbacks = false;
+    @SerialEntry
     public List<ResourceKey<DimensionType>> enabledDimensions = new ArrayList<>(getDefaultDimensions());
 
     @SuppressWarnings("unused")

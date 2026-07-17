@@ -3,6 +3,7 @@ package com.qendolin.betterclouds.compat;
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.platform.GLX;
 import com.qendolin.betterclouds.BetterCloudsStatic;
+import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.rendering.GraphicsCompat;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -473,7 +474,7 @@ public class GLCompat extends GraphicsCompat {
     }
 
     public boolean useBaseInstanceFallback() {
-        return useBaseInstanceFallback;
+        return useBaseInstanceFallback || ConfigManager.instance().useFallbacks;
     }
 
     public void setUseBaseInstanceFallback(boolean useBaseInstanceFallback) {
@@ -481,7 +482,7 @@ public class GLCompat extends GraphicsCompat {
     }
 
     public boolean useStencilTextureFallback() {
-        return useStencilTextureFallback;
+        return useStencilTextureFallback || ConfigManager.instance().useFallbacks;
     }
 
     public void setUseStencilTextureFallback(boolean useStencilTextureFallback) {
