@@ -93,9 +93,9 @@ jobs:
             --mod-loader "$ferium_mod_loader" \
             --output-dir "$PWD/run/mods"
           if [ "${{ matrix.loader }}" = "fabric" ]; then
-            sudo ferium add fabric-api
+            sudo ferium add fabric-api modmenu
           fi
-          sudo ferium add distanthorizons yacl iris modmenu sodium
+          sudo ferium add distanthorizons yacl iris sodium
           sudo ferium upgrade
 
       - name: Load client world
