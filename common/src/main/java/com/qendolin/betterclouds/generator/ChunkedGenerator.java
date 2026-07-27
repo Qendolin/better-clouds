@@ -29,8 +29,7 @@ public class ChunkedGenerator implements AutoCloseable {
     private Sampler sampler;
     private DummyCache pointCache;
     private double originX, originZ;
-    private long lastCloudTicks;
-    private int lastRendererTicks;
+    private long lastCloudTicks, lastRendererTicks;
     private float lastTickIncrement = 1;
     private Task queuedTask;
     @Nullable
@@ -124,7 +123,7 @@ public class ChunkedGenerator implements AutoCloseable {
         writePoints.clear();
     }
 
-    public synchronized void update(Vector3d camera, long cloudTicks, int rendererTicks, float tickDelta, Config options, float cloudiness) {
+    public synchronized void update(Vector3d camera, long cloudTicks, long rendererTicks, float tickDelta, Config options, float cloudiness) {
         originX = RandomPath.getPathX(cloudTicks, tickDelta * lastTickIncrement, options.travelSpeed);
         originZ = RandomPath.getPathZ(cloudTicks, tickDelta * lastTickIncrement, options.travelSpeed);
 
@@ -139,8 +138,6 @@ public class ChunkedGenerator implements AutoCloseable {
 
         int chunkX = floorCloudChunk(worldOriginX, options.chunkSize);
         int chunkZ = floorCloudChunk(worldOriginZ, options.chunkSize);
-
-        float distance = options.blockDistance();
 
         boolean updateGeometry;
         if (queuedTask != null || runningTask != null || completedTask != null) {

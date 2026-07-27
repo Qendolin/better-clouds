@@ -21,7 +21,7 @@ public class Debug {
     public static boolean frustumCulling = false;
     public static boolean generatorPause = false;
     // -1 to disable, 0 to initialize, paused tick otherwise
-    public static int animationPause = -1;
+    public static long animationPause = -1;
     public static boolean generatorForceUpdate = false;
     public static int generatorChangeCacheSize;
     private static BuiltBufferRenderer renderer = null;

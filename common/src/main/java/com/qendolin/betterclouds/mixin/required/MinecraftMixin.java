@@ -18,6 +18,9 @@ import static com.qendolin.betterclouds.compat.GLCompat.instance;
 public abstract class MinecraftMixin {
 
     @Shadow
+    private long clientTickCount;
+
+    @Shadow
     public abstract ResourceManager getResourceManager();
 
     @Inject(
@@ -26,6 +29,12 @@ public abstract class MinecraftMixin {
     )
     private void afterSwapBuffers(boolean advanceGameTime, CallbackInfo ci) {
         CaptureManager.onSwapBuffers();
+    }
+
+    @Inject(at = @At("TAIL"), method = "tick")
+    private void afterTick(CallbackInfo ci) {
+        // maybe switch to accessor? this is kinda cursed but it produces the minimal amount of code change
+        CloudRenderCoordinator.instance.clientTicks = clientTickCount;
     }
 
     @Inject(at = @At("TAIL"), method = "onResourceLoadFinished(Lnet/minecraft/client/GameLoadCookie;)V")

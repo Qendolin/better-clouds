@@ -119,7 +119,7 @@ public class OpenGLRenderer extends CloudRenderer {
         );
     }
 
-    public @NonNull PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, int rendererTicks, float tickDelta, Vector3d cam) {
+    public @NonNull PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, long cloudTicks, long rendererTicks, float tickDelta, Vector3d cam) {
         assert RenderSystem.isOnRenderThread();
         getProfiler().popPush("render_setup");
         Config config = ConfigManager.instance();
@@ -138,9 +138,8 @@ public class OpenGLRenderer extends CloudRenderer {
         }
 
         float cloudiness = CloudinessProvider.getCloudiness(level, tickDelta);
-        Config options = ConfigManager.instance();
 
-        res.generator().update(cam, options.getCloudTicks(client, rendererTicks), rendererTicks, tickDelta, options, cloudiness);
+        res.generator().update(cam, cloudTicks, rendererTicks, tickDelta, ConfigManager.instance(), cloudiness);
         if (res.generator().canSwap()) {
             getProfiler().popPush("swap");
             res.generator().swap();
@@ -188,7 +187,8 @@ public class OpenGLRenderer extends CloudRenderer {
 
     // Don't forget to push / pop matrix stack outside
     // Note: render must not return early, this will cause corruption because prepare binds stuff
-    public void render(int ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
+    @Override
+    public void render(long ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
         // In 1.21.3 render is called some time after prepare, so this may be false by now
         if (res.failedToLoadCritical()) return;
 

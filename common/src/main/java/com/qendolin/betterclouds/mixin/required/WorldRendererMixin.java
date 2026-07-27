@@ -20,7 +20,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = LevelRenderer.class, priority = 900)
 public abstract class WorldRendererMixin {
-
     @Accessor("targets")
     protected abstract LevelTargetBundle better_clouds$getTargets();
 
@@ -35,11 +34,12 @@ public abstract class WorldRendererMixin {
             cancellable = true
     )
     private void renderClouds(FrameGraphBuilder frame, CloudStatus cloudStatus, Vec3 cameraPosition, long gameTime, float partialTicks, int cloudColor, float cloudHeight, int cloudRange, CallbackInfo ci) {
-        if (CloudRenderCoordinator.instance.renderClouds(frame, better_clouds$getTargets(), cameraPosition, gameTime, partialTicks))
+        if (CloudRenderCoordinator.instance.renderClouds(frame, better_clouds$getTargets(), cameraPosition, partialTicks))
             ci.cancel();
     }
 
     // NF calls a different overload of addCloudsPass somehow
+    // 2026/7/27: this probably doesn't even work anymore, todo remove if the signature has changed
     @SuppressWarnings({ "MixinAnnotationTarget", "UnresolvedMixinReference" })
     @Inject(
             at = @At("HEAD"),
@@ -48,7 +48,7 @@ public abstract class WorldRendererMixin {
             require = 0     // silently fail if not neoforge
     )
     private void renderCloudsNeoForge(FrameGraphBuilder frameGraphBuilder, CloudStatus _mode, Vec3 cameraPos, long _seed, float _ticks, int _color, float _cloudHeight, int _cloudRenderMode, Matrix4fc _viewMatrix, CallbackInfo ci) {
-        if (CloudRenderCoordinator.instance.renderClouds(frameGraphBuilder, better_clouds$getTargets(), cameraPos, _seed, _ticks))
+        if (CloudRenderCoordinator.instance.renderClouds(frameGraphBuilder, better_clouds$getTargets(), cameraPos, _seed))
             ci.cancel();
     }
 

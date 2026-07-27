@@ -206,7 +206,7 @@ public class Config {
             selectedNoisePreset = noisePresets.indexOf(selected);
     }
 
-    public long getCloudTicks(Minecraft client, int rendererTicks) {
+    public long getCloudTicks(Minecraft client, long rendererTicks) {
         if (client.level == null) return rendererTicks;
         return switch (timeSource) {
             case WORLD -> client.level.getDefaultClockTime();

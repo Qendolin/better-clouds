@@ -31,6 +31,7 @@ public class CloudRenderCoordinator {
     public Matrix4f capturedViewMat;
     public Matrix4f capturedProjMat;
     public Frustum frustum;
+    public long clientTicks;
 
     public void initialize() {
         Minecraft client = Minecraft.getInstance();
@@ -60,7 +61,7 @@ public class CloudRenderCoordinator {
             renderer = GraphicsCompat.isOpenGL ? new OpenGLRenderer(Minecraft.getInstance()) : new Blaze3DRenderer(Minecraft.getInstance());
     }
 
-    public boolean renderClouds(FrameGraphBuilder frameGraphBuilder, LevelTargetBundle targets, Vec3 cameraPos, long gameTime, float ticksInput) {
+    public boolean renderClouds(FrameGraphBuilder frameGraphBuilder, LevelTargetBundle targets, Vec3 cameraPos, float ticksInput) {
         if (renderer == null) return false;
         try {
             if (IrisCompat.instance().isShadersEnabled() && !GraphicsCompat.isOpenGL) {
@@ -68,7 +69,7 @@ public class CloudRenderCoordinator {
                 Commands.sendIrisIncompatibleMessage();
                 return false;
             }
-            return renderCloudsInternal(frameGraphBuilder, targets, cameraPos, gameTime, ticksInput);
+            return renderCloudsInternal(frameGraphBuilder, targets, cameraPos, ticksInput);
         } catch (Exception e) {
             BetterCloudsStatic.getLogger().error("Failed to render clouds", e);
             Commands.sendCrashChatMessage();
@@ -78,7 +79,7 @@ public class CloudRenderCoordinator {
         return false;
     }
 
-    protected boolean renderCloudsInternal(FrameGraphBuilder frameGraphBuilder, LevelTargetBundle targets, Vec3 cameraPos, long gameTime, float ticksInput) {
+    protected boolean renderCloudsInternal(FrameGraphBuilder frameGraphBuilder, LevelTargetBundle targets, Vec3 cameraPos, float ticksInput) {
         double camX = cameraPos.x, camY = cameraPos.y, camZ = cameraPos.z;
         float tickDelta = Mth.frac(ticksInput);
         if (!shouldRenderClouds()) return false;
@@ -88,14 +89,15 @@ public class CloudRenderCoordinator {
 
         Vector3d cam = tempVector.set(camX, camY, camZ);
 
-        int ticks = (int) gameTime;
         if (Debug.animationPause >= 0) {
-            if (Debug.animationPause == 0) Debug.animationPause = ticks;
-            else ticks = Debug.animationPause;
+            if (Debug.animationPause == 0) Debug.animationPause = clientTicks;
+            else clientTicks = Debug.animationPause;
             tickDelta = 0;
         }
 
-        PrepareResult prepareResult = renderer.checkAndPrepare(capturedViewMat, capturedProjMat, ticks, tickDelta, cam);
+        long trueCloudTicks = ConfigManager.instance().getCloudTicks(Minecraft.getInstance(), clientTicks);
+        PrepareResult prepareResult = renderer.checkAndPrepare(capturedViewMat, capturedProjMat, trueCloudTicks, clientTicks, tickDelta, cam);
+
         if (RenderDoc.isFrameCapturing())
             GraphicsCompat.instance.debugMessage("renderer prepare returned " + prepareResult.name());
 
@@ -107,7 +109,7 @@ public class CloudRenderCoordinator {
                 targets.main = renderPass.readsAndWrites(targets.main);
             }
 
-            final int fticks = ticks;
+            final long fticks = trueCloudTicks;
             final float ftickDelta = tickDelta;
             renderPass.executes(() -> {
                 getProfiler().push("clouds");

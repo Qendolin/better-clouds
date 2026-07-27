@@ -45,7 +45,7 @@ public abstract class CloudRenderer implements AutoCloseable {
     public void reload(ResourceManager resourceManager) {
     }
 
-    public @NonNull PrepareResult checkAndPrepare(Matrix4f viewMat, Matrix4f projMat, int rendererTicks, float tickDelta, Vector3d cam) {
+    public @NonNull PrepareResult checkAndPrepare(Matrix4f viewMat, Matrix4f projMat, long cloudTicks, long clientTicks, float tickDelta, Vector3d cam) {
         if (!Objects.equals(level, client.level))
             setLevel(client.level);
         if (closed || level == null)
@@ -60,10 +60,10 @@ public abstract class CloudRenderer implements AutoCloseable {
             return PrepareResult.NO_RENDER;
 
         cloudHeight = level.environmentAttributes().getValue(EnvironmentAttributes.CLOUD_HEIGHT, new Vec3(cam.x, cam.y, cam.z)) + ConfigManager.instance().yOffset;
-        return prepare(viewMat, projMat, rendererTicks, tickDelta, cam);
+        return prepare(viewMat, projMat, cloudTicks, clientTicks, tickDelta, cam);
     }
 
-    public void checkAndRender(int ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
+    public void checkAndRender(long ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
         if (level == null)
             return;
 
@@ -72,10 +72,9 @@ public abstract class CloudRenderer implements AutoCloseable {
         stopTiming();
     }
 
-    protected @NonNull
-    abstract PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, int rendererTicks, float tickDelta, Vector3d cam);
+    public abstract @NonNull PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, long cloudTicks, long rendererTicks, float tickDelta, Vector3d cam);
 
-    protected abstract void render(int ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum);
+    protected abstract void render(long cloudTicks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum);
 
     protected abstract void onClose();
 
