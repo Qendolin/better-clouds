@@ -347,7 +347,7 @@ public class Blaze3DRenderer extends CloudRenderer {
                 .withBindGroupLayout(BindGroupLayouts.MATRICES_PROJECTION)
                 .withBindGroupLayout(SHADER_BIND_GROUP)
                 .withBindGroupLayout(DH_BIND_GROUP)
-                .withCull(isOpaque())
+                .withCull(false)
                 .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, isOpaque()))
                 .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
                 .build();
