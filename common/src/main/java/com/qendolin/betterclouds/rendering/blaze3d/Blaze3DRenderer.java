@@ -65,28 +65,28 @@ public class Blaze3DRenderer extends CloudRenderer {
     };
     public static final short[] CUBE_INDICES = {
             // back face, z = -1
-            0, 1, 2,
-            2, 3, 0,
+            2, 1, 0,
+            0, 3, 2,
 
             // front face, z = +1
-            6, 5, 4,
-            4, 7, 6,
+            4, 5, 6,
+            6, 7, 4,
 
             // left face, x = -1
-            4, 0, 3,
-            3, 7, 4,
+            3, 0, 4,
+            4, 7, 3,
 
             // right face, x = +1
-            1, 5, 6,
-            6, 2, 1,
+            6, 5, 1,
+            1, 2, 6,
 
             // bottom face, y = -1
-            4, 5, 1,
-            1, 0, 4,
+            1, 5, 4,
+            4, 0, 1,
 
             // top face, y = +1
-            3, 2, 6,
-            6, 7, 3
+            6, 2, 3,
+            3, 7, 6
     };
 
     final VertexFormat MODEL_FORMAT = VertexFormat.builder(0)
@@ -131,7 +131,7 @@ public class Blaze3DRenderer extends CloudRenderer {
         return RenderSystem.getDevice();
     }
 
-    private static boolean shouldCullCloudFaces() {
+    private static boolean isOpaque() {
         return ConfigManager.instance().shaderPreset().opacity > 0.975;
     }
 
@@ -347,8 +347,8 @@ public class Blaze3DRenderer extends CloudRenderer {
                 .withBindGroupLayout(BindGroupLayouts.MATRICES_PROJECTION)
                 .withBindGroupLayout(SHADER_BIND_GROUP)
                 .withBindGroupLayout(DH_BIND_GROUP)
-                .withCull(shouldCullCloudFaces())
-                .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, false))
+                .withCull(isOpaque())
+                .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, isOpaque()))
                 .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
                 .build();
 
@@ -467,7 +467,7 @@ public class Blaze3DRenderer extends CloudRenderer {
             Config options = ConfigManager.instance();
             return new PipelineParams(options.celestialBodyHalo, options.nearCloudFade,
                     IrisCompat.instance().isShadersEnabled(), DistantHorizonsCompat.instance().isEnabled()
-                    && DistantHorizonsCompat.instance().getDepthTexture() != null, shouldCullCloudFaces());
+                    && DistantHorizonsCompat.instance().getDepthTexture() != null, isOpaque());
         }
 
         public static boolean paramsChanged() {
