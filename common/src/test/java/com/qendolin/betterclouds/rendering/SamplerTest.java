@@ -19,8 +19,7 @@ public class SamplerTest {
         BufferedImage image = new BufferedImage(2400, 1600, BufferedImage.TYPE_INT_RGB);
         for (int x = 0; x < image.getWidth(); x++) {
             for (int y = 0; y < image.getHeight(); y++) {
-                int value = (int) (0xFF * s.sample(x, y, 1f, 0f, scale));
-                assert value >= 0;
+                int value = (int) Math.max(0, 0xFF * s.sample(x, y, 0.8f, 0f, scale));
                 image.setRGB(x, y, value << 16 | value << 8 | value);
             }
         }

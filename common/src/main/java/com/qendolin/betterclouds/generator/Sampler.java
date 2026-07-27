@@ -132,7 +132,7 @@ public class Sampler {
 
         value = value / 2 + 0.5;
         value = (value - (1 - cloudiness)) / cloudiness;
-        value *= smoothstep(-0.6 * cloudiness - 0.3, -0.6 * cloudiness, coverageNoise.getValue(x / 1024f, z / 1024f));
+        value *= smoothstep(-0.8 * cloudiness - 0.3, -0.8 * cloudiness, coverageNoise.getValue(x / 1024f, z / 1024f));
 
         float random = hashToFloat(seed, 'B', x, z);
         if (random > value + (BASE_FUZZINESS - fuzziness)) value = 0;
