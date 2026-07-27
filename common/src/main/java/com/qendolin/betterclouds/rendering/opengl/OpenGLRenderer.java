@@ -213,7 +213,7 @@ public class OpenGLRenderer extends CloudRenderer {
         glClearColor(0, 0, 0, 0);
         clearDepth();
         setDepthFuncGEqual();
-        drawCoverage(Math.floorMod(ticks, 320_000) + tickDelta, cam, frustumPos, frustum, fog);
+        drawCoverage(java.lang.Math.floorMod(ticks, 320_000) + tickDelta, cam, frustumPos, frustum, fog);
 
         // Draw to game framebuffer
         VanillaRenderTarget rt = new VanillaRenderTarget(client, config);
