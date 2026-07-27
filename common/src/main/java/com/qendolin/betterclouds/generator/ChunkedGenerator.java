@@ -29,7 +29,7 @@ public class ChunkedGenerator implements AutoCloseable {
     private Sampler sampler;
     private DummyCache pointCache;
     private double originX, originZ;
-    private long lastCloudTicks, lastRendererTicks;
+    private long lastCloudTicks, lastClientTicks;
     private float lastTickIncrement = 1;
     private Task queuedTask;
     @Nullable
@@ -123,14 +123,14 @@ public class ChunkedGenerator implements AutoCloseable {
         writePoints.clear();
     }
 
-    public synchronized void update(Vector3d camera, long cloudTicks, long rendererTicks, float tickDelta, Config options, float cloudiness) {
+    public synchronized void update(Vector3d camera, long cloudTicks, long clientTicks, float tickDelta, Config options, float cloudiness) {
         originX = RandomPath.getPathX(cloudTicks, tickDelta * lastTickIncrement, options.travelSpeed);
         originZ = RandomPath.getPathZ(cloudTicks, tickDelta * lastTickIncrement, options.travelSpeed);
 
-        if (rendererTicks != lastRendererTicks) {
+        if (clientTicks != lastClientTicks) {
             lastTickIncrement = cloudTicks - lastCloudTicks;
             lastCloudTicks = cloudTicks;
-            lastRendererTicks = rendererTicks;
+            lastClientTicks = clientTicks;
         }
 
         double worldOriginX = camera.x - this.originX;

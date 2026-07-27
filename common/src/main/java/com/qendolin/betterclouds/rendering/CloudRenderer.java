@@ -72,7 +72,7 @@ public abstract class CloudRenderer implements AutoCloseable {
         stopTiming();
     }
 
-    public abstract @NonNull PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, long cloudTicks, long rendererTicks, float tickDelta, Vector3d cam);
+    public abstract @NonNull PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, long cloudTicks, long clientTicks, float tickDelta, Vector3d cam);
 
     protected abstract void render(long cloudTicks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum);
 

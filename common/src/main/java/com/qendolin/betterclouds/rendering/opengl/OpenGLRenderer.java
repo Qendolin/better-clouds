@@ -119,7 +119,7 @@ public class OpenGLRenderer extends CloudRenderer {
         );
     }
 
-    public @NonNull PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, long cloudTicks, long rendererTicks, float tickDelta, Vector3d cam) {
+    public @NonNull PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, long cloudTicks, long clientTicks, float tickDelta, Vector3d cam) {
         assert RenderSystem.isOnRenderThread();
         getProfiler().popPush("render_setup");
         Config config = ConfigManager.instance();
@@ -139,7 +139,7 @@ public class OpenGLRenderer extends CloudRenderer {
 
         float cloudiness = CloudinessProvider.getCloudiness(level, tickDelta);
 
-        res.generator().update(cam, cloudTicks, rendererTicks, tickDelta, ConfigManager.instance(), cloudiness);
+        res.generator().update(cam, cloudTicks, clientTicks, tickDelta, ConfigManager.instance(), cloudiness);
         if (res.generator().canSwap()) {
             getProfiler().popPush("swap");
             res.generator().swap();

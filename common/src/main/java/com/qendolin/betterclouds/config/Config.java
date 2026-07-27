@@ -206,12 +206,12 @@ public class Config {
             selectedNoisePreset = noisePresets.indexOf(selected);
     }
 
-    public long getCloudTicks(Minecraft client, long rendererTicks) {
-        if (client.level == null) return rendererTicks;
+    public long getCloudTicks(Minecraft client, long clientTicks) {
+        if (client.level == null) return clientTicks;
         return switch (timeSource) {
             case WORLD -> client.level.getDefaultClockTime();
             case PLAYTIME -> client.level.getGameTime();
-            case RENDERER -> rendererTicks;
+            case RENDERER -> clientTicks;
         };
     }
 

@@ -151,7 +151,7 @@ public class Blaze3DRenderer extends CloudRenderer {
     }
 
     @Override
-    public @NonNull PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, long cloudTicks, long rendererTicks, float tickDelta, Vector3d cam) {
+    public @NonNull PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, long cloudTicks, long clientTicks, float tickDelta, Vector3d cam) {
         getProfiler().popPush("render_setup");
 
         if (PipelineParams.paramsChanged()) {
@@ -163,7 +163,7 @@ public class Blaze3DRenderer extends CloudRenderer {
         float cloudiness = CloudinessProvider.getCloudiness(level, tickDelta);
         Config options = ConfigManager.instance();
 
-        generator.update(cam, cloudTicks, rendererTicks, tickDelta, options, cloudiness);
+        generator.update(cam, cloudTicks, clientTicks, tickDelta, options, cloudiness);
         if (generator.canSwap()) {
             getProfiler().popPush("swap");
             generator.swap();
@@ -181,7 +181,7 @@ public class Blaze3DRenderer extends CloudRenderer {
     }
 
     @Override
-    public void render(long ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
+    public void render(long cloudTicks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
         getProfiler().popPush("render_setup");
 
         Config config = ConfigManager.instance();
@@ -189,7 +189,7 @@ public class Blaze3DRenderer extends CloudRenderer {
         var sp = config.shaderPreset();
         FogProvider.Fog fog = FogProvider.instance.getFog(client, config, tickDelta);
 
-        float cloudTimeSeconds = Math.floorMod(ticks, CLOUD_TIME_PERIOD_TICKS) / 20f + tickDelta / 20f;
+        float cloudTimeSeconds = Math.floorMod(cloudTicks, CLOUD_TIME_PERIOD_TICKS) / 20f + tickDelta / 20f;
         float dayNightFactor = MathUtil.interpolateDayNightFactor(dayTime(), config.shaderPreset().sunriseStartTime, config.shaderPreset().sunriseEndTime, config.shaderPreset().sunsetStartTime, config.shaderPreset().sunsetEndTime);
         float brightness = (1 - dayNightFactor) * config.shaderPreset().nightBrightness + dayNightFactor * config.shaderPreset().dayBrightness;
         Vector3f effectTint = EffectTintProvider.getEffectTint(client, fog, tickDelta, cam);
