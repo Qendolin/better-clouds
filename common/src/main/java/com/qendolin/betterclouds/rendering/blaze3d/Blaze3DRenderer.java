@@ -69,8 +69,8 @@ public class Blaze3DRenderer extends CloudRenderer {
             2, 3, 0,
 
             // front face, z = +1
-            4, 5, 6,
-            6, 7, 4,
+            6, 5, 4,
+            4, 7, 6,
 
             // left face, x = -1
             4, 0, 3,
@@ -131,6 +131,10 @@ public class Blaze3DRenderer extends CloudRenderer {
         return RenderSystem.getDevice();
     }
 
+    private static boolean shouldCullCloudFaces() {
+        return ConfigManager.instance().shaderPreset().opacity > 0.975;
+    }
+
     @Override
     public void setLevel(ClientLevel level) {
         if (level == null) return;
@@ -152,7 +156,7 @@ public class Blaze3DRenderer extends CloudRenderer {
 
         if (PipelineParams.paramsChanged()) {
             BetterCloudsStatic.getLogger().info("Pipeline parameters changed, reloading pipeline");
-            BetterCloudsStatic.getLogger().debug("Current: " + PipelineParams.prevParams);
+            BetterCloudsStatic.getLogger().info("Current: " + PipelineParams.prevParams);
             reload(null);
         }
 
@@ -343,7 +347,7 @@ public class Blaze3DRenderer extends CloudRenderer {
                 .withBindGroupLayout(BindGroupLayouts.MATRICES_PROJECTION)
                 .withBindGroupLayout(SHADER_BIND_GROUP)
                 .withBindGroupLayout(DH_BIND_GROUP)
-                .withCull(false)
+                .withCull(shouldCullCloudFaces())
                 .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, false))
                 .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
                 .build();
@@ -456,14 +460,14 @@ public class Blaze3DRenderer extends CloudRenderer {
     }
 
     public record PipelineParams(boolean celestialBodyHalo, boolean nearCloudFade, boolean iris,
-                                 boolean distantHorizons) {
+                                 boolean distantHorizons, boolean faceCulling) {
         private static PipelineParams prevParams;
 
         public static PipelineParams getParameters() {
             Config options = ConfigManager.instance();
             return new PipelineParams(options.celestialBodyHalo, options.nearCloudFade,
-                    IrisCompat.instance().isShadersEnabled(),
-                    DistantHorizonsCompat.instance().isEnabled() && DistantHorizonsCompat.instance().getDepthTexture() != null);
+                    IrisCompat.instance().isShadersEnabled(), DistantHorizonsCompat.instance().isEnabled()
+                    && DistantHorizonsCompat.instance().getDepthTexture() != null, shouldCullCloudFaces());
         }
 
         public static boolean paramsChanged() {
