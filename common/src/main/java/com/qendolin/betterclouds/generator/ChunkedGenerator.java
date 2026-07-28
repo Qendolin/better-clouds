@@ -45,8 +45,8 @@ public class ChunkedGenerator implements AutoCloseable {
 
         Config options = ConfigManager.instance();
         int gridWidth = (int) Math.ceil(options.blockDistance() / options.spacing / options.chunkSize * 2);
-        // default capacity: number of chunks in the grid + some extra just in case
-        pointCache = options.useSamplerCaching ? new ChunkCache(gridWidth * gridWidth + 3) : new DummyCache();
+        // default capacity: number of chunks in the grid + 1 extra
+        pointCache = options.useSamplerCaching ? new ChunkCache(gridWidth * gridWidth + 1) : new DummyCache();
     }
 
     private static int floorCloudChunk(double coord, int chunkSize) {
