@@ -5,7 +5,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.Commands;
 import com.qendolin.betterclouds.compat.GLCompat;
-import com.qendolin.betterclouds.generator.ChunkedGenerator;
 import com.qendolin.betterclouds.rendering.GraphicsCompat;
 import com.qendolin.betterclouds.rendering.opengl.internal.Mesh;
 import com.qendolin.betterclouds.rendering.opengl.shaders.*;
@@ -32,8 +31,6 @@ public class Resources implements Closeable {
     private CoverageShader coverageShader = null;
     private ShadingShader shadingShader = null;
     private DebugShader debugShader = null;
-    // Generator
-    private ChunkedGenerator generator = null;
     // Meshes
     private int cubeVbo;
     private int cubeVao;
@@ -54,10 +51,6 @@ public class Resources implements Closeable {
 
     public static void unbindVbo() {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
-    }
-
-    public ChunkedGenerator generator() {
-        return generator;
     }
 
     public DepthShader depthShader() {
@@ -108,7 +101,6 @@ public class Resources implements Closeable {
         if (depthShader == null || coverageShader == null || shadingShader == null) return true;
         if (depthShader.isIncomplete() || coverageShader.isIncomplete() || shadingShader.isIncomplete() || debugShader.isIncomplete())
             return true;
-        if (generator == null) return true;
         if (oitFbo == UNASSIGNED) return true;
         if (oitDataTexture == UNASSIGNED || oitCoverageTexture == UNASSIGNED)
             return true;
@@ -161,18 +153,6 @@ public class Resources implements Closeable {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         GlStateManager._bindTexture(0);
-    }
-
-    public void reloadGenerator(long seed, boolean fancy) {
-        deleteGenerator();
-
-        generator = new ChunkedGenerator(seed);
-        generator.clear();
-    }
-
-    public void deleteGenerator() {
-        if (generator != null) generator.close();
-        generator = null;
     }
 
     public void reloadFramebuffer(int width, int height) {
@@ -351,7 +331,6 @@ public class Resources implements Closeable {
     public void close() {
         deleteFramebuffer();
         deleteMeshPrimitives();
-        deleteGenerator();
         deleteShaders();
     }
 }

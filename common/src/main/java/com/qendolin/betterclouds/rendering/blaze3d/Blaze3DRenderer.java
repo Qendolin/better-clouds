@@ -16,7 +16,8 @@ import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.generator.ChunkedGenerator;
-import com.qendolin.betterclouds.mixin.provider.*;
+import com.qendolin.betterclouds.mixin.provider.EffectTintProvider;
+import com.qendolin.betterclouds.mixin.provider.FogProvider;
 import com.qendolin.betterclouds.rendering.*;
 import com.qendolin.betterclouds.rendering.opengl.Debug;
 import com.qendolin.betterclouds.rendering.opengl.Resources;
@@ -49,8 +50,6 @@ import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
  * Rendering is hard
  */
 public class Blaze3DRenderer extends CloudRenderer {
-    public static final int CLOUD_TIME_PERIOD_TICKS = 320_000;
-
     public static final float[] CUBE_VERTICES = {
             // x,    y,    z
             -0.5f, -0.5f, -0.5f, // 0: left  bottom back
@@ -146,10 +145,6 @@ public class Blaze3DRenderer extends CloudRenderer {
         buildRenderPipeline();
     }
 
-    private void reloadGenerator() {
-        generator = new ChunkedGenerator(getWorldSeed());
-    }
-
     @Override
     public @NonNull PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, long cloudTicks, long clientTicks, float tickDelta, Vector3d cam) {
         getProfiler().popPush("render_setup");
@@ -158,22 +153,6 @@ public class Blaze3DRenderer extends CloudRenderer {
             BetterCloudsStatic.getLogger().info("Pipeline parameters changed, reloading pipeline");
             BetterCloudsStatic.getLogger().info("Current: " + PipelineParams.prevParams);
             reload(null);
-        }
-
-        float cloudiness = CloudinessProvider.getCloudiness(level, tickDelta);
-        Config options = ConfigManager.instance();
-
-        generator.update(cam, cloudTicks, clientTicks, tickDelta, options, cloudiness);
-        if (generator.canSwap()) {
-            getProfiler().popPush("swap");
-            generator.swap();
-            updateCloudPositionsBuffer();
-            getProfiler().popPush("render_setup");
-        }
-        if (generator.canGenerate() && !generator.generating() && !Debug.generatorPause) {
-            getProfiler().popPush("generate_clouds");
-            generator.generate();
-            getProfiler().popPush("render_setup");
         }
 
         if (worldCloudPosBuffer.size() <= 0) return PrepareResult.NO_RENDER;
@@ -189,7 +168,7 @@ public class Blaze3DRenderer extends CloudRenderer {
         var sp = config.shaderPreset();
         FogProvider.Fog fog = FogProvider.instance.getFog(client, config, tickDelta);
 
-        float cloudTimeSeconds = Math.floorMod(cloudTicks, CLOUD_TIME_PERIOD_TICKS) / 20f + tickDelta / 20f;
+        float cloudTimeSeconds = cloudTicks / 20f;
         float dayNightFactor = MathUtil.interpolateDayNightFactor(dayTime(), config.shaderPreset().sunriseStartTime, config.shaderPreset().sunriseEndTime, config.shaderPreset().sunsetStartTime, config.shaderPreset().sunsetEndTime);
         float brightness = (1 - dayNightFactor) * config.shaderPreset().nightBrightness + dayNightFactor * config.shaderPreset().dayBrightness;
         Vector3f effectTint = EffectTintProvider.getEffectTint(client, fog, tickDelta, cam);
@@ -396,7 +375,7 @@ public class Blaze3DRenderer extends CloudRenderer {
         }
     }
 
-    public void updateCloudPositionsBuffer() {
+    public void uploadPointsToBuffer() {
         if (generator.points().isEmpty()) return;
 
         worldCloudPosBuffer.recreate(

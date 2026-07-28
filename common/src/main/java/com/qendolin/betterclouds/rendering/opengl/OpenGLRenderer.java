@@ -7,7 +7,8 @@ import com.qendolin.betterclouds.compat.*;
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.generator.ChunkedGenerator;
-import com.qendolin.betterclouds.mixin.provider.*;
+import com.qendolin.betterclouds.mixin.provider.EffectTintProvider;
+import com.qendolin.betterclouds.mixin.provider.FogProvider;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import com.qendolin.betterclouds.rendering.*;
 import com.qendolin.betterclouds.rendering.opengl.internal.Buffer;
@@ -49,7 +50,8 @@ public class OpenGLRenderer extends CloudRenderer {
         dst.set(src);
     }
 
-    private static int calcBufferSize(Config options) {
+    private static int calcBufferSize() {
+        Config options = ConfigManager.instance();
         int distance = options.blockDistance();
         int size = Mth.floor(distance / options.spacing) + Mth.ceil(distance / options.spacing);
         return size > 0 ? size : 8 * 16;
@@ -61,8 +63,8 @@ public class OpenGLRenderer extends CloudRenderer {
         shaderParameters = createShaderParameters(ConfigManager.instance());
         res.reloadShaders(manager, shaderParameters);
         BetterCloudsStatic.getLogger().info("[2/6] Reloading generator");
-        res.reloadGenerator(getWorldSeed(), useCubeClouds());
-        reloadBuffer(ConfigManager.instance(), useCubeClouds());
+        reloadGenerator();
+        reloadBuffer();
         BetterCloudsStatic.getLogger().info("[3/6] Reloading textures");
         res.reloadTextures(client);
         BetterCloudsStatic.getLogger().info("[4/6] Reloading primitive meshes");
@@ -72,6 +74,15 @@ public class OpenGLRenderer extends CloudRenderer {
         BetterCloudsStatic.getLogger().info("[6/6] Reloading timers");
         reloadTimer();
         BetterCloudsStatic.getLogger().info("Cloud renderer initialized");
+    }
+
+    private void reloadBuffer() {
+        if (buffer != null && !buffer.hasChanged(calcBufferSize(), useCubeClouds(), ConfigManager.instance().usePersistentBuffers))
+            return;
+        BetterCloudsStatic.getLogger().debug("Reloading buffer");
+        if (buffer != null) buffer.close();
+        buffer = new Buffer(calcBufferSize(), useCubeClouds(), ConfigManager.instance().usePersistentBuffers);
+        buffer.unbind();
     }
 
     public Resources resources() {
@@ -86,23 +97,11 @@ public class OpenGLRenderer extends CloudRenderer {
         return (int) (ConfigManager.instance().shaderPreset().upscaleResolutionFactor * client.gameRenderer.mainRenderTarget().height);
     }
 
-    private void reloadBuffer(Config options, boolean fancy) {
-        if (buffer != null) buffer.close();
-        buffer = new Buffer(calcBufferSize(options), fancy, options.usePersistentBuffers);
-        buffer.unbind();
-    }
-
-    private boolean reallocateBufferIfStale(Config options, boolean fancy) {
-        if (buffer == null || buffer.hasChanged(calcBufferSize(options), fancy, options.usePersistentBuffers)) {
-            reloadBuffer(options, fancy);
-            return true;
-        }
-        return false;
-    }
-
-    private void uploadPointsToBuffer(List<ChunkedGenerator.Point> points) {
+    public void uploadPointsToBuffer() {
+        reloadBuffer();
         buffer.clear();
-        for (ChunkedGenerator.Point point : points) {
+
+        for (ChunkedGenerator.Point point : generator.points()) {
             buffer.put(point.x(), point.y(), point.z());
         }
         buffer.swap();
@@ -129,31 +128,11 @@ public class OpenGLRenderer extends CloudRenderer {
             return PrepareResult.FALLBACK;
         }
 
-        boolean reallocatedBuffer = reallocateBufferIfStale(config, useCubeClouds());
         buffer.bind();
         ShaderParameters currentShaderParameters = createShaderParameters(config);
         if (!Objects.equals(currentShaderParameters, shaderParameters)) {
             shaderParameters = currentShaderParameters;
             res.reloadShaders(client.getResourceManager(), shaderParameters);
-        }
-
-        float cloudiness = CloudinessProvider.getCloudiness(level, tickDelta);
-
-        res.generator().update(cam, cloudTicks, clientTicks, tickDelta, ConfigManager.instance(), cloudiness);
-        if (res.generator().canSwap()) {
-            getProfiler().popPush("swap");
-            res.generator().swap();
-            uploadPointsToBuffer(res.generator().points());
-            reallocatedBuffer = false;
-            getProfiler().popPush("render_setup");
-        }
-        if (res.generator().canGenerate() && !res.generator().generating() && !Debug.generatorPause) {
-            getProfiler().popPush("generate_clouds");
-            res.generator().generate();
-            getProfiler().popPush("render_setup");
-        }
-        if (reallocatedBuffer && res.generator().canRender()) {
-            uploadPointsToBuffer(res.generator().points());
         }
 
         // This is fixes issue #14, not entirely sure why, but it forces the matrix to be homogenous
@@ -171,7 +150,7 @@ public class OpenGLRenderer extends CloudRenderer {
         rotationProjectionMatrix.set(projMat);
         rotationProjectionMatrix.mul(tempMatrix);
 
-        tempMatrix.translate((float) res.generator().renderOriginX(cam.x), (float) (cloudHeight - cam.y), (float) res.generator().renderOriginZ(cam.z));
+        tempMatrix.translate((float) generator.renderOriginX(cam.x), (float) (cloudHeight - cam.y), (float) generator.renderOriginZ(cam.z));
         tempMatrix.m33(1);
 
         pMatrix.set(projMat);
@@ -297,7 +276,7 @@ public class OpenGLRenderer extends CloudRenderer {
 
         res.coverageShader().bind();
         res.coverageShader().uMVPMatrix.setMat4(mvpMatrix);
-        res.coverageShader().uOriginOffset.setVec3((float) -res.generator().renderOriginX(cam.x), (float) cam.y - cloudHeight, (float) -res.generator().renderOriginZ(cam.z));
+        res.coverageShader().uOriginOffset.setVec3((float) -generator.renderOriginX(cam.x), (float) cam.y - cloudHeight, (float) -generator.renderOriginZ(cam.z));
         res.coverageShader().uBoundingBox.setVec4((float) cam.x, (float) cam.z, generatorConfig.blockDistance() - generatorConfig.chunkSize / 2f, generatorConfig.yRange + config.sizeY);
         res.coverageShader().uTime.setFloat(ticks / 20);
         res.coverageShader().uMiscellaneous.setVec3(config.scaleFalloffMin, config.windEffectFactor, config.windSpeedFactor);
@@ -342,9 +321,9 @@ public class OpenGLRenderer extends CloudRenderer {
 
         setFrustumTo(tempFrustum, frustum);
         Frustum frustumAtOrigin = tempFrustum;
-        frustumAtOrigin.prepare(frustumPos.x - res.generator().originX(), frustumPos.y, frustumPos.z - res.generator().originZ());
+        frustumAtOrigin.prepare(frustumPos.x - generator.originX(), frustumPos.y, frustumPos.z - generator.originZ());
 
-        if (!res.generator().canRender()) {
+        if (!generator.canRender()) {
             GlStateManager._enableCull();
             return;
         }
@@ -370,7 +349,7 @@ public class OpenGLRenderer extends CloudRenderer {
         // This is possible due to the memory layout of the instance buffers.
         int runStart = -1;
         int runCount = 0;
-        for (ChunkedGenerator.ChunkIndex chunk : res.generator().chunks()) {
+        for (ChunkedGenerator.ChunkIndex chunk : generator.chunks()) {
             AABB bounds = chunk.bounds(cloudHeight, config.sizeXZ, config.sizeY);
             if (!frustumAtOrigin.isVisible(bounds)) {
                 Debug.addFrustumCulledBox(bounds, false);
@@ -398,7 +377,7 @@ public class OpenGLRenderer extends CloudRenderer {
 
     private void drawCloudsWithoutFrustumCulling() {
 
-        List<ChunkedGenerator.ChunkIndex> chunks = res.generator().chunks();
+        List<ChunkedGenerator.ChunkIndex> chunks = generator.chunks();
         if (chunks.isEmpty()) return;
         ChunkedGenerator.ChunkIndex first = chunks.getFirst();
         ChunkedGenerator.ChunkIndex last = chunks.getLast();
@@ -482,7 +461,7 @@ public class OpenGLRenderer extends CloudRenderer {
     }
 
     private Config getGeneratorConfig() {
-        Config config = res.generator().config();
+        Config config = generator.config();
         if (config != null) return config;
         return ConfigManager.instance();
     }

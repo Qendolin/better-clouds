@@ -5,6 +5,7 @@ import com.qendolin.betterclouds.compat.ArsNouveauCompat;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.generator.ChunkedGenerator;
 import com.qendolin.betterclouds.mixin.duck.BiomeManagerDuck;
+import com.qendolin.betterclouds.mixin.provider.CloudinessProvider;
 import com.qendolin.betterclouds.rendering.opengl.Debug;
 import com.qendolin.betterclouds.util.ChatUtil;
 import net.minecraft.client.CloudStatus;
@@ -21,7 +22,11 @@ import org.jspecify.annotations.NonNull;
 
 import java.util.Objects;
 
+import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
+
 public abstract class CloudRenderer implements AutoCloseable {
+    public static final int CLOUD_TIME_PERIOD_TICKS = 320_000;
+
     protected final Minecraft client;
     protected ChunkedGenerator generator;
     protected ClientLevel level;
@@ -33,6 +38,7 @@ public abstract class CloudRenderer implements AutoCloseable {
         this.client = client;
         if (GraphicsCompat.isOpenGL)
             this.timer = new PerfTimer();
+        reloadGenerator();
     }
 
     public long dayTime() {
@@ -43,6 +49,10 @@ public abstract class CloudRenderer implements AutoCloseable {
     }
 
     public void reload(ResourceManager resourceManager) {
+    }
+
+    public void reloadGenerator() {
+        generator = new ChunkedGenerator(getWorldSeed());
     }
 
     public @NonNull PrepareResult checkAndPrepare(Matrix4f viewMat, Matrix4f projMat, long cloudTicks, long clientTicks, float tickDelta, Vector3d cam) {
@@ -150,4 +160,23 @@ public abstract class CloudRenderer implements AutoCloseable {
     public void setLevel(ClientLevel level) {
         this.level = level;
     }
+
+    public void updateGenerator(Vector3d cam, long cloudTicks, long clientTicks, float tickDelta) {
+        float cloudiness = CloudinessProvider.getCloudiness(level, tickDelta);
+
+        generator.update(cam, cloudTicks, clientTicks, tickDelta, ConfigManager.instance(), cloudiness);
+        if (generator.canSwap()) {
+            getProfiler().popPush("swap");
+            generator.swap();
+            uploadPointsToBuffer();
+            getProfiler().popPush("render_setup");
+        }
+        if (generator.canGenerate() && !generator.generating() && !Debug.generatorPause) {
+            getProfiler().popPush("generate_clouds");
+            generator.generate();
+            getProfiler().popPush("render_setup");
+        }
+    }
+
+    public abstract void uploadPointsToBuffer();
 }

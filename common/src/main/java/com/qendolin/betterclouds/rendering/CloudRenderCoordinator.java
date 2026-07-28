@@ -55,10 +55,9 @@ public class CloudRenderCoordinator {
     }
 
     public void reload(ResourceManager manager) {
-        if (renderer != null)
-            renderer.reload(manager);
-        else
+        if (renderer == null)
             renderer = GraphicsCompat.isOpenGL ? new OpenGLRenderer(Minecraft.getInstance()) : new Blaze3DRenderer(Minecraft.getInstance());
+        renderer.reload(manager);
     }
 
     public boolean renderClouds(FrameGraphBuilder frameGraphBuilder, LevelTargetBundle targets, Vec3 cameraPos, float ticksInput) {
@@ -96,7 +95,10 @@ public class CloudRenderCoordinator {
         }
 
         long trueCloudTicks = ConfigManager.instance().getCloudTicks(Minecraft.getInstance(), clientTicks);
-        PrepareResult prepareResult = renderer.checkAndPrepare(capturedViewMat, capturedProjMat, trueCloudTicks, clientTicks, tickDelta, cam);
+        long clampedCloudTicks = Math.floorMod(trueCloudTicks, CloudRenderer.CLOUD_TIME_PERIOD_TICKS);
+
+        renderer.updateGenerator(cam, trueCloudTicks, clientTicks, tickDelta);
+        PrepareResult prepareResult = renderer.checkAndPrepare(capturedViewMat, capturedProjMat, clampedCloudTicks, clientTicks, tickDelta, cam);
 
         if (RenderDoc.isFrameCapturing())
             GraphicsCompat.instance.debugMessage("renderer prepare returned " + prepareResult.name());
@@ -109,7 +111,7 @@ public class CloudRenderCoordinator {
                 targets.main = renderPass.readsAndWrites(targets.main);
             }
 
-            final long fticks = trueCloudTicks;
+            final long fticks = clampedCloudTicks;
             final float ftickDelta = tickDelta;
             renderPass.executes(() -> {
                 getProfiler().push("clouds");
