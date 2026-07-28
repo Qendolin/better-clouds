@@ -44,9 +44,9 @@ public class ChunkedGenerator implements AutoCloseable {
         this.seed = seed;
 
         Config options = ConfigManager.instance();
-        int gridWidth = (int) (options.blockDistance() / options.spacing / options.chunkSize * 2);
-        // default capacity: number of chunks in the grid + some extra for when camera position changes
-        pointCache = options.useSamplerCaching ? new ChunkCache(gridWidth * gridWidth + gridWidth * 2) : new DummyCache();
+        int gridWidth = (int) Math.ceil(options.blockDistance() / options.spacing / options.chunkSize * 2);
+        // default capacity: number of chunks in the grid + some extra just in case
+        pointCache = options.useSamplerCaching ? new ChunkCache(gridWidth * gridWidth + 3) : new DummyCache();
     }
 
     private static int floorCloudChunk(double coord, int chunkSize) {
@@ -346,33 +346,34 @@ public class ChunkedGenerator implements AutoCloseable {
 
             int distance = options.blockDistance();
             float spacing = options.spacing;
+            int chunkSize = options.chunkSize;
 
             // relative sample-grid range centered around this task's origin chunk
             int gridMin = -Mth.floor(distance / spacing);
             int gridMax = Mth.ceil(distance / spacing);
 
             // relative sample-grid chunks generated for this task
-            int chunkMin = roundToMultiple(gridMin, options.chunkSize);
-            int chunkMax = roundToMultiple(gridMax, options.chunkSize);
+            int chunkMin = Math.floorDiv(gridMin, chunkSize) * chunkSize;
+            int chunkMax = Math.ceilDiv(gridMax, chunkSize) * chunkSize;
 
             // global/world sample-grid origin of this task's origin chunk
-            int gridOriginX = Mth.floor((chunkX * options.chunkSize) / spacing);
-            int gridOriginZ = Mth.floor((chunkZ * options.chunkSize) / spacing);
+            int gridOriginX = Mth.floor((chunkX * chunkSize) / spacing);
+            int gridOriginZ = Mth.floor((chunkZ * chunkSize) / spacing);
 
             generator.writePoints.clear();
             cacheHit = 0;
             cacheMiss = 0;
 
             // The outer loop generates chunks
-            for (int chunkX = chunkMin; chunkX < chunkMax; chunkX += options.chunkSize) {
-                for (int chunkZ = chunkMin; chunkZ < chunkMax; chunkZ += options.chunkSize) {
+            for (int chunkX = chunkMin; chunkX < chunkMax; chunkX += chunkSize) {
+                for (int chunkZ = chunkMin; chunkZ < chunkMax; chunkZ += chunkSize) {
                     int chunkCloudIndex = cloudCount;
 
                     int globalChunkX = chunkX + gridOriginX;
                     int globalChunkZ = chunkZ + gridOriginZ;
                     long cacheKey = cacheHash(
-                            Math.floorDiv(globalChunkX, options.chunkSize),
-                            Math.floorDiv(globalChunkZ, options.chunkSize)
+                            Math.floorDiv(globalChunkX, chunkSize),
+                            Math.floorDiv(globalChunkZ, chunkSize)
                     );
 
                     SamplePoints samplePoints = generator.pointCache.get(cacheKey);
@@ -391,9 +392,9 @@ public class ChunkedGenerator implements AutoCloseable {
 
                     for (AABB point : samplePoints.points()) {
                         generator.writePoints.add(new Point(
-                                (float) (point.minX - this.chunkX * options.chunkSize),
+                                (float) (point.minX - this.chunkX * chunkSize),
                                 (float) point.minY,
-                                (float) (point.minZ - this.chunkZ * options.chunkSize)
+                                (float) (point.minZ - this.chunkZ * chunkSize)
                         ));
                     }
                     cloudCount += samplePoints.points().size();
@@ -477,10 +478,6 @@ public class ChunkedGenerator implements AutoCloseable {
             }
 
             return new SamplePoints(bounds, points);
-        }
-
-        private int roundToMultiple(int n, int base) {
-            return Math.floorDiv(n, base) * base;
         }
     }
 
