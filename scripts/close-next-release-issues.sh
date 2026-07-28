@@ -1,9 +1,9 @@
 gh issue list \
   --label fixed-in-next-release \
   --state open \
-  --limit 5 \
+  --limit 20 \
   --json number \
   --jq '.[].number' |
 while read -r issue; do
-  gh issue close "$issue" --comment "The next release has been published, closing"
+  gh issue close "$issue" --comment "The next release is out on [Modrinth](https://modrinth.com/mod/better-clouds/versions)"
 done
