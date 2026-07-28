@@ -25,6 +25,10 @@ import java.util.Objects;
 import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
 
 public abstract class CloudRenderer implements AutoCloseable {
+    /**
+     * this is where the noise texture wraps around i think.
+     * todo: document how i got to this value
+     */
     public static final int CLOUD_TIME_PERIOD_TICKS = 320_000;
 
     protected final Minecraft client;
