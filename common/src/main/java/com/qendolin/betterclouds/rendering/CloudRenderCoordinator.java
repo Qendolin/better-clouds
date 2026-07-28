@@ -94,7 +94,10 @@ public class CloudRenderCoordinator {
             tickDelta = 0;
         }
 
-        long trueCloudTicks = ConfigManager.instance().getCloudTicks(Minecraft.getInstance(), clientTicks);
+        long trueCloudTicks = Math.floorMod(
+                ConfigManager.instance().getCloudTicks(Minecraft.getInstance(), clientTicks),
+                Integer.MAX_VALUE       // arbitrary value that is well before the generation precision loss
+        );
         long clampedCloudTicks = Math.floorMod(trueCloudTicks, CloudRenderer.CLOUD_TIME_PERIOD_TICKS);
 
         renderer.updateGenerator(cam, trueCloudTicks, clientTicks, tickDelta);
