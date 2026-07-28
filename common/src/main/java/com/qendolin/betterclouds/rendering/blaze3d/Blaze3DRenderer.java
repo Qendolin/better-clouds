@@ -168,7 +168,7 @@ public class Blaze3DRenderer extends CloudRenderer {
         var sp = config.shaderPreset();
         FogProvider.Fog fog = FogProvider.instance.getFog(client, config, tickDelta);
 
-        float cloudTimeSeconds = cloudTicks / 20f;
+        float cloudTimeSeconds = (cloudTicks + tickDelta) / 20f;
         float dayNightFactor = MathUtil.interpolateDayNightFactor(dayTime(), config.shaderPreset().sunriseStartTime, config.shaderPreset().sunriseEndTime, config.shaderPreset().sunsetStartTime, config.shaderPreset().sunsetEndTime);
         float brightness = (1 - dayNightFactor) * config.shaderPreset().nightBrightness + dayNightFactor * config.shaderPreset().dayBrightness;
         Vector3f effectTint = EffectTintProvider.getEffectTint(client, fog, tickDelta, cam);

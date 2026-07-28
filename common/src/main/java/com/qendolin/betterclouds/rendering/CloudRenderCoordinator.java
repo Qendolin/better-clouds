@@ -100,7 +100,9 @@ public class CloudRenderCoordinator {
         );
         long clampedCloudTicks = Math.floorMod(trueCloudTicks, CloudRenderer.CLOUD_TIME_PERIOD_TICKS);
 
+        // generator gets true cloud time
         renderer.updateGenerator(cam, trueCloudTicks, clientTicks, tickDelta);
+        // renderer gets clamped cloud time
         PrepareResult prepareResult = renderer.checkAndPrepare(capturedViewMat, capturedProjMat, clampedCloudTicks, clientTicks, tickDelta, cam);
 
         if (RenderDoc.isFrameCapturing())

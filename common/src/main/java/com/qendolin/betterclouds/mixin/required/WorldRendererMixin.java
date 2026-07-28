@@ -48,7 +48,7 @@ public abstract class WorldRendererMixin {
             require = 0     // silently fail if not neoforge
     )
     private void renderCloudsNeoForge(FrameGraphBuilder frameGraphBuilder, CloudStatus _mode, Vec3 cameraPos, long _seed, float _ticks, int _color, float _cloudHeight, int _cloudRenderMode, Matrix4fc _viewMatrix, CallbackInfo ci) {
-        if (CloudRenderCoordinator.instance.renderClouds(frameGraphBuilder, better_clouds$getTargets(), cameraPos, _seed))
+        if (CloudRenderCoordinator.instance.renderClouds(frameGraphBuilder, better_clouds$getTargets(), cameraPos, _ticks))
             ci.cancel();
     }
 

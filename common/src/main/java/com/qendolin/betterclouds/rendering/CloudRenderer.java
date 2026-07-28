@@ -100,6 +100,7 @@ public abstract class CloudRenderer implements AutoCloseable {
         }
         try {
             onClose();
+            generator.close();
             if (timer != null)
                 timer.close();
             closed = true;
