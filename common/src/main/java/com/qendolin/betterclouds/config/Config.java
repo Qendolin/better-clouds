@@ -79,7 +79,7 @@ public class Config {
     @SerialEntry
     public boolean nearCloudFade = false;
     @SerialEntry
-    public int chunkSize = 32;
+    public int chunkSize = 64;
     @SerialEntry
     public float samplingScale = 1;
     @SerialEntry

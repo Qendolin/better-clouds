@@ -147,7 +147,7 @@ public class ChunkedGenerator implements AutoCloseable {
             Task prevTask = queuedTask == null ? (runningTask == null ? completedTask : runningTask) : queuedTask;
             int prevChunkX = prevTask.chunkX();
             int prevChunkZ = prevTask.chunkZ();
-            boolean chunkChanged = Math.abs(prevChunkX - chunkX) + Math.abs(prevChunkZ - chunkZ) > 4;
+            boolean chunkChanged = Math.abs(prevChunkX - chunkX) + Math.abs(prevChunkZ - chunkZ) > 2;
             boolean optionsChanged = !options.equals(prevTask.options);
             float prevCloudiness = prevTask.cloudiness();
             boolean cloudinessChanged = Math.ceil(cloudiness * 100) != Math.ceil(prevCloudiness * 100);
