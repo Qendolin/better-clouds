@@ -327,11 +327,12 @@ public class Blaze3DRenderer extends CloudRenderer {
                 .withBindGroupLayout(SHADER_BIND_GROUP)
                 .withBindGroupLayout(DH_BIND_GROUP)
                 .withCull(false)
-                .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, isOpaque()))
+                .withDepthStencilState(new DepthStencilState(IrisCompat.instance().isShadersEnabled() ?
+                        CompareOp.LESS_THAN_OR_EQUAL : CompareOp.GREATER_THAN_OR_EQUAL, isOpaque()))
                 .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
                 .build();
 
-//        IrisCompat.instance().registerCloudPipeline(CLOUD_RENDERER_PIPELINE);
+        IrisCompat.instance().registerCloudPipeline(CLOUD_RENDERER_PIPELINE);
     }
 
     private void drawWithFrustumCulling(RenderPass pass, Frustum frustumAtOrigin) {
