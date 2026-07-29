@@ -156,12 +156,15 @@ public final class Configs {
     private static SerialField createSerialField(Field field) {
         try {
             field.setAccessible(true);
+            MethodHandle getter = METHOD_LOOKUP.unreflectGetter(field);
+            MethodHandle setter = Modifier.isFinal(field.getModifiers()) ? null : METHOD_LOOKUP.unreflectSetter(field);
             return new SerialField(
                     field.getName(),
                     field.getType(),
                     field.getGenericType(),
-                    METHOD_LOOKUP.unreflectGetter(field),
-                    METHOD_LOOKUP.unreflectSetter(field)
+                    getter,
+                    setter,
+                    field
             );
         } catch (IllegalAccessException e) {
             throw new IllegalStateException("Failed to access @SerialEntry field " + field, e);
@@ -178,7 +181,7 @@ public final class Configs {
         }
     }
 
-    private record SerialField(String name, Class<?> type, Type genericType, MethodHandle getter, MethodHandle setter) {
+    private record SerialField(String name, Class<?> type, Type genericType, MethodHandle getter, MethodHandle setter, Field field) {
         private Object get(Object instance) {
             try {
                 return getter.invoke(instance);
@@ -189,7 +192,11 @@ public final class Configs {
 
         private void set(Object instance, Object value) {
             try {
-                setter.invoke(instance, value);
+                if (setter != null) {
+                    setter.invoke(instance, value);
+                } else {
+                    field.set(instance, value);
+                }
             } catch (Throwable throwable) {
                 throw new IllegalStateException("Failed to write @SerialEntry field " + name, throwable);
             }
