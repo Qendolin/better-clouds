@@ -44,9 +44,12 @@ public class ChunkedGenerator implements AutoCloseable {
         this.seed = seed;
 
         Config options = ConfigManager.instance();
-        int gridWidth = (int) Math.ceil(options.blockDistance() / options.spacing / options.chunkSize * 2);
-        // default capacity: number of chunks in the grid + 1 extra
-        pointCache = options.useSamplerCaching ? new ChunkCache(gridWidth * gridWidth + 1) : new DummyCache();
+
+        // ChunkedGenerator#Task#run uses -floor(dist / spacing) for gridMin and ceil(dist / spacing) for gridMax
+        // so the correct math is to ceil half of the grid width and multiply by two *after* the ceil call
+        int halfGridWidth = (int) Math.ceil(options.blockDistance() / options.spacing / options.chunkSize);
+        int defaultCapacity = halfGridWidth * halfGridWidth * 4;    // = pow(halfGridWidth * 2, 2)
+        pointCache = options.useSamplerCaching ? new ChunkCache(defaultCapacity) : new DummyCache();
     }
 
     private static int floorCloudChunk(double coord, int chunkSize) {
