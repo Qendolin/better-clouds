@@ -118,7 +118,7 @@ public class Sampler {
         // TODO: A vanilla like cloud distribution is not possible with this function
         if (detailNoises.size() > 1) {
             double regionNoiseValue = (regionNoise.getValue(x / REGION_SIZE, z / REGION_SIZE) * 0.5 + 0.5) * detailNoises.size();
-            int noiseInd = (int) regionNoiseValue;
+            int noiseInd = Mth.clamp((int) regionNoiseValue, 0, detailNoises.size() - 1);
             PerlinSimplexNoise noise1 = detailNoises.get(noiseInd), noise2 = detailNoises.get((noiseInd + 1) % detailNoises.size());
 
             value = Mth.lerp(
