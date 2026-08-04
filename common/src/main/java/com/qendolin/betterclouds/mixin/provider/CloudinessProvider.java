@@ -13,7 +13,6 @@ public abstract class CloudinessProvider {
         float weather = Math.max(0.6f * getTrueRainGradient(world, tickDelta), getTrueThunderGradient(world, tickDelta));
         float cloudiness = weather * 0.3f + 0.5f;
         cloudiness *= SereneSeasonsCompat.instance().getCloudinessFactor(world);
-        cloudiness *= FabricSeasonsCompat.instance().getCloudinessFactor(world);
         return Mth.clamp(cloudiness, 0.0f, 1.0f);
     }
 

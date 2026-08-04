@@ -1,6 +1,5 @@
 package com.qendolin.betterclouds.mixin.provider;
 
-import com.qendolin.betterclouds.compat.EnhancedCelestialsCompat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.GameRenderer;
@@ -22,22 +21,10 @@ public abstract class EffectTintProvider {
             return new Vector3f(1.0f, 1.0f, 1.0f);
 
         Vector3f cloudColor = getCloudsColor(client.level, tickDelta, cameraPos);
-
-        if (EnhancedCelestialsCompat.instance().isEventActive(client.level)) {
-            Vector3f tint = EnhancedCelestialsCompat.instance().getEventTint(client.level);
-            tint.div(0.2f, 0.2f, 1.0f); // divide be the default value
-            cloudColor.mul(tint);
-        }
-
         gammaToLinear(cloudColor);
 
-        float cloudBaseLuma = cloudColor.dot(Y);
-        Vector3f cloudBaseChroma = cloudBaseLuma < 0.0001 ? new Vector3f(1.0f) : new Vector3f(cloudColor).div(cloudBaseLuma);
-
-        float cloudLuma = cloudBaseLuma;
-        float moon = Mth.clamp(-Mth.cos(getSunAngleRadians(client.level, cameraPos)), -0.25f, 0.25f) * 2 + 0.5f;
-        float moonSize = EnhancedCelestialsCompat.instance().getMoonSize(client.level);
-        cloudLuma += moonSize * moon * 0.65f;
+        float cloudLuma = cloudColor.dot(Y);
+        Vector3f cloudBaseChroma = cloudLuma < 0.0001 ? new Vector3f(1.0f) : new Vector3f(cloudColor).div(cloudLuma);
 
         // CrY - Chroma and Luma
         Vector4f cry = new Vector4f(cloudBaseChroma, cloudLuma);

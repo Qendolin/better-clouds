@@ -1,7 +1,6 @@
 package com.qendolin.betterclouds.rendering;
 
 import com.qendolin.betterclouds.BetterCloudsStatic;
-import com.qendolin.betterclouds.compat.ArsNouveauCompat;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.generator.ChunkedGenerator;
 import com.qendolin.betterclouds.mixin.duck.BiomeManagerDuck;
@@ -67,10 +66,6 @@ public abstract class CloudRenderer implements AutoCloseable {
 
         // Rendering clouds when underwater was making them very visible in unloaded chunks
         if (client.gameRenderer.mainCamera().getFluidInCamera() != FogType.NONE)
-            return PrepareResult.NO_RENDER;
-
-        // This doesn't make the Skyweave block work, but it prevents larger issues
-        if (ArsNouveauCompat.isSkyTextureCloudsRendering())
             return PrepareResult.NO_RENDER;
 
         cloudHeight = level.environmentAttributes().getValue(EnvironmentAttributes.CLOUD_HEIGHT, new Vec3(cam.x, cam.y, cam.z)) + ConfigManager.instance().yOffset;

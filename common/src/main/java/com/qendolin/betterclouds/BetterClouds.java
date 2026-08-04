@@ -47,8 +47,6 @@ public class BetterClouds extends BetterCloudsStatic {
         DistantHorizonsCompat.initialize();
         IrisCompat.initialize();
         SereneSeasonsCompat.initialize();
-        FabricSeasonsCompat.initialize();
-        EnhancedCelestialsCompat.initialize();
         RandomPath.initialize();
 
         DataDirectoryMigration.runMigration();

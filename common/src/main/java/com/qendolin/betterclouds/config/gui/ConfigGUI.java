@@ -27,7 +27,6 @@ public class ConfigGUI {
     public final ShaderPresetGUI shaderPresetGUI;
     public final NoisePresetGUI noisePresetGUI;
     public final SereneSeasonsGUI sereneSeasonsCompatGUI;
-    public final FabricSeasonsGUI fabricSeasonsCompatGUI;
     public final DimensionsGUI dimensionsGUI;
 
     public final Option<Integer> chunkSize;
@@ -90,7 +89,6 @@ public class ConfigGUI {
         shaderPresetGUI = new ShaderPresetGUI(defaults, config);
         noisePresetGUI = new NoisePresetGUI(defaults, config);
         sereneSeasonsCompatGUI = new SereneSeasonsGUI(defaults.sereneSeasonsConfig, config.sereneSeasonsConfig);
-        fabricSeasonsCompatGUI = new FabricSeasonsGUI(defaults.fabricSeasonsConfig, config.fabricSeasonsConfig);
         dimensionsGUI = new DimensionsGUI(defaults, config);
 
         this.chunkSize = createOption(int.class, "chunkSize")
@@ -350,11 +348,6 @@ public class ConfigGUI {
                 .name(groupLabel("compat.sereneSeasons"))
                 .description(OptionDescription.of(groupDescription("compat.sereneSeasons")))
                 .collapsed(true), sereneSeasonsCompatGUI.compatSereneSeasonsGroup));
-
-        compatCategory.add(new Tuple<>(OptionGroup.createBuilder()
-                .name(groupLabel("compat.fabricSeasons"))
-                .description(OptionDescription.of(groupDescription("compat.fabricSeasons")))
-                .collapsed(true), fabricSeasonsCompatGUI.compatFabricSeasonsGroup));
     }
 
     public static ConfigScreen create(Screen parent) {
