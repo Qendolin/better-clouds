@@ -12,6 +12,7 @@ import java.util.Collection;
 
 @Mixin(targets = "com.mojang.blaze3d.opengl.GlCommandEncoder", priority = 1500)
 public abstract class GlCommandEncoderMixin {
+    // this is where iris sets up the framebuffer, so we must set up our own afterward
     @TargetHandler(
             mixin = "net.irisshaders.iris.mixin.MixinGlCommandEncoder",
             name = "iris$setupState",
@@ -24,7 +25,7 @@ public abstract class GlCommandEncoderMixin {
             CallbackInfoReturnable<Boolean> originalCir,
             CallbackInfo ci
     ) {
-        if (!originalCir.getReturnValueZ() || !IrisFramebuffer.isActive() || !IrisCompat.instance().isShadersEnabled())
+        if (!IrisFramebuffer.isActive() || !IrisCompat.instance().isShadersEnabled())
             return;
 
         IrisCompat.instance().bindFramebuffer();
