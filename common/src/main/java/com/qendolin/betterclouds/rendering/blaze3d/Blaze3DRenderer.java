@@ -9,6 +9,7 @@ import com.mojang.blaze3d.shaders.UniformType;
 import com.mojang.blaze3d.systems.*;
 import com.mojang.blaze3d.textures.*;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.datafixers.kinds.IdF;
 import com.mojang.datafixers.util.Pair;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.compat.DistantHorizonsCompat;
@@ -266,6 +267,8 @@ public class Blaze3DRenderer extends CloudRenderer {
                 new Vector4f(1, sp.topColorRed, sp.topColorGreen, sp.topColorBlue)
         );
 
+        IrisFramebuffer.begin();
+
         try (RenderPass pass = gpu().createCommandEncoder().createRenderPass(
                 () -> BetterCloudsStatic.MODID + ":" + "renderClouds",
                 cloudsTarget.getColorTextureView(),
@@ -301,6 +304,8 @@ public class Blaze3DRenderer extends CloudRenderer {
             else
                 drawWithFrustumCulling(pass, frustum);
         }
+
+        IrisFramebuffer.end();
     }
 
     private Config getGeneratorConfig() {
@@ -327,12 +332,9 @@ public class Blaze3DRenderer extends CloudRenderer {
                 .withBindGroupLayout(SHADER_BIND_GROUP)
                 .withBindGroupLayout(DH_BIND_GROUP)
                 .withCull(false)
-                .withDepthStencilState(new DepthStencilState(IrisCompat.instance().isShadersEnabled() ?
-                        CompareOp.LESS_THAN_OR_EQUAL : CompareOp.GREATER_THAN_OR_EQUAL, isOpaque()))
+                .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, isOpaque()))
                 .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
                 .build();
-
-        IrisCompat.instance().registerCloudPipeline(CLOUD_RENDERER_PIPELINE);
     }
 
     private void drawWithFrustumCulling(RenderPass pass, Frustum frustumAtOrigin) {

@@ -58,14 +58,9 @@ public class IrisCompatImpl extends IrisCompat {
         }
 
         if (corePipeline.isBeforeTranslucent) {
-            before.bindAsDrawBuffer();
+            before.bind();
         } else {
-            after.bindAsDrawBuffer();
+            after.bind();
         }
-    }
-
-    @Override
-    public void registerCloudPipeline(RenderPipeline cloudPipeline) {
-        IrisApi.getInstance().assignPipeline(cloudPipeline, IrisProgram.CLOUDS);
     }
 }

@@ -1,6 +1,5 @@
 package com.qendolin.betterclouds.compat;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 
 public abstract class IrisCompat {
@@ -57,8 +56,6 @@ public abstract class IrisCompat {
 
     public abstract void bindFramebuffer();
 
-    public abstract void registerCloudPipeline(RenderPipeline cloudRendererPipeline);
-
     private static class Stub extends IrisCompat {
         @Override
         public boolean isShadersEnabled() {
@@ -72,11 +69,6 @@ public abstract class IrisCompat {
 
         @Override
         public void bindFramebuffer() {
-
-        }
-
-        @Override
-        public void registerCloudPipeline(RenderPipeline cloudRendererPipeline) {
 
         }
     }

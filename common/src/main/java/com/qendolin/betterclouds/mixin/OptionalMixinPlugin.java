@@ -6,7 +6,7 @@ public class OptionalMixinPlugin extends MixinPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
-        if (mixinClassName.endsWith("ExtendedShaderAccessor") || mixinClassName.endsWith("FallbackShaderAccessor")) {
+        if (mixinClassName.endsWith("ExtendedShaderAccessor") || mixinClassName.endsWith("FallbackShaderAccessor") || mixinClassName.endsWith("GlCommandEncoderMixin")) {
             return ModLoaded.IRIS;
         }
         return true;
