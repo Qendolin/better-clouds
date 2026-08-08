@@ -108,6 +108,8 @@ dependencies {
     compileOnly("maven.modrinth:e0bNACJD:${property("deps.serene_seasons")}")
     compileOnly("maven.modrinth:2rL16t1O:${property("deps.enhanced_celestials")}-neoforge")
     compileOnly("maven.modrinth:z2XEADmE:${property("deps.data_anchor")}-neoforge")
+    compileOnly("maven.modrinth:fxxUqruK:${property("deps.voxy")}")     // voxy doesn't have a neoforge version, but it doesn't matter as it will never be loaded in nf anyway
+
     if (property("deps.sodium").toString().isNotBlank()) {
         compileOnly("maven.modrinth:AANobbMI:${property("deps.sodium")}-neoforge")
     }

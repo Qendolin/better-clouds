@@ -1,6 +1,7 @@
 package com.qendolin.betterclouds.compat;
 
 import com.qendolin.betterclouds.BetterCloudsStatic;
+import net.irisshaders.iris.pipeline.WorldRenderingPipeline;
 
 public abstract class IrisCompat {
 
@@ -54,6 +55,8 @@ public abstract class IrisCompat {
 
     public abstract boolean isFrustumCullingDisabled();
 
+    public abstract WorldRenderingPipeline getPipeline();
+
     public abstract void bindFramebuffer();
 
     private static class Stub extends IrisCompat {
@@ -65,6 +68,11 @@ public abstract class IrisCompat {
         @Override
         public boolean isFrustumCullingDisabled() {
             return false;
+        }
+
+        @Override
+        public WorldRenderingPipeline getPipeline() {
+            return null;
         }
 
         @Override

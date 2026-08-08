@@ -26,8 +26,13 @@ public class IrisCompatImpl extends IrisCompat {
         return pipeline.shouldDisableFrustumCulling();
     }
 
+    @Override
+    public WorldRenderingPipeline getPipeline() {
+        return Iris.getPipelineManager().getPipelineNullable();
+    }
+
     public void bindFramebuffer() {
-        WorldRenderingPipeline pipeline = Iris.getPipelineManager().getPipelineNullable();
+        WorldRenderingPipeline pipeline = getPipeline();
         if (!(pipeline instanceof IrisRenderingPipeline corePipeline)) {
             return;
         }

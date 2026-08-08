@@ -28,6 +28,12 @@ layout (std140) uniform DhProjMat {
 };
 out float dhDepth;
 #endif
+#if VOXY
+layout (std140) uniform VoxyProjMat {
+    mat4 uVoxyProjMat;
+};
+out float voxyDepth;
+#endif
 
 float calcFogFade(float distance, float fogStart, float fogEnd) {
     #if NEAR_CLOUD_FADE
@@ -68,6 +74,10 @@ void main() {
     #if DISTANT_HORIZONS
     vec4 dhPos = uDhProjMat * ModelViewMat * vec4(pos, 1);
     dhDepth = (dhPos.z / dhPos.w) * 0.5 + 0.5;    // opengl [-1, 1] to texture [0, 1], may cause issues with reverse z
+    #endif
+    #if VOXY
+    vec4 voxyPos = uVoxyProjMat * ModelViewMat * vec4(pos, 1);
+    voxyDepth = (voxyPos.z / voxyPos.w) * 0.5 + 0.5;
     #endif
 
     gl_Position = ProjMat * ModelViewMat * vec4(pos, 1);

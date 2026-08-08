@@ -45,6 +45,7 @@ public class BetterClouds extends BetterCloudsStatic {
         initialized = true;
 
         DistantHorizonsCompat.initialize();
+        VoxyCompat.initialize();
         IrisCompat.initialize();
         SereneSeasonsCompat.initialize();
         RandomPath.initialize();
