@@ -5,7 +5,6 @@ import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.*;
 import com.qendolin.betterclouds.BetterCloudsStatic;
-import com.qendolin.betterclouds.rendering.opengl.RenderHelper;
 import com.qendolin.betterclouds.util.Producer;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.client.Minecraft;
@@ -78,17 +77,11 @@ public final class TextureWrapper {
     }
 
     public static GpuSampler defaultSampler() {
-        return customSampler(AddressMode.CLAMP_TO_EDGE, AddressMode.CLAMP_TO_EDGE);
+        return customSampler(AddressMode.CLAMP_TO_EDGE, AddressMode.CLAMP_TO_EDGE, FilterMode.NEAREST);
     }
 
-    public static GpuSampler customSampler(AddressMode u, AddressMode v) {
-        return RenderSystem.getSamplerCache().getSampler(
-                u,
-                v,
-                FilterMode.NEAREST,
-                FilterMode.NEAREST,
-                true
-        );
+    public static GpuSampler customSampler(AddressMode u, AddressMode v, FilterMode fm) {
+        return RenderSystem.getSamplerCache().getSampler(u, v, fm, fm, true);
     }
 
     public void bindTo(RenderPass pass) {

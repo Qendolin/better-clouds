@@ -8,6 +8,7 @@ import com.mojang.blaze3d.platform.CompareOp;
 import com.mojang.blaze3d.shaders.UniformType;
 import com.mojang.blaze3d.systems.*;
 import com.mojang.blaze3d.textures.AddressMode;
+import com.mojang.blaze3d.textures.FilterMode;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.datafixers.util.Pair;
 import com.qendolin.betterclouds.BetterCloudsStatic;
@@ -150,11 +151,11 @@ public class Blaze3DRenderer extends CloudRenderer {
     private void loadTextures() {
         noiseTexture = TextureWrapper.fromMcTexture(
                 "NoiseTexture", Resources.NOISE_TEXTURE,
-                () -> TextureWrapper.customSampler(AddressMode.REPEAT, AddressMode.REPEAT)
+                () -> TextureWrapper.customSampler(AddressMode.REPEAT, AddressMode.REPEAT, FilterMode.LINEAR)
         );
         lightTexture = TextureWrapper.fromMcTexture(
                 "LightTexture", Resources.LIGHTING_TEXTURE,
-                () -> TextureWrapper.customSampler(AddressMode.REPEAT, AddressMode.CLAMP_TO_EDGE)
+                () -> TextureWrapper.customSampler(AddressMode.REPEAT, AddressMode.CLAMP_TO_EDGE, FilterMode.LINEAR)
         );
     }
 
