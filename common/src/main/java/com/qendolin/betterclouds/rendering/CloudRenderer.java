@@ -30,15 +30,14 @@ public abstract class CloudRenderer implements AutoCloseable {
      */
     public static final int CLOUD_TIME_PERIOD_TICKS = 320_000;
 
-    protected final Minecraft client;
+    protected final Minecraft client = Minecraft.getInstance();
     protected ChunkedGenerator generator;
     protected ClientLevel level;
     protected PerfTimer timer;
     protected float cloudHeight;
     protected boolean closed = false;
 
-    public CloudRenderer(Minecraft client) {
-        this.client = client;
+    public CloudRenderer() {
         if (GraphicsCompat.isOpenGL)
             this.timer = new PerfTimer();
         reloadGenerator();
@@ -96,6 +95,7 @@ public abstract class CloudRenderer implements AutoCloseable {
         try {
             onClose();
             generator.close();
+            TextureWrapper.closeAllWrappers();
             if (timer != null)
                 timer.close();
             closed = true;

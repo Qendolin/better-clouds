@@ -30,11 +30,7 @@ void main() {
     // This is a "safety" check to prevent reading from an unbound texture
     if (dhDepth != 0) {
         float depth = texelFetch(DhDepthTexture, ivec2(gl_FragCoord.xy), 0).r;
-        #if IRIS
         if (dhDepth > depth) discard;
-        #else
-        if (dhDepth < depth) discard;
-        #endif
     }
     #endif
     #if VOXY
@@ -42,11 +38,7 @@ void main() {
     // This is a "safety" check to prevent reading from an unbound texture
     if (voxyDepth != 0) {
         float depth = texelFetch(VoxyDepthTexture, ivec2(gl_FragCoord.xy), 0).r;
-        #if IRIS
         if (voxyDepth > depth) discard;
-        #else
-        if (voxyDepth < depth) discard;
-        #endif
     }
     #endif
 

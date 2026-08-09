@@ -42,10 +42,6 @@ public class OpenGLRenderer extends CloudRenderer {
     private Buffer buffer;
     private ShaderParameters shaderParameters = null;
 
-    public OpenGLRenderer(Minecraft client) {
-        super(client);
-    }
-
     private static void setFrustumTo(Frustum dst, Frustum src) {
         dst.set(src);
     }

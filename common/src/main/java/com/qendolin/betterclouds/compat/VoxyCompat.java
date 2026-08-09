@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds.compat;
 
-import com.mojang.blaze3d.textures.GpuTextureView;
+import com.qendolin.betterclouds.rendering.TextureWrapper;
 import org.joml.Matrix4f;
 
 public abstract class VoxyCompat {
@@ -12,7 +12,7 @@ public abstract class VoxyCompat {
     }
 
     public abstract Matrix4f getProjectionMatrix();
-    public abstract GpuTextureView getOpaqueDepthTexture();
+    public abstract TextureWrapper getOpaqueDepthTexture();
     public abstract boolean isEnabled();
 
     public static class Stub extends VoxyCompat {
@@ -22,7 +22,7 @@ public abstract class VoxyCompat {
         }
 
         @Override
-        public GpuTextureView getOpaqueDepthTexture() {
+        public TextureWrapper getOpaqueDepthTexture() {
             return null;
         }
 

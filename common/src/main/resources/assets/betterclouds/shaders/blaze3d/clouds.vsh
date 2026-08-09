@@ -56,8 +56,8 @@ void main() {
     cloudPos.y *= scaleFalloff;
 
     // use noise texture to vary cloud size over position, mix big and small for better realism
-    float waveScale = texture(NoiseTexture, (localWorldPosition.xz + vec2(uCameraX, uCameraZ)) / 4000.0 + vec2(uWindSpeedFactor * uTime / 800.0)).r;
-    float smallWaves = texture(NoiseTexture, (localWorldPosition.zx + vec2(uCameraZ, uCameraX)) / 1000.0 + vec2(uWindSpeedFactor * uTime / 200.0)).r * 1.8 - 0.9;
+    float waveScale = texture(NoiseTexture, (localWorldPosition.xz + vec2(uCameraX, uCameraZ)) / 4000.0 + vec2(uWindSpeedFactor * (uTime / 800.0))).r;
+    float smallWaves = texture(NoiseTexture, (localWorldPosition.zx + vec2(uCameraZ, uCameraX)) / 1000.0 + vec2(uWindSpeedFactor * (uTime / 200.0))).r * 1.8 - 0.9;
     waveScale = mix(mix(waveScale, 1.0, max(smallWaves, 0.0)), 0.0, max(-smallWaves, 0.0));
 
     // make cloud tops wobble less

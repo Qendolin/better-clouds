@@ -1,16 +1,17 @@
 package com.qendolin.betterclouds.compat;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.BetterClouds;
 import com.qendolin.betterclouds.BetterCloudsStatic;
+import com.qendolin.betterclouds.rendering.BorrowedGlTexture;
+import com.qendolin.betterclouds.rendering.TextureWrapper;
 import com.seibel.distanthorizons.api.DhApi;
 import com.seibel.distanthorizons.api.enums.rendering.EDhApiRenderPass;
 import com.seibel.distanthorizons.api.methods.events.DhApiEventRegister;
-import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiAfterDhInitEvent;
-import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiBeforeRenderEvent;
+import com.seibel.distanthorizons.api.methods.events.abstractEvents.*;
 import com.seibel.distanthorizons.api.methods.events.sharedParameterObjects.*;
 import com.seibel.distanthorizons.api.objects.DhApiResult;
 import com.seibel.distanthorizons.common.render.blaze.BlazeDhMetaRenderer;
-import com.seibel.distanthorizons.common.render.blaze.wrappers.texture.BlazeTextureWrapper;
 import org.joml.Matrix4f;
 
 import java.util.Optional;
@@ -19,6 +20,7 @@ public abstract class DistantHorizonsSharedCompatImpl extends DistantHorizonsCom
     protected boolean textureCreateFlag = false;
     private boolean isDhInitialized = false;
     private DhApiRenderParam lastRenderParam = null;
+    private int depthTextureWidth, depthTextureHeight;
 
     public DistantHorizonsSharedCompatImpl() {
         BetterCloudsStatic.getLogger().info("Registering DH Api events");
@@ -43,6 +45,14 @@ public abstract class DistantHorizonsSharedCompatImpl extends DistantHorizonsCom
                 }
             }
         });
+
+        DhApiEventRegister.on(DhApiAfterColorDepthTextureCreatedEvent.class, new DhApiAfterColorDepthTextureCreatedEvent() {
+            @Override
+            public void onResize(DhApiEventParam<DhApiTextureCreatedParam> event) {
+                depthTextureWidth = event.value.newWidth;
+                depthTextureHeight = event.value.newHeight;
+            }
+        });
     }
 
     @Override
@@ -58,10 +68,7 @@ public abstract class DistantHorizonsSharedCompatImpl extends DistantHorizonsCom
     @Override
     public Matrix4f getProjectionMatrix() {
         float[] mat = getDhProjectionMatrixValues(lastRenderParam);
-        return new Matrix4f(mat[0], mat[4], mat[8], mat[12],
-                mat[1], mat[5], mat[9], mat[13],
-                mat[2], mat[6], mat[10], mat[14],
-                mat[3], mat[7], mat[11], mat[15]);
+        return new Matrix4f(mat[0], mat[4], mat[8], mat[12], mat[1], mat[5], mat[9], mat[13], mat[2], mat[6], mat[10], mat[14], mat[3], mat[7], mat[11], mat[15]);
     }
 
     abstract float[] getDhProjectionMatrixValues(DhApiRenderParam renderParam);
@@ -76,8 +83,25 @@ public abstract class DistantHorizonsSharedCompatImpl extends DistantHorizonsCom
     }
 
     @Override
-    public BlazeTextureWrapper getDepthTexture() {
-        return BlazeDhMetaRenderer.INSTANCE.dhDepthTextureWrapper;
+    public TextureWrapper getDepthTexture() {
+        if (!isDhInitialized) {
+            return null;
+        }
+
+        // native renderer = whether dh is using opengl renderer
+        if (DhApi.Delayed.renderProxy.isNativeRenderer()) {
+            if (depthTextureWidth + depthTextureHeight <= 0) return null;
+
+            return getDepthTextureId().map(id -> TextureWrapper.fromBorrowedTexture(
+                    "DhDepthTexture", id,
+                    depthTextureWidth, depthTextureHeight
+            )).orElse(null);
+        }
+        var wrap = BlazeDhMetaRenderer.INSTANCE.dhDepthTextureWrapper;
+        return TextureWrapper.from(
+                "DhDepthTexture", wrap.name.hashCode(),
+                wrap::getTextureView, wrap::getTextureSampler
+        );
     }
 
     @Override

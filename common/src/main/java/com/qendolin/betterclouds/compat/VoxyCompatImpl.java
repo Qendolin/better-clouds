@@ -1,11 +1,8 @@
 package com.qendolin.betterclouds.compat;
 
-import com.mojang.blaze3d.GpuFormat;
-import com.mojang.blaze3d.opengl.GlTexture;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTexture;
-import com.mojang.blaze3d.textures.GpuTextureView;
-import com.qendolin.betterclouds.rendering.blaze3d.BorrowedGlTexture;
+import com.qendolin.betterclouds.rendering.BorrowedGlTexture;
+import com.qendolin.betterclouds.rendering.TextureWrapper;
 import me.cortex.voxy.client.config.VoxyConfig;
 import me.cortex.voxy.client.core.IVoxyRenderSystemHolder;
 import me.cortex.voxy.client.core.VoxyRenderSystem;
@@ -14,9 +11,6 @@ import net.irisshaders.iris.pipeline.WorldRenderingPipeline;
 import org.joml.Matrix4f;
 
 public class VoxyCompatImpl extends VoxyCompat {
-    private int lastVoxyDepthTexId = -99;
-    private GpuTextureView voxyDepthTexView = null;
-
     @Override
     public Matrix4f getProjectionMatrix() {
         VoxyRenderSystem rsHolder = IVoxyRenderSystemHolder.getNullable();
@@ -26,7 +20,7 @@ public class VoxyCompatImpl extends VoxyCompat {
     }
 
     @Override
-    public GpuTextureView getOpaqueDepthTexture() {
+    public TextureWrapper getOpaqueDepthTexture() {
         WorldRenderingPipeline pipeline = IrisCompat.instance().getPipeline();
         if (!(pipeline instanceof IGetIrisVoxyPipelineData voxyPipeline))
             return null;
@@ -38,15 +32,13 @@ public class VoxyCompatImpl extends VoxyCompat {
         if (depthTex == null)
             return null;
 
-        if (depthTex.id == lastVoxyDepthTexId)
-            return voxyDepthTexView;
-
-        if (voxyDepthTexView != null)
-            voxyDepthTexView.close();
-
-        voxyDepthTexView = RenderSystem.getDevice().createTextureView(new BorrowedGlTexture(depthTex.id, depthTex.getWidth(), depthTex.getHeight()));
-        lastVoxyDepthTexId = depthTex.id;
-        return voxyDepthTexView;
+        return TextureWrapper.from(
+                "VoxyDepthTexture", depthTex.id,
+                () -> RenderSystem.getDevice().createTextureView(
+                        new BorrowedGlTexture(depthTex.id, depthTex.getWidth(), depthTex.getHeight())
+                ),
+                TextureWrapper::defaultSampler
+        );
     }
 
     @Override

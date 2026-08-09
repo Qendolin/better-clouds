@@ -33,9 +33,8 @@ public class CloudRenderCoordinator {
     public long clientTicks;
 
     public void initialize() {
-        Minecraft client = Minecraft.getInstance();
         if (GraphicsCompat.instance.isIncompatible()) return;
-        renderer = GraphicsCompat.isOpenGL ? new OpenGLRenderer(client) : new Blaze3DRenderer(client);
+        renderer = GraphicsCompat.isOpenGL ? new OpenGLRenderer() : new Blaze3DRenderer();
     }
 
     public CloudRenderer getRenderer() {
@@ -55,7 +54,7 @@ public class CloudRenderCoordinator {
 
     public void reload(ResourceManager manager) {
         if (renderer == null)
-            renderer = GraphicsCompat.isOpenGL ? new OpenGLRenderer(Minecraft.getInstance()) : new Blaze3DRenderer(Minecraft.getInstance());
+            renderer = GraphicsCompat.isOpenGL ? new OpenGLRenderer() : new Blaze3DRenderer();
         renderer.reload(manager);
     }
 

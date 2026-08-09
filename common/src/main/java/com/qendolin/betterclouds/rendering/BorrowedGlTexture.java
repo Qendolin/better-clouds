@@ -1,4 +1,4 @@
-package com.qendolin.betterclouds.rendering.blaze3d;
+package com.qendolin.betterclouds.rendering;
 
 import com.mojang.blaze3d.GpuFormat;
 import com.mojang.blaze3d.opengl.GlTexture;
@@ -22,6 +22,6 @@ public class BorrowedGlTexture extends GlTexture {
 
     @Override
     public void close() {
-        // don't close voxy's depth texture
+        // don't close depth texture owned by another mod
     }
 }
