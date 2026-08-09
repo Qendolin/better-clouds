@@ -95,7 +95,7 @@ jobs:
           if [ "${{ matrix.loader }}" = "fabric" ]; then
             sudo ferium add fabric-api modmenu
           fi
-          sudo ferium add yacl iris sodium
+          sudo ferium add yacl sodium
           sudo ferium upgrade
 
       - name: Load client world
