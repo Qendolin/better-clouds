@@ -95,12 +95,14 @@ public class OpenGLRenderer extends CloudRenderer {
 
     public void uploadPointsToBuffer() {
         reloadBuffer();
+        buffer.bind();
         buffer.clear();
 
         for (ChunkedGenerator.Point point : generator.points()) {
             buffer.put(point.x(), point.y(), point.z());
         }
         buffer.swap();
+        buffer.unbind();
     }
 
     private ShaderParameters createShaderParameters(Config config) {
