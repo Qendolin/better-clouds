@@ -34,20 +34,14 @@ public final class TextureWrapper {
         ), sampler);
     }
 
-    public static TextureWrapper fromMcTexture(String name, Identifier mcTextureId) {
-        var texture = Minecraft.getInstance().getTextureManager().getTexture(mcTextureId);
-        return from(name, 0, texture::getTextureView, texture::getSampler);
-    }
-
     public static TextureWrapper fromMcTexture(String name, Identifier mcTextureId, Producer<GpuSampler> customSampler) {
         var texture = Minecraft.getInstance().getTextureManager().getTexture(mcTextureId);
-        return from(name, 0, texture::getTextureView, customSampler);
+        return from(name, (int) (CloudRenderCoordinator.instance.clientTicks % 60), texture::getTextureView, customSampler);
     }
 
     public static TextureWrapper from(String name, int identifier, Producer<GpuTextureView> view, Producer<GpuSampler> sampler) {
         return cache.compute(name, (_, prevValue) -> {
             if (prevValue == null) {
-                BetterCloudsStatic.getLogger().debug("Creating new sampler with name {} and id {}", name, identifier);
                 return new TextureWrapper(name, identifier, view.produce(), sampler.produce());
             }
             if (prevValue.id != identifier) {

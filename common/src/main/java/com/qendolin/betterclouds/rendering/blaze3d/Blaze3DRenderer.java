@@ -144,6 +144,7 @@ public class Blaze3DRenderer extends CloudRenderer {
     }
 
     public void reload(ResourceManager manager) {
+        TextureWrapper.closeAllWrappers();
         buildRenderPipeline();
         loadTextures();
     }
@@ -155,7 +156,7 @@ public class Blaze3DRenderer extends CloudRenderer {
         );
         lightTexture = TextureWrapper.fromMcTexture(
                 "LightTexture", Resources.LIGHTING_TEXTURE,
-                () -> TextureWrapper.customSampler(AddressMode.REPEAT, AddressMode.CLAMP_TO_EDGE, FilterMode.LINEAR)
+                () -> TextureWrapper.customSampler(AddressMode.CLAMP_TO_EDGE, AddressMode.REPEAT, FilterMode.LINEAR)
         );
     }
 
