@@ -9,6 +9,13 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
 
+/**
+ * Unifies Minecraft textures, OpenGL texture ids, DH texture wrappers,
+ * and Voxy texture wrappers under a single object that provides
+ * <code>GpuTextureView</code>s and <code>GpuSampler</code>s for
+ * the Blaze3D renderer
+ *
+ */
 public final class TextureWrapper {
     private static final Object2ObjectOpenHashMap<String, TextureWrapper> cache = new Object2ObjectOpenHashMap<>();
     private final String name;
