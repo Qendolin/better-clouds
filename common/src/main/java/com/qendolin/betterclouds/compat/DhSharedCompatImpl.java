@@ -1,9 +1,7 @@
 package com.qendolin.betterclouds.compat;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.BetterClouds;
 import com.qendolin.betterclouds.BetterCloudsStatic;
-import com.qendolin.betterclouds.rendering.BorrowedGlTexture;
 import com.qendolin.betterclouds.rendering.TextureWrapper;
 import com.seibel.distanthorizons.api.DhApi;
 import com.seibel.distanthorizons.api.enums.rendering.EDhApiRenderPass;
@@ -16,13 +14,13 @@ import org.joml.Matrix4f;
 
 import java.util.Optional;
 
-public abstract class DistantHorizonsSharedCompatImpl extends DistantHorizonsCompat {
+public abstract class DhSharedCompatImpl extends DhCompat {
     protected boolean textureCreateFlag = false;
     private boolean isDhInitialized = false;
     private DhApiRenderParam lastRenderParam = null;
     private int depthTextureWidth, depthTextureHeight;
 
-    public DistantHorizonsSharedCompatImpl() {
+    public DhSharedCompatImpl() {
         BetterCloudsStatic.getLogger().info("Registering DH Api events");
         // Lambdas didn't work
         DhApiEventRegister.on(DhApiAfterDhInitEvent.class, new DhApiAfterDhInitEvent() {
@@ -93,15 +91,22 @@ public abstract class DistantHorizonsSharedCompatImpl extends DistantHorizonsCom
             if (depthTextureWidth + depthTextureHeight <= 0) return null;
 
             return getDepthTextureId().map(id -> TextureWrapper.fromBorrowedTexture(
-                    "DhDepthTexture", id,
+                    "LodDepthTexture", id,
                     depthTextureWidth, depthTextureHeight
             )).orElse(null);
         }
         var wrap = BlazeDhMetaRenderer.INSTANCE.dhDepthTextureWrapper;
         return TextureWrapper.from(
-                "DhDepthTexture", wrap.name.hashCode(),
+                "LodDepthTexture", wrap.name.hashCode(),
                 wrap::getTextureView, wrap::getTextureSampler
-        );
+        ).asBorrowed();
+    }
+
+    @Override
+    public boolean isZNeg1To1() {
+        if (!isDhInitialized) return false;
+        // DH depth is [-1, 1] for ogl renderer but [0, 1] for b3d renderer
+        return DhApi.Delayed.renderProxy.isNativeRenderer();
     }
 
     @Override

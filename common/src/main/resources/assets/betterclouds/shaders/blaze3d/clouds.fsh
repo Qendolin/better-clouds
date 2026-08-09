@@ -15,30 +15,22 @@ layout (std140) uniform CloudFragData {
     float haloSize, sunX, sunY, sunZ, mappedTime;
 };
 
-#if DISTANT_HORIZONS
-in float dhDepth;
-uniform sampler2D DhDepthTexture;
-#endif
-#if VOXY
-in float voxyDepth;
-uniform sampler2D VoxyDepthTexture;
+#if LOD_ENABLED
+in float lodDepth;
+uniform sampler2D LodDepthTexture;
 #endif
 
 void main() {
-    #if DISTANT_HORIZONS
+    #if LOD_ENABLED
     // dhDepth is always 0 if the depth texture cloud not be set.
     // This is a "safety" check to prevent reading from an unbound texture
-    if (dhDepth != 0) {
-        float depth = texelFetch(DhDepthTexture, ivec2(gl_FragCoord.xy), 0).r;
-        if (dhDepth > depth) discard;
-    }
-    #endif
-    #if VOXY
-    // dhDepth is always 0 if the depth texture cloud not be set.
-    // This is a "safety" check to prevent reading from an unbound texture
-    if (voxyDepth != 0) {
-        float depth = texelFetch(VoxyDepthTexture, ivec2(gl_FragCoord.xy), 0).r;
-        if (voxyDepth > depth) discard;
+    if (lodDepth != 0) {
+        float depth = texelFetch(LodDepthTexture, ivec2(gl_FragCoord.xy), 0).r;
+        #if REVERSE_Z
+        if (lodDepth < depth) discard;
+        #else
+        if (lodDepth > depth) discard;
+        #endif
     }
     #endif
 

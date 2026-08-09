@@ -9,7 +9,7 @@ import org.joml.Vector4f;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public abstract class DistantHorizonsCompat {
+public abstract class DhCompat {
     // Used when DH is enabled, but some other issue prevents it from working as intended
     // The matrix just maps everything to the near plane
     public static final Matrix4f NOOP_MATRIX = new Matrix4f(
@@ -19,7 +19,7 @@ public abstract class DistantHorizonsCompat {
             new Vector4f(0, 0, -1, 1)
     );
     private static final AtomicBoolean initialized = new AtomicBoolean(false);
-    private static DistantHorizonsCompat instance;
+    private static DhCompat instance;
     private static boolean isActive = false;
 
     public static void initialize() {
@@ -45,15 +45,15 @@ public abstract class DistantHorizonsCompat {
             switch (apiVersion) {
                 case 3 -> {
                     BetterCloudsStatic.getLogger().info("Using DistantHorizons 3 compat");
-                    instance = new DistantHorizons3CompatImpl();
+                    instance = new Dh3CompatImpl();
                 }
                 case 2 -> {
                     BetterCloudsStatic.getLogger().info("Using DistantHorizons 2 compat");
-                    instance = new DistantHorizons2CompatImpl();
+                    instance = new Dh2CompatImpl();
                 }
                 default -> {
                     BetterCloudsStatic.getLogger().info("Using Distant Horizons 3 compat for version " + apiVersion + ", hopefully it still works! ;-;");
-                    instance = new DistantHorizons3CompatImpl();
+                    instance = new Dh3CompatImpl();
                 }
             }
         } catch (Throwable e) {
@@ -63,7 +63,7 @@ public abstract class DistantHorizonsCompat {
         if (instance == null) {
             instance = new Stub();
         } else {
-            DistantHorizonsCompat.isActive = true;
+            DhCompat.isActive = true;
         }
     }
 
@@ -71,7 +71,7 @@ public abstract class DistantHorizonsCompat {
         return isActive;
     }
 
-    public static DistantHorizonsCompat instance() {
+    public static DhCompat instance() {
         return instance;
     }
 
@@ -91,10 +91,12 @@ public abstract class DistantHorizonsCompat {
 
     public abstract void resetTextureCreateFlag();
 
-    private static class Stub extends DistantHorizonsCompat {
+    public abstract boolean isZNeg1To1();
+
+    private static class Stub extends DhCompat {
 
         static {
-            DistantHorizonsCompat.instance = new Stub();
+            DhCompat.instance = new Stub();
         }
 
         @Override
@@ -135,6 +137,11 @@ public abstract class DistantHorizonsCompat {
         @Override
         public void resetTextureCreateFlag() {
 
+        }
+
+        @Override
+        public boolean isZNeg1To1() {
+            return false;
         }
     }
 }

@@ -1,33 +1,37 @@
 package com.qendolin.betterclouds.compat;
 
+import com.seibel.distanthorizons.api.DhApi;
 import com.seibel.distanthorizons.api.methods.events.sharedParameterObjects.DhApiRenderParam;
+import com.seibel.distanthorizons.api.objects.math.DhApiMat4f;
 
 import java.lang.reflect.*;
 
-class DistantHorizons2CompatImpl extends DistantHorizonsSharedCompatImpl {
+class Dh3CompatImpl extends DhSharedCompatImpl {
 
     private final Field dhProjectionMatrixField;
     private final Method getValuesAsArrayMethod;
 
-    public DistantHorizons2CompatImpl() {
+    public Dh3CompatImpl() {
         super();
 
         try {
             dhProjectionMatrixField = DhApiRenderParam.class.getField("dhProjectionMatrix");
-            getValuesAsArrayMethod = Class.forName("com.seibel.distanthorizons.coreapi.util.math.Mat4f").getMethod("getValuesAsArray");
-        } catch (NoSuchFieldException | NoSuchMethodException | ClassNotFoundException e) {
+            getValuesAsArrayMethod = DhApiMat4f.class.getMethod("getValuesAsArray");
+        } catch (NoSuchFieldException | NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
     }
 
+
     @Override
     public void disableLodClouds() {
-        // nothing
+        var option = DhApi.Delayed.configs.graphics().genericRendering().cloudRenderingEnabled();
+        option.setValue(false);
     }
 
     float[] getDhProjectionMatrixValues(DhApiRenderParam renderParam) {
         try {
-            // Mat4f
+            // DhApiMat4f
             Object matrix = dhProjectionMatrixField.get(renderParam);
             Object values = getValuesAsArrayMethod.invoke(matrix);
             return (float[]) values;

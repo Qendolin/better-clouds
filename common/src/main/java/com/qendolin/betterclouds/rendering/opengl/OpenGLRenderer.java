@@ -15,7 +15,6 @@ import com.qendolin.betterclouds.rendering.opengl.internal.Buffer;
 import com.qendolin.betterclouds.rendering.opengl.internal.Mesh;
 import com.qendolin.betterclouds.rendering.opengl.shaders.ShaderParameters;
 import com.qendolin.betterclouds.util.MathUtil;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.Mth;
@@ -108,7 +107,7 @@ public class OpenGLRenderer extends CloudRenderer {
                 client.options.getCloudStatus(),
                 config.blockDistance(), config.sizeXZ, config.sizeY, config.celestialBodyHalo,
                 glCompat.useDepthWriteFallback(), glCompat.useStencilTextureFallback(),
-                DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled(),
+                DhCompat.instance().isReady() && DhCompat.instance().isEnabled(),
                 IrisCompat.instance().isShadersEnabled(),
                 config.shaderPreset().worldCurvatureSize
         );
@@ -286,24 +285,24 @@ public class OpenGLRenderer extends CloudRenderer {
         RenderHelper.bindTexture(client.gameRenderer.mainRenderTarget().getDepthTexture());
 
         // Distant Horizons compat
-        if (DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled()) {
+        if (DhCompat.instance().isReady() && DhCompat.instance().isEnabled()) {
             res.coverageShader().uMVMatrix.setMat4(mvMatrix);
             res.coverageShader().uMcPMatrix.setMat4(pMatrix);
 
-            Optional<Integer> depthId = DistantHorizonsCompat.instance().getDepthTextureId();
+            Optional<Integer> depthId = DhCompat.instance().getDepthTextureId();
             GlStateManager._activeTexture(GL_TEXTURE6);
             if (depthId.isPresent()) {
-                Matrix4f dhProjectionMatrix = DistantHorizonsCompat.instance().getProjectionMatrix();
+                Matrix4f dhProjectionMatrix = DhCompat.instance().getProjectionMatrix();
                 RenderHelper.bindTexture(depthId.get());
-                if (DistantHorizonsCompat.instance().isTextureCreateFlagSet()) {
+                if (DhCompat.instance().isTextureCreateFlagSet()) {
                     // This fixes a bug in DH, see: https://discord.com/channels/881614130614767666/1211290858134052894
                     glBindTexture(GL_TEXTURE_2D, depthId.get());
-                    DistantHorizonsCompat.instance().resetTextureCreateFlag();
+                    DhCompat.instance().resetTextureCreateFlag();
                 }
                 res.coverageShader().uDhPMatrix.setMat4(dhProjectionMatrix);
             } else {
                 RenderHelper.bindTexture(0);
-                res.coverageShader().uDhPMatrix.setMat4(DistantHorizonsCompat.NOOP_MATRIX);
+                res.coverageShader().uDhPMatrix.setMat4(DhCompat.NOOP_MATRIX);
             }
         }
 

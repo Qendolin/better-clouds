@@ -22,17 +22,11 @@ out float fogFade;
 out float tintInterp;
 out vec3 lightSampleDir;
 
-#if DISTANT_HORIZONS
-layout (std140) uniform DhProjMat {
-    mat4 uDhProjMat;
+#if LOD_ENABLED
+layout (std140) uniform LodProjMat {
+    mat4 uLodProjMat;
 };
-out float dhDepth;
-#endif
-#if VOXY
-layout (std140) uniform VoxyProjMat {
-    mat4 uVoxyProjMat;
-};
-out float voxyDepth;
+out float lodDepth;
 #endif
 
 float calcFogFade(float distance, float fogStart, float fogEnd) {
@@ -71,13 +65,12 @@ void main() {
     lightSampleDir = localWorldVertexPos;
     tintInterp = clamp((scale.y * LocalPosition.y + WorldPosition.y + uCloudHeightRange * 0.3f) / (uTransitionRangePercent * uCloudHeightRange), 0, 1);
 
-    #if DISTANT_HORIZONS
-    vec4 dhPos = uDhProjMat * ModelViewMat * vec4(pos, 1);
-    dhDepth = (dhPos.z / dhPos.w) * 0.5 + 0.5;    // opengl [-1, 1] to texture [0, 1], may cause issues with reverse z
+    #if LOD_ENABLED
+    vec4 lodPos = uLodProjMat * ModelViewMat * vec4(pos, 1);
+    lodDepth = lodPos.z / lodPos.w;
+    #if Z_NEG1_TO_1
+    lodDepth = lodDepth * 0.5 + 0.5;
     #endif
-    #if VOXY
-    vec4 voxyPos = uVoxyProjMat * ModelViewMat * vec4(pos, 1);
-    voxyDepth = (voxyPos.z / voxyPos.w) * 0.5 + 0.5;
     #endif
 
     gl_Position = ProjMat * ModelViewMat * vec4(pos, 1);

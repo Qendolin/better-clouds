@@ -99,13 +99,9 @@ public class Blaze3DRenderer extends CloudRenderer {
             .withUniform("CloudVertexData", UniformType.UNIFORM_BUFFER)
             .withUniform("CloudFragData", UniformType.UNIFORM_BUFFER)
             .build();
-    static final BindGroupLayout DH_BIND_GROUP = BindGroupLayout.builder()
-            .withSampler("DhDepthTexture")
-            .withUniform("DhProjMat", UniformType.UNIFORM_BUFFER)
-            .build();
-    static final BindGroupLayout VOXY_BIND_GROUP = BindGroupLayout.builder()
-            .withSampler("VoxyDepthTexture")
-            .withUniform("VoxyProjMat", UniformType.UNIFORM_BUFFER)
+    static final BindGroupLayout LOD_BIND_GROUP = BindGroupLayout.builder()
+            .withSampler("LodDepthTexture")
+            .withUniform("LodProjMat", UniformType.UNIFORM_BUFFER)
             .build();
     // models
     private final ReadOnlyBuffer modelVertexBuffer = new ReadOnlyBuffer("cloudModelVertices");
@@ -116,8 +112,7 @@ public class Blaze3DRenderer extends CloudRenderer {
     // uniforms
     private final WritableBuffer uCloudVertexData = new WritableBuffer("uCloudVertexData", Float.BYTES * 16, GpuBuffer.USAGE_UNIFORM);
     private final WritableBuffer uCloudFragData = new WritableBuffer("uCloudFragData", Float.BYTES * 15, GpuBuffer.USAGE_UNIFORM);
-    private final WritableBuffer uDhProjMat = new WritableBuffer("uDhProjMat", Float.BYTES * 16, GpuBuffer.USAGE_UNIFORM);
-    private final WritableBuffer uVoxyProjMat = new WritableBuffer("uVoxyProjMat", Float.BYTES * 16, GpuBuffer.USAGE_UNIFORM);
+    private final WritableBuffer uLodProjMat = new WritableBuffer("uLodProjMat", Float.BYTES * 16, GpuBuffer.USAGE_UNIFORM);
     // things affected by resource reload
     RenderPipeline CLOUD_RENDERER_PIPELINE;
     TextureWrapper noiseTexture, lightTexture;
@@ -258,18 +253,17 @@ public class Blaze3DRenderer extends CloudRenderer {
             b.putFloat(mappedTime / 24000);
         });
 
-        if (DistantHorizonsCompat.instance().isEnabled()) {
-            DistantHorizonsCompat.instance().getProjectionMatrix().get(tempMatrixCopyArr);
-            uDhProjMat.write(b -> {
+        if (DhCompat.instance().isEnabled()) {
+            DhCompat.instance().getProjectionMatrix().get(tempMatrixCopyArr);
+            uLodProjMat.write(b -> {
                 for (float value : tempMatrixCopyArr) {
                     b.putFloat(value);
                 }
             });
         }
-
-        if (VoxyCompat.instance.isEnabled()) {
+        else if (VoxyCompat.instance.isEnabled()) {
             VoxyCompat.instance.getProjectionMatrix().get(tempMatrixCopyArr);
-            uVoxyProjMat.write(b -> {
+            uLodProjMat.write(b -> {
                 for (float value: tempMatrixCopyArr) {
                     b.putFloat(value);
                 }
@@ -290,8 +284,6 @@ public class Blaze3DRenderer extends CloudRenderer {
                 new Vector4f(1, sp.topColorRed, sp.topColorGreen, sp.topColorBlue)
         );
 
-        PipelineParams params = PipelineParams.getParameters();
-
         IrisFramebuffer.begin();
 
         try (RenderPass pass = gpu().createCommandEncoder().createRenderPass(
@@ -307,18 +299,16 @@ public class Blaze3DRenderer extends CloudRenderer {
             pass.setUniform("CloudVertexData", uCloudVertexData.gpuBuffer());
             pass.setUniform("CloudFragData", uCloudFragData.gpuBuffer());
             pass.setUniform("DynamicTransforms", dynamicTransform);
-            pass.setUniform("DhProjMat", uDhProjMat.gpuBuffer());
-            pass.setUniform("VoxyProjMat", uVoxyProjMat.gpuBuffer());
+            pass.setUniform("LodProjMat", uLodProjMat.gpuBuffer());
 
             noiseTexture.bindTo(pass);
             lightTexture.bindTo(pass);
 
-            TextureWrapper dhDepthTexture = DistantHorizonsCompat.instance().getDepthTexture();
+            TextureWrapper dhDepthTexture = DhCompat.instance().getDepthTexture();
+            TextureWrapper voxyDepthTexture = VoxyCompat.instance.getOpaqueDepthTexture();
             if (dhDepthTexture != null)
                 dhDepthTexture.bindTo(pass);
-
-            TextureWrapper voxyDepthTexture = VoxyCompat.instance.getOpaqueDepthTexture();
-            if (voxyDepthTexture != null)
+            else if (voxyDepthTexture != null)
                 voxyDepthTexture.bindTo(pass);
 
             pass.setVertexBuffer(0, modelVertexBuffer.gpuBuffer().slice());
@@ -344,7 +334,7 @@ public class Blaze3DRenderer extends CloudRenderer {
 
     public void buildRenderPipeline() {
         PipelineParams params = PipelineParams.getParameters();
-        var builder = RenderPipeline.builder()
+        CLOUD_RENDERER_PIPELINE = RenderPipeline.builder()
                 .withLocation(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "blaze_3d_renderer"))
                 .withVertexShader(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "blaze3d/clouds"))
                 .withFragmentShader(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "blaze3d/clouds"))
@@ -354,21 +344,16 @@ public class Blaze3DRenderer extends CloudRenderer {
                 .withShaderDefine("CELESTIAL_BODY_HALO", params.celestialBodyHalo() ? 1 : 0)
                 .withShaderDefine("NEAR_CLOUD_FADE", params.nearCloudFade() ? 1 : 0)
                 .withShaderDefine("NEAR_FADE_DIST", 40)
-                .withShaderDefine("IRIS", params.iris() ? 1 : 0)
+                .withShaderDefine("LOD_ENABLED", params.distantHorizons() || params.voxy() ? 1 : 0)
+                .withShaderDefine("REVERSE_Z", params.iris() ? 0 : 1)
+                .withShaderDefine("Z_NEG1_TO_1", params.zNeg1To1() ? 1 : 0)
                 .withBindGroupLayout(BindGroupLayouts.MATRICES_PROJECTION)
                 .withBindGroupLayout(SHADER_BIND_GROUP)
+                .withBindGroupLayout(LOD_BIND_GROUP)
                 .withCull(false)
-                .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, isCloudsOpaque()))
-                .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT));
-
-        if (params.distantHorizons()) {
-            builder.withBindGroupLayout(DH_BIND_GROUP).withShaderDefine("DISTANT_HORIZONS", 1);
-        }
-        if (params.voxy()) {
-            builder.withBindGroupLayout(VOXY_BIND_GROUP).withShaderDefine("VOXY", 1);
-        }
-
-        CLOUD_RENDERER_PIPELINE = builder.build();
+                .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, params.cloudsOpaque()))
+                .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
+                .build();
     }
 
     private void drawWithFrustumCulling(RenderPass pass, Frustum frustumAtOrigin) {
@@ -450,7 +435,7 @@ public class Blaze3DRenderer extends CloudRenderer {
         worldCloudPosBuffer.close();
         uCloudVertexData.close();
         uCloudFragData.close();
-        uDhProjMat.close();
+        uLodProjMat.close();
         noiseTexture.close();
         lightTexture.close();
     }

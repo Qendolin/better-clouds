@@ -44,7 +44,7 @@ public class BetterClouds extends BetterCloudsStatic {
         if (isInitialized()) return;
         initialized = true;
 
-        DistantHorizonsCompat.initialize();
+        DhCompat.initialize();
         VoxyCompat.initialize();
         IrisCompat.initialize();
         SereneSeasonsCompat.initialize();

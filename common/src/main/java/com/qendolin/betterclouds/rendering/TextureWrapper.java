@@ -32,18 +32,18 @@ public final class TextureWrapper {
     }
 
     public static TextureWrapper fromBorrowedTexture(String name, int texId, int width, int height) {
-        return fromBorrowedTexture(name, texId, width, height, TextureWrapper::defaultSampler).borrow();
+        return fromBorrowedTexture(name, texId, width, height, TextureWrapper::defaultSampler).asBorrowed();
     }
 
     public static TextureWrapper fromBorrowedTexture(String name, int texId, int width, int height, Producer<GpuSampler> sampler) {
         return from(name, texId, () -> RenderSystem.getDevice().createTextureView(
                 new BorrowedGlTexture(texId, width, height)
-        ), sampler).borrow();
+        ), sampler).asBorrowed();
     }
 
     public static TextureWrapper fromMcTexture(String name, Identifier mcTextureId, Producer<GpuSampler> customSampler) {
         var texture = Minecraft.getInstance().getTextureManager().getTexture(mcTextureId);
-        return from(name, (int) (CloudRenderCoordinator.instance.clientTicks % 60), texture::getTextureView, customSampler);
+        return from(name, (int) (CloudRenderCoordinator.instance.clientTicks / 60), texture::getTextureView, customSampler);
     }
 
     public static TextureWrapper from(String name, int identifier, Producer<GpuTextureView> view, Producer<GpuSampler> sampler) {
@@ -75,7 +75,8 @@ public final class TextureWrapper {
 
     public void close() {
         // don't close cache-owned sampler
-        if (view != null && !borrowed) view.close();
+        if (view != null && !borrowed)
+            view.close();
     }
 
     public static GpuSampler defaultSampler() {
@@ -104,7 +105,7 @@ public final class TextureWrapper {
         return sampler;
     }
 
-    private TextureWrapper borrow() {
+    public TextureWrapper asBorrowed() {
         this.borrowed = true;
         return this;
     }

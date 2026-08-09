@@ -33,7 +33,7 @@ public class VoxyCompatImpl extends VoxyCompat {
             return null;
 
         return TextureWrapper.from(
-                "VoxyDepthTexture", depthTex.id,
+                "LodDepthTexture", depthTex.id,
                 () -> RenderSystem.getDevice().createTextureView(
                         new BorrowedGlTexture(depthTex.id, depthTex.getWidth(), depthTex.getHeight())
                 ),
