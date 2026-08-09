@@ -313,11 +313,11 @@ public class Blaze3DRenderer extends CloudRenderer {
             noiseTexture.bindTo(pass);
             lightTexture.bindTo(pass);
 
-            TextureWrapper dhDepthTexture = params.distantHorizons();
+            TextureWrapper dhDepthTexture = DistantHorizonsCompat.instance().getDepthTexture();
             if (dhDepthTexture != null)
                 dhDepthTexture.bindTo(pass);
 
-            TextureWrapper voxyDepthTexture = params.voxy();
+            TextureWrapper voxyDepthTexture = VoxyCompat.instance.getOpaqueDepthTexture();
             if (voxyDepthTexture != null)
                 voxyDepthTexture.bindTo(pass);
 
@@ -361,10 +361,10 @@ public class Blaze3DRenderer extends CloudRenderer {
                 .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, isCloudsOpaque()))
                 .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT));
 
-        if (params.distantHorizons() != null) {
+        if (params.distantHorizons()) {
             builder.withBindGroupLayout(DH_BIND_GROUP).withShaderDefine("DISTANT_HORIZONS", 1);
         }
-        if (params.voxy() != null) {
+        if (params.voxy()) {
             builder.withBindGroupLayout(VOXY_BIND_GROUP).withShaderDefine("VOXY", 1);
         }
 

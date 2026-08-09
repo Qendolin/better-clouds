@@ -6,7 +6,7 @@ import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.rendering.TextureWrapper;
 
 public record PipelineParams(boolean celestialBodyHalo, boolean nearCloudFade, boolean iris,
-                             TextureWrapper distantHorizons, TextureWrapper voxy, boolean faceCulling) {
+                             boolean distantHorizons, boolean voxy, boolean faceCulling) {
     public static PipelineParams prevParams;
 
     public static PipelineParams getParameters() {
@@ -14,8 +14,8 @@ public record PipelineParams(boolean celestialBodyHalo, boolean nearCloudFade, b
         return new PipelineParams(
                 options.celestialBodyHalo, options.nearCloudFade,
                 IrisCompat.instance().isShadersEnabled(),
-                DistantHorizonsCompat.instance().getDepthTexture(),
-                VoxyCompat.instance.getOpaqueDepthTexture(),
+                DistantHorizonsCompat.instance().getDepthTexture() != null,
+                VoxyCompat.instance.getOpaqueDepthTexture() != null,
                 Blaze3DRenderer.isCloudsOpaque());
     }
 

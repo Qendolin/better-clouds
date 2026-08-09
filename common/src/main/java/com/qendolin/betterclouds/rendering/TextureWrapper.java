@@ -4,7 +4,6 @@ import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.*;
-import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.util.Producer;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.client.Minecraft;
@@ -16,6 +15,7 @@ public final class TextureWrapper {
     private int id;
     private GpuTextureView view;
     private GpuSampler sampler;
+    private boolean borrowed;
 
     private TextureWrapper(String name, int id, GpuTextureView view, GpuSampler sampler) {
         this.name = name;
@@ -25,13 +25,13 @@ public final class TextureWrapper {
     }
 
     public static TextureWrapper fromBorrowedTexture(String name, int texId, int width, int height) {
-        return fromBorrowedTexture(name, texId, width, height, TextureWrapper::defaultSampler);
+        return fromBorrowedTexture(name, texId, width, height, TextureWrapper::defaultSampler).borrow();
     }
 
     public static TextureWrapper fromBorrowedTexture(String name, int texId, int width, int height, Producer<GpuSampler> sampler) {
         return from(name, texId, () -> RenderSystem.getDevice().createTextureView(
                 new BorrowedGlTexture(texId, width, height)
-        ), sampler);
+        ), sampler).borrow();
     }
 
     public static TextureWrapper fromMcTexture(String name, Identifier mcTextureId, Producer<GpuSampler> customSampler) {
@@ -50,6 +50,7 @@ public final class TextureWrapper {
                 prevValue.id = identifier;
                 prevValue.view = view.produce();
                 prevValue.sampler = sampler.produce();
+                prevValue.borrowed = false;
             }
             return prevValue;
         });
@@ -67,7 +68,7 @@ public final class TextureWrapper {
 
     public void close() {
         // don't close cache-owned sampler
-        view.close();
+        if (view != null && !borrowed) view.close();
     }
 
     public static GpuSampler defaultSampler() {
@@ -94,5 +95,10 @@ public final class TextureWrapper {
     @SuppressWarnings("unused")
     public GpuSampler sampler() {
         return sampler;
+    }
+
+    private TextureWrapper borrow() {
+        this.borrowed = true;
+        return this;
     }
 }
