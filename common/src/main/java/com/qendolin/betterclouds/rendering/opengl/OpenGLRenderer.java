@@ -2,6 +2,7 @@ package com.qendolin.betterclouds.rendering.opengl;
 
 import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.textures.*;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.compat.*;
 import com.qendolin.betterclouds.config.Config;
@@ -309,6 +310,9 @@ public class OpenGLRenderer extends CloudRenderer {
         GlStateManager._activeTexture(GL_TEXTURE5);
         RenderHelper.bindTexture(client.getTextureManager().getTexture(Resources.NOISE_TEXTURE));
 
+        GpuSampler noiseSampler = RenderSystem.getSamplerCache().getSampler(AddressMode.REPEAT, AddressMode.REPEAT, FilterMode.LINEAR, FilterMode.LINEAR, false);
+        RenderHelper.bindSampler(5, noiseSampler);
+
         buffer.bind();
         if (glCompat.useBaseInstanceFallback()) {
             buffer.bindDrawBuffer();
@@ -420,6 +424,8 @@ public class OpenGLRenderer extends CloudRenderer {
         RenderHelper.bindTexture(res.oitCoverageTexture());
         GlStateManager._activeTexture(GL_TEXTURE4);
         RenderHelper.bindTexture(client.getTextureManager().getTexture(Resources.LIGHTING_TEXTURE));
+        GpuSampler noiseSampler = RenderSystem.getSamplerCache().getSampler(AddressMode.CLAMP_TO_EDGE, AddressMode.REPEAT, FilterMode.LINEAR, FilterMode.LINEAR, false);
+        RenderHelper.bindSampler(4, noiseSampler);
 
         Vector3f effectTint = EffectTintProvider.getEffectTint(client, fog, tickDelta, cam);
         float skyAngleRad = EffectTintProvider.getSunAngleRadians(level, cam);

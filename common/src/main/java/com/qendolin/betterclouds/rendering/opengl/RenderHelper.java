@@ -1,10 +1,11 @@
 package com.qendolin.betterclouds.rendering.opengl;
 
-import com.mojang.blaze3d.opengl.GlStateManager;
-import com.mojang.blaze3d.opengl.GlTexture;
+import com.mojang.blaze3d.opengl.*;
+import com.mojang.blaze3d.textures.GpuSampler;
 import com.mojang.blaze3d.textures.GpuTexture;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import org.lwjgl.opengl.GL32;
+import org.lwjgl.opengl.GL33C;
 
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
@@ -68,6 +69,21 @@ public abstract class RenderHelper {
 
     public static void restoreColorMask() {
         colorMask(savedColorMaskRed, savedColorMaskGreen, savedColorMaskBlue, savedColorMaskAlpha);
+    }
+
+    public static int getSamplerId(GpuSampler sampler) {
+        if (sampler instanceof GlSampler glSampler) {
+                return glSampler.getId();
+            }
+        throw new IllegalStateException("Sampler is not a GlSampler: " + sampler.getClass().getName());
+    }
+
+    public static void bindSampler(int unit, GpuSampler sampler) {
+        bindSampler(unit, getSamplerId(sampler));
+    }
+
+    public static void bindSampler(int unit, int id) {
+        GL33C.glBindSampler(unit, id);
     }
 
     public static void depthMask(boolean flag) {
