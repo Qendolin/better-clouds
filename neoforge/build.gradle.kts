@@ -88,7 +88,7 @@ dependencies {
     runtimeOnly("maven.modrinth:1eAoo2KR:${property("deps.yacl_neoforge")}")
 
     compileOnly(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-common:${property("deps.mixinsquared")}")!!)
-    implementation(jarJar("com.github.bawnorton.mixinsquared:mixinsquared-neoforge:0.3.7-beta.1")!!)
+    jarJar("com.github.bawnorton.mixinsquared:mixinsquared-neoforge:${property("deps.mixinsquared")}")!!
     implementation("io.github.llamalad7:mixinextras-neoforge:${property("deps.mixin_extras")}")
 
     // These should be included with yacl, but it does not work correctly, so adding them here.
