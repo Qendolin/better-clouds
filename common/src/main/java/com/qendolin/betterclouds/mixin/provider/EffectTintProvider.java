@@ -23,8 +23,12 @@ public abstract class EffectTintProvider {
         Vector3f cloudColor = getCloudsColor(client.level, tickDelta, cameraPos);
         gammaToLinear(cloudColor);
 
-        float cloudLuma = cloudColor.dot(Y);
-        Vector3f cloudBaseChroma = cloudLuma < 0.0001 ? new Vector3f(1.0f) : new Vector3f(cloudColor).div(cloudLuma);
+        float cloudBaseLuma = cloudColor.dot(Y);
+        Vector3f cloudBaseChroma = cloudBaseLuma < 0.0001 ? new Vector3f(1.0f) : new Vector3f(cloudColor).div(cloudBaseLuma);
+
+        float cloudLuma = cloudBaseLuma;
+        float moon = Mth.clamp(-Mth.cos(getSunAngleRadians(client.level, cameraPos)), -0.25f, 0.25f) * 2 + 0.5f;
+        cloudLuma += moon * 0.65f;
 
         // CrY - Chroma and Luma
         Vector4f cry = new Vector4f(cloudBaseChroma, cloudLuma);
