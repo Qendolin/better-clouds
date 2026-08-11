@@ -96,6 +96,8 @@ public abstract class DhSharedCompatImpl extends DhCompat {
             )).orElse(null);
         }
         var wrap = BlazeDhMetaRenderer.INSTANCE.dhDepthTextureWrapper;
+        if (wrap == null) return null;
+
         return TextureWrapper.from(
                 "LodDepthTexture", wrap.name.hashCode(),
                 wrap::getTextureView, wrap::getTextureSampler

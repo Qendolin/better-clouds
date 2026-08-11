@@ -7,9 +7,13 @@ import com.qendolin.betterclouds.rendering.CloudRenderCoordinator;
 
 public record PipelineParams(boolean celestialBodyHalo, boolean nearCloudFade, boolean iris,
                              boolean distantHorizons, boolean voxy, boolean zNeg1To1, boolean cloudsOpaque) {
-    public static PipelineParams prevParams;
+    private static PipelineParams prevParams;
 
-    public static PipelineParams getParameters() {
+    public static PipelineParams get() {
+        return prevParams;
+    }
+
+    public static PipelineParams newParameters() {
         Config options = ConfigManager.instance();
         return new PipelineParams(
                 options.celestialBodyHalo, options.nearCloudFade,
@@ -22,7 +26,7 @@ public record PipelineParams(boolean celestialBodyHalo, boolean nearCloudFade, b
 
     public static boolean paramsChanged() {
         if (CloudRenderCoordinator.instance.clientTicks % 5 != 0) return false;
-        PipelineParams currentParams = PipelineParams.getParameters();
+        PipelineParams currentParams = PipelineParams.newParameters();
         boolean changed = !currentParams.equals(prevParams);
         prevParams = currentParams;
         return changed;

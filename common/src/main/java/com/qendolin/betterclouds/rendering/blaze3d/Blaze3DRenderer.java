@@ -161,7 +161,7 @@ public class Blaze3DRenderer extends CloudRenderer {
 
         if (PipelineParams.paramsChanged()) {
             BetterCloudsStatic.getLogger().info("Pipeline parameters changed, reloading pipeline");
-            BetterCloudsStatic.getLogger().info("Current: " + PipelineParams.prevParams);
+            BetterCloudsStatic.getLogger().info("Current: " + PipelineParams.get());
             reload(null);
         }
 
@@ -253,7 +253,8 @@ public class Blaze3DRenderer extends CloudRenderer {
             b.putFloat(mappedTime / 24000);
         });
 
-        if (DhCompat.instance().isEnabled()) {
+        PipelineParams params = PipelineParams.newParameters();
+        if (params.distantHorizons()) {
             DhCompat.instance().getProjectionMatrix().get(tempMatrixCopyArr);
             uLodProjMat.write(b -> {
                 for (float value : tempMatrixCopyArr) {
@@ -261,7 +262,7 @@ public class Blaze3DRenderer extends CloudRenderer {
                 }
             });
         }
-        else if (VoxyCompat.instance.isEnabled()) {
+        else if (params.voxy()) {
             VoxyCompat.instance.getProjectionMatrix().get(tempMatrixCopyArr);
             uLodProjMat.write(b -> {
                 for (float value: tempMatrixCopyArr) {
@@ -321,9 +322,9 @@ public class Blaze3DRenderer extends CloudRenderer {
                 pass.drawIndexed(CUBE_INDICES.length, generator.points().size(), 0, 0, 0);
             else
                 drawWithFrustumCulling(pass, frustum);
+        } finally {
+            IrisFramebuffer.end();
         }
-
-        IrisFramebuffer.end();
     }
 
     private Config getGeneratorConfig() {
@@ -333,7 +334,7 @@ public class Blaze3DRenderer extends CloudRenderer {
     }
 
     public void buildRenderPipeline() {
-        PipelineParams params = PipelineParams.getParameters();
+        PipelineParams params = PipelineParams.newParameters();
         CLOUD_RENDERER_PIPELINE = RenderPipeline.builder()
                 .withLocation(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "blaze_3d_renderer"))
                 .withVertexShader(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "blaze3d/clouds"))

@@ -63,6 +63,10 @@ public abstract class CloudRenderer implements AutoCloseable {
         if (closed || level == null)
             return PrepareResult.FALLBACK;
 
+        // Rendering clouds when underwater was making them very visible in unloaded chunks
+        if (client.gameRenderer.mainCamera().getFluidInCamera() != FogType.NONE)
+            return PrepareResult.NO_RENDER;
+
         cloudHeight = level.environmentAttributes().getValue(EnvironmentAttributes.CLOUD_HEIGHT, new Vec3(cam.x, cam.y, cam.z)) + ConfigManager.instance().yOffset;
         return prepare(viewMat, projMat, cloudTicks, clientTicks, tickDelta, cam);
     }
