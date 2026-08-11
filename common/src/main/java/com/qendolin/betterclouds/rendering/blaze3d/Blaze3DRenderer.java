@@ -112,7 +112,7 @@ public class Blaze3DRenderer extends CloudRenderer {
     private final ReadOnlyBuffer worldCloudPosBuffer = new ReadOnlyBuffer("cloudPositions");
     // uniforms
     private final WritableBuffer uCloudVertexData = new WritableBuffer("uCloudVertexData", Float.BYTES * 16, GpuBuffer.USAGE_UNIFORM);
-    private final WritableBuffer uCloudFragData = new WritableBuffer("uCloudFragData", Float.BYTES * 15, GpuBuffer.USAGE_UNIFORM);
+    private final WritableBuffer uCloudFragData = new WritableBuffer("uCloudFragData", Float.BYTES * 16, GpuBuffer.USAGE_UNIFORM);
     private final WritableBuffer uLodProjMat = new WritableBuffer("uLodProjMat", Float.BYTES * 16, GpuBuffer.USAGE_UNIFORM);
     // things affected by resource reload
     RenderPipeline CLOUD_RENDERER_PIPELINE;
@@ -223,7 +223,9 @@ public class Blaze3DRenderer extends CloudRenderer {
             b.putFloat(sp.opacity);
             b.putFloat(sp.opacityFactor);
             b.putFloat(sp.opacityExponent);
+
             b.putFloat(brightness);
+            b.putFloat(sp.gamma);
 
             b.putFloat(sp.topColorRed * effectTint.x);
             b.putFloat(sp.topColorGreen * effectTint.y);

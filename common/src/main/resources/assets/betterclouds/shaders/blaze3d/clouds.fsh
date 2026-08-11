@@ -10,7 +10,8 @@ uniform sampler2D LightTexture;
 
 layout (std140) uniform CloudFragData {
 // note to self: don't mix floats and vecs, otherwise padding issues may occur
-    float opacity, opacityFactor, opacityExponent, brightness;
+    float opacity, opacityFactor, opacityExponent;
+    float brightness, gamma;
     float tintRed, tintGreen, tintBlue, bottomColorRed, bottomColorGreen, bottomColorBlue;
     float haloSize, sunX, sunY, sunZ, mappedTime;
 };
@@ -65,9 +66,14 @@ void main() {
     // prevent sampling the horizontally interpolated vertical edges
     lightUv.x -= (lightUv.x - 0.5) / textureSize(LightTexture, 0).x;
 
-    vec3 lightColor = max(texture(LightTexture, lightUv).rgb, vec3(0.15));
+    vec3 lightColorRaw = texture(LightTexture, lightUv).rgb;
+    float lightLumaRaw = dot(lightColorRaw, vec3(0.2126, 0.7152, 0.072)) + 0.001;
+    float lightLumaAdjusted = lightLumaRaw * brightness;
+    lightLumaAdjusted = pow(lightLumaAdjusted, 1 / gamma);
+    vec3 lightColor = lightColorRaw / lightLumaRaw * lightLumaAdjusted;
+
     vec3 rawColor = tintInterp * vec3(tintRed, tintGreen, tintBlue) + (1 - tintInterp) * vec3(bottomColorRed, bottomColorGreen, bottomColorBlue);
-    vec3 color = lightColor * rawColor * brightness;
+    vec3 color = lightColor * rawColor;
     float alpha = opacityFactor * opacity * pow(fogFade, opacityExponent);
     fragColor = vec4(color, alpha);
 }
