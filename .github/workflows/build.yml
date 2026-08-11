@@ -48,7 +48,7 @@ jobs:
     name: gametest_${{ matrix.loader }}
     needs: build
     runs-on: ubuntu-24.04
-    timeout-minutes: 2
+    timeout-minutes: 3
     strategy:
       fail-fast: false
       matrix:
