@@ -225,7 +225,7 @@ public class Blaze3DRenderer extends CloudRenderer {
             b.putFloat(sp.opacityExponent);
 
             b.putFloat(brightness);
-            b.putFloat(sp.gamma);
+            b.putFloat(sp.gamma());
             b.putFloat(sp.saturation);
 
             b.putFloat(sp.topColorRed * effectTint.x);
