@@ -41,8 +41,7 @@ public final class TextureWrapper {
     }
 
     public static TextureWrapper fromMcTexture(String name, Identifier mcTextureId, Producer<GpuSampler> customSampler) {
-        var texture = Minecraft.getInstance().getTextureManager().getTexture(mcTextureId);
-        return from(name, (int) (CloudRenderCoordinator.instance.clientTicks / 60), texture::getTextureView, customSampler);
+        return from(name, (int) (CloudRenderCoordinator.instance.clientTicks / 60), () -> Minecraft.getInstance().getTextureManager().getTexture(mcTextureId).getTextureView(), customSampler);
     }
 
     public static TextureWrapper from(String name, int identifier, Producer<GpuTextureView> view, Producer<GpuSampler> sampler) {

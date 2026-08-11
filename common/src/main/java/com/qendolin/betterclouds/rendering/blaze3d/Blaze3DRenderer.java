@@ -116,7 +116,6 @@ public class Blaze3DRenderer extends CloudRenderer {
     private final WritableBuffer uLodProjMat = new WritableBuffer("uLodProjMat", Float.BYTES * 16, GpuBuffer.USAGE_UNIFORM);
     // things affected by resource reload
     RenderPipeline CLOUD_RENDERER_PIPELINE;
-    TextureWrapper noiseTexture, lightTexture;
     // misc
     private final float[] tempMatrixCopyArr = new float[16];
 
@@ -142,18 +141,6 @@ public class Blaze3DRenderer extends CloudRenderer {
     public void reload(ResourceManager manager) {
         TextureWrapper.closeAllWrappers();
         buildRenderPipeline();
-        loadTextures();
-    }
-
-    private void loadTextures() {
-        noiseTexture = TextureWrapper.fromMcTexture(
-                "NoiseTexture", Resources.NOISE_TEXTURE,
-                () -> TextureWrapper.customSampler(AddressMode.REPEAT, AddressMode.REPEAT, FilterMode.LINEAR)
-        );
-        lightTexture = TextureWrapper.fromMcTexture(
-                "LightTexture", Resources.LIGHTING_TEXTURE,
-                () -> TextureWrapper.customSampler(AddressMode.CLAMP_TO_EDGE, AddressMode.REPEAT, FilterMode.LINEAR)
-        );
     }
 
     @Override
@@ -303,8 +290,14 @@ public class Blaze3DRenderer extends CloudRenderer {
             pass.setUniform("DynamicTransforms", dynamicTransform);
             pass.setUniform("LodProjMat", uLodProjMat.gpuBuffer());
 
-            noiseTexture.bindTo(pass);
-            lightTexture.bindTo(pass);
+            TextureWrapper.fromMcTexture(
+                    "NoiseTexture", Resources.NOISE_TEXTURE,
+                    () -> TextureWrapper.customSampler(AddressMode.REPEAT, AddressMode.REPEAT, FilterMode.LINEAR)
+            ).bindTo(pass);
+            TextureWrapper.fromMcTexture(
+                    "LightTexture", Resources.LIGHTING_TEXTURE,
+                    () -> TextureWrapper.customSampler(AddressMode.CLAMP_TO_EDGE, AddressMode.REPEAT, FilterMode.LINEAR)
+            ).bindTo(pass);
 
             TextureWrapper dhDepthTexture = DhCompat.instance().getDepthTexture();
             TextureWrapper voxyDepthTexture = VoxyCompat.instance.getOpaqueDepthTexture();
@@ -438,8 +431,6 @@ public class Blaze3DRenderer extends CloudRenderer {
         uCloudVertexData.close();
         uCloudFragData.close();
         uLodProjMat.close();
-        noiseTexture.close();
-        lightTexture.close();
     }
 
     public void createModelBuffers() {
