@@ -73,8 +73,8 @@ public abstract class RenderHelper {
 
     public static int getSamplerId(GpuSampler sampler) {
         if (sampler instanceof GlSampler glSampler) {
-                return glSampler.getId();
-            }
+            return glSampler.getId();
+        }
         throw new IllegalStateException("Sampler is not a GlSampler: " + sampler.getClass().getName());
     }
 

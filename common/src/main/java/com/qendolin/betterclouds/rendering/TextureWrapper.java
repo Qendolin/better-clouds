@@ -1,6 +1,5 @@
 package com.qendolin.betterclouds.rendering;
 
-import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.*;
@@ -89,10 +88,6 @@ public final class TextureWrapper {
 
     public void bindTo(RenderPass pass) {
         pass.bindTexture(name, view, sampler);
-    }
-
-    public void glBind() {
-        GlStateManager._bindTexture(id);
     }
 
     @SuppressWarnings("unused")

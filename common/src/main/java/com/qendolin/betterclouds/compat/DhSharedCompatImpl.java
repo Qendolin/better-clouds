@@ -82,9 +82,7 @@ public abstract class DhSharedCompatImpl extends DhCompat {
 
     @Override
     public TextureWrapper getDepthTexture() {
-        if (!isDhInitialized) {
-            return null;
-        }
+        if (!isDhInitialized) return null;
 
         // native renderer = whether dh is using opengl renderer
         if (DhApi.Delayed.renderProxy.isNativeRenderer()) {

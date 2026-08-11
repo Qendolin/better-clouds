@@ -12,7 +12,8 @@ import com.mojang.blaze3d.textures.FilterMode;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.datafixers.util.Pair;
 import com.qendolin.betterclouds.BetterCloudsStatic;
-import com.qendolin.betterclouds.compat.*;
+import com.qendolin.betterclouds.compat.DhCompat;
+import com.qendolin.betterclouds.compat.VoxyCompat;
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.generator.ChunkedGenerator;
@@ -261,11 +262,10 @@ public class Blaze3DRenderer extends CloudRenderer {
                     b.putFloat(value);
                 }
             });
-        }
-        else if (params.voxy()) {
+        } else if (params.voxy()) {
             VoxyCompat.instance.getProjectionMatrix().get(tempMatrixCopyArr);
             uLodProjMat.write(b -> {
-                for (float value: tempMatrixCopyArr) {
+                for (float value : tempMatrixCopyArr) {
                     b.putFloat(value);
                 }
             });

@@ -12,7 +12,9 @@ public abstract class VoxyCompat {
     }
 
     public abstract Matrix4f getProjectionMatrix();
+
     public abstract TextureWrapper getOpaqueDepthTexture();
+
     public abstract boolean isEnabled();
 
     public static class Stub extends VoxyCompat {
