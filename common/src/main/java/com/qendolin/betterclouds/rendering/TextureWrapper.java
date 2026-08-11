@@ -15,7 +15,7 @@ import net.minecraft.resources.Identifier;
  * the Blaze3D renderer
  *
  */
-public final class TextureWrapper {
+public class TextureWrapper {
     private static final Object2ObjectOpenHashMap<String, TextureWrapper> cache = new Object2ObjectOpenHashMap<>();
     private final String name;
     private int id;
@@ -41,7 +41,8 @@ public final class TextureWrapper {
     }
 
     public static TextureWrapper fromMcTexture(String name, Identifier mcTextureId, Producer<GpuSampler> customSampler) {
-        return from(name, (int) (CloudRenderCoordinator.instance.clientTicks / 60), () -> Minecraft.getInstance().getTextureManager().getTexture(mcTextureId).getTextureView(), customSampler);
+        var view = Minecraft.getInstance().getTextureManager().getTexture(mcTextureId).getTextureView();
+        return new TextureWrapper(name, 0 /* not cached as it does not go through #from */, view, customSampler.produce()).asBorrowed();
     }
 
     public static TextureWrapper from(String name, int identifier, Producer<GpuTextureView> view, Producer<GpuSampler> sampler) {
@@ -82,7 +83,7 @@ public final class TextureWrapper {
     }
 
     public static GpuSampler customSampler(AddressMode u, AddressMode v, FilterMode fm) {
-        return RenderSystem.getSamplerCache().getSampler(u, v, fm, fm, true);
+        return RenderSystem.getSamplerCache().getSampler(u, v, fm, fm, false);
     }
 
     public void bindTo(RenderPass pass) {

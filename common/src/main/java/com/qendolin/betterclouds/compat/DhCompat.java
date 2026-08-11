@@ -91,7 +91,7 @@ public abstract class DhCompat {
 
     public abstract void resetTextureCreateFlag();
 
-    public abstract boolean isZNeg1To1();
+    public abstract boolean isNativeRenderer();
 
     private static class Stub extends DhCompat {
 
@@ -140,7 +140,7 @@ public abstract class DhCompat {
         }
 
         @Override
-        public boolean isZNeg1To1() {
+        public boolean isNativeRenderer() {
             return false;
         }
     }

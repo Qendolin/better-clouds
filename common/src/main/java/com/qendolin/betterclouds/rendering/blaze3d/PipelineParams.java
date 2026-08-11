@@ -22,8 +22,9 @@ public record PipelineParams(boolean celestialBodyHalo, boolean nearCloudFade, b
                 IrisCompat.instance().isShadersEnabled(),
                 DhCompat.instance().getDepthTexture() != null,
                 VoxyCompat.instance.getOpaqueDepthTexture() != null,
-                DhCompat.instance().isZNeg1To1(),
-                Blaze3DRenderer.isCloudsOpaque());
+                DhCompat.instance().isNativeRenderer(), // DH depth is [-1, 1] for ogl renderer but [0, 1] for b3d renderer
+                Blaze3DRenderer.isCloudsOpaque()
+        );
     }
 
     public static boolean paramsChanged() {

@@ -340,7 +340,7 @@ public class Blaze3DRenderer extends CloudRenderer {
                 .withShaderDefine("NEAR_CLOUD_FADE", params.nearCloudFade() ? 1 : 0)
                 .withShaderDefine("NEAR_FADE_DIST", 40)
                 .withShaderDefine("LOD_ENABLED", params.distantHorizons() || params.voxy() ? 1 : 0)
-                .withShaderDefine("REVERSE_Z", params.distantHorizons() || params.iris() ? 0 : 1)
+                .withShaderDefine("REVERSE_Z", !DhCompat.instance().isNativeRenderer() && !params.iris() ? 1 : 0)
                 .withShaderDefine("Z_NEG1_TO_1", params.zNeg1To1() ? 1 : 0)
                 .withBindGroupLayout(BindGroupLayouts.MATRICES_PROJECTION)
                 .withBindGroupLayout(SHADER_BIND_GROUP)

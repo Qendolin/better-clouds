@@ -103,9 +103,8 @@ public abstract class DhSharedCompatImpl extends DhCompat {
     }
 
     @Override
-    public boolean isZNeg1To1() {
+    public boolean isNativeRenderer() {
         if (!isDhInitialized) return false;
-        // DH depth is [-1, 1] for ogl renderer but [0, 1] for b3d renderer
         return DhApi.Delayed.renderProxy.isNativeRenderer();
     }
 
