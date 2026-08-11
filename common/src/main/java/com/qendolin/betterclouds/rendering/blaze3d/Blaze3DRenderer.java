@@ -253,7 +253,7 @@ public class Blaze3DRenderer extends CloudRenderer {
             b.putFloat(mappedTime / 24000);
         });
 
-        PipelineParams params = PipelineParams.newParameters();
+        PipelineParams params = PipelineParams.get();
         if (params.distantHorizons()) {
             DhCompat.instance().getProjectionMatrix().get(tempMatrixCopyArr);
             uLodProjMat.write(b -> {
