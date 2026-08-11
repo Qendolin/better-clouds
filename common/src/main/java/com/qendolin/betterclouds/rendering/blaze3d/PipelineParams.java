@@ -13,7 +13,7 @@ public record PipelineParams(boolean celestialBodyHalo, boolean nearCloudFade, b
         return prevParams;
     }
 
-    public static PipelineParams newParameters() {
+    private static PipelineParams newParameters() {
         Config options = ConfigManager.instance();
         return new PipelineParams(
                 options.celestialBodyHalo, options.nearCloudFade,

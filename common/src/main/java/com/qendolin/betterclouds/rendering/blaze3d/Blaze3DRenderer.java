@@ -254,16 +254,17 @@ public class Blaze3DRenderer extends CloudRenderer {
             b.putFloat(mappedTime / 24000);
         });
 
-        PipelineParams params = PipelineParams.get();
-        if (params.distantHorizons()) {
-            DhCompat.instance().getProjectionMatrix().get(tempMatrixCopyArr);
+        var dhProjMat = DhCompat.instance().getProjectionMatrix();
+        var voxyProjMat = VoxyCompat.instance.getProjectionMatrix();
+        if (dhProjMat != null) {
+            dhProjMat.get(tempMatrixCopyArr);
             uLodProjMat.write(b -> {
                 for (float value : tempMatrixCopyArr) {
                     b.putFloat(value);
                 }
             });
-        } else if (params.voxy()) {
-            VoxyCompat.instance.getProjectionMatrix().get(tempMatrixCopyArr);
+        } else if (voxyProjMat != null) {
+            voxyProjMat.get(tempMatrixCopyArr);
             uLodProjMat.write(b -> {
                 for (float value : tempMatrixCopyArr) {
                     b.putFloat(value);
@@ -334,7 +335,7 @@ public class Blaze3DRenderer extends CloudRenderer {
     }
 
     public void buildRenderPipeline() {
-        PipelineParams params = PipelineParams.newParameters();
+        PipelineParams params = PipelineParams.get();
         CLOUD_RENDERER_PIPELINE = RenderPipeline.builder()
                 .withLocation(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "blaze_3d_renderer"))
                 .withVertexShader(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "blaze3d/clouds"))
