@@ -13,7 +13,8 @@ layout (std140) uniform CloudFragData {
     float opacity, opacityFactor, opacityExponent;
     float brightness, gamma, saturation;
     float tintRed, tintGreen, tintBlue, bottomColorRed, bottomColorGreen, bottomColorBlue;
-    float haloSize, sunX, sunY, sunZ, mappedTime;
+    float haloSize, mappedTime;
+    float sunX, sunY, sunZ, sunAxisY, sunAxisZ;
 };
 
 #if LOD_ENABLED
@@ -41,7 +42,7 @@ void main() {
 
     # if CELESTIAL_BODY_HALO
     vec3 xzProj = fragDir - sunDir * dot(fragDir, sunDir);
-    float projAngle = acos(dot(normalize(xzProj), sunDir));
+    float projAngle = acos(dot(normalize(xzProj), vec3(0, sunAxisY, sunAxisZ)));
     float superellipseFalloff = dot(sunDir, fragDir);
     float sphere = dot(sunDir, fragDir);
 
@@ -50,10 +51,9 @@ void main() {
     (1.0 + (1.0 / 3.0) * (pow(cos(2.0 * projAngle), 2.0))) * haloSize * (1.0 - abs(superellipseFalloff)) - 1.0
     ) * sign(-superellipseFalloff);
 
-    lightUvX = mix(sphere, superellipse, smoothstep(0, 1, abs(sphere)));
+    lightUvX = mix(sphere, superellipse, smoothstep(0.75, 1, abs(sphere)));
     #endif
 
-    // i give up trying to figure out how all this works, lets just do a direct port of the shader code
     // (1, 0) to (0.5, 1)
     if (lightUvX > 0.5) lightUvX = (-2.0 * lightUvX + 2.0) * 0.375;
     // (0.5, 0) to (-0.5, 1)

@@ -112,7 +112,7 @@ public class Blaze3DRenderer extends CloudRenderer {
     private final ReadOnlyBuffer worldCloudPosBuffer = new ReadOnlyBuffer("cloudPositions");
     // uniforms
     private final WritableBuffer uCloudVertexData = new WritableBuffer("uCloudVertexData", Float.BYTES * 16, GpuBuffer.USAGE_UNIFORM);
-    private final WritableBuffer uCloudFragData = new WritableBuffer("uCloudFragData", Float.BYTES * 17, GpuBuffer.USAGE_UNIFORM);
+    private final WritableBuffer uCloudFragData = new WritableBuffer("uCloudFragData", Float.BYTES * 19, GpuBuffer.USAGE_UNIFORM);
     private final WritableBuffer uLodProjMat = new WritableBuffer("uLodProjMat", Float.BYTES * 16, GpuBuffer.USAGE_UNIFORM);
     // things affected by resource reload
     RenderPipeline CLOUD_RENDERER_PIPELINE;
@@ -237,11 +237,14 @@ public class Blaze3DRenderer extends CloudRenderer {
             b.putFloat(sp.bottomColorBlue * effectTint.z);
 
             b.putFloat(haloSize);
+            b.putFloat(mappedTime / 24000);
 
             b.putFloat(sunDir.x);
             b.putFloat(sunDir.y);
             b.putFloat(sunDir.z);
-            b.putFloat(mappedTime / 24000);
+
+            b.putFloat(sunAxisY);
+            b.putFloat(sunAxisZ);
         });
 
         var dhProjMat = DhCompat.instance().getProjectionMatrix();
