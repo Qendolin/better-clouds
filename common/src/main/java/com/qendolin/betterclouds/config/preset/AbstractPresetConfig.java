@@ -8,7 +8,7 @@ public abstract class AbstractPresetConfig {
     public String title = "Default";
     @SerialEntry
     @Nullable
-    public String key = "default";
+    public String key = null;
     @SerialEntry
     public String description = "";
 
