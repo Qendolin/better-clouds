@@ -1,6 +1,8 @@
 package com.qendolin.betterclouds.mixin.required.yacl;
 
 import com.qendolin.betterclouds.gui.ConfigScreen;
+import com.qendolin.betterclouds.gui.CustomButtonOption;
+import dev.isxander.yacl3.api.ButtonOption;
 import dev.isxander.yacl3.gui.AbstractWidget;
 import dev.isxander.yacl3.gui.controllers.PopupControllerScreen;
 import net.minecraft.client.Minecraft;
@@ -42,11 +44,7 @@ public abstract class AbstractWidgetMixin {
             y2 = yy1;
         }
 
-        int color = enabled ? 0xffa09fa0 : 0xffa0a0a0;
-        if (hovered) color = -1;
-
-        graphics.fill(x1, y1, x2, y2, 0x60000000);
-        betterclouds$drawOutline(graphics, x1, y1, x2, y2, 1, color);
+        graphics.fill(x1, y1, x2, y2, hovered ? 0xa1000000 : 0x60000000);
     }
 
     @Unique
