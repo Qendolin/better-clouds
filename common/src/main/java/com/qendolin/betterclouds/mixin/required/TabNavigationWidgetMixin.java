@@ -8,10 +8,10 @@ import org.spongepowered.asm.mixin.Unique;
 @Mixin(TabNavigationBar.class)
 public class TabNavigationWidgetMixin implements TabNavigationWidgetExtensionDuck {
     @Unique
-    private boolean better_clouds$renderBackground = true;
+    private boolean betterclouds$renderBackground = true;
 
     @Override
     public void betterclouds$setRenderBackground(boolean renderBackground) {
-        this.better_clouds$renderBackground = renderBackground;
+        this.betterclouds$renderBackground = renderBackground;
     }
 }

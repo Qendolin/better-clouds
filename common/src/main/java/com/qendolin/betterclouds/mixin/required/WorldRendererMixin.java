@@ -21,7 +21,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(value = LevelRenderer.class, priority = 900)
 public abstract class WorldRendererMixin {
     @Accessor("targets")
-    protected abstract LevelTargetBundle better_clouds$getTargets();
+    protected abstract LevelTargetBundle betterclouds$getTargets();
 
     @Inject(at = @At("HEAD"), method = "render")
     private void captureFrustum(GraphicsResourceAllocator resourceAllocator, DeltaTracker deltaTracker, boolean renderOutline, CameraRenderState cameraState, Matrix4fc modelViewMatrix, GpuBufferSlice terrainFog, Vector4f fogColor, boolean shouldRenderSky, CallbackInfo ci) {
@@ -34,7 +34,7 @@ public abstract class WorldRendererMixin {
             cancellable = true
     )
     private void renderClouds(FrameGraphBuilder frame, CloudStatus cloudStatus, Vec3 cameraPosition, long gameTime, float partialTicks, int cloudColor, float cloudHeight, int cloudRange, CallbackInfo ci) {
-        if (CloudRenderCoordinator.instance.renderClouds(frame, better_clouds$getTargets(), cameraPosition, partialTicks))
+        if (CloudRenderCoordinator.instance.renderClouds(frame, betterclouds$getTargets(), cameraPosition, partialTicks))
             ci.cancel();
     }
 
@@ -48,7 +48,7 @@ public abstract class WorldRendererMixin {
             require = 0     // silently fail if not neoforge
     )
     private void renderCloudsNeoForge(FrameGraphBuilder frameGraphBuilder, CloudStatus _mode, Vec3 cameraPos, long _seed, float _ticks, int _color, float _cloudHeight, int _cloudRenderMode, Matrix4fc _viewMatrix, CallbackInfo ci) {
-        if (CloudRenderCoordinator.instance.renderClouds(frameGraphBuilder, better_clouds$getTargets(), cameraPos, _ticks))
+        if (CloudRenderCoordinator.instance.renderClouds(frameGraphBuilder, betterclouds$getTargets(), cameraPos, _ticks))
             ci.cancel();
     }
 

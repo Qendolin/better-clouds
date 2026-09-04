@@ -14,7 +14,7 @@ public abstract class StringControllerMixin implements StringControllerDuck {
     public abstract Option<String> option();
 
     @Override
-    public void better_clouds$setDescription(OptionDescription description) {
-        ((OptionDuck) option()).better_clouds$setDescription(description);
+    public void betterclouds$setDescription(OptionDescription description) {
+        ((OptionDuck) option()).betterclouds$setDescription(description);
     }
 }

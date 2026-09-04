@@ -77,7 +77,7 @@ public class NoisePresetGUI {
                 .maximumNumberOfEntries(10)
                 .initial("")
                 .build();
-        ((ListOptionDuck) noiseBuilder).better_clouds$setForceExpanded(true);
+        ((ListOptionDuck) noiseBuilder).betterclouds$setForceExpanded(true);
 
         this.selectedNoisePreset = createOption(int.class, "noisePreset")
                 .binding(defaults.selectedNoisePreset, () -> config.selectedNoisePreset, val -> config.selectedNoisePreset = val)
@@ -167,7 +167,7 @@ public class NoisePresetGUI {
     }
 
     private void setPresetDescription(Option<String> descriptionOption, String newValue) {
-        ((StringControllerDuck) descriptionOption.controller()).better_clouds$setDescription(
+        ((StringControllerDuck) descriptionOption.controller()).betterclouds$setDescription(
                 OptionDescription.of(Component.literal(newValue)));
     }
 
@@ -177,7 +177,7 @@ public class NoisePresetGUI {
     }
 
     private void updateNonResponsiveOptions() {
-        ((ListOptionDuck) noiseBuilder).better_clouds$setCollapsed(false);
+        ((ListOptionDuck) noiseBuilder).betterclouds$setCollapsed(false);
 
         noisePresetOptions.forEach(this::setOptionEditable);
         noiseBuilder.setAvailable(config.noisePreset().editable);
@@ -191,7 +191,7 @@ public class NoisePresetGUI {
         boolean editable = config.noisePreset().editable;
         option.forgetPendingValue();
         option.setAvailable(editable);
-        ((OptionDuck) option).better_clouds$appendToDescription(
+        ((OptionDuck) option).betterclouds$appendToDescription(
                 OptionDescription.of(
                         !editable ?
                                 Component.translatable("betterclouds.config.message.fieldControlledByNoisePreset") :

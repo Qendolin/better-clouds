@@ -17,56 +17,56 @@ public abstract class OptionListOptionEntryMixin extends ContainerObjectSelectio
     @Final
     public AbstractWidget widget;
     @Unique
-    private BeforeRenderCallback better_clouds$beforeRender;
+    private BeforeRenderCallback betterclouds$beforeRender;
     @Unique
-    private AfterRenderCallback better_clouds$afterRender;
+    private AfterRenderCallback betterclouds$afterRender;
     @Unique
-    private int better_clouds$yPadding = 0;
+    private int betterclouds$yPadding = 0;
 
     @Shadow
     protected abstract void updateHeight();
 
     @Override
     public void betterclouds$onBeforeRender(BeforeRenderCallback callback) {
-        this.better_clouds$beforeRender = callback;
+        this.betterclouds$beforeRender = callback;
     }
 
     @Override
     public void betterclouds$onAfterRender(AfterRenderCallback callback) {
-        this.better_clouds$afterRender = callback;
+        this.betterclouds$afterRender = callback;
     }
 
     @Inject(method = "extractContent", at = @At("HEAD"), remap = false)
     private void onBeforeRender(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float a, CallbackInfo ci) {
-        if (better_clouds$beforeRender != null) {
+        if (betterclouds$beforeRender != null) {
             int x = widget.getDimension().x();
             int y = widget.getDimension().y();
             int w = widget.getDimension().width();
             int h = widget.getDimension().height();
-            better_clouds$beforeRender.onBeforeRender(this, graphics, x, y, w, h, mouseX, mouseY, hovered, a);
+            betterclouds$beforeRender.onBeforeRender(this, graphics, x, y, w, h, mouseX, mouseY, hovered, a);
         }
     }
 
     @Inject(method = "extractContent", at = @At("RETURN"), remap = false)
     private void onAfterRender(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float a, CallbackInfo ci) {
-        if (better_clouds$afterRender != null) {
+        if (betterclouds$afterRender != null) {
             int x = widget.getDimension().x();
             int y = widget.getDimension().y();
             int w = widget.getDimension().width();
             int h = widget.getDimension().height();
-            better_clouds$afterRender.onAfterRender(this, graphics, x, y, w, h, mouseX, mouseY, hovered, a);
+            betterclouds$afterRender.onAfterRender(this, graphics, x, y, w, h, mouseX, mouseY, hovered, a);
         }
     }
 
     @Override
     public void betterclouds$setYPadding(int padding) {
-        better_clouds$yPadding = padding;
+        betterclouds$yPadding = padding;
         updateHeight();
     }
 
     @Override
     public int betterclouds$getYPadding() {
-        return better_clouds$yPadding;
+        return betterclouds$yPadding;
     }
 
 
@@ -78,6 +78,6 @@ public abstract class OptionListOptionEntryMixin extends ContainerObjectSelectio
                     remap = true
             ))
     private int modifyYPadding(int original) {
-        return original + better_clouds$yPadding;
+        return original + betterclouds$yPadding;
     }
 }

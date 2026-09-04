@@ -11,18 +11,18 @@ public class OptionMixin implements OptionDuck {
     private OptionDescription description;
 
     @Unique
-    private OptionDescription better_clouds$originalDescription;
+    private OptionDescription betterclouds$originalDescription;
 
     @Override
-    public void better_clouds$setDescription(OptionDescription description) {
-        this.better_clouds$originalDescription = description;
+    public void betterclouds$setDescription(OptionDescription description) {
+        this.betterclouds$originalDescription = description;
         this.description = description;
     }
 
     @Override
-    public void better_clouds$appendToDescription(OptionDescription description) {
-        if (this.better_clouds$originalDescription == null)
-            this.better_clouds$originalDescription = this.description;
-        this.description = OptionDescription.of(this.better_clouds$originalDescription.text(), description.text());
+    public void betterclouds$appendToDescription(OptionDescription description) {
+        if (this.betterclouds$originalDescription == null)
+            this.betterclouds$originalDescription = this.description;
+        this.description = OptionDescription.of(this.betterclouds$originalDescription.text(), description.text());
     }
 }

@@ -11,7 +11,7 @@ public abstract class BiomeManagerMixin implements BiomeManagerDuck {
     private long biomeZoomSeed;
 
     @Unique
-    public long better_clouds$biomeSeed() {
+    public long betterclouds$biomeSeed() {
         return biomeZoomSeed;
     }
 }

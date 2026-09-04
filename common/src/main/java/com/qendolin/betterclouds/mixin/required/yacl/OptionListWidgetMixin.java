@@ -24,7 +24,7 @@ import java.util.List;
 public abstract class OptionListWidgetMixin extends AbstractSelectionList<OptionListWidget.Entry> implements CustomOptionListWidgetDuck {
 
     @Unique
-    private boolean better_clouds$override = false;
+    private boolean betterclouds$override = false;
 
     public OptionListWidgetMixin(Minecraft client, int width, int height, int y, int itemHeight) {
         super(client, width, height, y, itemHeight);
@@ -35,13 +35,13 @@ public abstract class OptionListWidgetMixin extends AbstractSelectionList<Option
 
     @Override
     public void betterclouds$applyOverride() {
-        better_clouds$override = true;
+        betterclouds$override = true;
         refreshOptions();
     }
 
     @Inject(method = "refreshOptions", at = @At("TAIL"), remap = false)
     private void onRefreshOptions(CallbackInfo ci) {
-        if (!better_clouds$override) return;
+        if (!betterclouds$override) return;
 
         for (OptionListWidget.Entry child : children()) {
             if (child instanceof OptionListWidget.OptionEntry entry && child instanceof OptionListEntryExtensionDuck duck) {

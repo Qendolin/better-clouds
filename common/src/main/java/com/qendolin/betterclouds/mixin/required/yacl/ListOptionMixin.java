@@ -11,20 +11,20 @@ public class ListOptionMixin implements ListOptionDuck {
     @Final
     private boolean collapsed;
     @Unique
-    private boolean better_clouds$forceExpanded;
+    private boolean betterclouds$forceExpanded;
 
     @Override
-    public void better_clouds$setCollapsed(boolean collapsed) {
+    public void betterclouds$setCollapsed(boolean collapsed) {
         this.collapsed = collapsed;
     }
 
     @Override
-    public void better_clouds$setForceExpanded(boolean forceExpanded) {
-        this.better_clouds$forceExpanded = forceExpanded;
+    public void betterclouds$setForceExpanded(boolean forceExpanded) {
+        this.betterclouds$forceExpanded = forceExpanded;
     }
 
     @Override
-    public boolean better_clouds$forceExpanded() {
-        return better_clouds$forceExpanded;
+    public boolean betterclouds$forceExpanded() {
+        return betterclouds$forceExpanded;
     }
 }

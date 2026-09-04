@@ -109,7 +109,7 @@ public abstract class CloudRenderer implements AutoCloseable {
             BetterCloudsStatic.getLogger().warn("No level when getWorldSeed was called?");
             return 0;
         }
-        long seed = ((BiomeManagerDuck) level.getBiomeManager()).better_clouds$biomeSeed();
+        long seed = ((BiomeManagerDuck) level.getBiomeManager()).betterclouds$biomeSeed();
         BetterCloudsStatic.getLogger().debug("Biome seed: " + seed);
         return seed;
     }

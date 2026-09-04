@@ -308,7 +308,7 @@ public class ShaderPresetGUI {
     }
 
     private void setPresetDescription(Option<String> descriptionOption, String newValue) {
-        ((StringControllerDuck) descriptionOption.controller()).better_clouds$setDescription(
+        ((StringControllerDuck) descriptionOption.controller()).betterclouds$setDescription(
                 OptionDescription.of(Component.literal(newValue)));
     }
 
@@ -325,7 +325,7 @@ public class ShaderPresetGUI {
         boolean editable = config.shaderPreset().editable;
         option.forgetPendingValue();
         option.setAvailable(editable);
-        ((OptionDuck) option).better_clouds$appendToDescription(
+        ((OptionDuck) option).betterclouds$appendToDescription(
                 OptionDescription.of(
                         !editable ?
                                 Component.translatable("betterclouds.config.message.fieldControlledByShaderPreset") :

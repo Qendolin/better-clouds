@@ -38,9 +38,9 @@ public abstract class CategoryTabMixin implements CustomCategoryTabDuck {
     @Final
     private YACLScreen screen;
     @Unique
-    private boolean better_clouds$override;
+    private boolean betterclouds$override;
     @Unique
-    private Button better_clouds$hideShowButton;
+    private Button betterclouds$hideShowButton;
 
     @Shadow
     public abstract void updateButtons();
@@ -49,7 +49,7 @@ public abstract class CategoryTabMixin implements CustomCategoryTabDuck {
     public void betterclouds$applyOverride() {
         undoButton.active = false;
         undoButton.visible = false;
-        better_clouds$override = true;
+        betterclouds$override = true;
 
         try {
             Field optionListField = getClass().getDeclaredField("optionList");
@@ -65,30 +65,30 @@ public abstract class CategoryTabMixin implements CustomCategoryTabDuck {
 
         Minecraft client = Minecraft.getInstance();
 
-        better_clouds$hideShowButton = Button.builder(Component.translatable(ConfigGUI.LANG_KEY_PREFIX + ".hide"),
-                        btn -> better_clouds$hideOrShow())
+        betterclouds$hideShowButton = Button.builder(Component.translatable(ConfigGUI.LANG_KEY_PREFIX + ".hide"),
+                        btn -> betterclouds$hideOrShow())
                 .pos(undoButton.getX(), undoButton.getY())
                 .size(undoButton.getWidth(), undoButton.getHeight())
                 .build();
-        better_clouds$hideShowButton.active = client.level != null;
+        betterclouds$hideShowButton.active = client.level != null;
     }
 
     @Unique
-    private void better_clouds$hideOrShow() {
+    private void betterclouds$hideOrShow() {
         Minecraft client = Minecraft.getInstance();
         if (client.gui.screen() == screen) {
-            better_clouds$hideShowButton.setMessage(Component.translatable(ConfigGUI.LANG_KEY_PREFIX + ".show"));
-            Screen hiddenScreen = new ConfigScreen.HiddenScreen(screen.getTitle(), better_clouds$hideShowButton);
+            betterclouds$hideShowButton.setMessage(Component.translatable(ConfigGUI.LANG_KEY_PREFIX + ".show"));
+            Screen hiddenScreen = new ConfigScreen.HiddenScreen(screen.getTitle(), betterclouds$hideShowButton);
             client.gui.setScreen(hiddenScreen);
         } else {
-            better_clouds$hideShowButton.setMessage(Component.translatable(ConfigGUI.LANG_KEY_PREFIX + ".hide"));
+            betterclouds$hideShowButton.setMessage(Component.translatable(ConfigGUI.LANG_KEY_PREFIX + ".hide"));
             client.gui.setScreen(screen);
         }
     }
 
     @WrapMethod(method = "updateButtons")
     private void updateButtons(Operation<Void> original) {
-        if (!better_clouds$override) {
+        if (!betterclouds$override) {
             original.call();
             return;
         }
@@ -113,15 +113,15 @@ public abstract class CategoryTabMixin implements CustomCategoryTabDuck {
             at = @At("TAIL")
     )
     private void onTick(CallbackInfo ci) {
-        if (!better_clouds$override) return;
+        if (!betterclouds$override) return;
 
         updateButtons();
     }
 
     @Inject(method = "visitChildren", at = @At("TAIL"), remap = true)
     private void onForEachChild(Consumer<AbstractWidget> consumer, CallbackInfo ci) {
-        if (!better_clouds$override) return;
+        if (!betterclouds$override) return;
 
-        consumer.accept(better_clouds$hideShowButton);
+        consumer.accept(betterclouds$hideShowButton);
     }
 }
