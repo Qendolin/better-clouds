@@ -66,13 +66,14 @@ public class ConfigManager {
                                 .registerTypeAdapter(
                                         new TypeToken<List<ShaderPresetConfig>>() {
                                         }.getType(),
-                                        new PresetListSerializer<ShaderPresetConfig>(
-                                                () -> PresetLoader.SHADER.presets().keySet()))
+                                        new PresetListSerializer<ShaderPresetConfig>()
+                                )
                                 .registerTypeAdapter(
                                         new TypeToken<List<NoisePresetConfig>>() {
                                         }.getType(),
-                                        new PresetListSerializer<NoisePresetConfig>(
-                                                () -> PresetLoader.NOISE.presets().keySet())))
+                                        new PresetListSerializer<NoisePresetConfig>()
+                                )
+                        )
                         .setPath(CONFIG_PATH)
                         .setJson5(false)
                         .build())

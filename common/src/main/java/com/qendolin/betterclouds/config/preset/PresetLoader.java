@@ -88,6 +88,13 @@ public class PresetLoader<T extends AbstractPresetConfig> implements PreparableR
                 entry.getValue().key = entry.getKey();
             }
 
+            try {
+                // make default preset editable
+                mergedPresets.get("default").editable = true;
+            } catch (NullPointerException e) {
+                BetterCloudsStatic.getLogger().warn("No default preset loaded?");
+            }
+
             return mergedPresets;
         }, executor);
     }
