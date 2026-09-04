@@ -39,8 +39,6 @@ public class Config {
     @SerialEntry
     public final SereneSeasonsConfig sereneSeasonsConfig = new SereneSeasonsConfig();
     @SerialEntry
-    public final FabricSeasonsConfig fabricSeasonsConfig = new FabricSeasonsConfig();
-    @SerialEntry
     public int migrationVersion = 0;
     @SerialEntry
     public boolean enabled = true;
