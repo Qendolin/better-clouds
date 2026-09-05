@@ -3,15 +3,18 @@ package com.qendolin.betterclouds.rendering;
 import com.mojang.blaze3d.framegraph.FrameGraphBuilder;
 import com.mojang.blaze3d.framegraph.FramePass;
 import com.qendolin.betterclouds.*;
+import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import com.qendolin.betterclouds.rendering.blaze3d.Blaze3DRenderer;
 import com.qendolin.betterclouds.rendering.opengl.Debug;
 import com.qendolin.betterclouds.rendering.opengl.OpenGLRenderer;
+import net.minecraft.client.CloudStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LevelTargetBundle;
 import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.client.renderer.state.OptionsRenderState;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.Mth;
@@ -24,13 +27,14 @@ import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
 public class CloudRenderCoordinator {
     public static final CloudRenderCoordinator instance = new CloudRenderCoordinator();
 
-    private final Vector3d tempVector = new Vector3d();
-
     public CloudRenderer renderer;
     public Matrix4f capturedViewMat;
     public Matrix4f capturedProjMat;
     public Frustum frustum;
     public long clientTicks;
+
+    private boolean sentCloudsDisabledMessage = false;
+    private final Vector3d tempVector = new Vector3d();
 
     public void initialize() {
         if (GraphicsCompat.instance.isIncompatible()) return;
@@ -50,6 +54,12 @@ public class CloudRenderCoordinator {
         frustum = new Frustum(cameraState.cullFrustum);
         Vec3 cameraPos = cameraState.pos;
         frustum.prepare(cameraPos.x, cameraPos.y, cameraPos.z);
+    }
+
+    public void checkState(OptionsRenderState optionsRenderState) {
+        if (sentCloudsDisabledMessage || !optionsRenderState.cloudStatus.equals(CloudStatus.OFF) || IrisCompat.instance().isShadersEnabled() || !ConfigManager.instance().cloudsDisabledMessageEnabled) return;
+        Commands.sendCloudsDisabledMessage();
+        sentCloudsDisabledMessage = true;
     }
 
     public void reload(ResourceManager manager) {

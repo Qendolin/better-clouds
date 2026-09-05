@@ -107,11 +107,13 @@ public class Config {
     @SerialEntry
     public int selectedNoisePreset = 0;
     @SerialEntry
-    public boolean gpuIncompatibleMessageEnabled = true;
-    @SerialEntry
     public boolean useFallbacks = false;
     @SerialEntry
     public List<ResourceKey<DimensionType>> enabledDimensions = new ArrayList<>(getDefaultDimensions());
+    @SerialEntry
+    public boolean gpuIncompatibleMessageEnabled = true;
+    @SerialEntry
+    public boolean cloudsDisabledMessageEnabled = true;
 
     @SuppressWarnings("unused")
     public Config() {

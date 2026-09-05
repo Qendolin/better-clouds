@@ -91,6 +91,7 @@ public class PresetLoader<T extends AbstractPresetConfig> implements PreparableR
             try {
                 // make default preset editable
                 mergedPresets.get("default").editable = true;
+                BetterCloudsStatic.getLogger().debug("Default preset was loaded");
             } catch (NullPointerException e) {
                 BetterCloudsStatic.getLogger().warn("No default preset loaded?");
             }

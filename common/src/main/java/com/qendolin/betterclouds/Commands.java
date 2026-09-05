@@ -6,6 +6,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.serialization.Codec;
+import com.qendolin.betterclouds.compat.DhCompat;
 import com.qendolin.betterclouds.compat.GLCompat;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.config.gui.ConfigGUI;
@@ -17,8 +18,7 @@ import com.qendolin.betterclouds.util.ChatUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.arguments.StringRepresentableArgument;
-import net.minecraft.network.chat.ClickEvent;
-import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.*;
 import net.minecraft.util.StringRepresentable;
 import org.jspecify.annotations.NonNull;
 
@@ -153,6 +153,14 @@ public class Commands {
                     return 1;
                 }))
                 .then(literal("set")
+                        .then(literal("cloudSpeed")
+                                .then(argument("speed", FloatArgumentType.floatArg(0, 1024))
+                                        .executes(context -> {
+                                            ConfigManager.instance().travelSpeed = FloatArgumentType.getFloat(context, "speed") / 20;
+                                            return 1;
+                                        })
+                                )
+                        )
                         .then(literal("gpuIncompatibleMessage")
                                 .then(argument("enable", BoolArgumentType.bool())
                                         .executes(context -> {
@@ -164,14 +172,17 @@ public class Commands {
                                             ChatUtil.debugChatMessage("updatedPreferences");
                                             return 1;
                                         })))
-                        .then(literal("cloudSpeed")
-                                .then(argument("speed", FloatArgumentType.floatArg(0, 1024))
+                        .then(literal("cloudsDisabledMessage")
+                                .then(argument("enable", BoolArgumentType.bool())
                                         .executes(context -> {
-                                            ConfigManager.instance().travelSpeed = FloatArgumentType.getFloat(context, "speed") / 20;
+                                            boolean enable = BoolArgumentType.getBool(context, "enable");
+                                            if (ConfigManager.instance().cloudsDisabledMessageEnabled == enable)
+                                                return 1;
+                                            ConfigManager.instance().cloudsDisabledMessageEnabled = enable;
+                                            ConfigManager.handler().save();
+                                            ChatUtil.debugChatMessage("updatedPreferences");
                                             return 1;
-                                        })
-                                )
-                        )
+                                        })))
                 )
         );
         dispatcher.register(literal(BetterCloudsStatic.MODID + ":dimension")
@@ -359,6 +370,17 @@ public class Commands {
                                 .withStyle(style -> style.withItalic(true).withUnderlined(true).withColor(ChatFormatting.GRAY)
                                         .withClickEvent(createCommandClickEvent(
                                                 "/betterclouds:config set gpuIncompatibleMessage false")))));
+    }
+
+    public static void sendCloudsDisabledMessage() {
+        var component = Component.translatable(ChatUtil.debugChatMessageKey("cloudsDisabledMessage"));
+        if (DhCompat.instance().isEnabled()) component.append(Component.translatable(ChatUtil.debugChatMessageKey("distantHorizonsDisablingMessage")));
+        component.append(Component.literal("\n - "))
+                .append(Component.translatable(ChatUtil.debugChatMessageKey("generic.disable"))
+                        .withStyle(style -> style.withItalic(true).withUnderlined(true).withColor(ChatFormatting.GRAY)
+                                .withClickEvent(createCommandClickEvent(
+                                        "/betterclouds:config set cloudsDisabledMessage false"))));
+        ChatUtil.debugChatMessage(component);
     }
 
     public static void sendCrashChatMessage() {
