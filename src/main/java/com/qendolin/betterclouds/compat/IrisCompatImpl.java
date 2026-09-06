@@ -3,6 +3,7 @@ package com.qendolin.betterclouds.compat;
 import com.qendolin.betterclouds.mixin.optional.ExtendedShaderAccessor;
 import com.qendolin.betterclouds.mixin.optional.FallbackShaderAccessor;
 import net.irisshaders.iris.Iris;
+import net.irisshaders.iris.compat.dh.DHCompat;
 import net.irisshaders.iris.gl.framebuffer.GlFramebuffer;
 import net.irisshaders.iris.pipeline.IrisRenderingPipeline;
 import net.irisshaders.iris.pipeline.WorldRenderingPipeline;
@@ -10,12 +11,25 @@ import net.irisshaders.iris.pipeline.programs.ExtendedShader;
 import net.irisshaders.iris.pipeline.programs.FallbackShader;
 import net.irisshaders.iris.pipeline.programs.ShaderKey;
 import net.minecraft.client.gl.ShaderProgram;
+import org.joml.Matrix4f;
+
+import java.util.Optional;
 
 public class IrisCompatImpl extends IrisCompat {
     private static final String INCOMPATIBLE_ERROR = "Incompatible Iris version for Better Clouds, please report this issue to Better Clouds. Details: ";
 
     public boolean isShadersEnabled() {
         return Iris.getIrisConfig().areShadersEnabled() && Iris.getCurrentPack().isPresent();
+    }
+
+    @Override
+    public Optional<Matrix4f> getDhProjectionMatrix() {
+        if (!isShadersEnabled() || !DHCompat.hasRenderingEnabled() || DHCompat.lastPackIncompatible()) {
+            return Optional.empty();
+        }
+        // Iris replaces DH's terrain projection; the DH event matrix need not
+        // match the depth texture that its shaders actually rendered.
+        return Optional.of(DHCompat.getProjection());
     }
 
     @Override

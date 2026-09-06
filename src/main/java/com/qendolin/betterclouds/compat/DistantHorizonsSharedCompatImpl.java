@@ -64,6 +64,10 @@ public abstract class DistantHorizonsSharedCompatImpl extends DistantHorizonsCom
 
     @Override
     public Matrix4f getProjectionMatrix() {
+        Optional<Matrix4f> irisProjection = IrisCompat.instance().getDhProjectionMatrix();
+        if (irisProjection.isPresent()) {
+            return irisProjection.get();
+        }
         float[] mat = getDhProjectionMatrixValues(lastRenderParam);
         return new Matrix4f(mat[0], mat[4], mat[8], mat[12],
             mat[1], mat[5], mat[9], mat[13],

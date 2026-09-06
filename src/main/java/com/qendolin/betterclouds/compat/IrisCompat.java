@@ -1,6 +1,9 @@
 package com.qendolin.betterclouds.compat;
 
 import com.qendolin.betterclouds.BetterCloudsStatic;
+import org.joml.Matrix4f;
+
+import java.util.Optional;
 
 public abstract class IrisCompat {
 
@@ -69,6 +72,10 @@ public abstract class IrisCompat {
     public abstract boolean isFrustumCullingDisabled();
 
     public abstract void bindFramebuffer();
+
+    public Optional<Matrix4f> getDhProjectionMatrix() {
+        return Optional.empty();
+    }
 
     private static class Stub extends IrisCompat {
         @Override
