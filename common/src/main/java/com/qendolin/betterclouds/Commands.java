@@ -219,8 +219,6 @@ public class Commands {
     }
 
     private static void registerOpenGLCommands(CommandDispatcher<Object> dispatcher, Minecraft client) {
-        if (!GraphicsCompat.isOpenGL) return;
-
         dispatcher.register(literal(BetterCloudsStatic.MODID + ":debug")
                 .then(renderdocCommands())
                 .then(literal("fallback")
