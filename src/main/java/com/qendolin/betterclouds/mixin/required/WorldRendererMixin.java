@@ -2,14 +2,17 @@ package com.qendolin.betterclouds.mixin.required;
 
 import com.qendolin.betterclouds.BetterClouds;
 import com.qendolin.betterclouds.BetterCloudsStatic;
+import com.qendolin.betterclouds.Commands;
 import com.qendolin.betterclouds.clouds.Debug;
 import com.qendolin.betterclouds.clouds.Renderer;
+import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.duck.WorldRendererDuck;
 import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import com.qendolin.betterclouds.telemetry.IssueReportManager;
 import com.qendolin.betterclouds.util.RenderHelper;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.option.CloudRenderMode;
 import net.minecraft.client.render.*;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.resource.ResourceManager;
@@ -75,6 +78,9 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
     @Shadow
     private int ticks;
 
+    @Unique
+    private boolean sentCloudsDisabledMessage = false;
+
     //? if >=1.21.3 {
     @Shadow
     public abstract Frustum getCapturedFrustum();
@@ -125,10 +131,11 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
 
     //? if >=1.21.9 {
     @Inject(at = @At("HEAD"), method = "render")
-    private void captureViewAndProjectionMatrix(ObjectAllocator allocator, RenderTickCounter tickCounter, boolean renderBlockOutline, Camera camera, Matrix4f positionMatrix, Matrix4f projectionFinalMatrix, Matrix4f projectionOnlyMatrix, GpuBufferSlice fogBuffer, Vector4f fogColor, boolean renderSky, CallbackInfo ci) {
-        RenderHelper.setProjectionMatrix(projectionFinalMatrix);
+    private void captureViewAndProjectionMatrix(ObjectAllocator allocator, RenderTickCounter tickCounter, boolean renderBlockOutline, Camera camera, Matrix4f positionMatrix, Matrix4f basicProjectionMatrix, Matrix4f projectionMatrix, GpuBufferSlice fogBuffer, Vector4f fogColor, boolean renderSky, CallbackInfo ci) {
+        RenderHelper.setProjectionMatrix(basicProjectionMatrix);
         RenderHelper.setViewMatrix(positionMatrix);
-        frustum = new Frustum(positionMatrix, projectionOnlyMatrix);
+        better_clouds$checkState();
+        frustum = new Frustum(positionMatrix, projectionMatrix);
         //? if >=1.21.11 {
         frustum.setPosition(camera.getCameraPos().getX(), camera.getCameraPos().getY(), camera.getCameraPos().getZ());
         //?} else {
@@ -138,10 +145,29 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
     //?} else if >=1.21.6 {
     /*@Inject(at = @At("HEAD"), method = "render")
     private void captureViewAndProjectionMatrix(ObjectAllocator allocator, RenderTickCounter tickCounter, boolean renderBlockOutline, Camera camera, Matrix4f positionMatrix, Matrix4f projectionMatrix, GpuBufferSlice fog, Vector4f fogColor, boolean shouldRenderSky, CallbackInfo ci) {
+        checkState();
         RenderHelper.setProjectionMatrix(projectionMatrix);
         RenderHelper.setViewMatrix(positionMatrix);
     }
+    *///?} else if >=1.21.1 {
+    /*@Inject(at = @At("HEAD"), method = "render")
+    private void checkState(RenderTickCounter tickCounter, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, Matrix4f matrix4f2, CallbackInfo ci) {
+        better_clouds$checkState();
+    }
+    *///?} else {
+        /*@Inject(at = @At("HEAD"), method = "render")
+    private void checkState(float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, Matrix4f matrix4f2, CallbackInfo ci) {
+        checkState();
+    }
     *///?}
+
+    @Unique
+    public void better_clouds$checkState() {
+        if (sentCloudsDisabledMessage || !MinecraftClient.getInstance().options.getCloudRenderModeValue().equals(CloudRenderMode.OFF) || IrisCompat.instance().isShadersEnabled() || !ConfigManager.instance().cloudsDisabledMessageEnabled) return;
+        Commands.sendCloudsDisabledMessage();
+        sentCloudsDisabledMessage = true;
+    }
+
 
     //? if >=1.21.11 && fabric {
     @Inject(at = @At("HEAD"), method = "renderClouds", cancellable = true)

@@ -7,6 +7,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.serialization.Codec;
 import com.qendolin.betterclouds.clouds.Debug;
+import com.qendolin.betterclouds.compat.DistantHorizonsCompat;
 import com.qendolin.betterclouds.compat.GLCompat;
 import com.qendolin.betterclouds.config.ConfigGUI;
 import com.qendolin.betterclouds.config.ConfigManager;
@@ -179,6 +180,17 @@ public class Commands {
                             ChatUtil.debugChatMessage("updatedPreferences");
                             return 1;
                         })))
+                            .then(literal("cloudsDisabledMessage")
+                                    .then(argument("enable", BoolArgumentType.bool())
+                                            .executes(context -> {
+                                                boolean enable = BoolArgumentType.getBool(context, "enable");
+                                                if (ConfigManager.instance().cloudsDisabledMessageEnabled == enable)
+                                                    return 1;
+                                                ConfigManager.instance().cloudsDisabledMessageEnabled = enable;
+                                                ConfigManager.handler().save();
+                                                ChatUtil.debugChatMessage("updatedPreferences");
+                                                return 1;
+                                            })))
                 //? if >=1.21.6 {
                 .then(literal("yesLunarClientSeriouslySucks")
                     .executes(context -> {
@@ -410,6 +422,18 @@ public class Commands {
                         .withClickEvent(createCommandClickEvent(
                             "/betterclouds:config set gpuIncompatibleMessage false")))));
     }
+
+    public static void sendCloudsDisabledMessage() {
+        var component = Text.translatable(ChatUtil.debugChatMessageKey("cloudsDisabledMessage"));
+        if (DistantHorizonsCompat.instance().isEnabled()) component.append(Text.translatable(ChatUtil.debugChatMessageKey("distantHorizonsDisablingMessage")));
+        component.append(Text.literal("\n - "))
+                .append(Text.translatable(ChatUtil.debugChatMessageKey("generic.disable"))
+                        .styled(style -> style.withItalic(true).withUnderline(true).withColor(Formatting.GRAY)
+                                .withClickEvent(createCommandClickEvent(
+                                        "/betterclouds:config set cloudsDisabledMessage false"))));
+        ChatUtil.debugChatMessage(component);
+    }
+
 
     public static void sendHardwareMaybeIncompatibleChatMessage() {
         if (!ConfigManager.instance().gpuIncompatibleMessageEnabled) return;

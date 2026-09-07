@@ -115,6 +115,8 @@ public class Config {
     public boolean gpuIncompatibleMessageEnabled = true;
     @SerialEntry
     public boolean issueReportEnabled = true;
+    @SerialEntry
+    public boolean cloudsDisabledMessageEnabled = true;
     //? if >=1.21.6 {
     @SerialEntry
     public boolean lunarSucksMessageEnabled = true;
