@@ -145,7 +145,7 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
     //?} else if >=1.21.6 {
     /*@Inject(at = @At("HEAD"), method = "render")
     private void captureViewAndProjectionMatrix(ObjectAllocator allocator, RenderTickCounter tickCounter, boolean renderBlockOutline, Camera camera, Matrix4f positionMatrix, Matrix4f projectionMatrix, GpuBufferSlice fog, Vector4f fogColor, boolean shouldRenderSky, CallbackInfo ci) {
-        checkState();
+        better_clouds$checkState();
         RenderHelper.setProjectionMatrix(projectionMatrix);
         RenderHelper.setViewMatrix(positionMatrix);
     }
@@ -157,7 +157,7 @@ public abstract class WorldRendererMixin implements WorldRendererDuck {
     *///?} else {
         /*@Inject(at = @At("HEAD"), method = "render")
     private void checkState(float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, Matrix4f matrix4f2, CallbackInfo ci) {
-        checkState();
+        better_clouds$checkState();
     }
     *///?}
 
