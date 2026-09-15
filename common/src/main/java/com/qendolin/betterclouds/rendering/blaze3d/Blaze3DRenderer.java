@@ -5,6 +5,7 @@ import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.pipeline.*;
 import com.mojang.blaze3d.platform.CompareOp;
+import com.mojang.blaze3d.platform.BlendFactor;
 import com.mojang.blaze3d.shaders.UniformType;
 import com.mojang.blaze3d.systems.*;
 import com.mojang.blaze3d.textures.AddressMode;
@@ -115,9 +116,14 @@ public class Blaze3DRenderer extends CloudRenderer {
     private final WritableBuffer uCloudFragData = new WritableBuffer("uCloudFragData", Float.BYTES * 19, GpuBuffer.USAGE_UNIFORM);
     private final WritableBuffer uLodProjMat = new WritableBuffer("uLodProjMat", Float.BYTES * 16, GpuBuffer.USAGE_UNIFORM);
     // things affected by resource reload
-    RenderPipeline CLOUD_RENDERER_PIPELINE;
+    RenderPipeline CLOUD_RENDERER_PIPELINE, CLOUD_COMPOSITE_PIPELINE;
+    private final IrisCloudTarget irisCloudTarget = new IrisCloudTarget();
+    private static final BlendFunction ACCUMULATION_BLEND = new BlendFunction(
+            BlendFactor.SRC_ALPHA, BlendFactor.ONE_MINUS_SRC_ALPHA,
+            BlendFactor.ONE, BlendFactor.ONE_MINUS_SRC_ALPHA);
     // misc
     private final float[] tempMatrixCopyArr = new float[16];
+    private int renderAttempts = 0;
 
     public Blaze3DRenderer() {
         createModelBuffers();
@@ -139,6 +145,7 @@ public class Blaze3DRenderer extends CloudRenderer {
     }
 
     public void reload(ResourceManager manager) {
+        irisCloudTarget.close();
         TextureWrapper.closeAllWrappers();
         buildRenderPipeline();
     }
@@ -279,49 +286,82 @@ public class Blaze3DRenderer extends CloudRenderer {
                 new Vector4f(1, sp.topColorRed, sp.topColorGreen, sp.topColorBlue)
         );
 
-        IrisFramebuffer.begin();
+        boolean iris = PipelineParams.get().iris();
 
+        // save iris gl state, restoring on close (works even if there is an exception)
+        try (var _ = iris ? new IrisCloudTarget.State() : null) {
+            if (iris) irisCloudTarget.prepare();
+            if (iris) IrisFramebuffer.begin(irisCloudTarget::bindAccumulation);
+            else IrisFramebuffer.begin();
+
+            try (RenderPass pass = gpu().createCommandEncoder().createRenderPass(
+                    () -> BetterCloudsStatic.MODID + ":" + "renderClouds",
+                    iris ? irisCloudTarget.colorView() : cloudsTarget.getColorTextureView(),
+                    Optional.empty(),
+                    iris ? irisCloudTarget.depthView() : cloudsTarget.getDepthTextureView(),
+                    OptionalDouble.empty()
+            )) {
+                pass.setPipeline(CLOUD_RENDERER_PIPELINE);
+
+                RenderSystem.bindDefaultUniforms(pass);
+                pass.setUniform("CloudVertexData", uCloudVertexData.gpuBuffer());
+                pass.setUniform("CloudFragData", uCloudFragData.gpuBuffer());
+                pass.setUniform("DynamicTransforms", dynamicTransform);
+                pass.setUniform("LodProjMat", uLodProjMat.gpuBuffer());
+
+                TextureWrapper.fromMcTexture(
+                        "NoiseTexture", Resources.NOISE_TEXTURE,
+                        () -> TextureWrapper.customSampler(AddressMode.REPEAT, AddressMode.REPEAT, FilterMode.LINEAR)
+                ).bindTo(pass);
+                TextureWrapper.fromMcTexture(
+                        "LightTexture", Resources.LIGHTING_TEXTURE,
+                        () -> TextureWrapper.customSampler(AddressMode.CLAMP_TO_EDGE, AddressMode.REPEAT, FilterMode.LINEAR)
+                ).bindTo(pass);
+
+                TextureWrapper dhDepthTexture = DhCompat.instance().getDepthTexture();
+                TextureWrapper voxyDepthTexture = VoxyCompat.instance.getOpaqueDepthTexture();
+                if (dhDepthTexture != null)
+                    dhDepthTexture.bindTo(pass);
+                else if (voxyDepthTexture != null)
+                    voxyDepthTexture.bindTo(pass);
+
+                pass.setVertexBuffer(0, modelVertexBuffer.gpuBuffer().slice());
+                pass.setVertexBuffer(1, worldCloudPosBuffer.gpuBuffer().slice());
+                pass.setIndexBuffer(modelIndexBuffer.gpuBuffer(), IndexType.SHORT);
+
+                frustum.prepare(frustumPos.x - generator.originX(), frustumPos.y, frustumPos.z - generator.originZ());
+
+                if (!config.useFrustumCulling || !gpu().getDeviceInfo().features().nonZeroFirstInstance())
+                    pass.drawIndexed(CUBE_INDICES.length, generator.points().size(), 0, 0, 0);
+                else
+                    drawWithFrustumCulling(pass, frustum);
+                renderAttempts = 0;
+            } finally {
+                IrisFramebuffer.end();
+            }
+            if (iris) compositeClouds();
+        } catch (IllegalStateException e) {
+            // could be due to an issue in the transition state between toggling on/off shaders, leading to a missing iris texture
+            // this 'fix' seems to be working
+            if (renderAttempts++ > 3) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    /** iris only; copy the clouds from the accumulator to iris' main framebuffer */
+    private void compositeClouds() {
+        GpuFormat destinationFormat = irisCloudTarget.destinationView().texture().getFormat();
+        if (CLOUD_COMPOSITE_PIPELINE == null
+                || CLOUD_COMPOSITE_PIPELINE.getColorTargetState().format() != destinationFormat) {
+            CLOUD_COMPOSITE_PIPELINE = createCompositePipeline(destinationFormat);
+        }
+        IrisFramebuffer.begin(irisCloudTarget::bindComposite);
         try (RenderPass pass = gpu().createCommandEncoder().createRenderPass(
-                () -> BetterCloudsStatic.MODID + ":" + "renderClouds",
-                cloudsTarget.getColorTextureView(),
-                Optional.empty(),
-                cloudsTarget.getDepthTextureView(),
-                OptionalDouble.empty()
-        )) {
-            pass.setPipeline(CLOUD_RENDERER_PIPELINE);
-
-            RenderSystem.bindDefaultUniforms(pass);
-            pass.setUniform("CloudVertexData", uCloudVertexData.gpuBuffer());
-            pass.setUniform("CloudFragData", uCloudFragData.gpuBuffer());
-            pass.setUniform("DynamicTransforms", dynamicTransform);
-            pass.setUniform("LodProjMat", uLodProjMat.gpuBuffer());
-
-            TextureWrapper.fromMcTexture(
-                    "NoiseTexture", Resources.NOISE_TEXTURE,
-                    () -> TextureWrapper.customSampler(AddressMode.REPEAT, AddressMode.REPEAT, FilterMode.LINEAR)
-            ).bindTo(pass);
-            TextureWrapper.fromMcTexture(
-                    "LightTexture", Resources.LIGHTING_TEXTURE,
-                    () -> TextureWrapper.customSampler(AddressMode.CLAMP_TO_EDGE, AddressMode.REPEAT, FilterMode.LINEAR)
-            ).bindTo(pass);
-
-            TextureWrapper dhDepthTexture = DhCompat.instance().getDepthTexture();
-            TextureWrapper voxyDepthTexture = VoxyCompat.instance.getOpaqueDepthTexture();
-            if (dhDepthTexture != null)
-                dhDepthTexture.bindTo(pass);
-            else if (voxyDepthTexture != null)
-                voxyDepthTexture.bindTo(pass);
-
-            pass.setVertexBuffer(0, modelVertexBuffer.gpuBuffer().slice());
-            pass.setVertexBuffer(1, worldCloudPosBuffer.gpuBuffer().slice());
-            pass.setIndexBuffer(modelIndexBuffer.gpuBuffer(), IndexType.SHORT);
-
-            frustum.prepare(frustumPos.x - generator.originX(), frustumPos.y, frustumPos.z - generator.originZ());
-
-            if (!config.useFrustumCulling || !gpu().getDeviceInfo().features().nonZeroFirstInstance())
-                pass.drawIndexed(CUBE_INDICES.length, generator.points().size(), 0, 0, 0);
-            else
-                drawWithFrustumCulling(pass, frustum);
+                () -> "betterclouds:compositeClouds", irisCloudTarget.destinationView(), Optional.empty())) {
+            pass.setPipeline(CLOUD_COMPOSITE_PIPELINE);
+            pass.bindTexture("CloudAccumulation", irisCloudTarget.colorView(), TextureWrapper.defaultSampler());
+            pass.draw(3, 1, 0, 0);
         } finally {
             IrisFramebuffer.end();
         }
@@ -353,7 +393,26 @@ public class Blaze3DRenderer extends CloudRenderer {
                 .withBindGroupLayout(LOD_BIND_GROUP)
                 .withCull(false)
                 .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, params.cloudsOpaque()))
-                .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
+                .withColorTargetState(params.iris()
+                        ? new ColorTargetState(Optional.of(ACCUMULATION_BLEND), GpuFormat.RGBA16_FLOAT, ColorTargetState.WRITE_ALL)
+                        : new ColorTargetState(BlendFunction.TRANSLUCENT))
+                .build();
+        // Iris chooses the destination format; it is only known after preparing its framebuffer.
+        CLOUD_COMPOSITE_PIPELINE = null;
+    }
+
+    static RenderPipeline createCompositePipeline(GpuFormat destinationFormat) {
+        return RenderPipeline.builder()
+                .withLocation(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "cloud_composite"))
+                .withVertexShader(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "blaze3d/cloud_composite"))
+                .withFragmentShader(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "blaze3d/cloud_composite"))
+                .withBindGroupLayout(BindGroupLayout.builder().withSampler("CloudAccumulation").build())
+                .withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
+                .withCull(false)
+                .withDepthStencilState(Optional.empty())
+                .withColorTargetState(new ColorTargetState(
+                        Optional.of(BlendFunction.TRANSLUCENT_PREMULTIPLIED_ALPHA),
+                        destinationFormat, ColorTargetState.WRITE_ALL))
                 .build();
     }
 
@@ -430,6 +489,7 @@ public class Blaze3DRenderer extends CloudRenderer {
 
     @Override
     public void onClose() {
+        irisCloudTarget.close();
         generator.close();
         modelVertexBuffer.close();
         modelIndexBuffer.close();

@@ -28,6 +28,6 @@ public abstract class GlCommandEncoderMixin {
         if (!IrisFramebuffer.isActive() || !IrisCompat.instance().isShadersEnabled())
             return;
 
-        IrisCompat.instance().bindFramebuffer();
+        IrisFramebuffer.bind();
     }
 }

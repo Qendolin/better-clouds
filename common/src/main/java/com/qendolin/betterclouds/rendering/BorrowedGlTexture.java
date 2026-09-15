@@ -7,10 +7,14 @@ import com.mojang.blaze3d.textures.GpuTexture;
 public class BorrowedGlTexture extends GlTexture {
 
     public BorrowedGlTexture(int id, int width, int height) {
+        this(GpuTexture.USAGE_TEXTURE_BINDING, "voxy_opaque_depth", GpuFormat.D24_UNORM_S8_UINT, id, width, height);
+    }
+
+    public BorrowedGlTexture(int usage, String label, GpuFormat format, int id, int width, int height) {
         super(
-                GpuTexture.USAGE_TEXTURE_BINDING,
-                "voxy_opaque_depth",
-                GpuFormat.D24_UNORM_S8_UINT,
+                usage,
+                label,
+                format,
                 width,
                 height,
                 1,
@@ -22,6 +26,6 @@ public class BorrowedGlTexture extends GlTexture {
 
     @Override
     public void close() {
-        // don't close depth texture owned by another mod
+        // don't close texture owned by another mod
     }
 }

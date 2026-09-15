@@ -45,6 +45,11 @@ public class TextureWrapper {
         return new TextureWrapper(name, 0 /* not cached as it does not go through #from */, view, customSampler.produce()).asBorrowed();
     }
 
+    /** Creates an uncached wrapper that owns its view, but not the supplied texture. */
+    public static TextureWrapper fromTexture(String name, GpuTexture texture) {
+        return new TextureWrapper(name, 0, RenderSystem.getDevice().createTextureView(texture), defaultSampler());
+    }
+
     public static TextureWrapper from(String name, int identifier, Producer<GpuTextureView> view, Producer<GpuSampler> sampler) {
         return cache.compute(name, (_, prevValue) -> {
             if (prevValue == null) {
