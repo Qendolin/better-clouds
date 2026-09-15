@@ -43,3 +43,5 @@ assignees: orangishcat
 ### Additional context
 
 > Add any other context about the problem here.
+
+**Make sure to check your issue thread often! I will often ask you for further information to help diagnose the issue.**
