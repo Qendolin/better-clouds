@@ -42,13 +42,14 @@ void main() {
 
     # if CELESTIAL_BODY_HALO
     vec3 xzProj = fragDir - sunDir * dot(fragDir, sunDir);
-    float projAngle = acos(dot(normalize(xzProj), vec3(0, sunAxisY, sunAxisZ)));
+    float projAngle = acos(clamp(dot(xzProj / max(length(xzProj), 1e-6), vec3(0, sunAxisY, sunAxisZ)), -1.0, 1.0));
     float superellipseFalloff = dot(sunDir, fragDir);
     float sphere = dot(sunDir, fragDir);
 
     // i still have no idea how this formula works but it seems to work fine
+    float cosine = cos(2.0 * projAngle);    // cosine may be negative, use cosine * cosine to avoid pow. in glsl, for whatever reason, pow(x, y) is nan with x is negative.
     float superellipse = (
-    (1.0 + (1.0 / 3.0) * (pow(cos(2.0 * projAngle), 2.0))) * haloSize * (1.0 - abs(superellipseFalloff)) - 1.0
+    (1.0 + (1.0 / 3.0) * (cosine * cosine)) * haloSize * (1.0 - abs(superellipseFalloff)) - 1.0
     ) * sign(-superellipseFalloff);
 
     lightUvX = mix(sphere, superellipse, smoothstep(0.75, 1, abs(sphere)));
