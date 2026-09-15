@@ -37,12 +37,12 @@ public class Crash_Is_Not_Caused_By_BetterClouds implements PreLaunchEntrypoint 
                 return;
             }
             if (!RenderDocLoader.isAvailable()) {
-                logger.info("RenderDoc is not available");
+                logger.info("RenderDoc loader is not available");
                 return;
             }
             RenderDocLoader.load();
             if (!RenderDoc.isAvailable()) {
-                logger.info("RenderDoc is not available");
+                logger.info("RenderDoc is not available. On Linux, in my experience, dynamic linking of the renderdoc library does not work. You must preload it using an environment variable in your launch configuration:\nLD_PRELOAD=" + RenderDocLoader.libPath());
                 return;
             }
 

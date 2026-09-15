@@ -164,7 +164,8 @@ public class RenderDocLoader {
                     renderdocLibrary = Native.load(libPath, RenderDocLibrary.class, Map.of(Library.OPTION_OPEN_FLAGS, flags));
                 }
                 RenderDoc.init(renderdocLibrary);
-            } catch (UnsatisfiedLinkError ignored) {
+            } catch (UnsatisfiedLinkError e) {
+                BetterCloudsStatic.getLogger().warn("Renderdoc failed to load from " + libPath(), e);
             }
         }
     }
