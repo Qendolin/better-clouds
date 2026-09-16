@@ -28,7 +28,6 @@ public record PipelineParams(boolean celestialBodyHalo, boolean nearCloudFade, b
     }
 
     public static boolean paramsChanged() {
-        if (CloudRenderCoordinator.instance.clientTicks % 5 != 0) return false;
         PipelineParams currentParams = newParameters();
         boolean changed = !currentParams.equals(prevParams);
         prevParams = currentParams;

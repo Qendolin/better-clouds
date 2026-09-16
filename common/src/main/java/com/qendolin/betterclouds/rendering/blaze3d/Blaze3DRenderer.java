@@ -123,7 +123,6 @@ public class Blaze3DRenderer extends CloudRenderer {
             BlendFactor.ONE, BlendFactor.ONE_MINUS_SRC_ALPHA);
     // misc
     private final float[] tempMatrixCopyArr = new float[16];
-    private int renderAttempts = 0;
 
     public Blaze3DRenderer() {
         createModelBuffers();
@@ -334,17 +333,10 @@ public class Blaze3DRenderer extends CloudRenderer {
                     pass.drawIndexed(CUBE_INDICES.length, generator.points().size(), 0, 0, 0);
                 else
                     drawWithFrustumCulling(pass, frustum);
-                renderAttempts = 0;
             } finally {
                 IrisFramebuffer.end();
             }
             if (iris) compositeClouds();
-        } catch (IllegalStateException e) {
-            // could be due to an issue in the transition state between toggling on/off shaders, leading to a missing iris texture
-            // this 'fix' seems to be working
-            if (renderAttempts++ > 3) {
-                throw new RuntimeException(e);
-            }
         }
     }
 
