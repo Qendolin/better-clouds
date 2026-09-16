@@ -1,10 +1,11 @@
 #version 330 core
+#extension GL_ARB_separate_shader_objects : require
 #define pi 3.1415926536f
 
-out vec4 fragColor;
-in float fogFade;
-in float tintInterp;
-in vec3 lightSampleDir;
+layout(location = 0) out vec4 fragColor;
+layout(location = 0) in float fogFade;
+layout(location = 1) in float tintInterp;
+layout(location = 2) in vec3 lightSampleDir;
 
 uniform sampler2D LightTexture;
 
@@ -18,7 +19,7 @@ layout (std140) uniform CloudFragData {
 };
 
 #if LOD_ENABLED
-in float lodDepth;
+layout(location = 3) in float lodDepth;
 uniform sampler2D LodDepthTexture;
 #endif
 

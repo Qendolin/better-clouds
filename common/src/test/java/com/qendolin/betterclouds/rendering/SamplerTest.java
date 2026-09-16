@@ -10,7 +10,29 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.text.DecimalFormat;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 public class SamplerTest {
+    @Test
+    void samplesAreFiniteAndDeterministicAcrossRegions() {
+        Sampler first = new Sampler();
+        Sampler second = new Sampler();
+        boolean hasClouds = false;
+        boolean hasClearSky = false;
+        for (int x = -8192; x <= 8192; x += 127) {
+            for (int z = -8192; z <= 8192; z += 131) {
+                float value = first.sample(x, z, 0.8f, 0f, 0.5f);
+                assertTrue(Float.isFinite(value), "Non-finite cloud density");
+                assertEquals(value, second.sample(x, z, 0.8f, 0f, 0.5f));
+                hasClouds |= value > 0;
+                hasClearSky |= value == 0;
+            }
+        }
+        assertTrue(hasClouds, "Noise must generate clouds");
+        assertTrue(hasClearSky, "Noise must leave clear sky");
+    }
+
     @Test
     void generatesSamplerImage() throws IOException {
         float scale = 0.5f;

@@ -1,8 +1,8 @@
 package com.qendolin.betterclouds.rendering;
 
-import com.mojang.blaze3d.systems.RenderPass;
+import com.mojang.renderpearl.api.commands.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.*;
+import com.mojang.renderpearl.api.textures.*;
 import com.qendolin.betterclouds.util.Producer;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.client.Minecraft;
@@ -92,7 +92,7 @@ public class TextureWrapper {
     }
 
     public void bindTo(RenderPass pass) {
-        pass.bindTexture(name, view, sampler);
+        pass.setUniform(name, view, sampler);
     }
 
     @SuppressWarnings("unused")

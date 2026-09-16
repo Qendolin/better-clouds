@@ -25,7 +25,7 @@ public abstract class MinecraftMixin {
 
     @Inject(
             method = "renderFrame(Z)V",
-            at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/GpuSurface;present()V", shift = At.Shift.AFTER)
+            at = @At(value = "INVOKE", target = "Lcom/mojang/renderpearl/api/device/GpuSurface;present()V", shift = At.Shift.AFTER)
     )
     private void afterSwapBuffers(boolean advanceGameTime, CallbackInfo ci) {
         CaptureManager.onSwapBuffers();

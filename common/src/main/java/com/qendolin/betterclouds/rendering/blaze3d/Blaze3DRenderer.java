@@ -1,16 +1,16 @@
 package com.qendolin.betterclouds.rendering.blaze3d;
 
-import com.mojang.blaze3d.*;
-import com.mojang.blaze3d.buffers.GpuBuffer;
-import com.mojang.blaze3d.buffers.GpuBufferSlice;
-import com.mojang.blaze3d.pipeline.*;
-import com.mojang.blaze3d.platform.CompareOp;
-import com.mojang.blaze3d.platform.BlendFactor;
-import com.mojang.blaze3d.shaders.UniformType;
-import com.mojang.blaze3d.systems.*;
-import com.mojang.blaze3d.textures.AddressMode;
-import com.mojang.blaze3d.textures.FilterMode;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.pipeline.RenderTarget;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.renderpearl.api.GpuFormat;
+import com.mojang.renderpearl.api.buffers.GpuBuffer;
+import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
+import com.mojang.renderpearl.api.commands.RenderPass;
+import com.mojang.renderpearl.api.device.GpuDevice;
+import com.mojang.renderpearl.api.pipeline.*;
+import com.mojang.renderpearl.api.textures.AddressMode;
+import com.mojang.renderpearl.api.textures.FilterMode;
+import com.mojang.renderpearl.api.vertex.VertexFormat;
 import com.mojang.datafixers.util.Pair;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.compat.DhCompat;
@@ -96,13 +96,13 @@ public class Blaze3DRenderer extends CloudRenderer {
             .addAttribute("WorldPosition", GpuFormat.RGB32_FLOAT)    // xyz position of cube center (world)
             .build();
     static final BindGroupLayout SHADER_BIND_GROUP = BindGroupLayout.builder()
-            .withSampler("NoiseTexture")
-            .withSampler("LightTexture")
+            .withUniform("NoiseTexture", UniformType.COMBINED_IMAGE_SAMPLER)
+            .withUniform("LightTexture", UniformType.COMBINED_IMAGE_SAMPLER)
             .withUniform("CloudVertexData", UniformType.UNIFORM_BUFFER)
             .withUniform("CloudFragData", UniformType.UNIFORM_BUFFER)
             .build();
     static final BindGroupLayout LOD_BIND_GROUP = BindGroupLayout.builder()
-            .withSampler("LodDepthTexture")
+            .withUniform("LodDepthTexture", UniformType.COMBINED_IMAGE_SAMPLER)
             .withUniform("LodProjMat", UniformType.UNIFORM_BUFFER)
             .build();
     // models
@@ -273,9 +273,7 @@ public class Blaze3DRenderer extends CloudRenderer {
         }
 
         getProfiler().popPush("render_clouds");
-        RenderTarget cloudsTarget = client.levelRenderer.cloudsTarget();
-        if (cloudsTarget == null)
-            cloudsTarget = client.gameRenderer.mainRenderTarget();
+        RenderTarget cloudsTarget = client.gameRenderer.mainRenderTarget();
         if (cloudsTarget.getColorTextureView() == null) {
             // idk this should never happen
             return;
@@ -287,6 +285,16 @@ public class Blaze3DRenderer extends CloudRenderer {
         );
 
         boolean iris = PipelineParams.get().iris();
+
+        // texture opens / uploads must now be outside a render pass
+        TextureWrapper noiseTexture = TextureWrapper.fromMcTexture(
+                "NoiseTexture", Resources.NOISE_TEXTURE,
+                () -> TextureWrapper.customSampler(AddressMode.REPEAT, AddressMode.REPEAT, FilterMode.LINEAR));
+        TextureWrapper lightTexture = TextureWrapper.fromMcTexture(
+                "LightTexture", Resources.LIGHTING_TEXTURE,
+                () -> TextureWrapper.customSampler(AddressMode.CLAMP_TO_EDGE, AddressMode.REPEAT, FilterMode.LINEAR));
+        TextureWrapper dhDepthTexture = DhCompat.instance().getDepthTexture();
+        TextureWrapper voxyDepthTexture = VoxyCompat.instance.getOpaqueDepthTexture();
 
         // save iris gl state, restoring on close (works even if there is an exception)
         try (var _ = iris ? new IrisCloudTarget.State() : null) {
@@ -301,7 +309,7 @@ public class Blaze3DRenderer extends CloudRenderer {
                     iris ? irisCloudTarget.depthView() : cloudsTarget.getDepthTextureView(),
                     OptionalDouble.empty()
             )) {
-                pass.setPipeline(CLOUD_RENDERER_PIPELINE);
+                pass.setPipeline(RenderSystem.getCompiledPipeline(CLOUD_RENDERER_PIPELINE));
 
                 RenderSystem.bindDefaultUniforms(pass);
                 pass.setUniform("CloudVertexData", uCloudVertexData.gpuBuffer());
@@ -309,17 +317,8 @@ public class Blaze3DRenderer extends CloudRenderer {
                 pass.setUniform("DynamicTransforms", dynamicTransform);
                 pass.setUniform("LodProjMat", uLodProjMat.gpuBuffer());
 
-                TextureWrapper.fromMcTexture(
-                        "NoiseTexture", Resources.NOISE_TEXTURE,
-                        () -> TextureWrapper.customSampler(AddressMode.REPEAT, AddressMode.REPEAT, FilterMode.LINEAR)
-                ).bindTo(pass);
-                TextureWrapper.fromMcTexture(
-                        "LightTexture", Resources.LIGHTING_TEXTURE,
-                        () -> TextureWrapper.customSampler(AddressMode.CLAMP_TO_EDGE, AddressMode.REPEAT, FilterMode.LINEAR)
-                ).bindTo(pass);
-
-                TextureWrapper dhDepthTexture = DhCompat.instance().getDepthTexture();
-                TextureWrapper voxyDepthTexture = VoxyCompat.instance.getOpaqueDepthTexture();
+                noiseTexture.bindTo(pass);
+                lightTexture.bindTo(pass);
                 if (dhDepthTexture != null)
                     dhDepthTexture.bindTo(pass);
                 else if (voxyDepthTexture != null)
@@ -353,14 +352,14 @@ public class Blaze3DRenderer extends CloudRenderer {
     private void compositeClouds() {
         GpuFormat destinationFormat = irisCloudTarget.destinationView().texture().getFormat();
         if (CLOUD_COMPOSITE_PIPELINE == null
-                || CLOUD_COMPOSITE_PIPELINE.getColorTargetState().format() != destinationFormat) {
+                || CLOUD_COMPOSITE_PIPELINE.getColorTargetStates().getFirst().format() != destinationFormat) {
             CLOUD_COMPOSITE_PIPELINE = createCompositePipeline(destinationFormat);
         }
         IrisFramebuffer.begin(irisCloudTarget::bindComposite);
         try (RenderPass pass = gpu().createCommandEncoder().createRenderPass(
                 () -> "betterclouds:compositeClouds", irisCloudTarget.destinationView(), Optional.empty())) {
-            pass.setPipeline(CLOUD_COMPOSITE_PIPELINE);
-            pass.bindTexture("CloudAccumulation", irisCloudTarget.colorView(), TextureWrapper.defaultSampler());
+            pass.setPipeline(RenderSystem.getCompiledPipeline(CLOUD_COMPOSITE_PIPELINE));
+            pass.setUniform("CloudAccumulation", irisCloudTarget.colorView(), TextureWrapper.defaultSampler());
             pass.draw(3, 1, 0, 0);
         } finally {
             IrisFramebuffer.end();
@@ -388,7 +387,8 @@ public class Blaze3DRenderer extends CloudRenderer {
                 .withShaderDefine("LOD_ENABLED", params.distantHorizons() || params.voxy() ? 1 : 0)
                 .withShaderDefine("REVERSE_Z", !DhCompat.instance().isNativeRenderer() && !params.iris() ? 1 : 0)
                 .withShaderDefine("Z_NEG1_TO_1", params.zNeg1To1() ? 1 : 0)
-                .withBindGroupLayout(BindGroupLayouts.MATRICES_PROJECTION)
+                .withBindGroupLayout(BindGroupLayouts.DYNAMIC_TRANSFORMS)
+                .withBindGroupLayout(BindGroupLayouts.PROJECTION)
                 .withBindGroupLayout(SHADER_BIND_GROUP)
                 .withBindGroupLayout(LOD_BIND_GROUP)
                 .withCull(false)
@@ -406,7 +406,7 @@ public class Blaze3DRenderer extends CloudRenderer {
                 .withLocation(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "cloud_composite"))
                 .withVertexShader(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "blaze3d/cloud_composite"))
                 .withFragmentShader(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "blaze3d/cloud_composite"))
-                .withBindGroupLayout(BindGroupLayout.builder().withSampler("CloudAccumulation").build())
+                .withBindGroupLayout(BindGroupLayout.builder().withUniform("CloudAccumulation", UniformType.COMBINED_IMAGE_SAMPLER).build())
                 .withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
                 .withCull(false)
                 .withDepthStencilState(Optional.empty())

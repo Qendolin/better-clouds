@@ -5,7 +5,7 @@ import com.qendolin.betterclouds.config.ConfigManager;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.levelgen.LegacyRandomSource;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
-import net.minecraft.world.level.levelgen.synth.PerlinSimplexNoise;
+import net.minecraft.world.level.levelgen.synth.NoiseStack;
 import net.minecraft.world.level.levelgen.synth.SimplexNoise;
 
 import java.util.Arrays;
@@ -35,7 +35,7 @@ public class Sampler {
 
     private final SimplexNoise regionNoise;
     private final SimplexNoise coverageNoise;
-    private final List<PerlinSimplexNoise> detailNoises;
+    private final List<NoiseStack> detailNoises;
 
     public Sampler(long seed) {
         WorldgenRandom random = new WorldgenRandom(new LegacyRandomSource(seed));
@@ -47,7 +47,7 @@ public class Sampler {
         regionNoise = new SimplexNoise(regionRandom);
         coverageNoise = new SimplexNoise(random);
         detailNoises = options.noisePreset().octaves
-                .stream().map(octave -> new PerlinSimplexNoise(random, octave)).toList();
+                .stream().map(octave -> createDetailNoise(random, octave)).toList();
     }
 
     /**
@@ -69,7 +69,21 @@ public class Sampler {
         regionNoise = new SimplexNoise(regionRandom);
         coverageNoise = new SimplexNoise(random);
         detailNoises = options.noisePreset().octaves
-                .stream().map(octave -> new PerlinSimplexNoise(random, octave)).toList();
+                .stream().map(octave -> createDetailNoise(random, octave)).toList();
+    }
+
+    private static NoiseStack createDetailNoise(WorldgenRandom random, List<Integer> octaves) {
+        var builder = NoiseStack.builder();
+        int min = octaves.stream().mapToInt(Integer::intValue).min().orElseThrow();
+        int max = octaves.stream().mapToInt(Integer::intValue).max().orElseThrow();
+        double normalization = Math.pow(2, max - min + 1) - 1;
+        for (int octave = max; octave >= min; octave--) {
+            var noise = new SimplexNoise(random, false);
+            if (octaves.contains(octave)) {
+                builder.add(noise, Math.pow(2, octave), (float) (Math.pow(2, max - octave) / normalization));
+            }
+        }
+        return builder.build();
     }
 
     // Jenkins hash function (seed does not have to be prime)
@@ -117,22 +131,22 @@ public class Sampler {
 
         // TODO: A vanilla like cloud distribution is not possible with this function
         if (detailNoises.size() > 1) {
-            double regionNoiseValue = (regionNoise.getValue(x / REGION_SIZE, z / REGION_SIZE) * 0.5 + 0.5) * detailNoises.size();
+            double regionNoiseValue = (regionNoise.get(x / REGION_SIZE, z / REGION_SIZE) * 0.5 + 0.5) * detailNoises.size();
             int noiseInd = (int) regionNoiseValue;
-            PerlinSimplexNoise noise1 = detailNoises.get(noiseInd), noise2 = detailNoises.get((noiseInd + 1) % detailNoises.size());
+            NoiseStack noise1 = detailNoises.get(noiseInd), noise2 = detailNoises.get((noiseInd + 1) % detailNoises.size());
 
             value = Mth.lerp(
                     Math.pow(Mth.clamp(regionNoiseValue - noiseInd, 0, 1), 5),
-                    noise1.getValue(x / scale / 128f, z / scale / 128f, false),
-                    noise2.getValue(x / scale / 128f, z / scale / 128f, false)
+                    noise1.get(x / scale / 128f, z / scale / 128f),
+                    noise2.get(x / scale / 128f, z / scale / 128f)
             );
         } else {
-            value = detailNoises.getFirst().getValue(x / scale / 128f, z / scale / 128f, false);
+            value = detailNoises.getFirst().get(x / scale / 128f, z / scale / 128f);
         }
 
         value = value / 2 + 0.5;
         value = (value - (1 - cloudiness)) / cloudiness;
-        value *= smoothstep(-0.6 * cloudiness - 0.5, -0.6 * cloudiness, coverageNoise.getValue(x / 1024f, z / 1024f));
+        value *= smoothstep(-0.6 * cloudiness - 0.5, -0.6 * cloudiness, coverageNoise.get(x / 1024f, z / 1024f));
 
         float random = hashToFloat(seed, 'B', x, z);
         if (random > value + (BASE_FUZZINESS - fuzziness)) value = 0;

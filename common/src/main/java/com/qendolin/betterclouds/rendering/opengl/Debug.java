@@ -1,5 +1,7 @@
 package com.qendolin.betterclouds.rendering.opengl;
 
+import com.mojang.renderpearl.api.pipeline.PrimitiveTopology;
+
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.datafixers.util.Pair;
 import com.qendolin.betterclouds.compat.GLCompat;
@@ -55,7 +57,7 @@ public class Debug {
         instance.pushDebugGroupDev("Debug Draw");
         int bufferSize = Math.max(1024, frustumCulledBoxes.size() * 384);
         try (ByteBufferBuilder byteBufferBuilder = ByteBufferBuilder.exactlySized(bufferSize)) {
-            BufferBuilder vertices = new BufferBuilder(byteBufferBuilder, com.mojang.blaze3d.PrimitiveTopology.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
+            BufferBuilder vertices = new BufferBuilder(byteBufferBuilder, PrimitiveTopology.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
             drawFrustumCulledBoxes(vertices, cam);
 
             res.debugShader().bind();

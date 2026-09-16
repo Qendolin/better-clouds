@@ -98,7 +98,7 @@ public abstract class DhSharedCompatImpl extends DhCompat {
 
         return TextureWrapper.from(
                 "LodDepthTexture", wrap.name.hashCode(),
-                wrap::getTextureView, wrap::getTextureSampler
+                () -> null, () -> null  // todo: fix after dh updates to 26.3
         ).asBorrowed();
     }
 

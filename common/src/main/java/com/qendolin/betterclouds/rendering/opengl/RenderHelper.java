@@ -1,8 +1,8 @@
 package com.qendolin.betterclouds.rendering.opengl;
 
-import com.mojang.blaze3d.opengl.*;
-import com.mojang.blaze3d.textures.GpuSampler;
-import com.mojang.blaze3d.textures.GpuTexture;
+import com.mojang.renderpearl.backend.opengl.*;
+import com.mojang.renderpearl.api.textures.GpuSampler;
+import com.mojang.renderpearl.api.textures.GpuTexture;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import org.lwjgl.opengl.GL32;
 import org.lwjgl.opengl.GL33C;

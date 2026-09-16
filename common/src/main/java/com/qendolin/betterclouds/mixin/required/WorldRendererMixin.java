@@ -1,20 +1,23 @@
 package com.qendolin.betterclouds.mixin.required;
 
-import com.mojang.blaze3d.buffers.GpuBufferSlice;
+import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
+import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
+import com.llamalad7.mixinextras.sugar.Local;
+import com.mojang.renderpearl.api.commands.RenderPass;
+import com.mojang.renderpearl.api.textures.GpuTextureView;
+import net.minecraft.client.renderer.CloudRenderer;
+import net.minecraft.client.renderer.oit.OitStage;
+import net.minecraft.client.renderer.oit.OitRenderPassProvider;
 import com.mojang.blaze3d.framegraph.FrameGraphBuilder;
 import com.mojang.blaze3d.resource.GraphicsResourceAllocator;
 import com.qendolin.betterclouds.rendering.CloudRenderCoordinator;
 import net.minecraft.client.CloudStatus;
-import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.LevelTargetBundle;
 import net.minecraft.client.renderer.state.OptionsRenderState;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
-import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix4fc;
 import org.joml.Vector4f;
 import org.spongepowered.asm.mixin.*;
-import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -25,37 +28,41 @@ public abstract class WorldRendererMixin {
     @Final
     private OptionsRenderState optionsRenderState;
 
-    @Accessor("targets")
-    protected abstract LevelTargetBundle betterclouds$getTargets();
+    @Shadow @Final private LevelTargetBundle targets;
+    @Unique private boolean betterclouds$replaceClouds;
 
     @Inject(at = @At("HEAD"), method = "render")
-    private void captureFrustumAndCheckState(GraphicsResourceAllocator resourceAllocator, DeltaTracker deltaTracker, boolean renderOutline, CameraRenderState cameraState, Matrix4fc modelViewMatrix, GpuBufferSlice terrainFog, Vector4f fogColor, boolean shouldRenderSky, CallbackInfo ci) {
+    private void captureFrustumAndCheckState(GraphicsResourceAllocator resourceAllocator, boolean renderOutline, CameraRenderState cameraState, GpuBufferSlice terrainFog, Vector4f fogColor, boolean shouldRenderSky, boolean hasPostEffects, CallbackInfo ci) {
+        betterclouds$replaceClouds = false;
         CloudRenderCoordinator.instance.captureFrustum(cameraState);
         CloudRenderCoordinator.instance.checkState(optionsRenderState);
     }
 
-    @Inject(
-            at = @At("HEAD"),
-            method = "addCloudsPass(Lcom/mojang/blaze3d/framegraph/FrameGraphBuilder;Lnet/minecraft/client/CloudStatus;Lnet/minecraft/world/phys/Vec3;JFIFI)V",
-            cancellable = true
-    )
-    private void renderClouds(FrameGraphBuilder frame, CloudStatus cloudStatus, Vec3 cameraPosition, long gameTime, float partialTicks, int cloudColor, float cloudHeight, int cloudRange, CallbackInfo ci) {
-        if (CloudRenderCoordinator.instance.renderClouds(frame, betterclouds$getTargets(), cameraPosition, partialTicks))
-            ci.cancel();
+    // Vanilla clouds now render inside the transparency passes. Add our own pass
+    // before executing the frame graph, and skip vanilla only if we replace them.
+    @Inject(method = "render", at = @At(value = "INVOKE",
+            target = "Lcom/mojang/blaze3d/framegraph/FrameGraphBuilder;execute(Lcom/mojang/blaze3d/resource/GraphicsResourceAllocator;Lcom/mojang/blaze3d/framegraph/FrameGraphBuilder$Inspector;)V"))
+    private void addCloudPass(GraphicsResourceAllocator allocator, boolean renderOutline,
+            CameraRenderState camera, GpuBufferSlice terrainFog, Vector4f fogColor,
+            boolean renderSky, boolean hasPostEffects, CallbackInfo ci,
+            @Local(name = "frame") FrameGraphBuilder frame) {
+        if (optionsRenderState.cloudStatus != CloudStatus.OFF) {
+            betterclouds$replaceClouds = CloudRenderCoordinator.instance.renderClouds(
+                    frame, targets, camera.pos, camera.cameraEntityPartialTicks);
+        }
     }
 
-    // NF calls a different overload of addCloudsPass somehow
-    // 2026/7/27: this probably doesn't even work anymore, todo remove if the signature has changed
-    @SuppressWarnings({ "MixinAnnotationTarget", "UnresolvedMixinReference" })
-    @Inject(
-            at = @At("HEAD"),
-            method = "addCloudsPass(Lcom/mojang/blaze3d/framegraph/FrameGraphBuilder;Lnet/minecraft/client/CloudStatus;Lnet/minecraft/world/phys/Vec3;JFIFILorg/joml/Matrix4fc;)V",
-            cancellable = true,
-            require = 0     // silently fail if not neoforge
-    )
-    private void renderCloudsNeoForge(FrameGraphBuilder frameGraphBuilder, CloudStatus _mode, Vec3 cameraPos, long _seed, float _ticks, int _color, float _cloudHeight, int _cloudRenderMode, Matrix4fc _viewMatrix, CallbackInfo ci) {
-        if (CloudRenderCoordinator.instance.renderClouds(frameGraphBuilder, betterclouds$getTargets(), cameraPos, _ticks))
-            ci.cancel();
+    @WrapWithCondition(method = "executeClassicTransparency", at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/client/renderer/CloudRenderer;render(Lnet/minecraft/client/CloudStatus;Lcom/mojang/renderpearl/api/commands/RenderPass;)V"))
+    private boolean renderVanillaClouds(CloudRenderer renderer, CloudStatus status, RenderPass pass) {
+        return !betterclouds$replaceClouds;
+    }
+
+    @WrapWithCondition(method = "executeOit", at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/client/renderer/CloudRenderer;renderOit(Lnet/minecraft/client/CloudStatus;Lnet/minecraft/client/renderer/oit/OitStage;Lcom/mojang/renderpearl/api/textures/GpuTextureView;Lnet/minecraft/client/renderer/oit/OitRenderPassProvider$Parameters;)V"))
+    private boolean renderVanillaOitClouds(CloudRenderer renderer, CloudStatus status, OitStage stage,
+            GpuTextureView depth, OitRenderPassProvider.Parameters parameters) {
+        return !betterclouds$replaceClouds;
     }
 
 

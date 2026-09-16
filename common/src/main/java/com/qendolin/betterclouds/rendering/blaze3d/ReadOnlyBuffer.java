@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds.rendering.blaze3d;
 
-import com.mojang.blaze3d.buffers.GpuBuffer;
+import com.mojang.renderpearl.api.buffers.GpuBuffer;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 

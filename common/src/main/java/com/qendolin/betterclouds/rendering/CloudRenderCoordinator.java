@@ -57,7 +57,8 @@ public class CloudRenderCoordinator {
     }
 
     public void checkState(OptionsRenderState optionsRenderState) {
-        if (sentCloudsDisabledMessage || !optionsRenderState.cloudStatus.equals(CloudStatus.OFF) || IrisCompat.instance().isShadersEnabled() || !ConfigManager.instance().cloudsDisabledMessageEnabled) return;
+        if (sentCloudsDisabledMessage || !optionsRenderState.cloudStatus.equals(CloudStatus.OFF) ||
+                IrisCompat.instance().isShadersEnabled() || !ConfigManager.instance().cloudsDisabledMessageEnabled) return;
         Commands.sendCloudsDisabledMessage();
         sentCloudsDisabledMessage = true;
     }
@@ -113,11 +114,7 @@ public class CloudRenderCoordinator {
 
         if (prepareResult == PrepareResult.RENDER) {
             FramePass renderPass = frameGraphBuilder.addPass("clouds");
-            if (targets.clouds != null) {
-                targets.clouds = renderPass.readsAndWrites(targets.clouds);
-            } else {
-                targets.main = renderPass.readsAndWrites(targets.main);
-            }
+            targets.main = renderPass.readsAndWrites(targets.main);
 
             final long fticks = clampedCloudTicks;
             final float ftickDelta = tickDelta;

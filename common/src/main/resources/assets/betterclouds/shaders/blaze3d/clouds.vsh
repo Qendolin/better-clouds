@@ -1,10 +1,11 @@
 #version 330 core
+#extension GL_ARB_separate_shader_objects : require
 
-#moj_import <minecraft:dynamictransforms.glsl>
-#moj_import <minecraft:projection.glsl>
+#include <minecraft:dynamictransforms.glsl>
+#include <minecraft:projection.glsl>
 
-in vec3 WorldPosition;
-in vec3 LocalPosition;
+layout(location = 1) in vec3 WorldPosition;
+layout(location = 0) in vec3 LocalPosition;
 
 uniform sampler2D NoiseTexture;
 
@@ -18,15 +19,15 @@ layout (std140) uniform CloudVertexData {
     float uFogStart, uFogEnd;
 };
 
-out float fogFade;
-out float tintInterp;
-out vec3 lightSampleDir;
+layout(location = 0) out float fogFade;
+layout(location = 1) out float tintInterp;
+layout(location = 2) out vec3 lightSampleDir;
 
 #if LOD_ENABLED
 layout (std140) uniform LodProjMat {
     mat4 uLodProjMat;
 };
-out float lodDepth;
+layout(location = 3) out float lodDepth;
 #endif
 
 float calcFogFade(float distance, float fogStart, float fogEnd) {

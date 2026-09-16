@@ -1,7 +1,8 @@
 #version 330 core
+#extension GL_ARB_separate_shader_objects : require
 
 uniform sampler2D CloudAccumulation;
-out vec4 fragColor;
+layout(location = 0) out vec4 fragColor;
 
 void main() {
     // Same size and viewport as the destination; preserve the premultiplied RGB.

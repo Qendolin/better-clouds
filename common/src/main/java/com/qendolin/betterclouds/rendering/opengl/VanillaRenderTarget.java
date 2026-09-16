@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds.rendering.opengl;
 
-import com.mojang.blaze3d.systems.RenderPass;
+import com.mojang.renderpearl.api.commands.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.config.Config;
@@ -28,9 +28,7 @@ public class VanillaRenderTarget {
             return;
         }
 
-        var framebuffer = client.levelRenderer.cloudsTarget();
-        if (framebuffer == null)
-            framebuffer = client.gameRenderer.mainRenderTarget();
+        var framebuffer = client.gameRenderer.mainRenderTarget();
 
         assert framebuffer.getColorTextureView() != null;
         renderPass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(

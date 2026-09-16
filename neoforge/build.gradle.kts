@@ -1,6 +1,6 @@
 plugins {
     `java-library`
-    id("net.neoforged.moddev") version "2.0.141"
+    id("net.neoforged.moddev") version "2.0.147"
     id("me.modmuss50.mod-publish-plugin")
 }
 
@@ -95,7 +95,7 @@ dependencies {
     runtimeOnly("org.quiltmc.parsers:json:0.3.0")
     runtimeOnly("org.quiltmc.parsers:gson:0.3.0")
 
-    compileOnly("maven.modrinth:YL57xq9U:${property("deps.iris")}-neoforge")
+    compileOnly("maven.modrinth:YL57xq9U:${property("deps.iris")}-fabric")      // todo replace with neoforge when iris releases for it
     compileOnly("maven.modrinth:PtjYWJkn:${property("deps.sodium_extra")}+neoforge")
     compileOnly("maven.modrinth:Es5v4eyq:${property("deps.sodium_options_api_fabric")}")
 

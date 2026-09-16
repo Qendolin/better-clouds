@@ -1,12 +1,12 @@
 package com.qendolin.betterclouds.rendering.blaze3d;
 
-import com.mojang.blaze3d.GpuFormat;
-import com.mojang.blaze3d.opengl.GlConst;
-import com.mojang.blaze3d.opengl.GlStateManager;
-import com.mojang.blaze3d.opengl.GlTexture;
+import com.mojang.renderpearl.api.GpuFormat;
+import com.mojang.renderpearl.backend.opengl.GlConst;
+import com.mojang.renderpearl.backend.opengl.GlStateManager;
+import com.mojang.renderpearl.backend.opengl.GlTexture;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTexture;
-import com.mojang.blaze3d.textures.GpuTextureView;
+import com.mojang.renderpearl.api.textures.GpuTexture;
+import com.mojang.renderpearl.api.textures.GpuTextureView;
 import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.rendering.BorrowedGlTexture;
 import com.qendolin.betterclouds.rendering.TextureWrapper;
@@ -14,14 +14,10 @@ import com.qendolin.betterclouds.rendering.TextureWrapper;
 import static org.lwjgl.opengl.GL33C.*;
 
 /**
- * previously i rendered clouds directly into iris' framebuffer. since the buffer
- * is R11G11B10, the blue color value has one less bit than the other values.
- * this lead to precision loss and the clouds turning yellow, as the blue value
- * decreased and lost precision faster than the other two values, as shown in
- * <a href="https://github.com/Qendolin/better-clouds/issues/374">#374</a>.
+ * Render the clouds in a separate composite framebuffer to avoid precision loss in Iris' framebuffer,
+ * and later this will be copied into the main framebuffer.
  * <br><br>
- * to fix, with the help of chatgpt, i made a framebuffer that renders the clouds
- * in rgb16 and copies it over into iris' framebuffer.
+ * Fixes <a href="https://github.com/Qendolin/better-clouds/issues/374">#374</a>.
  */
 final class IrisCloudTarget implements AutoCloseable {
     private GpuTexture color;
@@ -135,7 +131,6 @@ final class IrisCloudTarget implements AutoCloseable {
         destination = depth = null;
     }
 
-    /** Iris gbuffer attachments are single-sample, level-zero 2D textures. */
     private record Attachment(int id, int width, int height, GpuFormat format) {
         static Attachment read(int attachment) {
             int type = glGetFramebufferAttachmentParameteri(GL_FRAMEBUFFER, attachment, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE);
@@ -168,7 +163,7 @@ final class IrisCloudTarget implements AutoCloseable {
         }
     }
 
-    /** Restores bindings even if allocation or either draw pass fails. */
+    /** stores iris state gl state; try-with-resources block will automatically restore it by calling close() */
     static final class State implements AutoCloseable {
         private final int draw = glGetInteger(GL_DRAW_FRAMEBUFFER_BINDING);
         private final int read = glGetInteger(GL_READ_FRAMEBUFFER_BINDING);

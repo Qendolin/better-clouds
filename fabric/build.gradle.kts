@@ -16,6 +16,22 @@ val commonSourceSets = project(":common").extensions.getByType<SourceSetContaine
 
 version = buildVersionString(loader)
 
+val gameTest = sourceSets.create("gameTest") {
+    compileClasspath += sourceSets.main.get().compileClasspath + sourceSets.main.get().output
+    runtimeClasspath += output + compileClasspath
+}
+
+val gameTestJar = tasks.register<Jar>("gameTestJar") {
+    archiveClassifier.set("gametest")
+    destinationDirectory.set(layout.buildDirectory.dir("gametest"))
+    from(gameTest.output)
+}
+
+val prepareGameTest = tasks.register<Copy>("prepareGameTest") {
+    from("src/gameTest/config")
+    into(layout.projectDirectory.dir("run/config"))
+}
+
 loom {
     log4jConfigs.from(rootProject.file("log4j-dev.xml"))
 
@@ -70,14 +86,14 @@ dependencies {
     compileOnly("maven.modrinth:z2XEADmE:${property("deps.data_anchor")}-fabric")
 
     add("productionRuntimeMods", "maven.modrinth:1eAoo2KR:${property("deps.yacl")}")
-    add("productionRuntimeMods", "net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}") {
-        exclude(group = "net.fabricmc.fabric-api", module = "fabric-client-gametest-api-v1")
-    }
+    add("productionRuntimeMods", "net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
 }
 
 tasks.register<ClientProductionRunTask>("runGameTest") {
+    dependsOn(prepareGameTest)
     group = "loom"
-    description = "Launches the Fabric client with the Fabric client game test flag."
+    description = "Loads a world and verifies Better Clouds rendering in the Fabric client."
+    mods.from(gameTestJar.flatMap { it.archiveFile })
     jvmArgs.add("-Dfabric.client.gametest")
     jvmArgs.add("-Dorg.lwjgl.system.allocator=system")
 }

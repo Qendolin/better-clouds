@@ -1,6 +1,7 @@
 {
     "pack": {
         "description": "Better Clouds",
-        "pack_format": 15
+        "min_format": [97, 1],
+        "max_format": [97, 1]
     }
 }

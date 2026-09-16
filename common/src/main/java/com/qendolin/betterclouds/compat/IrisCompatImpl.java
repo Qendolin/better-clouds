@@ -1,6 +1,6 @@
 package com.qendolin.betterclouds.compat;
 
-import com.mojang.blaze3d.opengl.GlProgram;
+import com.mojang.renderpearl.backend.opengl.GlProgram;
 import com.qendolin.betterclouds.mixin.optional.ExtendedShaderAccessor;
 import com.qendolin.betterclouds.mixin.optional.FallbackShaderAccessor;
 import net.irisshaders.iris.Iris;

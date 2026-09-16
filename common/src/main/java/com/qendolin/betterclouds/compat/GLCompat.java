@@ -1,15 +1,14 @@
 package com.qendolin.betterclouds.compat;
 
 import com.google.common.collect.ImmutableList;
-import com.mojang.blaze3d.platform.GLX;
+import oshi.SystemInfo;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.rendering.GraphicsCompat;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.lwjgl.PointerBuffer;
-import org.lwjgl.glfw.GLFW;
-import org.lwjgl.glfw.GLFWVulkan;
+import org.lwjgl.sdl.SDLVideo;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
@@ -84,10 +83,10 @@ public class GLCompat extends GraphicsCompat {
     public GLCompat(boolean isDev) {
         this.isDev = isDev;
 
-        hasContext = GLFW.glfwGetCurrentContext() != MemoryUtil.NULL;
+        hasContext = SDLVideo.SDL_GL_GetCurrentContext() != MemoryUtil.NULL;
 
         boolean vulkanLikely = false;
-        if (!hasContext && GLFWVulkan.glfwVulkanSupported()) {
+        if (!hasContext) {
             try {
                 Class.forName("org.lwjgl.vulkan.VkInstance");
                 vulkanLikely = true;
@@ -195,7 +194,7 @@ public class GLCompat extends GraphicsCompat {
     }
 
     public static String getCpuInfo() {
-        return GLX._getCpuInfo();
+        return new SystemInfo().getHardware().getProcessor().getProcessorIdentifier().getName();
     }
 
     public static String getRenderer() {
