@@ -38,7 +38,7 @@ void main() {
     // This is a "safety" check to prevent reading from an unbound texture
     if(pass_dh_depth != 0) {
         depth = texelFetch(u_dh_depth_texture, ivec2(gl_FragCoord.xy), 0).r;
-        if(pass_dh_depth > depth) discard;
+        if(pass_dh_depth < depth) discard;
     }
 #endif
 
