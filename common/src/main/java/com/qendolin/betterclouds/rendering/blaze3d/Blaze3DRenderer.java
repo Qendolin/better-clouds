@@ -419,7 +419,10 @@ public class Blaze3DRenderer extends CloudRenderer {
      * Dynamically detect whether the LODs are reverse Z or not, because
      * reverse Z keeps changing whenever any of the mods update or iris is enabled
      *
-     * @apiNote idk how tf doing a projection through the no-op matrix plus hardcoded vectors
+     * @apiNote here the function returns whether OpenGL is operating is reverse Z or not.
+     * Blaze3D is always operating in reverse Z, even when Iris shaders are active,
+     * because Iris manually flips all of its depth comparisons via mixins and translates it to OpenGL normal Z.
+     * idk how tf doing a projection through the no-op matrix plus hardcoded vectors
      * can detect iris reverse z shenanigans, but it works. (iris in 26.2+ makes blaze3d think
      * its in reverse z while the underlying opengl still operates in normal z. super weird.)
      */
