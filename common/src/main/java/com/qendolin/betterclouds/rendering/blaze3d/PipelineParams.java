@@ -6,7 +6,7 @@ import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.rendering.CloudRenderCoordinator;
 
 public record PipelineParams(boolean celestialBodyHalo, boolean nearCloudFade, boolean iris,
-                             boolean distantHorizons, boolean voxy, boolean zNeg1To1, boolean cloudsOpaque) {
+                             boolean distantHorizons, boolean voxy, boolean reverseZ, boolean zNeg1To1, boolean cloudsOpaque) {
     private static PipelineParams prevParams;
 
     public static PipelineParams get() {
@@ -22,6 +22,7 @@ public record PipelineParams(boolean celestialBodyHalo, boolean nearCloudFade, b
                 IrisCompat.instance().isShadersEnabled(),
                 DhCompat.instance().getDepthTexture() != null,
                 VoxyCompat.instance.getOpaqueDepthTexture() != null,
+                Blaze3DRenderer.isReverseZ(),
                 DhCompat.instance().isNativeRenderer(), // DH depth is [-1, 1] for ogl renderer but [0, 1] for b3d renderer
                 Blaze3DRenderer.isCloudsOpaque()
         );

@@ -14,13 +14,13 @@ import org.joml.Matrix4f;
 
 import java.util.Optional;
 
-public abstract class DhSharedCompatImpl extends DhCompat {
+public class DhCompatImpl extends DhCompat {
     protected boolean textureCreateFlag = false;
     private boolean isDhInitialized = false;
     private DhApiRenderParam lastRenderParam = null;
     private int depthTextureWidth, depthTextureHeight;
 
-    public DhSharedCompatImpl() {
+    public DhCompatImpl() {
         BetterCloudsStatic.getLogger().info("Registering DH Api events");
         // Lambdas didn't work
         DhApiEventRegister.on(DhApiAfterDhInitEvent.class, new DhApiAfterDhInitEvent() {
@@ -65,11 +65,11 @@ public abstract class DhSharedCompatImpl extends DhCompat {
 
     @Override
     public Matrix4f getProjectionMatrix() {
-        float[] mat = getDhProjectionMatrixValues(lastRenderParam);
-        return new Matrix4f(mat[0], mat[4], mat[8], mat[12], mat[1], mat[5], mat[9], mat[13], mat[2], mat[6], mat[10], mat[14], mat[3], mat[7], mat[11], mat[15]);
+        if (lastRenderParam == null) return null;
+        var m = lastRenderParam.dhProjectionMatrix;
+        if (m == null) return null;
+        return new Matrix4f(m.m00, m.m01, m.m02, m.m03, m.m10, m.m11, m.m12, m.m13, m.m20, m.m21, m.m22, m.m23, m.m30, m.m31, m.m32, m.m33);
     }
-
-    abstract float[] getDhProjectionMatrixValues(DhApiRenderParam renderParam);
 
     @Override
     public Optional<Integer> getDepthTextureId() {
@@ -97,9 +97,14 @@ public abstract class DhSharedCompatImpl extends DhCompat {
         if (wrap == null) return null;
 
         return TextureWrapper.from(
-                "LodDepthTexture", wrap.name.hashCode(),
-                () -> null, () -> null  // todo: fix after dh updates to 26.3
+                "LodDepthTexture", wrap.getName().hashCode(),
+                wrap::getTextureView, wrap::getTextureSampler
         ).asBorrowed();
+    }
+
+    @Override
+    public void disableLodClouds() {
+        DhApi.Delayed.configs.graphics().genericRendering().cloudRenderingEnabled().setValue(false);
     }
 
     @Override

@@ -20,7 +20,6 @@ public abstract class DhCompat {
     );
     private static final AtomicBoolean initialized = new AtomicBoolean(false);
     private static DhCompat instance;
-    private static boolean isActive = false;
 
     public static void initialize() {
         if (initialized.getAndSet(true)) return;
@@ -32,43 +31,9 @@ public abstract class DhCompat {
         }
 
         BetterCloudsStatic.getLogger().info("DistantHorizons: initializing compat");
+        BetterCloudsStatic.getLogger().info("DistantHorizons API version is {}.{}.{}", DhApi.getApiMajorVersion(), DhApi.getApiMinorVersion(), DhApi.getApiPatchVersion());
 
-        int apiVersion = 0;
-        try {
-            Class.forName("com.seibel.distanthorizons.api.DhApi");
-            apiVersion = DhApi.getApiMajorVersion();
-            BetterCloudsStatic.getLogger().info("DistantHorizons API version is {}.{}.{}", DhApi.getApiMajorVersion(), DhApi.getApiMinorVersion(), DhApi.getApiPatchVersion());
-        } catch (ClassNotFoundException ignored) {
-        }
-
-        try {
-            switch (apiVersion) {
-                case 3 -> {
-                    BetterCloudsStatic.getLogger().info("Using DistantHorizons 3 compat");
-                    instance = new Dh3CompatImpl();
-                }
-                case 2 -> {
-                    BetterCloudsStatic.getLogger().info("Using DistantHorizons 2 compat");
-                    instance = new Dh2CompatImpl();
-                }
-                default -> {
-                    BetterCloudsStatic.getLogger().info("Using Distant Horizons 3 compat for version " + apiVersion + ", hopefully it still works! ;-;");
-                    instance = new Dh3CompatImpl();
-                }
-            }
-        } catch (Throwable e) {
-            BetterCloudsStatic.getLogger().error("DistantHorizons version not compatible", e);
-        }
-
-        if (instance == null) {
-            instance = new Stub();
-        } else {
-            DhCompat.isActive = true;
-        }
-    }
-
-    public static boolean isActive() {
-        return isActive;
+        instance = new DhCompatImpl();
     }
 
     public static DhCompat instance() {

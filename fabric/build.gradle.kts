@@ -1,5 +1,3 @@
-import net.fabricmc.loom.task.prod.ClientProductionRunTask
-
 plugins {
     id("net.fabricmc.fabric-loom")
     id("me.modmuss50.mod-publish-plugin")
