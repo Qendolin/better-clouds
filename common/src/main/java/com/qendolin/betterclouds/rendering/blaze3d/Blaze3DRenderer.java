@@ -23,7 +23,6 @@ import com.qendolin.betterclouds.rendering.*;
 import com.qendolin.betterclouds.rendering.opengl.Debug;
 import com.qendolin.betterclouds.rendering.opengl.Resources;
 import com.qendolin.betterclouds.util.MathUtil;
-import net.irisshaders.iris.Iris;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.BindGroupLayouts;
@@ -51,6 +50,12 @@ import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
  * Rendering is hard
  */
 public class Blaze3DRenderer extends CloudRenderer {
+    public static final Matrix4f NOOP_MATRIX = new Matrix4f(
+            new Vector4f(0, 0, 0, 0),
+            new Vector4f(0, 0, 0, 0),
+            new Vector4f(0, 0, 0, 0),
+            new Vector4f(0, 0, -1, 1)
+    );
     public static final float[] CUBE_VERTICES = {
             // x,    y,    z
             -0.5f, -0.5f, -0.5f, // 0: left  bottom back
@@ -340,7 +345,9 @@ public class Blaze3DRenderer extends CloudRenderer {
         }
     }
 
-    /** iris only; copy the clouds from the accumulator to iris' main framebuffer */
+    /**
+     * iris only; copy the clouds from the accumulator to iris' main framebuffer
+     */
     private void compositeClouds() {
         GpuFormat destinationFormat = irisCloudTarget.destinationView().texture().getFormat();
         if (CLOUD_COMPOSITE_PIPELINE == null
@@ -408,16 +415,27 @@ public class Blaze3DRenderer extends CloudRenderer {
                 .build();
     }
 
+    /**
+     * Dynamically detect whether the LODs are reverse Z or not, because
+     * reverse Z keeps changing whenever any of the mods update or iris is enabled
+     *
+     * @apiNote idk how tf doing a projection through the no-op matrix plus hardcoded vectors
+     * can detect iris reverse z shenanigans, but it works. (iris in 26.2+ makes blaze3d think
+     * its in reverse z while the underlying opengl still operates in normal z. super weird.)
+     */
     public static boolean isReverseZ() {
-        Matrix4f matrix = DhCompat.instance().getProjectionMatrix();
-        if (matrix == null)
-            matrix = VoxyCompat.instance.getProjectionMatrix();
-        if (matrix == null)
-            return true;
+        Matrix4f matrix = NOOP_MATRIX;
 
-        // -z is forwards in MC, meaning z=1 is closer than z=0
+        var params = PipelineParams.get();
+        if (params.distantHorizons())
+            matrix = DhCompat.instance().getProjectionMatrix();
+        else if (params.voxy())
+            matrix = VoxyCompat.instance.getProjectionMatrix();
+
+        // -z is forwards in MC, meaning z=1 is closer than z=0.
         Vector4f closeMul = new Vector4f(0, 0, 1, 1).mul(matrix);
         Vector4f farMul = new Vector4f(0, 0, 0, 1).mul(matrix);
+
         return closeMul.z / closeMul.w > farMul.z / farMul.w;
     }
 
