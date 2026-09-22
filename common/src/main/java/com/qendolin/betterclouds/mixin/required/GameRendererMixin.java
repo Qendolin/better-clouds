@@ -2,12 +2,14 @@ package com.qendolin.betterclouds.mixin.required;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.resource.GraphicsResourceAllocator;
 import com.qendolin.betterclouds.rendering.CloudRenderCoordinator;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
+import org.joml.Matrix4f;
 import org.joml.Vector4f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -32,9 +34,10 @@ public abstract class GameRendererMixin {
             Vector4f fogColor,
             boolean shouldRenderSky,
             boolean hasPostEffects,
-            Operation<Void> original
+            Operation<Void> original,
+            @Local(name = "projectionMatrix") Matrix4f projectionMatrix
     ) {
-        CloudRenderCoordinator.instance.captureMatrices(cameraState.viewRotationMatrix, cameraState.projectionMatrix);
+        CloudRenderCoordinator.instance.captureMatrices(cameraState.viewRotationMatrix, projectionMatrix);
         original.call(instance, resourceAllocator, renderOutline, cameraState, terrainFog, fogColor, shouldRenderSky, hasPostEffects);
     }
 }

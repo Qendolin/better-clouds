@@ -29,6 +29,12 @@ import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
 import static org.lwjgl.opengl.GL32.*;
 
 public class OpenGLRenderer extends CloudRenderer {
+    public static final Matrix4f NOOP_MATRIX = new Matrix4f(
+            new Vector4f(0, 0, 0, 0),
+            new Vector4f(0, 0, 0, 0),
+            new Vector4f(0, 0, 0, 0),
+            new Vector4f(0, 0, -1, 1)
+    );
     private final Matrix4f mvpMatrix = new Matrix4f();
     private final Matrix4f mvMatrix = new Matrix4f();
     private final Matrix4f pMatrix = new Matrix4f();
@@ -305,7 +311,7 @@ public class OpenGLRenderer extends CloudRenderer {
                 res.coverageShader().uDhPMatrix.setMat4(dhProjectionMatrix);
             } else {
                 RenderHelper.bindTexture(0);
-                res.coverageShader().uDhPMatrix.setMat4(DhCompat.NOOP_MATRIX);
+                res.coverageShader().uDhPMatrix.setMat4(NOOP_MATRIX);
             }
         }
 

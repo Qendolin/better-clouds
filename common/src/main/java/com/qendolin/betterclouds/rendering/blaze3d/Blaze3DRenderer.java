@@ -429,10 +429,9 @@ public class Blaze3DRenderer extends CloudRenderer {
     public static boolean isReverseZ() {
         Matrix4f matrix = NOOP_MATRIX;
 
-        var params = PipelineParams.get();
-        if (params.distantHorizons())
+        if (DhCompat.instance().getDepthTexture() != null)
             matrix = DhCompat.instance().getProjectionMatrix();
-        else if (params.voxy())
+        else if (VoxyCompat.instance.getOpaqueDepthTexture() != null)
             matrix = VoxyCompat.instance.getProjectionMatrix();
 
         // -z is forwards in MC, meaning z=1 is closer than z=0.
