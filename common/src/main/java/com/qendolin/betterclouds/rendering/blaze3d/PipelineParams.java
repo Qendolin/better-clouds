@@ -1,5 +1,6 @@
 package com.qendolin.betterclouds.rendering.blaze3d;
 
+import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.compat.*;
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
@@ -10,8 +11,10 @@ public record PipelineParams(boolean celestialBodyHalo, boolean nearCloudFade, b
     private static PipelineParams prevParams;
 
     public static PipelineParams get() {
-        if (prevParams == null)
+        if (prevParams == null) {
             prevParams = newParameters();
+            BetterCloudsStatic.getLogger().info("Initial pipeline parameters: {}", prevParams);
+        }
         return prevParams;
     }
 
