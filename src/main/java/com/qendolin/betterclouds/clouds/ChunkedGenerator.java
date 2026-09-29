@@ -115,7 +115,7 @@ public class ChunkedGenerator implements AutoCloseable {
         int distance = options.blockDistance();
         int size = MathHelper.floor(distance / options.spacing)
                 + MathHelper.ceil(distance / options.spacing);
-        return size > 0 ? size : 8 * 16;
+        return (size > 0 ? size : 8 * 16) * (options.bottomSparsity > 0 ? 2 : 1);
     }
 
     public void bind() {
