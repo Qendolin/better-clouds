@@ -1,7 +1,5 @@
 package com.qendolin.betterclouds.rendering;
 
-import com.mojang.blaze3d.framegraph.FrameGraphBuilder;
-import com.mojang.blaze3d.framegraph.FramePass;
 import com.qendolin.betterclouds.*;
 import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.config.ConfigManager;
@@ -12,7 +10,6 @@ import com.qendolin.betterclouds.rendering.opengl.OpenGLRenderer;
 import net.minecraft.client.CloudStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.LevelTargetBundle;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.state.OptionsRenderState;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
@@ -21,6 +18,8 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 import org.joml.Vector3d;
+
+import java.util.function.Consumer;
 
 import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
 
@@ -69,10 +68,10 @@ public class CloudRenderCoordinator {
         renderer.reload(manager);
     }
 
-    public boolean renderClouds(FrameGraphBuilder frameGraphBuilder, LevelTargetBundle targets, Vec3 cameraPos, float ticksInput) {
+    public boolean renderClouds(Consumer<Runnable> scheduleRender, Vec3 cameraPos, float ticksInput) {
         if (renderer == null) return false;
         try {
-            return renderCloudsInternal(frameGraphBuilder, targets, cameraPos, ticksInput);
+            return renderCloudsInternal(scheduleRender, cameraPos, ticksInput);
         } catch (Exception e) {
             BetterCloudsStatic.getLogger().error("Failed to render clouds", e);
             Commands.sendCrashChatMessage();
@@ -82,7 +81,7 @@ public class CloudRenderCoordinator {
         return false;
     }
 
-    protected boolean renderCloudsInternal(FrameGraphBuilder frameGraphBuilder, LevelTargetBundle targets, Vec3 cameraPos, float ticksInput) {
+    protected boolean renderCloudsInternal(Consumer<Runnable> scheduleRender, Vec3 cameraPos, float ticksInput) {
         double camX = cameraPos.x, camY = cameraPos.y, camZ = cameraPos.z;
         float tickDelta = Mth.frac(ticksInput);
         if (!shouldRenderClouds()) return false;
@@ -113,12 +112,9 @@ public class CloudRenderCoordinator {
             GraphicsCompat.instance.debugMessage("renderer prepare returned " + prepareResult.name());
 
         if (prepareResult == PrepareResult.RENDER) {
-            FramePass renderPass = frameGraphBuilder.addPass("clouds");
-            targets.main = renderPass.readsAndWrites(targets.main);
-
             final long fticks = clampedCloudTicks;
             final float ftickDelta = tickDelta;
-            renderPass.executes(() -> {
+            scheduleRender.accept(() -> {
                 getProfiler().push("clouds");
                 GraphicsCompat.instance.pushDebugGroupDev("Better Clouds");
                 try {
