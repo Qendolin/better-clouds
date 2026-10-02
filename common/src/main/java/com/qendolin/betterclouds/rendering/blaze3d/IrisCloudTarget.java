@@ -15,9 +15,9 @@ import static org.lwjgl.opengl.GL33C.*;
 
 /**
  * Render the clouds in a separate composite framebuffer to avoid precision loss in Iris' framebuffer,
- * and later this will be copied into the main framebuffer.
+ * and later this will be copied into the main framebuffer. Fixes <a href="https://github.com/Qendolin/better-clouds/issues/374">#374</a>.
  * <br><br>
- * Fixes <a href="https://github.com/Qendolin/better-clouds/issues/374">#374</a>.
+ * FIXME: this code is ugly and not b3d compatible. it will eventually have to be so that it can be applied to vanilla and fix <a href="https://github.com/Qendolin/better-clouds/issues/389">#389</a>.
  */
 final class IrisCloudTarget implements AutoCloseable {
     private GpuTexture color;
