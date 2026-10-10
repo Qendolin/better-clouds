@@ -125,13 +125,13 @@ public class SelectDropdownController<T> implements Controller<Integer> {
                 return false;
             }
 
-            if (event.button() == 0) {
+            if (event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
                 togglePopup();
                 playDownSound();
                 return true;
             }
 
-            if (event.button() == 1) {
+            if (event.button() == InputConstants.MOUSE_BUTTON_RIGHT) {
                 control.cycle(1);
                 playDownSound();
                 return true;
@@ -314,7 +314,7 @@ public class SelectDropdownController<T> implements Controller<Integer> {
 
         @Override
         public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-            if (event.button() != 0) {
+            if (event.button() != InputConstants.MOUSE_BUTTON_LEFT) {
                 return false;
             }
 
