@@ -154,6 +154,7 @@ public class Config {
             List<T> presets
     ) {
         Map<String, T> defaults = loader.defaultPresets();     // map is copied
+        presets.removeIf(i -> !i.editable);
         presets.addAll(defaults.values());
         HashSet<String> seen = new HashSet<>();
         presets.removeIf(i -> i.key != null && !seen.add(i.key));
