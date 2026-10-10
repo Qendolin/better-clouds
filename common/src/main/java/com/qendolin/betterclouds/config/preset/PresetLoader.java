@@ -48,7 +48,7 @@ public class PresetLoader<T extends AbstractPresetConfig> implements PreparableR
         this.gsonType = gsonType;
     }
 
-    public Map<String, T> presets() {
+    public Map<String, T> defaultPresets() {
         if (presets == null) return Map.of();
         return Map.copyOf(presets);
     }

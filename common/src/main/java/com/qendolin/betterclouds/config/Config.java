@@ -22,6 +22,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 
 public class Config {
     public static final String DEFAULT_PRESET_KEY = "default";
@@ -133,7 +135,7 @@ public class Config {
 
     public void loadDefaultPresets() {
         for (PresetLoader<?> presetLoader : PresetLoader.ALL_PRESETS) {
-            if (presetLoader.presets().isEmpty()) {
+            if (presetLoader.defaultPresets().isEmpty()) {
                 // Not initialized yet, wait for other preset file to be loaded
                 BetterCloudsStatic.getLogger().info("{} not loaded yet, waiting for next resource load", presetLoader.id);
                 return;
@@ -151,18 +153,16 @@ public class Config {
             PresetLoader<T> loader,
             List<T> presets
     ) {
-        assert !loader.presets().isEmpty();
-
-        // Remember which default preset was selected, if any
-        Map<String, T> defaults = loader.presets();     // map is copied dw
-        presets.removeIf(preset -> preset.key != null && !preset.editable && defaults.containsKey(preset.key));
+        Map<String, T> defaults = loader.defaultPresets();     // map is copied
         presets.addAll(defaults.values());
+        HashSet<String> seen = new HashSet<>();
+        presets.removeIf(i -> i.key != null && !seen.add(i.key));
     }
 
     @NotNull
     public ShaderPresetConfig shaderPreset() {
         if (presets.isEmpty())
-            return PresetLoader.SHADER.presets().getOrDefault(DEFAULT_PRESET_KEY, ShaderPresetConfig.EMPTY_PRESET);
+            return PresetLoader.SHADER.defaultPresets().getOrDefault(DEFAULT_PRESET_KEY, ShaderPresetConfig.EMPTY_PRESET);
         selectedPreset = Mth.clamp(selectedPreset, 0, presets.size() - 1);
         return presets.get(selectedPreset);
     }
@@ -175,7 +175,7 @@ public class Config {
         ShaderPresetConfig selected = shaderPreset();
         Comparator<ShaderPresetConfig> comparator = Comparator.
                 <ShaderPresetConfig, Boolean>comparing(preset -> !preset.editable)
-                .thenComparing(preset -> !DEFAULT_PRESET_KEY.equals(preset.key))
+                .thenComparing(preset -> DEFAULT_PRESET_KEY.equals(preset.key))
                 .thenComparing(preset -> preset.title);
         presets.sort(comparator);
         if (updateSelectedIndex)
@@ -185,7 +185,7 @@ public class Config {
     @NotNull
     public NoisePresetConfig noisePreset() {
         if (noisePresets.isEmpty())
-            return PresetLoader.NOISE.presets().getOrDefault(DEFAULT_PRESET_KEY, NoisePresetConfig.EMPTY_PRESET);
+            return PresetLoader.NOISE.defaultPresets().getOrDefault(DEFAULT_PRESET_KEY, NoisePresetConfig.EMPTY_PRESET);
         selectedNoisePreset = Mth.clamp(selectedNoisePreset, 0, noisePresets.size() - 1);
         return noisePresets.get(selectedNoisePreset);
     }
