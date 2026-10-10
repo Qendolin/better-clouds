@@ -93,7 +93,7 @@ public class SereneSeasonsCompatImpl extends SereneSeasonsCompat {
                 blend = 1.0f - blend;
             }
 
-            return Mth.clampedLerp(start, end, blend);
+            return Mth.clampedLerp(blend, start, end);
         } catch (InvocationTargetException | IllegalAccessException e) {
             return 1.0f;
         }
