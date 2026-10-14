@@ -26,13 +26,16 @@ public class Migrations {
             // this code used to migrate old color names to new color names
             // look at commit 839a162a562afd6af503a682a9ff253d1eec4f60 for earlier code
         });
+        MIGRATIONS.add(config -> {
+            // goodbye opengl renderer
+            config.renderer = Config.Renderer.BLAZE3D;
+        });
     }
 
     public static void migrate(Config config) {
         try {
             while (config.migrationVersion < MIGRATIONS.size()) {
-                MIGRATIONS.get(config.migrationVersion).accept(config);
-                config.migrationVersion++;
+                MIGRATIONS.get(config.migrationVersion++).accept(config);
             }
         } catch (Exception e) {
             throw new RuntimeException("Failed to migrate config at version " + config.migrationVersion, e);
