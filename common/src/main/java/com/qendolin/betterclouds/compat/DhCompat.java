@@ -4,7 +4,6 @@ import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.rendering.TextureWrapper;
 import com.seibel.distanthorizons.api.DhApi;
 import org.joml.Matrix4f;
-import org.joml.Vector4f;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;

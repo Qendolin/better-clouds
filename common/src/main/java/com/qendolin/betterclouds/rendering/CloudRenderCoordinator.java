@@ -25,15 +25,13 @@ import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
 
 public class CloudRenderCoordinator {
     public static final CloudRenderCoordinator instance = new CloudRenderCoordinator();
-
+    private final Vector3d tempVector = new Vector3d();
     public CloudRenderer renderer;
     public Matrix4f capturedViewMat;
     public Matrix4f capturedProjMat;
     public Frustum frustum;
     public long clientTicks;
-
     private boolean sentCloudsDisabledMessage = false;
-    private final Vector3d tempVector = new Vector3d();
 
     public void initialize() {
         if (GraphicsCompat.instance.isIncompatible()) return;
@@ -57,7 +55,8 @@ public class CloudRenderCoordinator {
 
     public void checkState(OptionsRenderState optionsRenderState) {
         if (sentCloudsDisabledMessage || !optionsRenderState.cloudStatus.equals(CloudStatus.OFF) ||
-                IrisCompat.instance().isShadersEnabled() || !ConfigManager.instance().cloudsDisabledMessageEnabled) return;
+                IrisCompat.instance().isShadersEnabled() || !ConfigManager.instance().cloudsDisabledMessageEnabled)
+            return;
         Commands.sendCloudsDisabledMessage();
         sentCloudsDisabledMessage = true;
     }

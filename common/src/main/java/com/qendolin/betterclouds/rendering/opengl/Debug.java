@@ -1,9 +1,8 @@
 package com.qendolin.betterclouds.rendering.opengl;
 
-import com.mojang.renderpearl.api.pipeline.PrimitiveTopology;
-
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.datafixers.util.Pair;
+import com.mojang.renderpearl.api.pipeline.PrimitiveTopology;
 import com.qendolin.betterclouds.compat.GLCompat;
 import com.qendolin.betterclouds.rendering.CloudRenderCoordinator;
 import com.qendolin.betterclouds.rendering.GraphicsCompat;

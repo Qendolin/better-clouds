@@ -1,8 +1,6 @@
 package com.qendolin.betterclouds.platform.fabric;
 
-import com.qendolin.betterclouds.renderdoc.CaptureManager;
-import com.qendolin.betterclouds.renderdoc.RenderDoc;
-import com.qendolin.betterclouds.renderdoc.RenderDocLoader;
+import com.qendolin.betterclouds.renderdoc.*;
 import com.qendolin.betterclouds.util.NamedLogger;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;

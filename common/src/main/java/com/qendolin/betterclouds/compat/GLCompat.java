@@ -1,17 +1,17 @@
 package com.qendolin.betterclouds.compat;
 
 import com.google.common.collect.ImmutableList;
-import oshi.SystemInfo;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.rendering.GraphicsCompat;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.lwjgl.PointerBuffer;
-import org.lwjgl.sdl.SDLVideo;
 import org.lwjgl.opengl.*;
+import org.lwjgl.sdl.SDLVideo;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
+import oshi.SystemInfo;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;

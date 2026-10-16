@@ -1,9 +1,7 @@
 package com.qendolin.betterclouds.platform.fabric;
 
 import com.qendolin.betterclouds.platform.ModVersion;
-import net.fabricmc.loader.api.SemanticVersion;
-import net.fabricmc.loader.api.Version;
-import net.fabricmc.loader.api.VersionParsingException;
+import net.fabricmc.loader.api.*;
 
 import java.util.Optional;
 

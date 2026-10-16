@@ -1,7 +1,7 @@
 package com.qendolin.betterclouds.rendering.opengl;
 
-import com.mojang.renderpearl.backend.opengl.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.renderpearl.backend.opengl.GlStateManager;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.Commands;
 import com.qendolin.betterclouds.compat.GLCompat;

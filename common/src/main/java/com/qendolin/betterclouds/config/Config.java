@@ -4,7 +4,8 @@ import com.google.gson.*;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.compat.BigGlobeCompat;
 import com.qendolin.betterclouds.compat.MiddleEarthCompat;
-import com.qendolin.betterclouds.config.compat.*;
+import com.qendolin.betterclouds.config.compat.SereneSeasonsConfig;
+import com.qendolin.betterclouds.config.compat.ShaderPresetConfig;
 import com.qendolin.betterclouds.config.preset.*;
 import com.qendolin.betterclouds.util.PreLaunchGuard;
 import dev.isxander.yacl3.api.NameableEnum;
@@ -22,8 +23,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Type;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Function;
 
 public class Config {
     public static final String DEFAULT_PRESET_KEY = "default";

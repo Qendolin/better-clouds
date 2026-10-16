@@ -1,7 +1,7 @@
 package com.qendolin.betterclouds.rendering;
 
-import com.mojang.renderpearl.api.commands.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.renderpearl.api.commands.RenderPass;
 import com.mojang.renderpearl.api.textures.*;
 import com.qendolin.betterclouds.util.Producer;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -45,7 +45,9 @@ public class TextureWrapper {
         return new TextureWrapper(name, 0 /* not cached as it does not go through #from */, view, customSampler.produce()).asBorrowed();
     }
 
-    /** Creates an uncached wrapper that owns its view, but not the supplied texture. */
+    /**
+     * Creates an uncached wrapper that owns its view, but not the supplied texture.
+     */
     public static TextureWrapper fromTexture(String name, GpuTexture texture) {
         return new TextureWrapper(name, 0, RenderSystem.getDevice().createTextureView(texture), defaultSampler());
     }
@@ -77,18 +79,18 @@ public class TextureWrapper {
         cache.clear();
     }
 
-    public void close() {
-        // don't close cache-owned sampler
-        if (view != null && !borrowed)
-            view.close();
-    }
-
     public static GpuSampler defaultSampler() {
         return customSampler(AddressMode.CLAMP_TO_EDGE, AddressMode.CLAMP_TO_EDGE, FilterMode.NEAREST);
     }
 
     public static GpuSampler customSampler(AddressMode u, AddressMode v, FilterMode fm) {
         return RenderSystem.getSamplerCache().getSampler(u, v, fm, fm, false);
+    }
+
+    public void close() {
+        // don't close cache-owned sampler
+        if (view != null && !borrowed)
+            view.close();
     }
 
     public void bindTo(RenderPass pass) {

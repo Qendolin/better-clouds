@@ -1,12 +1,10 @@
 package com.qendolin.betterclouds.rendering.blaze3d;
 
-import com.mojang.renderpearl.api.GpuFormat;
-import com.mojang.renderpearl.backend.opengl.GlConst;
-import com.mojang.renderpearl.backend.opengl.GlStateManager;
-import com.mojang.renderpearl.backend.opengl.GlTexture;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.renderpearl.api.GpuFormat;
 import com.mojang.renderpearl.api.textures.GpuTexture;
 import com.mojang.renderpearl.api.textures.GpuTextureView;
+import com.mojang.renderpearl.backend.opengl.*;
 import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.rendering.BorrowedGlTexture;
 import com.qendolin.betterclouds.rendering.TextureWrapper;
@@ -30,7 +28,16 @@ final class IrisCloudTarget implements AutoCloseable {
     private int compositeFbo;
     private boolean destinationSrgb;
 
-    /** must be called outside a render pass, after saving the caller's GL state */
+    private static void checkComplete() {
+        int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        if (status != GL_FRAMEBUFFER_COMPLETE) {
+            throw new IllegalStateException("Incomplete Better Clouds framebuffer: 0x" + Integer.toHexString(status));
+        }
+    }
+
+    /**
+     * must be called outside a render pass, after saving the caller's GL state
+     */
     void prepare() {
         IrisCompat.instance().bindFramebuffer();
         int drawBuffer = glGetInteger(GL_DRAW_BUFFER0);
@@ -106,15 +113,16 @@ final class IrisCloudTarget implements AutoCloseable {
         else glDisable(GL_FRAMEBUFFER_SRGB);
     }
 
-    GpuTextureView colorView() { return colorView.view(); }
-    GpuTextureView destinationView() { return destinationView.view(); }
-    GpuTextureView depthView() { return depthView.view(); }
+    GpuTextureView colorView() {
+        return colorView.view();
+    }
 
-    private static void checkComplete() {
-        int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-        if (status != GL_FRAMEBUFFER_COMPLETE) {
-            throw new IllegalStateException("Incomplete Better Clouds framebuffer: 0x" + Integer.toHexString(status));
-        }
+    GpuTextureView destinationView() {
+        return destinationView.view();
+    }
+
+    GpuTextureView depthView() {
+        return depthView.view();
     }
 
     @Override
@@ -163,7 +171,9 @@ final class IrisCloudTarget implements AutoCloseable {
         }
     }
 
-    /** stores iris state gl state; try-with-resources block will automatically restore it by calling close() */
+    /**
+     * stores iris state gl state; try-with-resources block will automatically restore it by calling close()
+     */
     static final class State implements AutoCloseable {
         private final int draw = glGetInteger(GL_DRAW_FRAMEBUFFER_BINDING);
         private final int read = glGetInteger(GL_READ_FRAMEBUFFER_BINDING);

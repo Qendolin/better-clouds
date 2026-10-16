@@ -1,7 +1,7 @@
 package com.qendolin.betterclouds.rendering.opengl;
 
-import com.mojang.renderpearl.api.commands.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.renderpearl.api.commands.RenderPass;
 import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.config.Config;
 import net.minecraft.client.Minecraft;

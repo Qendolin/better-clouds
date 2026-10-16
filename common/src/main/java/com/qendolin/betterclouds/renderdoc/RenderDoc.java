@@ -17,13 +17,13 @@
  */
 package com.qendolin.betterclouds.renderdoc;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.qendolin.betterclouds.util.NamedLogger;
 import com.sun.jna.ptr.*;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.apache.logging.log4j.LogManager;
 import org.jetbrains.annotations.Nullable;
-import com.mojang.blaze3d.platform.InputConstants;
 
 import java.time.Instant;
 import java.util.Arrays;

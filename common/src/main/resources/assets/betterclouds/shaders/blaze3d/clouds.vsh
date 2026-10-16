@@ -1,8 +1,8 @@
 #version 330 core
 #extension GL_ARB_separate_shader_objects : require
 
-#include <minecraft:dynamictransforms.glsl>
-#include <minecraft:projection.glsl>
+#include < minecraft:dynamictransforms.glsl >
+#include < minecraft:projection.glsl >
 
 layout(location = 1) in vec3 WorldPosition;
 layout(location = 0) in vec3 LocalPosition;

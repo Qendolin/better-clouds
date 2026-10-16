@@ -4,11 +4,10 @@ import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.compat.*;
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
-import com.qendolin.betterclouds.rendering.CloudRenderCoordinator;
-import net.irisshaders.iris.compat.dh.DHCompat;
 
 public record PipelineParams(boolean celestialBodyHalo, boolean nearCloudFade, boolean iris,
-                             boolean distantHorizons, boolean voxy, boolean reverseZ, boolean zNeg1To1, boolean cloudsOpaque) {
+                             boolean distantHorizons, boolean voxy, boolean reverseZ, boolean zNeg1To1,
+                             boolean cloudsOpaque) {
     private static PipelineParams prevParams;
 
     public static PipelineParams get() {

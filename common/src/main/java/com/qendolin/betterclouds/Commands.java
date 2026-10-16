@@ -17,7 +17,8 @@ import com.qendolin.betterclouds.util.ChatUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.arguments.StringRepresentableArgument;
-import net.minecraft.network.chat.*;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.StringRepresentable;
 import org.jspecify.annotations.NonNull;
 
@@ -393,7 +394,8 @@ public class Commands {
 
     public static void sendCloudsDisabledMessage() {
         var component = Component.translatable(ChatUtil.debugChatMessageKey("cloudsDisabledMessage"));
-        if (DhCompat.instance().isEnabled()) component.append(Component.translatable(ChatUtil.debugChatMessageKey("distantHorizonsDisablingMessage")));
+        if (DhCompat.instance().isEnabled())
+            component.append(Component.translatable(ChatUtil.debugChatMessageKey("distantHorizonsDisablingMessage")));
         component.append(Component.literal("\n - "))
                 .append(Component.translatable(ChatUtil.debugChatMessageKey("generic.disable"))
                         .withStyle(style -> style.withItalic(true).withUnderlined(true).withColor(ChatFormatting.GRAY)

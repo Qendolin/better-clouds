@@ -1,8 +1,8 @@
 package com.qendolin.betterclouds.rendering;
 
 import com.mojang.renderpearl.api.GpuFormat;
-import com.mojang.renderpearl.backend.opengl.GlTexture;
 import com.mojang.renderpearl.api.textures.GpuTexture;
+import com.mojang.renderpearl.backend.opengl.GlTexture;
 
 public class BorrowedGlTexture extends GlTexture {
 

@@ -1,8 +1,6 @@
 package com.qendolin.betterclouds.mixin.required.yacl;
 
 import com.qendolin.betterclouds.gui.ConfigScreen;
-import com.qendolin.betterclouds.gui.CustomButtonOption;
-import dev.isxander.yacl3.api.ButtonOption;
 import dev.isxander.yacl3.gui.AbstractWidget;
 import dev.isxander.yacl3.gui.controllers.PopupControllerScreen;
 import net.minecraft.client.Minecraft;

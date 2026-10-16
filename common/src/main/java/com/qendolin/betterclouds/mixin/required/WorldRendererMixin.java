@@ -1,16 +1,16 @@
 package com.qendolin.betterclouds.mixin.required;
 
-import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
+import com.mojang.blaze3d.resource.GraphicsResourceAllocator;
+import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
 import com.mojang.renderpearl.api.commands.RenderPass;
 import com.mojang.renderpearl.api.textures.GpuTextureView;
-import net.minecraft.client.renderer.CloudRenderer;
-import net.minecraft.client.renderer.oit.OitStage;
-import net.minecraft.client.renderer.oit.OitRenderPassProvider;
-import com.mojang.blaze3d.resource.GraphicsResourceAllocator;
 import com.qendolin.betterclouds.rendering.CloudRenderCoordinator;
 import net.minecraft.client.CloudStatus;
+import net.minecraft.client.renderer.CloudRenderer;
 import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.oit.OitRenderPassProvider;
+import net.minecraft.client.renderer.oit.OitStage;
 import net.minecraft.client.renderer.state.OptionsRenderState;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import org.joml.Vector4f;
@@ -25,8 +25,10 @@ public abstract class WorldRendererMixin {
     @Final
     private OptionsRenderState optionsRenderState;
 
-    @Unique private boolean betterclouds$replaceClouds;
-    @Unique private Runnable betterclouds$renderClouds;
+    @Unique
+    private boolean betterclouds$replaceClouds;
+    @Unique
+    private Runnable betterclouds$renderClouds;
 
     @Inject(at = @At("HEAD"), method = "render")
     private void captureFrustumAndCheckState(GraphicsResourceAllocator resourceAllocator, boolean renderOutline, CameraRenderState cameraState, GpuBufferSlice terrainFog, Vector4f fogColor, boolean shouldRenderSky, boolean hasPostEffects, CallbackInfo ci) {
@@ -39,8 +41,8 @@ public abstract class WorldRendererMixin {
     @Inject(method = "render", at = @At(value = "INVOKE",
             target = "Lcom/mojang/blaze3d/framegraph/FrameGraphBuilder;execute(Lcom/mojang/blaze3d/resource/GraphicsResourceAllocator;Lcom/mojang/blaze3d/framegraph/FrameGraphBuilder$Inspector;)V"))
     private void prepareClouds(GraphicsResourceAllocator allocator, boolean renderOutline,
-            CameraRenderState camera, GpuBufferSlice terrainFog, Vector4f fogColor,
-            boolean renderSky, boolean hasPostEffects, CallbackInfo ci) {
+                               CameraRenderState camera, GpuBufferSlice terrainFog, Vector4f fogColor,
+                               boolean renderSky, boolean hasPostEffects, CallbackInfo ci) {
         if (optionsRenderState.cloudStatus != CloudStatus.OFF) {
             betterclouds$replaceClouds = CloudRenderCoordinator.instance.renderClouds(
                     render -> betterclouds$renderClouds = render, camera.pos, camera.cameraEntityPartialTicks);
@@ -65,7 +67,7 @@ public abstract class WorldRendererMixin {
     @WrapWithCondition(method = "executeOit", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/client/renderer/CloudRenderer;renderOit(Lnet/minecraft/client/CloudStatus;Lnet/minecraft/client/renderer/oit/OitStage;Lcom/mojang/renderpearl/api/textures/GpuTextureView;Lnet/minecraft/client/renderer/oit/OitRenderPassProvider$Parameters;)V"))
     private boolean renderVanillaOitClouds(CloudRenderer renderer, CloudStatus status, OitStage stage,
-            GpuTextureView depth, OitRenderPassProvider.Parameters parameters) {
+                                           GpuTextureView depth, OitRenderPassProvider.Parameters parameters) {
         return !betterclouds$replaceClouds;
     }
 

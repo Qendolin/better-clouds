@@ -2,6 +2,7 @@ package com.qendolin.betterclouds.rendering.blaze3d;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.renderpearl.api.GpuFormat;
 import com.mojang.renderpearl.api.buffers.GpuBuffer;
 import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
@@ -11,9 +12,9 @@ import com.mojang.renderpearl.api.pipeline.*;
 import com.mojang.renderpearl.api.textures.AddressMode;
 import com.mojang.renderpearl.api.textures.FilterMode;
 import com.mojang.renderpearl.api.vertex.VertexFormat;
-import com.mojang.datafixers.util.Pair;
 import com.qendolin.betterclouds.BetterCloudsStatic;
-import com.qendolin.betterclouds.compat.*;
+import com.qendolin.betterclouds.compat.DhCompat;
+import com.qendolin.betterclouds.compat.VoxyCompat;
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.generator.ChunkedGenerator;
@@ -110,6 +111,9 @@ public class Blaze3DRenderer extends CloudRenderer {
             .withUniform("LodDepthTexture", UniformType.COMBINED_IMAGE_SAMPLER)
             .withUniform("LodProjMat", UniformType.UNIFORM_BUFFER)
             .build();
+    private static final BlendFunction ACCUMULATION_BLEND = new BlendFunction(
+            BlendFactor.SRC_ALPHA, BlendFactor.ONE_MINUS_SRC_ALPHA,
+            BlendFactor.ONE, BlendFactor.ONE_MINUS_SRC_ALPHA);
     // models
     private final ReadOnlyBuffer modelVertexBuffer = new ReadOnlyBuffer("cloudModelVertices");
     // don't forget to close your buffers!
@@ -120,14 +124,11 @@ public class Blaze3DRenderer extends CloudRenderer {
     private final WritableBuffer uCloudVertexData = new WritableBuffer("uCloudVertexData", Float.BYTES * 16, GpuBuffer.USAGE_UNIFORM);
     private final WritableBuffer uCloudFragData = new WritableBuffer("uCloudFragData", Float.BYTES * 19, GpuBuffer.USAGE_UNIFORM);
     private final WritableBuffer uLodProjMat = new WritableBuffer("uLodProjMat", Float.BYTES * 16, GpuBuffer.USAGE_UNIFORM);
-    // things affected by resource reload
-    RenderPipeline CLOUD_RENDERER_PIPELINE, CLOUD_COMPOSITE_PIPELINE;
     private final IrisCloudTarget irisCloudTarget = new IrisCloudTarget();
-    private static final BlendFunction ACCUMULATION_BLEND = new BlendFunction(
-            BlendFactor.SRC_ALPHA, BlendFactor.ONE_MINUS_SRC_ALPHA,
-            BlendFactor.ONE, BlendFactor.ONE_MINUS_SRC_ALPHA);
     // misc
     private final float[] tempMatrixCopyArr = new float[16];
+    // things affected by resource reload
+    RenderPipeline CLOUD_RENDERER_PIPELINE, CLOUD_COMPOSITE_PIPELINE;
 
     public Blaze3DRenderer() {
         createModelBuffers();
@@ -139,6 +140,48 @@ public class Blaze3DRenderer extends CloudRenderer {
 
     public static boolean isCloudsOpaque() {
         return ConfigManager.instance().shaderPreset().opacity > 0.975;
+    }
+
+    static RenderPipeline createCompositePipeline(GpuFormat destinationFormat) {
+        return RenderPipeline.builder()
+                .withLocation(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "cloud_composite"))
+                .withVertexShader(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "blaze3d/cloud_composite"))
+                .withFragmentShader(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "blaze3d/cloud_composite"))
+                .withBindGroupLayout(BindGroupLayout.builder().withUniform("CloudAccumulation", UniformType.COMBINED_IMAGE_SAMPLER).build())
+                .withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
+                .withCull(false)
+                .withDepthStencilState(Optional.empty())
+                .withColorTargetState(new ColorTargetState(
+                        Optional.of(BlendFunction.TRANSLUCENT_PREMULTIPLIED_ALPHA),
+                        destinationFormat, ColorTargetState.WRITE_ALL))
+                .build();
+    }
+
+    /**
+     * Dynamically detect whether the LODs are reverse Z or not, because
+     * reverse Z keeps changing whenever any of the mods update or iris is enabled
+     *
+     * @apiNote here the function returns whether OpenGL is operating is reverse Z or not.
+     * Blaze3D is always operating in reverse Z, even when Iris shaders are active,
+     * because Iris manually flips all of its depth comparisons via mixins and translates it to OpenGL normal Z.
+     * idk how tf doing a projection through the no-op matrix plus hardcoded vectors
+     * can detect iris reverse z shenanigans, but it works. (iris in 26.2+ makes blaze3d think
+     * its in reverse z while the underlying opengl still operates in normal z. super weird.)
+     */
+    public static boolean isReverseZ() {
+        Matrix4f matrix = NOOP_MATRIX;
+        Matrix4f temp;
+
+        if ((temp = DhCompat.instance().getProjectionMatrix()) != null)
+            matrix = temp;
+        else if ((temp = VoxyCompat.instance.getProjectionMatrix()) != null)
+            matrix = temp;
+
+        // -z is forwards in MC, meaning z=1 is closer than z=0.
+        Vector4f closeMul = new Vector4f(0, 0, 1, 1).mul(matrix);
+        Vector4f farMul = new Vector4f(0, 0, 0, 1).mul(matrix);
+
+        return closeMul.z / closeMul.w > farMul.z / farMul.w;
     }
 
     @Override
@@ -398,48 +441,6 @@ public class Blaze3DRenderer extends CloudRenderer {
                 .build();
         // Iris chooses the destination format; it is only known after preparing its framebuffer.
         CLOUD_COMPOSITE_PIPELINE = null;
-    }
-
-    static RenderPipeline createCompositePipeline(GpuFormat destinationFormat) {
-        return RenderPipeline.builder()
-                .withLocation(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "cloud_composite"))
-                .withVertexShader(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "blaze3d/cloud_composite"))
-                .withFragmentShader(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "blaze3d/cloud_composite"))
-                .withBindGroupLayout(BindGroupLayout.builder().withUniform("CloudAccumulation", UniformType.COMBINED_IMAGE_SAMPLER).build())
-                .withPrimitiveTopology(PrimitiveTopology.TRIANGLES)
-                .withCull(false)
-                .withDepthStencilState(Optional.empty())
-                .withColorTargetState(new ColorTargetState(
-                        Optional.of(BlendFunction.TRANSLUCENT_PREMULTIPLIED_ALPHA),
-                        destinationFormat, ColorTargetState.WRITE_ALL))
-                .build();
-    }
-
-    /**
-     * Dynamically detect whether the LODs are reverse Z or not, because
-     * reverse Z keeps changing whenever any of the mods update or iris is enabled
-     *
-     * @apiNote here the function returns whether OpenGL is operating is reverse Z or not.
-     * Blaze3D is always operating in reverse Z, even when Iris shaders are active,
-     * because Iris manually flips all of its depth comparisons via mixins and translates it to OpenGL normal Z.
-     * idk how tf doing a projection through the no-op matrix plus hardcoded vectors
-     * can detect iris reverse z shenanigans, but it works. (iris in 26.2+ makes blaze3d think
-     * its in reverse z while the underlying opengl still operates in normal z. super weird.)
-     */
-    public static boolean isReverseZ() {
-        Matrix4f matrix = NOOP_MATRIX;
-        Matrix4f temp;
-
-        if ((temp = DhCompat.instance().getProjectionMatrix()) != null)
-            matrix = temp;
-        else if ((temp = VoxyCompat.instance.getProjectionMatrix()) != null)
-            matrix = temp;
-
-        // -z is forwards in MC, meaning z=1 is closer than z=0.
-        Vector4f closeMul = new Vector4f(0, 0, 1, 1).mul(matrix);
-        Vector4f farMul = new Vector4f(0, 0, 0, 1).mul(matrix);
-
-        return closeMul.z / closeMul.w > farMul.z / farMul.w;
     }
 
     private void drawWithFrustumCulling(RenderPass pass, Frustum frustumAtOrigin) {
