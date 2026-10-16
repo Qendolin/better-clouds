@@ -115,6 +115,8 @@ public class Config {
     @SerialEntry
     public boolean gpuIncompatibleMessageEnabled = true;
     @SerialEntry
+    public boolean legacyRendererMessage = true;
+    @SerialEntry
     public boolean cloudsDisabledMessageEnabled = true;
 
     @SuppressWarnings("unused")

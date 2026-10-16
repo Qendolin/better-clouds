@@ -171,6 +171,17 @@ public class Commands {
                                             ChatUtil.debugChatMessage("updatedPreferences");
                                             return 1;
                                         })))
+                        .then(literal("legacyRendererMessage")
+                                .then(argument("enable", BoolArgumentType.bool())
+                                        .executes(context -> {
+                                            boolean enable = BoolArgumentType.getBool(context, "enable");
+                                            if (ConfigManager.instance().legacyRendererMessage == enable)
+                                                return 1;
+                                            ConfigManager.instance().legacyRendererMessage = enable;
+                                            ConfigManager.handler().save();
+                                            ChatUtil.debugChatMessage("updatedPreferences");
+                                            return 1;
+                                        })))
                         .then(literal("cloudsDisabledMessage")
                                 .then(argument("enable", BoolArgumentType.bool())
                                         .executes(context -> {
@@ -334,6 +345,17 @@ public class Commands {
                     ChatUtil.debugChatMessage("renderdoc.load.queued");
                     return 1;
                 }));
+    }
+
+    public static void sendLegacyRendererMessage() {
+        if (!ConfigManager.instance().legacyRendererMessage) return;
+        ChatUtil.debugChatMessage(
+                Component.translatable(ChatUtil.debugChatMessageKey("legacyRenderer"))
+                        .append(Component.literal("\n - "))
+                        .append(Component.translatable(ChatUtil.debugChatMessageKey("generic.disable"))
+                                .withStyle(style -> style.withItalic(true).withUnderlined(true).withColor(ChatFormatting.GRAY)
+                                        .withClickEvent(createCommandClickEvent(
+                                                "/betterclouds:config set legacyRendererMessage false")))));
     }
 
     public static void sendGpuIncompatibleChatMessage() {
