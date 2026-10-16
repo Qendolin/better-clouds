@@ -26,7 +26,8 @@ public record PipelineParams(boolean celestialBodyHalo, boolean nearCloudFade, b
                 DhCompat.instance().getDepthTexture() != null,
                 VoxyCompat.instance.getOpaqueDepthTexture() != null,
                 Blaze3DRenderer.isReverseZ(),
-                DhCompat.instance().isNativeRenderer(), // DH depth is [-1, 1] for ogl renderer but [0, 1] for b3d renderer
+//                DhCompat.instance().isNativeRenderer(), // DH depth is [-1, 1] for ogl renderer but [0, 1] for b3d renderer
+                false,  // changed DH 3.3.x, it's just 0 to 1 now
                 Blaze3DRenderer.isCloudsOpaque()
         );
     }
