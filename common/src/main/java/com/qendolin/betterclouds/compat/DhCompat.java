@@ -48,7 +48,7 @@ public abstract class DhCompat {
 
     public abstract void resetTextureCreateFlag();
 
-    public abstract boolean isNativeRenderer();
+    public abstract boolean isZNeg1To1();
 
     private static class Stub extends DhCompat {
 
@@ -83,7 +83,6 @@ public abstract class DhCompat {
 
         @Override
         public void disableLodClouds() {
-
         }
 
         @Override
@@ -97,7 +96,7 @@ public abstract class DhCompat {
         }
 
         @Override
-        public boolean isNativeRenderer() {
+        public boolean isZNeg1To1() {
             return false;
         }
     }

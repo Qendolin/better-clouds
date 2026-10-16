@@ -5,6 +5,7 @@ import com.qendolin.betterclouds.compat.*;
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.rendering.CloudRenderCoordinator;
+import net.irisshaders.iris.compat.dh.DHCompat;
 
 public record PipelineParams(boolean celestialBodyHalo, boolean nearCloudFade, boolean iris,
                              boolean distantHorizons, boolean voxy, boolean reverseZ, boolean zNeg1To1, boolean cloudsOpaque) {
@@ -26,8 +27,7 @@ public record PipelineParams(boolean celestialBodyHalo, boolean nearCloudFade, b
                 DhCompat.instance().getDepthTexture() != null,
                 VoxyCompat.instance.getOpaqueDepthTexture() != null,
                 Blaze3DRenderer.isReverseZ(),
-//                DhCompat.instance().isNativeRenderer(), // DH depth is [-1, 1] for ogl renderer but [0, 1] for b3d renderer
-                false,  // changed DH 3.3.x, it's just 0 to 1 now
+                DhCompat.instance().isZNeg1To1(),
                 Blaze3DRenderer.isCloudsOpaque()
         );
     }

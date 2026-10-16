@@ -4,6 +4,7 @@ import com.qendolin.betterclouds.BetterClouds;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.rendering.TextureWrapper;
 import com.seibel.distanthorizons.api.DhApi;
+import com.seibel.distanthorizons.api.enums.config.EDhApiDepthRange;
 import com.seibel.distanthorizons.api.enums.rendering.EDhApiRenderPass;
 import com.seibel.distanthorizons.api.methods.events.DhApiEventRegister;
 import com.seibel.distanthorizons.api.methods.events.abstractEvents.*;
@@ -73,7 +74,7 @@ public class DhCompatImpl extends DhCompat {
 
     @Override
     public Optional<Integer> getDepthTextureId() {
-        DhApiResult<Integer> result = DhApi.Delayed.renderProxy.getDhDepthTextureId();
+        DhApiResult<Integer> result = DhApi.Delayed.renderProxy.getDhDepthTextureGlId();
         if (result.success) {
             return Optional.of(result.payload);
         }
@@ -104,13 +105,12 @@ public class DhCompatImpl extends DhCompat {
 
     @Override
     public void disableLodClouds() {
-        DhApi.Delayed.configs.graphics().genericRendering().cloudRenderingEnabled().setValue(false);
+        DhApi.Delayed.configs.graphics().genericRendering().cloudRenderingEnabled().setValue(false, "Better Clouds");
     }
 
     @Override
-    public boolean isNativeRenderer() {
-        if (!isDhInitialized) return false;
-        return DhApi.Delayed.renderProxy.isNativeRenderer();
+    public boolean isZNeg1To1() {
+        return DhApi.Delayed.renderProxy.getDepthRange().equals(EDhApiDepthRange.NEG_ONE_TO_POS_ONE);
     }
 
     @Override
