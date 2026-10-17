@@ -27,12 +27,15 @@ public class DhCompatImpl extends DhCompat {
         DhApiEventRegister.on(DhApiAfterDhInitEvent.class, new DhApiAfterDhInitEvent() {
             @Override
             public void afterDistantHorizonsInit(DhApiEventParam<Void> dhApiEventParam) {
-                isDhInitialized = true;
+                if (BetterClouds.isEnabled()) {
+                    disableLodClouds();
+                }
             }
         });
         DhApiEventRegister.on(DhApiBeforeRenderEvent.class, new DhApiBeforeRenderEvent() {
             @Override
             public void beforeRender(DhApiCancelableEventParam<DhApiRenderParam> dhApiEventParam) {
+                isDhInitialized = true;
                 if (dhApiEventParam.value.renderPass == EDhApiRenderPass.OPAQUE || dhApiEventParam.value.renderPass == EDhApiRenderPass.OPAQUE_AND_TRANSPARENT) {
                     lastRenderParam = dhApiEventParam.value;
                 }

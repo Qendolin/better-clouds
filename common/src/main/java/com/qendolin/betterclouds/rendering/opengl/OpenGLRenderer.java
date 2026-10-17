@@ -17,6 +17,7 @@ import com.qendolin.betterclouds.rendering.opengl.internal.Mesh;
 import com.qendolin.betterclouds.rendering.opengl.shaders.ShaderParameters;
 import com.qendolin.betterclouds.util.MathUtil;
 import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.client.renderer.fog.FogData;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
@@ -171,7 +172,7 @@ public class OpenGLRenderer extends CloudRenderer {
     // Don't forget to push / pop matrix stack outside
     // Note: render must not return early, this will cause corruption because prepare binds stuff
     @Override
-    public void render(long ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
+    public void render(long ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum, FogData fogData) {
         // In 1.21.3 render is called some time after prepare, so this may be false by now
         if (res.failedToLoadCritical()) return;
 
@@ -435,7 +436,7 @@ public class OpenGLRenderer extends CloudRenderer {
         GpuSampler noiseSampler = RenderSystem.getSamplerCache().getSampler(AddressMode.CLAMP_TO_EDGE, AddressMode.REPEAT, FilterMode.LINEAR, FilterMode.LINEAR, false);
         RenderHelper.bindSampler(4, noiseSampler);
 
-        Vector3f effectTint = EffectTintProvider.getEffectTint(client, fog, tickDelta, cam);
+        Vector3f effectTint = EffectTintProvider.getEffectTint(client, null, tickDelta, cam);
         float skyAngleRad = EffectTintProvider.getSunAngleRadians(level, cam);
         float sunPathAngleRad = config.shaderPreset().sunPathAngle * Mth.DEG_TO_RAD;
         float dayNightFactor = MathUtil.interpolateDayNightFactor(dayTime(), config.shaderPreset().sunriseStartTime, config.shaderPreset().sunriseEndTime, config.shaderPreset().sunsetStartTime, config.shaderPreset().sunsetEndTime);

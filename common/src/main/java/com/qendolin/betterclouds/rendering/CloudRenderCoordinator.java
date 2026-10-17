@@ -11,6 +11,7 @@ import net.minecraft.client.CloudStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.client.renderer.fog.FogData;
 import net.minecraft.client.renderer.state.OptionsRenderState;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -31,6 +32,7 @@ public class CloudRenderCoordinator {
     public Matrix4f capturedProjMat;
     public Frustum frustum;
     public long clientTicks;
+    public FogData fogData;
     private boolean sentCloudsDisabledMessage = false;
 
     public void initialize() {
@@ -117,7 +119,7 @@ public class CloudRenderCoordinator {
                 getProfiler().push("clouds");
                 GraphicsCompat.instance.pushDebugGroupDev("Better Clouds");
                 try {
-                    renderer.checkAndRender(fticks, ftickDelta, cam, cam, frustum);
+                    renderer.checkAndRender(fticks, ftickDelta, cam, cam, frustum, fogData);
                 } catch (Exception e) {
                     BetterCloudsStatic.getLogger().error("Failed to render clouds", e);
                     renderer.close();

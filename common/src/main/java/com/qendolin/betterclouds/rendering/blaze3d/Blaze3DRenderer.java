@@ -19,7 +19,6 @@ import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.generator.ChunkedGenerator;
 import com.qendolin.betterclouds.mixin.provider.EffectTintProvider;
-import com.qendolin.betterclouds.mixin.provider.FogProvider;
 import com.qendolin.betterclouds.rendering.*;
 import com.qendolin.betterclouds.rendering.opengl.Debug;
 import com.qendolin.betterclouds.rendering.opengl.Resources;
@@ -28,6 +27,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.BindGroupLayouts;
 import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.client.renderer.fog.FogData;
 import net.minecraft.gizmos.GizmoStyle;
 import net.minecraft.gizmos.Gizmos;
 import net.minecraft.resources.Identifier;
@@ -212,18 +212,17 @@ public class Blaze3DRenderer extends CloudRenderer {
     }
 
     @Override
-    public void render(long cloudTicks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
+    public void render(long cloudTicks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum, FogData fogData) {
         getProfiler().popPush("render_setup");
 
         Config config = ConfigManager.instance();
         Config generatorConfig = getGeneratorConfig();
         var sp = config.shaderPreset();
-        FogProvider.Fog fog = FogProvider.instance.getFog(client, config, tickDelta);
 
         float cloudTimeSeconds = cloudTicks / 20f + tickDelta / 20f;
         float dayNightFactor = MathUtil.interpolateDayNightFactor(dayTime(), config.shaderPreset().sunriseStartTime, config.shaderPreset().sunriseEndTime, config.shaderPreset().sunsetStartTime, config.shaderPreset().sunsetEndTime);
         float brightness = (1 - dayNightFactor) * config.shaderPreset().nightBrightness + dayNightFactor * config.shaderPreset().dayBrightness;
-        Vector3f effectTint = EffectTintProvider.getEffectTint(client, fog, tickDelta, cam);
+        Vector3f effectTint = EffectTintProvider.getEffectTint(client, fogData, tickDelta, cam);
 
         float skyAngleRad = EffectTintProvider.getSunAngleRadians(level, cam);
         float sunPathAngleRad = config.shaderPreset().sunPathAngle * Mth.DEG_TO_RAD;
@@ -263,15 +262,23 @@ public class Blaze3DRenderer extends CloudRenderer {
             b.putFloat(config.windEffectFactor);
             b.putFloat(config.windSpeedFactor);
 
-            if (fog == null) {
+            float start;
+            float end;
+
+            if (fogData == null) {
                 // fog off, just use blockDistance
-                b.putFloat(config.blockDistance() - 8);
-                b.putFloat(config.blockDistance());
+                start = config.blockDistance() - 8;
+                end = config.blockDistance();
             } else {
-                // fog start and end
-                b.putFloat(fog.start());
-                b.putFloat(fog.end());
+                start = fogData.environmentalStart / fogData.skyEnd * fogData.cloudEnd;
+                end = fogData.environmentalEnd / fogData.skyEnd * fogData.cloudEnd;
             }
+
+            end *= config.fogEndFactor;
+            start = Math.max(end - config.fogRangeFactor * Math.max(0, end - start), 0);
+
+            b.putFloat(start);
+            b.putFloat(end);
         });
         uCloudFragData.write(b -> {
             b.putFloat(sp.opacity);
@@ -439,7 +446,6 @@ public class Blaze3DRenderer extends CloudRenderer {
                         ? new ColorTargetState(Optional.of(ACCUMULATION_BLEND), GpuFormat.RGBA16_FLOAT, ColorTargetState.WRITE_ALL)
                         : new ColorTargetState(BlendFunction.TRANSLUCENT))
                 .build();
-        // Iris chooses the destination format; it is only known after preparing its framebuffer.
         CLOUD_COMPOSITE_PIPELINE = null;
     }
 

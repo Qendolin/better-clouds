@@ -199,7 +199,7 @@ public class ConfigGUI {
                 .build();
         this.fogEndFactor = createOption(float.class, "fogEndFactor")
                 .binding(defaults.fogEndFactor, () -> config.fogEndFactor, val -> config.fogEndFactor = val)
-                .customController(opt -> new FloatSliderController(opt, 0.5f, 16.0f, 0.1f, ConfigGUI::formatAsTimes))
+                .customController(opt -> new FloatSliderController(opt, 0.1f, 8.0f, 0.1f, ConfigGUI::formatAsTimes))
                 .build();
         this.usePersistentBuffers = createOption(boolean.class, "usePersistentBuffers")
                 .binding(defaults.usePersistentBuffers, () -> config.usePersistentBuffers, val -> config.usePersistentBuffers = val)

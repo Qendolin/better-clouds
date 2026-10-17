@@ -3,11 +3,11 @@ package com.qendolin.betterclouds.mixin.provider;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.fog.FogData;
 import net.minecraft.util.Mth;
 import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.Nullable;
 import org.joml.*;
 
 import java.lang.Math;
@@ -16,7 +16,7 @@ public abstract class EffectTintProvider {
 
     public static final Vector3f Y = new Vector3f(0.299f, 0.587f, 0.114f);
 
-    public static Vector3f getEffectTint(Minecraft client, @Nullable FogProvider.Fog fog, float tickDelta, Vector3d cameraPos) {
+    public static Vector3f getEffectTint(Minecraft client, FogData fog, float tickDelta, Vector3d cameraPos) {
         if (client.level == null || client.player == null)
             return new Vector3f(1.0f, 1.0f, 1.0f);
 
@@ -34,7 +34,7 @@ public abstract class EffectTintProvider {
         Vector4f cry = new Vector4f(cloudBaseChroma, cloudLuma);
 
         if (fog != null) { // Fog ON
-            Vector3f fogColor = new Vector3f(fog.red(), fog.green(), fog.blue());
+            Vector3f fogColor = new Vector3f(fog.color.x(), fog.color.y(), fog.color.z());
             compositeColor(fogColor, cry);
         }
 

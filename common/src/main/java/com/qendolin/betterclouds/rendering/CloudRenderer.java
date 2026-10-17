@@ -11,6 +11,7 @@ import net.minecraft.client.CloudStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.client.renderer.fog.FogData;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.world.level.material.FogType;
@@ -71,18 +72,18 @@ public abstract class CloudRenderer implements AutoCloseable {
         return prepare(viewMat, projMat, cloudTicks, clientTicks, tickDelta, cam);
     }
 
-    public void checkAndRender(long ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
+    public void checkAndRender(long ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum, FogData fogData) {
         if (level == null)
             return;
 
         startTiming();
-        render(ticks, tickDelta, cam, frustumPos, frustum);
+        render(ticks, tickDelta, cam, frustumPos, frustum, fogData);
         stopTiming();
     }
 
     public abstract @NonNull PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, long cloudTicks, long clientTicks, float tickDelta, Vector3d cam);
 
-    protected abstract void render(long cloudTicks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum);
+    protected abstract void render(long cloudTicks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum, FogData fogData);
 
     protected abstract void onClose();
 
