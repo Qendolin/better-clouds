@@ -64,7 +64,7 @@ public class BetterClouds extends BetterCloudsStatic {
                 instance.initDev();
         });
         EventHooks.instance.onWorldJoin(client -> {
-            if (ConfigManager.instance().renderer == Config.Renderer.OPENGL) {
+            if (ConfigManager.instance().renderer.equals(Config.Renderer.OPENGL)) {
                 CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
                         .execute(() -> client.execute(Commands::sendLegacyRendererMessage));
             }
