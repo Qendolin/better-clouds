@@ -113,6 +113,7 @@ public class DhCompatImpl extends DhCompat {
 
     @Override
     public boolean isZNeg1To1() {
+        if (!isDhInitialized) return false;
         return DhApi.Delayed.renderProxy.getDepthRange().equals(EDhApiDepthRange.NEG_ONE_TO_POS_ONE);
     }
 
