@@ -12,10 +12,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.fog.FogData;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.world.level.material.FogType;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.timeline.Timelines;
 import org.joml.Matrix4f;
 import org.joml.Vector3d;
 import org.jspecify.annotations.NonNull;
@@ -45,10 +47,14 @@ public abstract class CloudRenderer implements AutoCloseable {
     }
 
     public long dayTime() {
-        long time = level.getDefaultClockTime();
-        if (level.dimensionType().hasFixedTime() && time == 0)
-            return 6000;        // noon
-        return time % 24000;
+        try {
+            return level.registryAccess()
+                    .lookupOrThrow(Registries.TIMELINE)
+                    .getOrThrow(Timelines.OVERWORLD_DAY)
+                    .value().getCurrentTicks(level.clockManager());
+        } catch (Exception e) {
+            return level.getOverworldClockTime() % 24000;
+        }
     }
 
     public void reload(ResourceManager resourceManager) {
