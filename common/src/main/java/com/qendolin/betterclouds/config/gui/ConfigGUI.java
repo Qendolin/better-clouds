@@ -56,6 +56,7 @@ public class ConfigGUI {
 
     public final Option<Boolean> enabled;
     public final Option<Float> fogRangeFactor;
+    public final Option<Float> fogDensityFactor;
     public final Option<Float> fogEndFactor;
     public final Option<Boolean> usePersistentBuffers;
     public final Option<Boolean> useFrustumCulling;
@@ -197,6 +198,10 @@ public class ConfigGUI {
                 .binding(defaults.fogRangeFactor, () -> config.fogRangeFactor, val -> config.fogRangeFactor = val)
                 .customController(opt -> new FloatSliderController(opt, 0.1f, 8.0f, 0.1f, ConfigGUI::formatAsTimes))
                 .build();
+        this.fogDensityFactor = createOption(float.class, "fogDensityFactor")
+                .binding(defaults.fogDensityFactor, () -> config.fogDensityFactor, val -> config.fogDensityFactor = val)
+                .customController(opt -> new FloatSliderController(opt, 0.1f, 8.0f, 0.1f, ConfigGUI::formatAsTimes))
+                .build();
         this.fogEndFactor = createOption(float.class, "fogEndFactor")
                 .binding(defaults.fogEndFactor, () -> config.fogEndFactor, val -> config.fogEndFactor = val)
                 .customController(opt -> new FloatSliderController(opt, 0.1f, 8.0f, 0.1f, ConfigGUI::formatAsTimes))
@@ -288,6 +293,7 @@ public class ConfigGUI {
                 shaderPresetGUI.opacityFactor,
                 shaderPresetGUI.opacityExponent,
                 fogRangeFactor,
+                fogDensityFactor,
                 fogEndFactor
         ));
 

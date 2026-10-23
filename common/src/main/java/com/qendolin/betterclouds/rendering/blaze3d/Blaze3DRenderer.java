@@ -121,7 +121,7 @@ public class Blaze3DRenderer extends CloudRenderer {
     // cloud position xyz, capacity can change, so must recreate every time cloud positions change
     private final ReadOnlyBuffer worldCloudPosBuffer = new ReadOnlyBuffer("cloudPositions");
     // uniforms
-    private final WritableBuffer uCloudVertexData = new WritableBuffer("uCloudVertexData", Float.BYTES * 16, GpuBuffer.USAGE_UNIFORM);
+    private final WritableBuffer uCloudVertexData = new WritableBuffer("uCloudVertexData", Float.BYTES * 18, GpuBuffer.USAGE_UNIFORM);
     private final WritableBuffer uCloudFragData = new WritableBuffer("uCloudFragData", Float.BYTES * 19, GpuBuffer.USAGE_UNIFORM);
     private final WritableBuffer uLodProjMat = new WritableBuffer("uLodProjMat", Float.BYTES * 16, GpuBuffer.USAGE_UNIFORM);
     private final IrisCloudTarget irisCloudTarget = new IrisCloudTarget();
@@ -262,23 +262,10 @@ public class Blaze3DRenderer extends CloudRenderer {
             b.putFloat(config.windEffectFactor);
             b.putFloat(config.windSpeedFactor);
 
-            float start;
-            float end;
-
-            if (fogData == null) {
-                // fog off, just use blockDistance
-                start = config.blockDistance() - 8;
-                end = config.blockDistance();
-            } else {
-                start = fogData.environmentalStart / fogData.skyEnd * fogData.cloudEnd;
-                end = fogData.environmentalEnd / fogData.skyEnd * fogData.cloudEnd;
-            }
-
-            end *= config.fogEndFactor;
-            start = Math.max(end - config.fogRangeFactor * Math.max(0, end - start), 0);
-
-            b.putFloat(start);
-            b.putFloat(end);
+            b.putFloat(config.fogDensityFactor);
+            b.putFloat(config.fogRangeFactor);
+            b.putFloat(0);
+            b.putFloat(config.blockDistance() * config.fogEndFactor);
         });
         uCloudFragData.write(b -> {
             b.putFloat(sp.opacity);

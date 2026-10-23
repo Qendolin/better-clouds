@@ -42,6 +42,8 @@
   "betterclouds.config.entry.fogEndFactor.description" : "Controls the fade-out end distance",
   "betterclouds.config.entry.fogRangeFactor" : "Fog Transition Factor",
   "betterclouds.config.entry.fogRangeFactor.description" : "Controls the fade-out range",
+  "betterclouds.config.entry.fogDensityFactor" : "Fog Density Factor",
+  "betterclouds.config.entry.fogDensityFactor.description" : "Controls fog density",
   "betterclouds.config.entry.fuzziness" : "Fuzziness",
   "betterclouds.config.entry.fuzziness.description" : "How well defined the outline of clouds are",
   "betterclouds.config.entry.gamma" : "Gamma",

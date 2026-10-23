@@ -86,6 +86,8 @@ public class Config {
     @SerialEntry
     public float fogRangeFactor = 1f;
     @SerialEntry
+    public float fogDensityFactor = 1f;
+    @SerialEntry
     public float fogEndFactor = 1f;
     @SerialEntry
     public TimeSource timeSource = TimeSource.WORLD;

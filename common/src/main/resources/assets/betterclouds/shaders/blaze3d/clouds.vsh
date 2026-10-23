@@ -1,5 +1,6 @@
 #version 330 core
 #extension GL_ARB_separate_shader_objects : require
+#define e 2.71828
 
 #include <minecraft:dynamictransforms.glsl>
 #include <minecraft:projection.glsl>
@@ -16,7 +17,7 @@ layout (std140) uniform CloudVertexData {
     float uCameraX, uCameraZ;
     float uBlockDistance, uCloudHeightRange, uScaleFalloffMin;
     float uWindEffectFactor, uWindSpeedFactor;
-    float uFogStart, uFogEnd;
+    float uFogDensityFactor, uFogRangeFactor, uFogStart, uFogEnd;
 };
 
 layout(location = 0) out float fogFade;
@@ -30,13 +31,13 @@ layout (std140) uniform LodProjMat {
 layout(location = 3) out float lodDepth;
 #endif
 
-float calcFogFade(float distance, float fogStart, float fogEnd) {
+float calcFogFade(float distance) {
     #if NEAR_CLOUD_FADE
     float nearFade = clamp(distance / NEAR_FADE_DIST, 0, 1);
     #else
     float nearFade = 1;
     #endif
-    float farFade = clamp(1.0 - (distance - fogStart) / (fogEnd - fogStart), 0, 1);
+    float farFade = clamp(1 / pow(e, ((distance - uFogStart) / (uFogEnd - uFogStart)) * uFogDensityFactor), 0, 1);
     return nearFade * nearFade * farFade * farFade;
 }
 
@@ -62,7 +63,7 @@ void main() {
 
     vec3 pos = scale * LocalPosition + cloudPos;
     vec3 localWorldVertexPos = pos - originOffset;
-    fogFade = calcFogFade(length(localWorldVertexPos.xyz), uFogStart, uFogEnd);
+    fogFade = calcFogFade(length(localWorldVertexPos.xyz));
     lightSampleDir = localWorldVertexPos;
     tintInterp = clamp((scale.y * LocalPosition.y + WorldPosition.y + uCloudHeightRange * 0.3f) / (uTransitionRangePercent * uCloudHeightRange), 0, 1);
 
