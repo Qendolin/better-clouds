@@ -5,6 +5,7 @@ import com.qendolin.betterclouds.rendering.BorrowedGlTexture;
 import com.qendolin.betterclouds.rendering.TextureWrapper;
 import me.cortex.voxy.client.config.VoxyConfig;
 import me.cortex.voxy.client.core.IVoxyRenderSystemHolder;
+import me.cortex.voxy.client.core.RenderProperties;
 import me.cortex.voxy.client.core.VoxyRenderSystem;
 import me.cortex.voxy.client.iris.IGetIrisVoxyPipelineData;
 import net.irisshaders.iris.pipeline.WorldRenderingPipeline;
@@ -44,5 +45,10 @@ public class VoxyCompatImpl extends VoxyCompat {
     @Override
     public boolean isEnabled() {
         return VoxyConfig.CONFIG.isRenderingEnabled();
+    }
+
+    @Override
+    public boolean isZNeg1To1() {
+        return !RenderProperties.getRenderProperties().isZero2One();
     }
 }

@@ -26,7 +26,7 @@ public record PipelineParams(boolean celestialBodyHalo, boolean nearCloudFade, b
                 DhCompat.instance().getDepthTexture() != null,
                 VoxyCompat.instance.getOpaqueDepthTexture() != null,
                 Blaze3DRenderer.isReverseZ(),
-                DhCompat.instance().isZNeg1To1(),
+                DhCompat.instance().getDepthTexture() != null ? DhCompat.instance().isZNeg1To1() : VoxyCompat.instance.isZNeg1To1(),
                 Blaze3DRenderer.isCloudsOpaque()
         );
     }

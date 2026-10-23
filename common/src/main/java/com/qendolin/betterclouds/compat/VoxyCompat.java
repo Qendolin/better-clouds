@@ -17,6 +17,11 @@ public abstract class VoxyCompat {
 
     public abstract boolean isEnabled();
 
+    /**
+     * Voxy also falls back to [-1, 1] when clip control is not supported
+     */
+    public abstract boolean isZNeg1To1();
+
     public static class Stub extends VoxyCompat {
         @Override
         public Matrix4f getProjectionMatrix() {
@@ -30,6 +35,11 @@ public abstract class VoxyCompat {
 
         @Override
         public boolean isEnabled() {
+            return false;
+        }
+
+        @Override
+        public boolean isZNeg1To1() {
             return false;
         }
     }
