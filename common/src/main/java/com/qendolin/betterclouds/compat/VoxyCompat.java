@@ -1,7 +1,6 @@
 package com.qendolin.betterclouds.compat;
 
 import com.qendolin.betterclouds.rendering.TextureWrapper;
-import org.joml.Matrix4f;
 
 public abstract class VoxyCompat {
     public static VoxyCompat instance;
@@ -12,8 +11,8 @@ public abstract class VoxyCompat {
         };
     }
 
-    public Matrix4f getProjectionMatrix() {
-        return null;
+    public void putProjMat(float[] values) {
+
     }
 
     public TextureWrapper getOpaqueDepthTexture() {

@@ -44,8 +44,8 @@ public abstract class DhCompat {
         return null;
     }
 
-    public Matrix4f getModelViewMatrix() {
-        return null;
+    public void putProjMat(float[] values) {
+
     }
 
     public Optional<Integer> getDepthTextureId() {

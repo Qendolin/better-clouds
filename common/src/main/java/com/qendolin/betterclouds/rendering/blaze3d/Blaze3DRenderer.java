@@ -111,9 +111,6 @@ public class Blaze3DRenderer extends CloudRenderer {
             .withUniform("LodDepthTexture", UniformType.COMBINED_IMAGE_SAMPLER)
             .withUniform("LodProjMat", UniformType.UNIFORM_BUFFER)
             .build();
-    private static final BlendFunction ACCUMULATION_BLEND = new BlendFunction(
-            BlendFactor.SRC_ALPHA, BlendFactor.ONE_MINUS_SRC_ALPHA,
-            BlendFactor.ONE, BlendFactor.ONE_MINUS_SRC_ALPHA);
     // models
     private final ReadOnlyBuffer modelVertexBuffer = new ReadOnlyBuffer("cloudModelVertices");
     // don't forget to close your buffers!
@@ -125,7 +122,7 @@ public class Blaze3DRenderer extends CloudRenderer {
     private final WritableBuffer uCloudFragData = new WritableBuffer("uCloudFragData", Float.BYTES * 19, GpuBuffer.USAGE_UNIFORM);
     private final WritableBuffer uLodProjMat = new WritableBuffer("uLodProjMat", Float.BYTES * 16, GpuBuffer.USAGE_UNIFORM);
     // misc
-    private final float[] tempMatrixCopyArr = new float[16];
+    private static final float[] tempMatrixCopyArr = new float[16];
     // things affected by resource reload
     RenderPipeline CLOUD_RENDERER_PIPELINE;
 
@@ -165,17 +162,18 @@ public class Blaze3DRenderer extends CloudRenderer {
      * @apiNote is janky. may break
      */
     public static boolean isReverseZ() {
-        Matrix4f matrix = NOOP_MATRIX;
-        Matrix4f temp;
+        NOOP_MATRIX.get(tempMatrixCopyArr);
 
-        if ((temp = DhCompat.instance().getProjectionMatrix()) != null)
-            matrix = temp;
-        else if ((temp = VoxyCompat.instance.getProjectionMatrix()) != null)
-            matrix = temp;
+        DhCompat.instance().putProjMat(tempMatrixCopyArr);
+        if (DhCompat.instance().isEnabled())
+            DhCompat.instance().putProjMat(tempMatrixCopyArr);
+        else if (VoxyCompat.instance.isEnabled())
+            VoxyCompat.instance.putProjMat(tempMatrixCopyArr);
 
-        // -z is forwards in MC, meaning z=1 is closer than z=0.
-        Vector4f closeMul = new Vector4f(0, 0, 1, 1).mul(matrix);
-        Vector4f farMul = new Vector4f(0, 0, 0, 1).mul(matrix);
+        // -z is forwards in MC, meaning z=1 is closer than z=0
+        Matrix4f mvp = new Matrix4f(tempMatrixCopyArr);
+        Vector4f closeMul = new Vector4f(0, 0, 1, 1).mul(mvp);
+        Vector4f farMul = new Vector4f(0, 0, 0, 1).mul(mvp);
 
         return closeMul.z / closeMul.w > farMul.z / farMul.w;
     }
@@ -290,22 +288,12 @@ public class Blaze3DRenderer extends CloudRenderer {
             b.putFloat(sunAxisZ);
         });
 
-        var dhProjMat = DhCompat.instance().getProjectionMatrix();
-        var voxyProjMat = VoxyCompat.instance.getProjectionMatrix();
-        if (dhProjMat != null) {
-            dhProjMat.get(tempMatrixCopyArr);
-            uLodProjMat.write(b -> {
-                for (float value : tempMatrixCopyArr) {
-                    b.putFloat(value);
-                }
-            });
-        } else if (voxyProjMat != null) {
-            voxyProjMat.get(tempMatrixCopyArr);
-            uLodProjMat.write(b -> {
-                for (float value : tempMatrixCopyArr) {
-                    b.putFloat(value);
-                }
-            });
+        if (DhCompat.instance().isEnabled()) {
+            DhCompat.instance().putProjMat(tempMatrixCopyArr);
+            writeCopyArrayToBuffer(uLodProjMat);
+        } else if (VoxyCompat.instance.isEnabled()) {
+            VoxyCompat.instance.putProjMat(tempMatrixCopyArr);
+            writeCopyArrayToBuffer(uLodProjMat);
         }
 
         getProfiler().popPush("render_clouds");
@@ -398,6 +386,14 @@ public class Blaze3DRenderer extends CloudRenderer {
                 .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, params.cloudsOpaque()))
                 .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
                 .build();
+    }
+
+    private static void writeCopyArrayToBuffer(WritableBuffer wb) {
+        wb.write(b -> {
+            for (float f : tempMatrixCopyArr) {
+                b.putFloat(f);
+            }
+        });
     }
 
     private void drawWithFrustumCulling(RenderPass pass, Frustum frustumAtOrigin) {

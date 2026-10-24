@@ -70,9 +70,15 @@ public class DhCompatImpl extends DhCompat {
     @Override
     public Matrix4f getProjectionMatrix() {
         if (lastRenderParam == null) return null;
-        var m = lastRenderParam.dhProjectionMatrix;
-        if (m == null) return null;
-        return new Matrix4f(m.m00, m.m01, m.m02, m.m03, m.m10, m.m11, m.m12, m.m13, m.m20, m.m21, m.m22, m.m23, m.m30, m.m31, m.m32, m.m33);
+        return new Matrix4f(lastRenderParam.dhProjectionMatrix.getValuesAsArray()).transpose();
+    }
+
+    @Override
+    public void putProjMat(float[] values) {
+        if (lastRenderParam == null) return;
+        var projMat = lastRenderParam.dhProjectionMatrix;
+        projMat.transpose();
+        projMat.putValuesInArray(values);
     }
 
     @Override

@@ -12,12 +12,11 @@ import net.irisshaders.iris.pipeline.WorldRenderingPipeline;
 import org.joml.Matrix4f;
 
 public class VoxyCompatImpl extends VoxyCompat {
-    @Override
-    public Matrix4f getProjectionMatrix() {
+    public void putProjMat(float[] values) {
         VoxyRenderSystem rsHolder = IVoxyRenderSystemHolder.getNullable();
         if (rsHolder == null || rsHolder.getViewport() == null)
-            return null;
-        return rsHolder.getViewport().projection;
+            return;
+        rsHolder.getViewport().projection.get(values);
     }
 
     @Override
