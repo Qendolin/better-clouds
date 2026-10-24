@@ -34,7 +34,8 @@ public abstract class SereneSeasonsCompat {
 
         if (!ModLoaded.SERENE_SEASONS) {
             BetterCloudsStatic.getLogger().info("SereneSeasons: not loaded");
-            instance = new Stub();
+            instance = new SereneSeasonsCompat() {
+            };
             return;
         }
 
@@ -48,7 +49,8 @@ public abstract class SereneSeasonsCompat {
         }
 
         if (instance == null) {
-            instance = new Stub();
+            instance = new SereneSeasonsCompat() {
+            };
         } else {
             SereneSeasonsCompat.isActive = true;
         }
@@ -62,18 +64,8 @@ public abstract class SereneSeasonsCompat {
         return instance;
     }
 
-    public abstract float getCloudinessFactor(Level world);
-
-    private static class Stub extends SereneSeasonsCompat {
-
-        static {
-            SereneSeasonsCompat.instance = new Stub();
-        }
-
-        @Override
-        public float getCloudinessFactor(Level world) {
-            return 1.0f;
-        }
+    public float getCloudinessFactor(Level world) {
+        return 1.0f;
     }
 
 }

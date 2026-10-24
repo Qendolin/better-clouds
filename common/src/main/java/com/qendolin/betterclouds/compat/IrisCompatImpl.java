@@ -12,6 +12,7 @@ import net.irisshaders.iris.pipeline.programs.*;
 public class IrisCompatImpl extends IrisCompat {
     private static final String INCOMPATIBLE_ERROR = "Incompatible Iris version for Better Clouds, please report this issue to Better Clouds. Details: ";
 
+    @Override
     public boolean isShadersEnabled() {
         return Iris.getIrisConfig() != null && Iris.getIrisConfig().areShadersEnabled() && Iris.getCurrentPack().isPresent();
     }

@@ -13,7 +13,8 @@ public abstract class IrisCompat {
 
         if (!ModLoaded.IRIS) {
             BetterCloudsStatic.getLogger().info("Iris: not loaded");
-            instance = new Stub();
+            instance = new IrisCompat() {
+            };
             return;
         }
 
@@ -37,7 +38,8 @@ public abstract class IrisCompat {
         }
 
         if (instance == null) {
-            instance = new Stub();
+            instance = new IrisCompat() {
+            };
         } else {
             IrisCompat.isActive = true;
         }
@@ -51,33 +53,18 @@ public abstract class IrisCompat {
         return instance;
     }
 
-    public abstract boolean isShadersEnabled();
+    public boolean isShadersEnabled() {
+        return false;
+    }
 
-    public abstract boolean isFrustumCullingDisabled();
+    public boolean isFrustumCullingDisabled() {
+        return false;
+    }
 
-    public abstract WorldRenderingPipeline getPipeline();
+    public WorldRenderingPipeline getPipeline() {
+        return null;
+    }
 
-    public abstract void bindFramebuffer();
-
-    private static class Stub extends IrisCompat {
-        @Override
-        public boolean isShadersEnabled() {
-            return false;
-        }
-
-        @Override
-        public boolean isFrustumCullingDisabled() {
-            return false;
-        }
-
-        @Override
-        public WorldRenderingPipeline getPipeline() {
-            return null;
-        }
-
-        @Override
-        public void bindFramebuffer() {
-
-        }
+    public void bindFramebuffer() {
     }
 }

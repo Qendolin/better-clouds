@@ -8,39 +8,23 @@ public abstract class VoxyCompat {
 
     public static void initialize() {
         if (instance != null) return;
-        instance = ModLoaded.VOXY ? new VoxyCompatImpl() : new Stub();
+        instance = ModLoaded.VOXY ? new VoxyCompatImpl() : new VoxyCompat() {
+        };
     }
 
-    public abstract Matrix4f getProjectionMatrix();
+    public Matrix4f getProjectionMatrix() {
+        return null;
+    }
 
-    public abstract TextureWrapper getOpaqueDepthTexture();
+    public TextureWrapper getOpaqueDepthTexture() {
+        return null;
+    }
 
-    public abstract boolean isEnabled();
+    public boolean isEnabled() {
+        return false;
+    }
 
-    /**
-     * Voxy also falls back to [-1, 1] when clip control is not supported
-     */
-    public abstract boolean isZNeg1To1();
-
-    public static class Stub extends VoxyCompat {
-        @Override
-        public Matrix4f getProjectionMatrix() {
-            return null;
-        }
-
-        @Override
-        public TextureWrapper getOpaqueDepthTexture() {
-            return null;
-        }
-
-        @Override
-        public boolean isEnabled() {
-            return false;
-        }
-
-        @Override
-        public boolean isZNeg1To1() {
-            return false;
-        }
+    public boolean isZNeg1To1() {
+        return false;
     }
 }

@@ -17,7 +17,8 @@ public abstract class DhCompat {
 
         if (!ModLoaded.DISTANT_HORIZONS) {
             BetterCloudsStatic.getLogger().info("DistantHorizons: not loaded");
-            instance = new Stub();
+            instance = new DhCompat() {
+            };
             return;
         }
 
@@ -31,72 +32,43 @@ public abstract class DhCompat {
         return instance;
     }
 
-    public abstract boolean isReady();
+    public boolean isReady() {
+        return false;
+    }
 
-    public abstract boolean isEnabled();
+    public boolean isEnabled() {
+        return false;
+    }
 
-    public abstract Matrix4f getProjectionMatrix();
+    public Matrix4f getProjectionMatrix() {
+        return null;
+    }
 
-    public abstract Optional<Integer> getDepthTextureId();
+    public Matrix4f getModelViewMatrix() {
+        return null;
+    }
 
-    public abstract TextureWrapper getDepthTexture();
+    public Optional<Integer> getDepthTextureId() {
+        return Optional.empty();
+    }
 
-    public abstract void disableLodClouds();
+    public TextureWrapper getDepthTexture() {
+        return null;
+    }
 
-    public abstract boolean isTextureCreateFlagSet();
+    public void disableLodClouds() {
 
-    public abstract void resetTextureCreateFlag();
+    }
 
-    public abstract boolean isZNeg1To1();
+    public boolean isTextureCreateFlagSet() {
+        return false;
+    }
 
-    private static class Stub extends DhCompat {
+    public void resetTextureCreateFlag() {
 
-        static {
-            DhCompat.instance = new Stub();
-        }
+    }
 
-        @Override
-        public boolean isReady() {
-            return false;
-        }
-
-        @Override
-        public boolean isEnabled() {
-            return false;
-        }
-
-        @Override
-        public Matrix4f getProjectionMatrix() {
-            return null;
-        }
-
-        @Override
-        public Optional<Integer> getDepthTextureId() {
-            return Optional.empty();
-        }
-
-        @Override
-        public TextureWrapper getDepthTexture() {
-            return null;
-        }
-
-        @Override
-        public void disableLodClouds() {
-        }
-
-        @Override
-        public boolean isTextureCreateFlagSet() {
-            return false;
-        }
-
-        @Override
-        public void resetTextureCreateFlag() {
-
-        }
-
-        @Override
-        public boolean isZNeg1To1() {
-            return false;
-        }
+    public boolean isZNeg1To1() {
+        return false;
     }
 }
