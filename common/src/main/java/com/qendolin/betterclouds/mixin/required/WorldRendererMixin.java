@@ -1,6 +1,7 @@
 package com.qendolin.betterclouds.mixin.required;
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
+import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.resource.GraphicsResourceAllocator;
 import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
 import com.mojang.renderpearl.api.commands.RenderPass;
@@ -9,6 +10,8 @@ import com.qendolin.betterclouds.rendering.CloudRenderCoordinator;
 import net.minecraft.client.CloudStatus;
 import net.minecraft.client.renderer.CloudRenderer;
 import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.chunk.ChunkSectionsToRender;
+import net.minecraft.client.renderer.feature.FeatureRenderDispatcher;
 import net.minecraft.client.renderer.oit.OitRenderPassProvider;
 import net.minecraft.client.renderer.oit.OitStage;
 import net.minecraft.client.renderer.state.OptionsRenderState;
@@ -19,6 +22,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.function.Consumer;
+
 @Mixin(value = LevelRenderer.class, priority = 900)
 public abstract class WorldRendererMixin {
     @Shadow
@@ -28,7 +33,7 @@ public abstract class WorldRendererMixin {
     @Unique
     private boolean betterclouds$replaceClouds;
     @Unique
-    private Runnable betterclouds$renderClouds;
+    private Consumer<RenderPass> betterclouds$renderClouds;
 
     @Inject(at = @At("HEAD"), method = "render")
     private void captureFrustumAndCheckState(GraphicsResourceAllocator resourceAllocator, boolean renderOutline, CameraRenderState cameraState, GpuBufferSlice terrainFog, Vector4f fogColor, boolean shouldRenderSky, boolean hasPostEffects, CallbackInfo ci) {
@@ -49,13 +54,17 @@ public abstract class WorldRendererMixin {
         }
     }
 
-    // after transparency, before debug rendering (which clears the depth buffer to become always on top)
-    // fixes https://github.com/Qendolin/better-clouds/issues/394
-    @Inject(method = "executeOutline", at = @At("HEAD"))
-    private void renderCloudsBeforeDebug(CallbackInfo ci) {
-        Runnable render = betterclouds$renderClouds;
+    /**
+     * after opaque, before transparency
+     * fixes <a href="https://github.com/Qendolin/better-clouds/issues/404">#404</a>
+     * also before debug rendering (which clears the depth buffer to become always on top)
+     * fixes <a href="https://github.com/Qendolin/better-clouds/issues/394">#394</a>
+     */
+    @Inject(method = "executeSolid", at = @At("TAIL"))
+    private void renderCloudsBeforeTransparent(ChunkSectionsToRender chunkSectionsToRender, FeatureRenderDispatcher.PreparedFrame featureFrame, RenderPass renderPass, CallbackInfo ci) {
+        Consumer<RenderPass> render = betterclouds$renderClouds;
         betterclouds$renderClouds = null;
-        if (render != null) render.run();
+        if (render != null) render.accept(renderPass);
     }
 
     @WrapWithCondition(method = "executeClassicTransparency", at = @At(value = "INVOKE",

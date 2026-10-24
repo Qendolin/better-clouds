@@ -1,5 +1,6 @@
 package com.qendolin.betterclouds.rendering;
 
+import com.mojang.renderpearl.api.commands.RenderPass;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.generator.ChunkedGenerator;
@@ -64,7 +65,7 @@ public abstract class CloudRenderer implements AutoCloseable {
         generator = new ChunkedGenerator(getWorldSeed());
     }
 
-    public @NonNull PrepareResult checkAndPrepare(Matrix4f viewMat, Matrix4f projMat, long cloudTicks, long clientTicks, float tickDelta, Vector3d cam) {
+    public @NonNull PrepareResult checkAndPrepare(Matrix4f viewMat, Matrix4f projMat, long cloudTicks, long clientTicks, float tickDelta, Vector3d cam, FogData fogData) {
         if (!Objects.equals(level, client.level))
             setLevel(client.level);
         if (closed || level == null)
@@ -75,21 +76,21 @@ public abstract class CloudRenderer implements AutoCloseable {
             return PrepareResult.NO_RENDER;
 
         cloudHeight = level.environmentAttributes().getValue(EnvironmentAttributes.CLOUD_HEIGHT, new Vec3(cam.x, cam.y, cam.z)) + ConfigManager.instance().yOffset;
-        return prepare(viewMat, projMat, cloudTicks, clientTicks, tickDelta, cam);
+        return prepare(viewMat, projMat, cloudTicks, clientTicks, tickDelta, cam, fogData);
     }
 
-    public void checkAndRender(long ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum, FogData fogData) {
+    public void checkAndRender(RenderPass pass, long ticks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
         if (level == null)
             return;
 
         startTiming();
-        render(ticks, tickDelta, cam, frustumPos, frustum, fogData);
+        render(pass, ticks, tickDelta, cam, frustumPos, frustum);
         stopTiming();
     }
 
-    public abstract @NonNull PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, long cloudTicks, long clientTicks, float tickDelta, Vector3d cam);
+    public abstract @NonNull PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, long cloudTicks, long clientTicks, float tickDelta, Vector3d cam, FogData fogData);
 
-    protected abstract void render(long cloudTicks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum, FogData fogData);
+    protected abstract void render(RenderPass pass, long cloudTicks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum);
 
     protected abstract void onClose();
 

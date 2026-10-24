@@ -1,5 +1,6 @@
 package com.qendolin.betterclouds.rendering;
 
+import com.mojang.renderpearl.api.commands.RenderPass;
 import com.qendolin.betterclouds.*;
 import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.config.ConfigManager;
@@ -69,7 +70,7 @@ public class CloudRenderCoordinator {
         renderer.reload(manager);
     }
 
-    public boolean renderClouds(Consumer<Runnable> scheduleRender, Vec3 cameraPos, float ticksInput) {
+    public boolean renderClouds(Consumer<Consumer<RenderPass>> scheduleRender, Vec3 cameraPos, float ticksInput) {
         if (renderer == null) return false;
         try {
             return renderCloudsInternal(scheduleRender, cameraPos, ticksInput);
@@ -82,7 +83,7 @@ public class CloudRenderCoordinator {
         return false;
     }
 
-    protected boolean renderCloudsInternal(Consumer<Runnable> scheduleRender, Vec3 cameraPos, float ticksInput) {
+    protected boolean renderCloudsInternal(Consumer<Consumer<RenderPass>> scheduleRender, Vec3 cameraPos, float ticksInput) {
         double camX = cameraPos.x, camY = cameraPos.y, camZ = cameraPos.z;
         float tickDelta = Mth.frac(ticksInput);
         if (!shouldRenderClouds()) return false;
@@ -107,7 +108,7 @@ public class CloudRenderCoordinator {
         // generator gets true cloud time
         renderer.updateGenerator(cam, trueCloudTicks, clientTicks, tickDelta);
         // renderer gets clamped cloud time
-        PrepareResult prepareResult = renderer.checkAndPrepare(capturedViewMat, capturedProjMat, clampedCloudTicks, clientTicks, tickDelta, cam);
+        PrepareResult prepareResult = renderer.checkAndPrepare(capturedViewMat, capturedProjMat, clampedCloudTicks, clientTicks, tickDelta, cam, fogData);
 
         if (RenderDoc.isFrameCapturing())
             GraphicsCompat.instance.debugMessage("renderer prepare returned " + prepareResult.name());
@@ -115,11 +116,11 @@ public class CloudRenderCoordinator {
         if (prepareResult == PrepareResult.RENDER) {
             final long fticks = clampedCloudTicks;
             final float ftickDelta = tickDelta;
-            scheduleRender.accept(() -> {
+            scheduleRender.accept(pass -> {
                 getProfiler().push("clouds");
                 GraphicsCompat.instance.pushDebugGroupDev("Better Clouds");
                 try {
-                    renderer.checkAndRender(fticks, ftickDelta, cam, cam, frustum, fogData);
+                    renderer.checkAndRender(pass, fticks, ftickDelta, cam, cam, frustum);
                 } catch (Exception e) {
                     BetterCloudsStatic.getLogger().error("Failed to render clouds", e);
                     renderer.close();

@@ -43,7 +43,6 @@ import org.jspecify.annotations.NonNull;
 
 import java.lang.Math;
 import java.util.Optional;
-import java.util.OptionalDouble;
 
 import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
 
@@ -191,7 +190,7 @@ public class Blaze3DRenderer extends CloudRenderer {
     }
 
     @Override
-    public @NonNull PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, long cloudTicks, long clientTicks, float tickDelta, Vector3d cam) {
+    public @NonNull PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, long cloudTicks, long clientTicks, float tickDelta, Vector3d cam, FogData fogData) {
         getProfiler().popPush("render_setup");
 
         if (PipelineParams.paramsChanged()) {
@@ -201,12 +200,6 @@ public class Blaze3DRenderer extends CloudRenderer {
         }
 
         if (worldCloudPosBuffer.size() <= 0) return PrepareResult.NO_RENDER;
-        return PrepareResult.RENDER;
-    }
-
-    @Override
-    public void render(long cloudTicks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum, FogData fogData) {
-        getProfiler().popPush("render_setup");
 
         Config config = ConfigManager.instance();
         Config generatorConfig = getGeneratorConfig();
@@ -296,12 +289,20 @@ public class Blaze3DRenderer extends CloudRenderer {
             writeCopyArrayToBuffer(uLodProjMat);
         }
 
+        return PrepareResult.RENDER;
+    }
+
+    @Override
+    public void render(RenderPass pass, long cloudTicks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
         getProfiler().popPush("render_clouds");
         RenderTarget cloudsTarget = client.gameRenderer.mainRenderTarget();
         if (cloudsTarget.getColorTextureView() == null) {
             // idk this should never happen
             return;
         }
+
+        Config config = ConfigManager.instance();
+        var sp = config.shaderPreset();
 
         GpuBufferSlice dynamicTransform = RenderSystem.getDynamicUniforms().writeTransform(
                 createCloudModelViewMatrix(cam),
@@ -320,13 +321,7 @@ public class Blaze3DRenderer extends CloudRenderer {
 
         IrisFramebuffer.begin();
 
-        try (RenderPass pass = gpu().createCommandEncoder().createRenderPass(
-                () -> BetterCloudsStatic.MODID + ":" + "renderClouds",
-                cloudsTarget.getColorTextureView(),
-                Optional.empty(),
-                cloudsTarget.getDepthTextureView(),
-                OptionalDouble.empty()
-        )) {
+        try {
             pass.setPipeline(RenderSystem.getCompiledPipeline(CLOUD_RENDERER_PIPELINE));
 
             RenderSystem.bindDefaultUniforms(pass);
