@@ -8,6 +8,7 @@
   "client" : [
     "ExtendedShaderAccessor",
     "FallbackShaderAccessor",
-    "GlCommandEncoderMixin"
+    "GlCommandEncoderMixin",
+    "VulkanCommandEncoderMixin"
   ]
 }

@@ -124,11 +124,10 @@ public class Blaze3DRenderer extends CloudRenderer {
     private final WritableBuffer uCloudVertexData = new WritableBuffer("uCloudVertexData", Float.BYTES * 18, GpuBuffer.USAGE_UNIFORM);
     private final WritableBuffer uCloudFragData = new WritableBuffer("uCloudFragData", Float.BYTES * 19, GpuBuffer.USAGE_UNIFORM);
     private final WritableBuffer uLodProjMat = new WritableBuffer("uLodProjMat", Float.BYTES * 16, GpuBuffer.USAGE_UNIFORM);
-    private final IrisCloudTarget irisCloudTarget = new IrisCloudTarget();
     // misc
     private final float[] tempMatrixCopyArr = new float[16];
     // things affected by resource reload
-    RenderPipeline CLOUD_RENDERER_PIPELINE, CLOUD_COMPOSITE_PIPELINE;
+    RenderPipeline CLOUD_RENDERER_PIPELINE;
 
     public Blaze3DRenderer() {
         createModelBuffers();
@@ -142,6 +141,8 @@ public class Blaze3DRenderer extends CloudRenderer {
         return ConfigManager.instance().shaderPreset().opacity > 0.975;
     }
 
+    /// TODO: reinstate this once Vulkan Iris gets onto Modrinth
+    @SuppressWarnings("unused")
     static RenderPipeline createCompositePipeline(GpuFormat destinationFormat) {
         return RenderPipeline.builder()
                 .withLocation(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "cloud_composite"))
@@ -161,12 +162,7 @@ public class Blaze3DRenderer extends CloudRenderer {
      * Dynamically detect whether the LODs are reverse Z or not, because
      * reverse Z keeps changing whenever any of the mods update or iris is enabled
      *
-     * @apiNote here the function returns whether OpenGL is operating is reverse Z or not.
-     * Blaze3D is always operating in reverse Z, even when Iris shaders are active,
-     * because Iris manually flips all of its depth comparisons via mixins and translates it to OpenGL normal Z.
-     * idk how tf doing a projection through the no-op matrix plus hardcoded vectors
-     * can detect iris reverse z shenanigans, but it works. (iris in 26.2+ makes blaze3d think
-     * its in reverse z while the underlying opengl still operates in normal z. super weird.)
+     * @apiNote is janky. may break
      */
     public static boolean isReverseZ() {
         Matrix4f matrix = NOOP_MATRIX;
@@ -192,7 +188,6 @@ public class Blaze3DRenderer extends CloudRenderer {
     }
 
     public void reload(ResourceManager manager) {
-        irisCloudTarget.close();
         TextureWrapper.closeAllWrappers();
         buildRenderPipeline();
     }
@@ -325,8 +320,6 @@ public class Blaze3DRenderer extends CloudRenderer {
                 new Vector4f(1, sp.topColorRed, sp.topColorGreen, sp.topColorBlue)
         );
 
-        boolean iris = PipelineParams.get().iris();
-
         // texture opens / uploads must now be outside a render pass
         TextureWrapper noiseTexture = TextureWrapper.fromMcTexture(
                 "NoiseTexture", Resources.NOISE_TEXTURE,
@@ -337,66 +330,40 @@ public class Blaze3DRenderer extends CloudRenderer {
         TextureWrapper dhDepthTexture = DhCompat.instance().getDepthTexture();
         TextureWrapper voxyDepthTexture = VoxyCompat.instance.getOpaqueDepthTexture();
 
-        // save iris gl state, restoring on close (works even if there is an exception)
-        try (var _ = iris ? new IrisCloudTarget.State() : null) {
-            if (iris) irisCloudTarget.prepare();
-            if (iris) IrisFramebuffer.begin(irisCloudTarget::bindAccumulation);
-            else IrisFramebuffer.begin();
+        IrisFramebuffer.begin();
 
-            try (RenderPass pass = gpu().createCommandEncoder().createRenderPass(
-                    () -> BetterCloudsStatic.MODID + ":" + "renderClouds",
-                    iris ? irisCloudTarget.colorView() : cloudsTarget.getColorTextureView(),
-                    Optional.empty(),
-                    iris ? irisCloudTarget.depthView() : cloudsTarget.getDepthTextureView(),
-                    OptionalDouble.empty()
-            )) {
-                pass.setPipeline(RenderSystem.getCompiledPipeline(CLOUD_RENDERER_PIPELINE));
-
-                RenderSystem.bindDefaultUniforms(pass);
-                pass.setUniform("CloudVertexData", uCloudVertexData.gpuBuffer());
-                pass.setUniform("CloudFragData", uCloudFragData.gpuBuffer());
-                pass.setUniform("DynamicTransforms", dynamicTransform);
-                pass.setUniform("LodProjMat", uLodProjMat.gpuBuffer());
-
-                noiseTexture.bindTo(pass);
-                lightTexture.bindTo(pass);
-                if (dhDepthTexture != null)
-                    dhDepthTexture.bindTo(pass);
-                else if (voxyDepthTexture != null)
-                    voxyDepthTexture.bindTo(pass);
-
-                pass.setVertexBuffer(0, modelVertexBuffer.gpuBuffer().slice());
-                pass.setVertexBuffer(1, worldCloudPosBuffer.gpuBuffer().slice());
-                pass.setIndexBuffer(modelIndexBuffer.gpuBuffer(), IndexType.SHORT);
-
-                frustum.prepare(frustumPos.x - generator.originX(), frustumPos.y, frustumPos.z - generator.originZ());
-
-                if (!config.useFrustumCulling || !gpu().getDeviceInfo().features().nonZeroFirstInstance())
-                    pass.drawIndexed(CUBE_INDICES.length, generator.points().size(), 0, 0, 0);
-                else
-                    drawWithFrustumCulling(pass, frustum);
-            } finally {
-                IrisFramebuffer.end();
-            }
-            if (iris) compositeClouds();
-        }
-    }
-
-    /**
-     * iris only; copy the clouds from the accumulator to iris' main framebuffer
-     */
-    private void compositeClouds() {
-        GpuFormat destinationFormat = irisCloudTarget.destinationView().texture().getFormat();
-        if (CLOUD_COMPOSITE_PIPELINE == null
-                || CLOUD_COMPOSITE_PIPELINE.getColorTargetStates().getFirst().format() != destinationFormat) {
-            CLOUD_COMPOSITE_PIPELINE = createCompositePipeline(destinationFormat);
-        }
-        IrisFramebuffer.begin(irisCloudTarget::bindComposite);
         try (RenderPass pass = gpu().createCommandEncoder().createRenderPass(
-                () -> "betterclouds:compositeClouds", irisCloudTarget.destinationView(), Optional.empty())) {
-            pass.setPipeline(RenderSystem.getCompiledPipeline(CLOUD_COMPOSITE_PIPELINE));
-            pass.setUniform("CloudAccumulation", irisCloudTarget.colorView(), TextureWrapper.defaultSampler());
-            pass.draw(3, 1, 0, 0);
+                () -> BetterCloudsStatic.MODID + ":" + "renderClouds",
+                cloudsTarget.getColorTextureView(),
+                Optional.empty(),
+                cloudsTarget.getDepthTextureView(),
+                OptionalDouble.empty()
+        )) {
+            pass.setPipeline(RenderSystem.getCompiledPipeline(CLOUD_RENDERER_PIPELINE));
+
+            RenderSystem.bindDefaultUniforms(pass);
+            pass.setUniform("CloudVertexData", uCloudVertexData.gpuBuffer());
+            pass.setUniform("CloudFragData", uCloudFragData.gpuBuffer());
+            pass.setUniform("DynamicTransforms", dynamicTransform);
+            pass.setUniform("LodProjMat", uLodProjMat.gpuBuffer());
+
+            noiseTexture.bindTo(pass);
+            lightTexture.bindTo(pass);
+            if (dhDepthTexture != null)
+                dhDepthTexture.bindTo(pass);
+            else if (voxyDepthTexture != null)
+                voxyDepthTexture.bindTo(pass);
+
+            pass.setVertexBuffer(0, modelVertexBuffer.gpuBuffer().slice());
+            pass.setVertexBuffer(1, worldCloudPosBuffer.gpuBuffer().slice());
+            pass.setIndexBuffer(modelIndexBuffer.gpuBuffer(), IndexType.SHORT);
+
+            frustum.prepare(frustumPos.x - generator.originX(), frustumPos.y, frustumPos.z - generator.originZ());
+
+            if (!config.useFrustumCulling || !gpu().getDeviceInfo().features().nonZeroFirstInstance())
+                pass.drawIndexed(CUBE_INDICES.length, generator.points().size(), 0, 0, 0);
+            else
+                drawWithFrustumCulling(pass, frustum);
         } finally {
             IrisFramebuffer.end();
         }
@@ -429,11 +396,8 @@ public class Blaze3DRenderer extends CloudRenderer {
                 .withBindGroupLayout(LOD_BIND_GROUP)
                 .withCull(false)
                 .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, params.cloudsOpaque()))
-                .withColorTargetState(params.iris()
-                        ? new ColorTargetState(Optional.of(ACCUMULATION_BLEND), GpuFormat.RGBA16_FLOAT, ColorTargetState.WRITE_ALL)
-                        : new ColorTargetState(BlendFunction.TRANSLUCENT))
+                .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
                 .build();
-        CLOUD_COMPOSITE_PIPELINE = null;
     }
 
     private void drawWithFrustumCulling(RenderPass pass, Frustum frustumAtOrigin) {
@@ -509,7 +473,6 @@ public class Blaze3DRenderer extends CloudRenderer {
 
     @Override
     public void onClose() {
-        irisCloudTarget.close();
         generator.close();
         modelVertexBuffer.close();
         modelIndexBuffer.close();
