@@ -9,8 +9,7 @@ import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
 import com.mojang.renderpearl.api.commands.RenderPass;
 import com.mojang.renderpearl.api.device.GpuDevice;
 import com.mojang.renderpearl.api.pipeline.*;
-import com.mojang.renderpearl.api.textures.AddressMode;
-import com.mojang.renderpearl.api.textures.FilterMode;
+import com.mojang.renderpearl.api.textures.*;
 import com.mojang.renderpearl.api.vertex.VertexFormat;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.compat.DhCompat;
@@ -43,6 +42,7 @@ import org.jspecify.annotations.NonNull;
 
 import java.lang.Math;
 import java.util.Optional;
+import java.util.OptionalDouble;
 
 import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
 
@@ -293,13 +293,8 @@ public class Blaze3DRenderer extends CloudRenderer {
     }
 
     @Override
-    public void render(RenderPass pass, long cloudTicks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
+    public void render(RenderPass existingPass, long cloudTicks, float tickDelta, Vector3d cam, Vector3d frustumPos, Frustum frustum) {
         getProfiler().popPush("render_clouds");
-        RenderTarget cloudsTarget = client.gameRenderer.mainRenderTarget();
-        if (cloudsTarget.getColorTextureView() == null) {
-            // idk this should never happen
-            return;
-        }
 
         Config config = ConfigManager.instance();
         var sp = config.shaderPreset();
@@ -321,7 +316,7 @@ public class Blaze3DRenderer extends CloudRenderer {
 
         IrisFramebuffer.begin();
 
-        try {
+        try (RenderPass pass = existingPass != null ? existingPass : newRenderPass()) {
             pass.setPipeline(RenderSystem.getCompiledPipeline(CLOUD_RENDERER_PIPELINE));
 
             RenderSystem.bindDefaultUniforms(pass);

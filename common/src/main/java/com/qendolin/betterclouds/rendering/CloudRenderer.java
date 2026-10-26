@@ -1,6 +1,9 @@
 package com.qendolin.betterclouds.rendering;
 
+import com.mojang.blaze3d.pipeline.RenderTarget;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.renderpearl.api.commands.RenderPass;
+import com.mojang.renderpearl.api.textures.GpuTextureView;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.generator.ChunkedGenerator;
@@ -23,7 +26,7 @@ import org.joml.Matrix4f;
 import org.joml.Vector3d;
 import org.jspecify.annotations.NonNull;
 
-import java.util.Objects;
+import java.util.*;
 
 import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
 
@@ -38,9 +41,10 @@ public abstract class CloudRenderer implements AutoCloseable {
     protected ChunkedGenerator generator;
     protected ClientLevel level;
     protected PerfTimer timer;
-    protected float cloudHeight;
-    protected boolean closed = false;
 
+    protected float cloudHeight;
+
+    protected boolean closed = false;
     public CloudRenderer() {
         if (GraphicsCompat.isOpenGL)
             this.timer = new PerfTimer();
@@ -94,6 +98,16 @@ public abstract class CloudRenderer implements AutoCloseable {
 
     protected abstract void onClose();
 
+    public RenderPass newRenderPass() {
+        RenderTarget cloudsTarget = client.gameRenderer.mainRenderTarget();
+        GpuTextureView cv = cloudsTarget.getColorTextureView(), dv = cloudsTarget.getDepthTextureView();
+        if (cv == null || dv == null) return null;
+        return RenderSystem.getDevice().createCommandEncoder().createRenderPass(
+                () -> BetterCloudsStatic.MODID + ":" + "renderClouds",
+                cv, Optional.empty(), dv, OptionalDouble.empty()
+        );
+    }
+
     @Override
     public void close() {
         if (closed) {
@@ -120,6 +134,10 @@ public abstract class CloudRenderer implements AutoCloseable {
         long seed = ((BiomeManagerDuck) level.getBiomeManager()).betterclouds$biomeSeed();
         BetterCloudsStatic.getLogger().debug("Biome seed: " + seed);
         return seed;
+    }
+
+    public float getCloudHeight() {
+        return cloudHeight;
     }
 
     // Used to be called isFancyMode

@@ -6,6 +6,7 @@ import com.mojang.blaze3d.resource.GraphicsResourceAllocator;
 import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
 import com.mojang.renderpearl.api.commands.RenderPass;
 import com.mojang.renderpearl.api.textures.GpuTextureView;
+import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.rendering.CloudRenderCoordinator;
 import net.minecraft.client.CloudStatus;
 import net.minecraft.client.renderer.CloudRenderer;
@@ -16,6 +17,7 @@ import net.minecraft.client.renderer.oit.OitRenderPassProvider;
 import net.minecraft.client.renderer.oit.OitStage;
 import net.minecraft.client.renderer.state.OptionsRenderState;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Vector4f;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
@@ -34,6 +36,8 @@ public abstract class WorldRendererMixin {
     private boolean betterclouds$replaceClouds;
     @Unique
     private Consumer<RenderPass> betterclouds$renderClouds;
+    @Unique
+    private Vec3 betterclouds$lastCameraPos;
 
     @Inject(at = @At("HEAD"), method = "render")
     private void captureFrustumAndCheckState(GraphicsResourceAllocator resourceAllocator, boolean renderOutline, CameraRenderState cameraState, GpuBufferSlice terrainFog, Vector4f fogColor, boolean shouldRenderSky, boolean hasPostEffects, CallbackInfo ci) {
@@ -49,6 +53,7 @@ public abstract class WorldRendererMixin {
                                CameraRenderState camera, GpuBufferSlice terrainFog, Vector4f fogColor,
                                boolean renderSky, boolean hasPostEffects, CallbackInfo ci) {
         if (optionsRenderState.cloudStatus != CloudStatus.OFF) {
+            betterclouds$lastCameraPos = camera.pos;
             betterclouds$replaceClouds = CloudRenderCoordinator.instance.renderClouds(
                     render -> betterclouds$renderClouds = render, camera.pos, camera.cameraEntityPartialTicks);
         }
@@ -56,15 +61,28 @@ public abstract class WorldRendererMixin {
 
     /**
      * after opaque, before transparency
-     * fixes <a href="https://github.com/Qendolin/better-clouds/issues/404">#404</a>
+     * fixes <a href="https://github.com/Qendolin/better-clouds/issues/404">#404</a><br>
      * also before debug rendering (which clears the depth buffer to become always on top)
-     * fixes <a href="https://github.com/Qendolin/better-clouds/issues/394">#394</a>
+     * fixes <a href="https://github.com/Qendolin/better-clouds/issues/394">#394</a><br>
+     * only runs if player is below cloud level
      */
     @Inject(method = "executeSolid", at = @At("TAIL"))
     private void renderCloudsBeforeTransparent(ChunkSectionsToRender chunkSectionsToRender, FeatureRenderDispatcher.PreparedFrame featureFrame, RenderPass renderPass, CallbackInfo ci) {
+        if (betterclouds$lastCameraPos.y > CloudRenderCoordinator.instance.renderer.getCloudHeight()) return;
         Consumer<RenderPass> render = betterclouds$renderClouds;
         betterclouds$renderClouds = null;
         if (render != null) render.accept(renderPass);
+    }
+
+    /**
+     * after transparency, before debug, only runs if player is above cloud level<br>
+     * todo: implement oit
+     */
+    @Inject(method = "executeOutline", at = @At("HEAD"))
+    private void renderCloudsAfterTransparent(FeatureRenderDispatcher.PreparedFrame featureFrame, CallbackInfo ci) {
+        Consumer<RenderPass> render = betterclouds$renderClouds;
+        betterclouds$renderClouds = null;
+        if (render != null) render.accept(null);
     }
 
     @WrapWithCondition(method = "executeClassicTransparency", at = @At(value = "INVOKE",
