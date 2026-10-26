@@ -4,8 +4,7 @@ import com.qendolin.betterclouds.BetterCloudsStatic;
 import net.irisshaders.iris.pipeline.WorldRenderingPipeline;
 
 public abstract class IrisCompat {
-
-    private static IrisCompat instance;
+    public static IrisCompat instance;
     private static boolean isActive = false;
 
     public static void initialize() {
@@ -47,10 +46,6 @@ public abstract class IrisCompat {
 
     public static boolean isActive() {
         return isActive;
-    }
-
-    public static IrisCompat instance() {
-        return instance;
     }
 
     public boolean isShadersEnabled() {

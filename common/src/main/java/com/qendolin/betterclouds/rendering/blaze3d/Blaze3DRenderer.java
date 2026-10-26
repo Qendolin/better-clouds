@@ -137,7 +137,6 @@ public class Blaze3DRenderer extends CloudRenderer {
         return ConfigManager.instance().shaderPreset().opacity > 0.975;
     }
 
-    /// TODO: reinstate this once Vulkan Iris gets onto Modrinth
     @SuppressWarnings("unused")
     static RenderPipeline createCompositePipeline(GpuFormat destinationFormat) {
         return RenderPipeline.builder()
@@ -162,12 +161,8 @@ public class Blaze3DRenderer extends CloudRenderer {
      */
     public static boolean isReverseZ() {
         NOOP_MATRIX.get(tempMatrixCopyArr);
-
-        DhCompat.instance().putProjMat(tempMatrixCopyArr);
-        if (DhCompat.instance().isEnabled())
-            DhCompat.instance().putProjMat(tempMatrixCopyArr);
-        else if (VoxyCompat.instance.isEnabled())
-            VoxyCompat.instance.putProjMat(tempMatrixCopyArr);
+        DhCompat.instance.putProjMat(tempMatrixCopyArr);
+        VoxyCompat.instance.putProjMat(tempMatrixCopyArr);
 
         // -z is forwards in MC, meaning z=1 is closer than z=0
         Matrix4f mvp = new Matrix4f(tempMatrixCopyArr);
@@ -289,13 +284,13 @@ public class Blaze3DRenderer extends CloudRenderer {
             b.putFloat(sunAxisZ);
         });
 
-        if (DhCompat.instance().isEnabled()) {
-            DhCompat.instance().putProjMat(tempMatrixCopyArr);
-            writeCopyArrayToBuffer(uLodProjMat);
-        } else if (VoxyCompat.instance.isEnabled()) {
-            VoxyCompat.instance.putProjMat(tempMatrixCopyArr);
-            writeCopyArrayToBuffer(uLodProjMat);
-        }
+        DhCompat.instance.putProjMat(tempMatrixCopyArr);
+        VoxyCompat.instance.putProjMat(tempMatrixCopyArr);
+        uLodProjMat.write(b -> {
+            for (float f : tempMatrixCopyArr) {
+                b.putFloat(f);
+            }
+        });
 
         return PrepareResult.RENDER;
     }
@@ -311,7 +306,7 @@ public class Blaze3DRenderer extends CloudRenderer {
                 createCloudModelViewMatrix(cam),
                 new Vector4f(1, sp.topColorRed, sp.topColorGreen, sp.topColorBlue)
         );
-        TextureWrapper dhDepthTexture = DhCompat.instance().getDepthTexture();
+        TextureWrapper dhDepthTexture = DhCompat.instance.getDepthTexture();
         TextureWrapper voxyDepthTexture = VoxyCompat.instance.getOpaqueDepthTexture();
 
         RenderPass pass = existingPass != null ? existingPass : newRenderPass();
@@ -380,14 +375,6 @@ public class Blaze3DRenderer extends CloudRenderer {
 
         if (params.distantHorizons() || params.voxy()) pipe.withBindGroupLayout(LOD_BIND_GROUP);
         CLOUD_RENDERER_PIPELINE = pipe.build();
-    }
-
-    private static void writeCopyArrayToBuffer(WritableBuffer wb) {
-        wb.write(b -> {
-            for (float f : tempMatrixCopyArr) {
-                b.putFloat(f);
-            }
-        });
     }
 
     private void drawWithFrustumCulling(RenderPass pass, Frustum frustumAtOrigin) {

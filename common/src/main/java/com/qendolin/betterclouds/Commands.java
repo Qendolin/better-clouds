@@ -394,7 +394,7 @@ public class Commands {
 
     public static void sendCloudsDisabledMessage() {
         var component = Component.translatable(ChatUtil.debugChatMessageKey("cloudsDisabledMessage"));
-        if (DhCompat.instance().isEnabled())
+        if (DhCompat.instance.isEnabled())
             component.append(Component.translatable(ChatUtil.debugChatMessageKey("distantHorizonsDisablingMessage")));
         component.append(Component.literal("\n - "))
                 .append(Component.translatable(ChatUtil.debugChatMessageKey("generic.disable"))

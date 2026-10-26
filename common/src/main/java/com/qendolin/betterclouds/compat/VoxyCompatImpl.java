@@ -21,7 +21,7 @@ public class VoxyCompatImpl extends VoxyCompat {
 
     @Override
     public TextureWrapper getOpaqueDepthTexture() {
-        WorldRenderingPipeline pipeline = IrisCompat.instance().getPipeline();
+        WorldRenderingPipeline pipeline = IrisCompat.instance.getPipeline();
         if (!(pipeline instanceof IGetIrisVoxyPipelineData voxyPipeline))
             return null;
 

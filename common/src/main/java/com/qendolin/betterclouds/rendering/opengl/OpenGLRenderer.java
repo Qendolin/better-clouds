@@ -118,8 +118,8 @@ public class OpenGLRenderer extends CloudRenderer {
                 client.options.getCloudStatus(),
                 config.blockDistance(), config.sizeXZ, config.sizeY, config.celestialBodyHalo,
                 glCompat.useDepthWriteFallback(), glCompat.useStencilTextureFallback(),
-                DhCompat.instance().isReady() && DhCompat.instance().isEnabled(),
-                IrisCompat.instance().isShadersEnabled(),
+                DhCompat.instance.isReady() && DhCompat.instance.isEnabled(),
+                IrisCompat.instance.isShadersEnabled(),
                 config.shaderPreset().worldCurvatureSize
         );
     }
@@ -241,12 +241,12 @@ public class OpenGLRenderer extends CloudRenderer {
 
     private void clearDepth() {
         // iris isn't using reverse z
-        glClearDepth(IrisCompat.instance().isShadersEnabled() ? 1 : 0);
+        glClearDepth(IrisCompat.instance.isShadersEnabled() ? 1 : 0);
     }
 
     private void setDepthFuncGEqual() {
         // iris isn't using reverse z
-        GlStateManager._depthFunc(IrisCompat.instance().isShadersEnabled() ? GL_LEQUAL : GL_GEQUAL);
+        GlStateManager._depthFunc(IrisCompat.instance.isShadersEnabled() ? GL_LEQUAL : GL_GEQUAL);
     }
 
     private void drawCoverage(float ticks, Vector3d cam, Vector3d frustumPos, Frustum frustum, FogProvider.Fog fog) {
@@ -296,20 +296,20 @@ public class OpenGLRenderer extends CloudRenderer {
         RenderHelper.bindTexture(client.gameRenderer.mainRenderTarget().getDepthTexture());
 
         // Distant Horizons compat
-        if (DhCompat.instance().isReady() && DhCompat.instance().isEnabled()) {
+        if (DhCompat.instance.isReady() && DhCompat.instance.isEnabled()) {
             res.coverageShader().uMVMatrix.setMat4(mvMatrix);
             res.coverageShader().uMcPMatrix.setMat4(pMatrix);
 
-            Optional<Integer> depthId = DhCompat.instance().getDepthTextureId();
+            Optional<Integer> depthId = DhCompat.instance.getDepthTextureId();
             GlStateManager._activeTexture(GL_TEXTURE6);
             if (depthId.isPresent()) {
-                Matrix4f dhProjectionMatrix = DhCompat.instance().getProjectionMatrix();
+                Matrix4f dhProjectionMatrix = DhCompat.instance.getProjectionMatrix();
                 if (dhProjectionMatrix != null) {
                     RenderHelper.bindTexture(depthId.get());
-                    if (DhCompat.instance().isTextureCreateFlagSet()) {
+                    if (DhCompat.instance.isTextureCreateFlagSet()) {
                         // This fixes a bug in DH, see: https://discord.com/channels/881614130614767666/1211290858134052894
                         glBindTexture(GL_TEXTURE_2D, depthId.get());
-                        DhCompat.instance().resetTextureCreateFlag();
+                        DhCompat.instance.resetTextureCreateFlag();
                     }
                     res.coverageShader().uDhPMatrix.setMat4(dhProjectionMatrix);
                 }
@@ -340,7 +340,7 @@ public class OpenGLRenderer extends CloudRenderer {
         }
 
         boolean frustumCulling = config.useFrustumCulling;
-        if (IrisCompat.instance().isFrustumCullingDisabled() || config.shaderPreset().worldCurvatureSize != 0) {
+        if (IrisCompat.instance.isFrustumCullingDisabled() || config.shaderPreset().worldCurvatureSize != 0) {
             frustumCulling = false;
         }
 

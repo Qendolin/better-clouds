@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class DhCompat {
     private static final AtomicBoolean initialized = new AtomicBoolean(false);
-    private static DhCompat instance;
+    public static DhCompat instance;
 
     public static void initialize() {
         if (initialized.getAndSet(true)) return;
@@ -26,10 +26,6 @@ public abstract class DhCompat {
         BetterCloudsStatic.getLogger().info("DistantHorizons API version is {}.{}.{}", DhApi.getApiMajorVersion(), DhApi.getApiMinorVersion(), DhApi.getApiPatchVersion());
 
         instance = new DhCompatImpl();
-    }
-
-    public static DhCompat instance() {
-        return instance;
     }
 
     public boolean isReady() {

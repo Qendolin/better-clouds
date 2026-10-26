@@ -19,12 +19,12 @@ public class VanillaRenderTarget {
 
     public VanillaRenderTarget(Minecraft client, Config config) {
         this.client = client;
-        useIris = IrisCompat.instance().isShadersEnabled() && config.useIrisFBO;
+        useIris = IrisCompat.instance.isShadersEnabled() && config.useIrisFBO;
     }
 
     public void begin() {
         if (useIris) {
-            IrisCompat.instance().bindFramebuffer();
+            IrisCompat.instance.bindFramebuffer();
             return;
         }
 

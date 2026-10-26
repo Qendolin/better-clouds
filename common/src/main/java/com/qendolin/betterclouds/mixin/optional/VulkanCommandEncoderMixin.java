@@ -16,7 +16,7 @@ public abstract class VulkanCommandEncoderMixin {
 	)
 	@Inject(method = "@MixinSquared:Handler", at = @At("TAIL"), require = 1)
 	private void injectFramebuffer(CallbackInfo ci) {
-		if (!IrisFramebuffer.isActive() || !IrisCompat.instance().isShadersEnabled())
+		if (!IrisFramebuffer.isActive() || !IrisCompat.instance.isShadersEnabled())
 			return;
 
 		IrisFramebuffer.bind();

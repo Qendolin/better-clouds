@@ -1,13 +1,12 @@
 package com.qendolin.betterclouds.mixin.required;
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
-import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.resource.GraphicsResourceAllocator;
 import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
 import com.mojang.renderpearl.api.commands.RenderPass;
 import com.mojang.renderpearl.api.textures.GpuTextureView;
-import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.rendering.CloudRenderCoordinator;
+import com.qendolin.betterclouds.rendering.blaze3d.PipelineParams;
 import net.minecraft.client.CloudStatus;
 import net.minecraft.client.renderer.CloudRenderer;
 import net.minecraft.client.renderer.LevelRenderer;
@@ -26,6 +25,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.function.Consumer;
 
+// run after dh
 @Mixin(value = LevelRenderer.class, priority = 900)
 public abstract class WorldRendererMixin {
     @Shadow
@@ -69,6 +69,10 @@ public abstract class WorldRendererMixin {
     @Inject(method = "executeSolid", at = @At("TAIL"))
     private void renderCloudsBeforeTransparent(ChunkSectionsToRender chunkSectionsToRender, FeatureRenderDispatcher.PreparedFrame featureFrame, RenderPass renderPass, CallbackInfo ci) {
         if (betterclouds$renderClouds == null || betterclouds$lastCameraPos == null) return;
+
+        // distant horizons renders at the outline stage
+        if (PipelineParams.get().distantHorizons()) return;
+
         var r = CloudRenderCoordinator.instance.renderer;
         if (betterclouds$lastCameraPos.y > (r != null ? r.getCloudHeight() : Integer.MAX_VALUE)) return;
 
@@ -82,7 +86,7 @@ public abstract class WorldRendererMixin {
      * todo: implement oit
      */
     @Inject(method = "executeOutline", at = @At("HEAD"))
-    private void renderCloudsAfterTransparent(FeatureRenderDispatcher.PreparedFrame featureFrame, CallbackInfo ci) {
+    private void renderCloudsAfterTransparent(CallbackInfo ci) {
         Consumer<RenderPass> render = betterclouds$renderClouds;
         betterclouds$renderClouds = null;
         if (render != null) render.accept(null);

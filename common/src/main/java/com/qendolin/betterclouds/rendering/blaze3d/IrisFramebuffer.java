@@ -13,7 +13,7 @@ public class IrisFramebuffer {
     }
 
     public static void begin() {
-        begin(() -> IrisCompat.instance().bindFramebuffer());
+        begin(() -> IrisCompat.instance.bindFramebuffer());
     }
 
     public static void begin(Runnable bindFramebuffer) {

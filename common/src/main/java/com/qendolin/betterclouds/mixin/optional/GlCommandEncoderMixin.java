@@ -19,7 +19,7 @@ public abstract class GlCommandEncoderMixin {
     private void injectFramebuffer(
             @Coerce Object glRenderPass, CallbackInfo cir, CallbackInfo ci
     ) {
-        if (!IrisFramebuffer.isActive() || !IrisCompat.instance().isShadersEnabled())
+        if (!IrisFramebuffer.isActive() || !IrisCompat.instance.isShadersEnabled())
             return;
 
         IrisFramebuffer.bind();

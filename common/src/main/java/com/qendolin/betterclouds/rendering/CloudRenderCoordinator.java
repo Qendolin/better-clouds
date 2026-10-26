@@ -58,7 +58,7 @@ public class CloudRenderCoordinator {
 
     public void checkState(OptionsRenderState optionsRenderState) {
         if (sentCloudsDisabledMessage || !optionsRenderState.cloudStatus.equals(CloudStatus.OFF) ||
-                IrisCompat.instance().isShadersEnabled() || !ConfigManager.instance().cloudsDisabledMessageEnabled)
+                IrisCompat.instance.isShadersEnabled() || !ConfigManager.instance().cloudsDisabledMessageEnabled)
             return;
         Commands.sendCloudsDisabledMessage();
         sentCloudsDisabledMessage = true;
