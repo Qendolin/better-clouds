@@ -70,9 +70,6 @@ public abstract class WorldRendererMixin {
     private void renderCloudsBeforeTransparent(ChunkSectionsToRender chunkSectionsToRender, FeatureRenderDispatcher.PreparedFrame featureFrame, RenderPass renderPass, CallbackInfo ci) {
         if (betterclouds$renderClouds == null || betterclouds$lastCameraPos == null) return;
 
-        // distant horizons renders at the outline stage
-        if (PipelineParams.get().distantHorizons()) return;
-
         var r = CloudRenderCoordinator.instance.renderer;
         if (betterclouds$lastCameraPos.y > (r != null ? r.getCloudHeight() : Integer.MAX_VALUE)) return;
 

@@ -164,10 +164,11 @@ public class Blaze3DRenderer extends CloudRenderer {
         DhCompat.instance.putProjMat(tempMatrixCopyArr);
         VoxyCompat.instance.putProjMat(tempMatrixCopyArr);
 
-        // -z is forwards in MC, meaning z=1 is closer than z=0
+        // -z is forwards in MC, meaning z=-1 is closer than z=-2
+        // also since -z is forwards, z=-1 is 1 block in front of camera, and z=-2 2 blocks front
         Matrix4f mvp = new Matrix4f(tempMatrixCopyArr);
-        Vector4f closeMul = new Vector4f(0, 0, 1, 1).mul(mvp);
-        Vector4f farMul = new Vector4f(0, 0, 0, 1).mul(mvp);
+        Vector4f closeMul = new Vector4f(0, 0, -1, 0.5f).mul(mvp);
+        Vector4f farMul = new Vector4f(0, 0, -2, 0.5f).mul(mvp);
 
         return closeMul.z / closeMul.w > farMul.z / farMul.w;
     }
