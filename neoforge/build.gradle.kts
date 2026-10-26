@@ -89,6 +89,7 @@ dependencies {
 
     compileOnly(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-common:${property("deps.mixinsquared")}")!!)
     jarJar("com.github.bawnorton.mixinsquared:mixinsquared-neoforge:${property("deps.mixinsquared")}")!!
+    runtimeOnly("com.github.bawnorton.mixinsquared:mixinsquared-neoforge:${property("deps.mixinsquared")}")
     implementation("io.github.llamalad7:mixinextras-neoforge:${property("deps.mixin_extras")}")
 
     // These should be included with yacl, but it does not work correctly, so adding them here.
