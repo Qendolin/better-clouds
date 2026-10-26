@@ -314,9 +314,10 @@ public class Blaze3DRenderer extends CloudRenderer {
         TextureWrapper dhDepthTexture = DhCompat.instance().getDepthTexture();
         TextureWrapper voxyDepthTexture = VoxyCompat.instance.getOpaqueDepthTexture();
 
-        IrisFramebuffer.begin();
-
         RenderPass pass = existingPass != null ? existingPass : newRenderPass();
+        if (pass == null) return;
+
+        IrisFramebuffer.begin();
         try {
             pass.setPipeline(RenderSystem.getCompiledPipeline(CLOUD_RENDERER_PIPELINE));
 

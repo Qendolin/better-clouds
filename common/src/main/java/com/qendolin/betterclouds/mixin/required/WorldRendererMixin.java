@@ -68,12 +68,13 @@ public abstract class WorldRendererMixin {
      */
     @Inject(method = "executeSolid", at = @At("TAIL"))
     private void renderCloudsBeforeTransparent(ChunkSectionsToRender chunkSectionsToRender, FeatureRenderDispatcher.PreparedFrame featureFrame, RenderPass renderPass, CallbackInfo ci) {
+        if (betterclouds$renderClouds == null || betterclouds$lastCameraPos == null) return;
         var r = CloudRenderCoordinator.instance.renderer;
         if (betterclouds$lastCameraPos.y > (r != null ? r.getCloudHeight() : Integer.MAX_VALUE)) return;
 
         Consumer<RenderPass> render = betterclouds$renderClouds;
         betterclouds$renderClouds = null;
-        if (render != null) render.accept(renderPass);
+        render.accept(renderPass);
     }
 
     /**

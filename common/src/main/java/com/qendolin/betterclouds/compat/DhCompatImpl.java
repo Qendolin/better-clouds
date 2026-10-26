@@ -76,7 +76,7 @@ public class DhCompatImpl extends DhCompat {
     @Override
     public void putProjMat(float[] values) {
         if (lastRenderParam == null) return;
-        var projMat = lastRenderParam.dhProjectionMatrix;
+        var projMat = lastRenderParam.dhProjectionMatrix.copy();
         projMat.transpose();
         projMat.putValuesInArray(values);
     }

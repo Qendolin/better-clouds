@@ -58,7 +58,7 @@ public abstract class CloudRenderer implements AutoCloseable {
                     .getOrThrow(Timelines.OVERWORLD_DAY)
                     .value().getCurrentTicks(level.clockManager());
         } catch (Exception e) {
-            return level.getOverworldClockTime() % 24000;
+            return level.getDefaultClockTime() % 24000;
         }
     }
 

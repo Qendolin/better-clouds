@@ -304,13 +304,15 @@ public class OpenGLRenderer extends CloudRenderer {
             GlStateManager._activeTexture(GL_TEXTURE6);
             if (depthId.isPresent()) {
                 Matrix4f dhProjectionMatrix = DhCompat.instance().getProjectionMatrix();
-                RenderHelper.bindTexture(depthId.get());
-                if (DhCompat.instance().isTextureCreateFlagSet()) {
-                    // This fixes a bug in DH, see: https://discord.com/channels/881614130614767666/1211290858134052894
-                    glBindTexture(GL_TEXTURE_2D, depthId.get());
-                    DhCompat.instance().resetTextureCreateFlag();
+                if (dhProjectionMatrix != null) {
+                    RenderHelper.bindTexture(depthId.get());
+                    if (DhCompat.instance().isTextureCreateFlagSet()) {
+                        // This fixes a bug in DH, see: https://discord.com/channels/881614130614767666/1211290858134052894
+                        glBindTexture(GL_TEXTURE_2D, depthId.get());
+                        DhCompat.instance().resetTextureCreateFlag();
+                    }
+                    res.coverageShader().uDhPMatrix.setMat4(dhProjectionMatrix);
                 }
-                res.coverageShader().uDhPMatrix.setMat4(dhProjectionMatrix);
             } else {
                 RenderHelper.bindTexture(0);
                 res.coverageShader().uDhPMatrix.setMat4(NOOP_MATRIX);
