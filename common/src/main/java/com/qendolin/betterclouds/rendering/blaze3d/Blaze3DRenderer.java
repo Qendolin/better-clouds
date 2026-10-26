@@ -1,6 +1,5 @@
 package com.qendolin.betterclouds.rendering.blaze3d;
 
-import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.renderpearl.api.GpuFormat;
@@ -9,7 +8,8 @@ import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
 import com.mojang.renderpearl.api.commands.RenderPass;
 import com.mojang.renderpearl.api.device.GpuDevice;
 import com.mojang.renderpearl.api.pipeline.*;
-import com.mojang.renderpearl.api.textures.*;
+import com.mojang.renderpearl.api.textures.AddressMode;
+import com.mojang.renderpearl.api.textures.FilterMode;
 import com.mojang.renderpearl.api.vertex.VertexFormat;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.compat.DhCompat;
@@ -42,7 +42,6 @@ import org.jspecify.annotations.NonNull;
 
 import java.lang.Math;
 import java.util.Optional;
-import java.util.OptionalDouble;
 
 import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
 
@@ -122,6 +121,7 @@ public class Blaze3DRenderer extends CloudRenderer {
     private final WritableBuffer uLodProjMat = new WritableBuffer("uLodProjMat", Float.BYTES * 16, GpuBuffer.USAGE_UNIFORM);
     // misc
     private static final float[] tempMatrixCopyArr = new float[16];
+    private TextureWrapper noiseTexture, lightTexture;
     // things affected by resource reload
     RenderPipeline CLOUD_RENDERER_PIPELINE;
 
@@ -219,6 +219,14 @@ public class Blaze3DRenderer extends CloudRenderer {
 
         MoonPhase moonPhase = level.environmentAttributes().getValue(EnvironmentAttributes.MOON_PHASE, new Vec3(cam.x, cam.y, cam.z));
 
+        // texture opens / uploads must now be outside a render pass
+        noiseTexture = TextureWrapper.fromMcTexture(
+                "NoiseTexture", Resources.NOISE_TEXTURE,
+                () -> TextureWrapper.customSampler(AddressMode.REPEAT, AddressMode.REPEAT, FilterMode.LINEAR));
+        lightTexture = TextureWrapper.fromMcTexture(
+                "LightTexture", Resources.LIGHTING_TEXTURE,
+                () -> TextureWrapper.customSampler(AddressMode.CLAMP_TO_EDGE, AddressMode.REPEAT, FilterMode.LINEAR));
+
         // larger value = smaller halo size
         float haloSize = dayTime() < config.shaderPreset().sunsetEndTime ?
                 2.05f - config.sunHaloSizeMultiplier :
@@ -303,20 +311,13 @@ public class Blaze3DRenderer extends CloudRenderer {
                 createCloudModelViewMatrix(cam),
                 new Vector4f(1, sp.topColorRed, sp.topColorGreen, sp.topColorBlue)
         );
-
-        // texture opens / uploads must now be outside a render pass
-        TextureWrapper noiseTexture = TextureWrapper.fromMcTexture(
-                "NoiseTexture", Resources.NOISE_TEXTURE,
-                () -> TextureWrapper.customSampler(AddressMode.REPEAT, AddressMode.REPEAT, FilterMode.LINEAR));
-        TextureWrapper lightTexture = TextureWrapper.fromMcTexture(
-                "LightTexture", Resources.LIGHTING_TEXTURE,
-                () -> TextureWrapper.customSampler(AddressMode.CLAMP_TO_EDGE, AddressMode.REPEAT, FilterMode.LINEAR));
         TextureWrapper dhDepthTexture = DhCompat.instance().getDepthTexture();
         TextureWrapper voxyDepthTexture = VoxyCompat.instance.getOpaqueDepthTexture();
 
         IrisFramebuffer.begin();
 
-        try (RenderPass pass = existingPass != null ? existingPass : newRenderPass()) {
+        RenderPass pass = existingPass != null ? existingPass : newRenderPass();
+        try {
             pass.setPipeline(RenderSystem.getCompiledPipeline(CLOUD_RENDERER_PIPELINE));
 
             RenderSystem.bindDefaultUniforms(pass);
@@ -344,6 +345,7 @@ public class Blaze3DRenderer extends CloudRenderer {
                 drawWithFrustumCulling(pass, frustum);
         } finally {
             IrisFramebuffer.end();
+            if (existingPass == null) pass.close();
         }
     }
 
@@ -355,7 +357,7 @@ public class Blaze3DRenderer extends CloudRenderer {
 
     public void buildRenderPipeline() {
         PipelineParams params = PipelineParams.get();
-        CLOUD_RENDERER_PIPELINE = RenderPipeline.builder()
+        var pipe = RenderPipeline.builder()
                 .withLocation(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "blaze_3d_renderer"))
                 .withVertexShader(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "blaze3d/clouds"))
                 .withFragmentShader(Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "blaze3d/clouds"))
@@ -368,14 +370,15 @@ public class Blaze3DRenderer extends CloudRenderer {
                 .withShaderDefine("LOD_ENABLED", params.distantHorizons() || params.voxy() ? 1 : 0)
                 .withShaderDefine("REVERSE_Z", params.reverseZ() ? 1 : 0)
                 .withShaderDefine("Z_NEG1_TO_1", params.zNeg1To1() ? 1 : 0)
+                .withBindGroupLayout(SHADER_BIND_GROUP)
                 .withBindGroupLayout(BindGroupLayouts.DYNAMIC_TRANSFORMS)
                 .withBindGroupLayout(BindGroupLayouts.PROJECTION)
-                .withBindGroupLayout(SHADER_BIND_GROUP)
-                .withBindGroupLayout(LOD_BIND_GROUP)
                 .withCull(false)
                 .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, params.cloudsOpaque()))
-                .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
-                .build();
+                .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT));
+
+        if (params.distantHorizons() || params.voxy()) pipe.withBindGroupLayout(LOD_BIND_GROUP);
+        CLOUD_RENDERER_PIPELINE = pipe.build();
     }
 
     private static void writeCopyArrayToBuffer(WritableBuffer wb) {
