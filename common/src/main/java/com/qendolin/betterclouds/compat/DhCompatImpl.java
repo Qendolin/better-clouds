@@ -69,7 +69,7 @@ public class DhCompatImpl extends DhCompat {
 
     @Override
     public Matrix4f getProjectionMatrix() {
-        if (lastRenderParam == null) return null;
+        if (lastRenderParam == null || lastRenderParam.dhProjectionMatrix == null) return null;
         return new Matrix4f(lastRenderParam.dhProjectionMatrix.getValuesAsArray()).transpose();
     }
 
