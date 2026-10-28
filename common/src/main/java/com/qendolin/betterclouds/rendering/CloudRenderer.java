@@ -21,6 +21,7 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.world.level.material.FogType;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.timeline.Timeline;
 import net.minecraft.world.timeline.Timelines;
 import org.joml.Matrix4f;
 import org.joml.Vector3d;
@@ -45,6 +46,7 @@ public abstract class CloudRenderer implements AutoCloseable {
     protected float cloudHeight;
 
     protected boolean closed = false;
+
     public CloudRenderer() {
         if (GraphicsCompat.isOpenGL)
             this.timer = new PerfTimer();
@@ -53,10 +55,11 @@ public abstract class CloudRenderer implements AutoCloseable {
 
     public long dayTime() {
         try {
-            return level.registryAccess()
+            Timeline timeline = level.registryAccess()
                     .lookupOrThrow(Registries.TIMELINE)
                     .getOrThrow(Timelines.OVERWORLD_DAY)
-                    .value().getCurrentTicks(level.clockManager());
+                    .value();
+            return (long) ((double) timeline.getCurrentTicks(level.clockManager()) / timeline.periodTicks().orElse(24000) * 24000);
         } catch (Exception e) {
             return level.getDefaultClockTime() % 24000;
         }
