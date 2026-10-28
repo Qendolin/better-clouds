@@ -53,7 +53,7 @@ public abstract class CloudRenderer implements AutoCloseable {
         reloadGenerator();
     }
 
-    public long dayTime() {
+    public long calculateDayTime() {
         try {
             Timeline timeline = level.registryAccess()
                     .lookupOrThrow(Registries.TIMELINE)
