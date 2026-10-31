@@ -210,20 +210,20 @@ public class ChunkedGenerator implements AutoCloseable {
             }
             updateGeometry = chunkChanged || optionsChanged || cloudinessChanged || bufferCleared;
         } else {
-            BetterCloudsStatic.getLogger().debug("No tasks, updating geometry");
+            BetterCloudsStatic.getLogger().info("No tasks, updating geometry");
             updateGeometry = true;
         }
 
         if (Debug.generatorChangeCacheSize >= 30) {
             pointCache = new ChunkCache(Debug.generatorChangeCacheSize);
-            BetterCloudsStatic.getLogger().debug("Changing cache size and invalidating cache");
+            BetterCloudsStatic.getLogger().info("Changing cache size and invalidating cache");
             Debug.generatorForceUpdate = true;
             Debug.generatorChangeCacheSize = 0;
         }
 
         if (Debug.generatorForceUpdate) {
             Debug.generatorForceUpdate = false;
-            BetterCloudsStatic.getLogger().debug("Forcibly updating geometry");
+            BetterCloudsStatic.getLogger().info("Forcibly updating geometry");
             updateGeometry = true;
         }
 
@@ -341,7 +341,7 @@ public class ChunkedGenerator implements AutoCloseable {
                     notify();
                     return;
                 }
-                BetterCloudsStatic.getLogger().debug("Generator task #{} cancelled", id);
+                BetterCloudsStatic.getLogger().info("Generator task #{} cancelled", id);
                 try {
                     wait();
                 } catch (InterruptedException e) {

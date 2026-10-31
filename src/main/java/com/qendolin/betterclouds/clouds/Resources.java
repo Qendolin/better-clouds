@@ -255,7 +255,7 @@ public class Resources implements Closeable {
             createFramebufferAttachments(useStencilTextureFallback, useDepthWriteFallback);
             int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
             if (status == GL_FRAMEBUFFER_COMPLETE) {
-                BetterCloudsStatic.getLogger().debug("Framebuffer complete. useStencilTextureFallback={}, useDepthWriteFallback={}", useStencilTextureFallback, useDepthWriteFallback);
+                BetterCloudsStatic.getLogger().info("Framebuffer complete. useStencilTextureFallback={}, useDepthWriteFallback={}", useStencilTextureFallback, useDepthWriteFallback);
                 if (configurationIndex != -1) {
                     glCompat.setUseStencilTextureFallback(useStencilTextureFallback);
                     glCompat.setUseDepthWriteFallback(useDepthWriteFallback);
@@ -360,6 +360,8 @@ public class Resources implements Closeable {
             shaderParameters.configSizeY(),
             shaderParameters.useStencilTextureFallback(),
             shaderParameters.useDistantHorizonsCompat(),
+            shaderParameters.isReverseZ(),
+            shaderParameters.isZNeg1To1(),
             shaderParameters.worldCurvatureSize());
         coverageShader.bind();
         coverageShader.uDepthTexture.setInt(0);

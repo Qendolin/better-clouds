@@ -25,11 +25,9 @@ import net.minecraft.util.math.*;
 //? if >=1.21.11 {
 import net.minecraft.world.attribute.EnvironmentAttributes;
 //?}
-import org.joml.Matrix4d;
-import org.joml.Matrix4f;
-import org.joml.Vector3d;
-import org.joml.Vector3f;
+import org.joml.*;
 
+import java.lang.Math;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -82,18 +80,18 @@ public class Renderer implements AutoCloseable {
 
     public void reload(ResourceManager manager) {
         BetterCloudsStatic.getLogger().info("Reloading cloud renderer...");
-        BetterCloudsStatic.getLogger().debug("[1/6] Reloading shaders");
+        BetterCloudsStatic.getLogger().info("[1/6] Reloading shaders");
         shaderParameters = createShaderParameters(ConfigManager.instance());
         res.reloadShaders(manager, shaderParameters);
-        BetterCloudsStatic.getLogger().debug("[2/6] Reloading generator");
+        BetterCloudsStatic.getLogger().info("[2/6] Reloading generator");
         res.reloadGenerator(getWorldSeed(), useCubeClouds());
-        BetterCloudsStatic.getLogger().debug("[3/6] Reloading textures");
+        BetterCloudsStatic.getLogger().info("[3/6] Reloading textures");
         res.reloadTextures(client);
-        BetterCloudsStatic.getLogger().debug("[4/6] Reloading primitive meshes");
+        BetterCloudsStatic.getLogger().info("[4/6] Reloading primitive meshes");
         res.reloadMeshPrimitives();
-        BetterCloudsStatic.getLogger().debug("[5/6] Reloading framebuffer");
+        BetterCloudsStatic.getLogger().info("[5/6] Reloading framebuffer");
         res.reloadFramebuffer(scaledFramebufferWidth(), scaledFramebufferHeight());
-        BetterCloudsStatic.getLogger().debug("[6/6] Reloading timers");
+        BetterCloudsStatic.getLogger().info("[6/6] Reloading timers");
         res.reloadTimer();
         BetterCloudsStatic.getLogger().info("Cloud renderer initialized");
     }
@@ -126,13 +124,31 @@ public class Renderer implements AutoCloseable {
     }
 
     private ShaderParameters createShaderParameters(Config config) {
-        return new ShaderParameters(
+        var sp = new ShaderParameters(
             client.options.getCloudRenderModeValue(),
             config.blockDistance(), config.sizeXZ, config.sizeY, config.celestialBodyHalo,
             glCompat.useDepthWriteFallback(), glCompat.useStencilTextureFallback(),
             DistantHorizonsCompat.instance().isReady() && DistantHorizonsCompat.instance().isEnabled(),
+            Renderer.isReverseZ(),
+            DistantHorizonsCompat.instance().isZNeg1To1(),
             config.shaderPreset().worldCurvatureSize
         );
+        BetterCloudsStatic.getLogger().info("Current shader parameters: {}", sp);
+        return sp;
+    }
+
+    private static boolean isReverseZ() {
+        Matrix4f proj = DistantHorizonsCompat.NOOP_MATRIX;
+        Matrix4f temp;
+        if ((temp = DistantHorizonsCompat.instance().getProjectionMatrix()) != null) {
+            proj = temp;
+        }
+
+        // 1 block in front of camera (-z is forwards)
+        Vector4f closeMul = new Vector4f(0, 0, -1, 0.5f).mul(proj);
+        // 2 blocks in front of camera
+        Vector4f farMul = new Vector4f(0, 0, -2, 0.5f).mul(proj);
+        return closeMul.z / closeMul.w > farMul.z / farMul.w;
     }
 
     public PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, int ticks, float tickDelta, Vector3d cam) {

@@ -11,6 +11,8 @@
 #define WORLD_CURVATURE _WORLD_CURVATURE_
 
 #define DISTANT_HORIZONS _DISTANT_HORIZONS_
+#define REVERSE_Z _REVERSE_Z_
+#define Z_NEG1_TO_1 _Z_NEG1_TO_1_
 
 layout(location = 0) in vec3 in_pos; // instanced per cloud cube
 layout(location = 1) in vec3 in_vert;
@@ -94,7 +96,10 @@ void main() {
     vec4 localPos = u_mv_matrix * vec4(vertexPos, 1.0);
     gl_Position = u_mc_p_matrix * localPos;
     vec4 dhPos = u_dh_p_matrix * localPos;
-    pass_dh_depth = (dhPos.z/dhPos.w) * 0.5 + 0.5;
+    pass_dh_depth = dhPos.z/dhPos.w;
+    #if Z_NEG1_TO_1
+        pass_dh_depth = pass_dh_depth * 0.5 + 0.5;
+    #endif
 #else
     gl_Position = u_mvp_matrix * vec4(vertexPos, 1.0);
 #endif

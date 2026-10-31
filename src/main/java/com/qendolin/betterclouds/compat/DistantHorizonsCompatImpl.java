@@ -3,6 +3,7 @@ package com.qendolin.betterclouds.compat;
 import com.qendolin.betterclouds.BetterClouds;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.seibel.distanthorizons.api.DhApi;
+import com.seibel.distanthorizons.api.enums.config.EDhApiDepthRange;
 import com.seibel.distanthorizons.api.enums.rendering.EDhApiRenderPass;
 import com.seibel.distanthorizons.api.methods.events.DhApiEventRegister;
 import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiAfterDhInitEvent;
@@ -16,12 +17,12 @@ import org.joml.Matrix4f;
 
 import java.util.Optional;
 
-public abstract class DistantHorizonsSharedCompatImpl extends DistantHorizonsCompat {
+public class DistantHorizonsCompatImpl extends DistantHorizonsCompat {
     private boolean isDhInitialized = false;
     private DhApiRenderParam lastRenderParam = null;
     protected boolean textureCreateFlag = false;
 
-    public DistantHorizonsSharedCompatImpl() {
+    public DistantHorizonsCompatImpl() {
         BetterCloudsStatic.getLogger().info("Registering DH Api events");
         // Lambdas didn't work
         DhApiEventRegister.on(DhApiAfterDhInitEvent.class, new DhApiAfterDhInitEvent() {
@@ -59,31 +60,38 @@ public abstract class DistantHorizonsSharedCompatImpl extends DistantHorizonsCom
 
     @Override
     public boolean isEnabled() {
-        return isDhInitialized && DhApi.Delayed.configs.graphics().renderingEnabled().getValue();
+        return isReady() && DhApi.Delayed.configs.graphics().renderingEnabled().getValue();
     }
 
     @Override
     public Matrix4f getProjectionMatrix() {
+        if (!isEnabled()) return null;
         Optional<Matrix4f> irisProjection = IrisCompat.instance().getDhProjectionMatrix();
         if (irisProjection.isPresent()) {
             return irisProjection.get();
         }
-        float[] mat = getDhProjectionMatrixValues(lastRenderParam);
-        return new Matrix4f(mat[0], mat[4], mat[8], mat[12],
-            mat[1], mat[5], mat[9], mat[13],
-            mat[2], mat[6], mat[10], mat[14],
-            mat[3], mat[7], mat[11], mat[15]);
+        var m = lastRenderParam.dhProjectionMatrix;
+        return new Matrix4f(m.m00, m.m01, m.m02, m.m03, m.m10, m.m11, m.m12, m.m13, m.m20, m.m21, m.m22, m.m23, m.m30, m.m31, m.m32, m.m33).transpose();
     }
-
-    abstract float[] getDhProjectionMatrixValues(DhApiRenderParam renderParam);
 
     @Override
     public Optional<Integer> getDepthTextureId() {
-        DhApiResult<Integer> result = DhApi.Delayed.renderProxy.getDhDepthTextureId();
+        if (!isEnabled()) return Optional.empty();
+        DhApiResult<Integer> result = DhApi.Delayed.renderProxy.getDhDepthTextureGlId();
         if (result.success) {
             return Optional.of(result.payload);
         }
         return Optional.empty();
+    }
+
+    @Override
+    public boolean isZNeg1To1() {
+        return isEnabled() && DhApi.Delayed.renderProxy.getDepthRange().equals(EDhApiDepthRange.NEG_ONE_TO_POS_ONE);
+    }
+
+    @Override
+    public void disableLodClouds() {
+        DhApi.Delayed.configs.graphics().genericRendering().cloudRenderingEnabled().setValue(false, "Better Clouds");
     }
 
     @Override

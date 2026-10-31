@@ -55,7 +55,7 @@ public class NoisePresetConfig extends AbstractPresetConfig {
             }
             return true;
         } catch (Exception e) {
-            BetterCloudsStatic.getLogger().debug("Invalid noise preset config, reverting to last config", e);
+            BetterCloudsStatic.getLogger().info("Invalid noise preset config, reverting to last config", e);
             lastException = e;
         }
         return false;
