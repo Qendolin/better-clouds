@@ -15,6 +15,7 @@ jobs:
       - uses: actions/stale@v11
         with:
           only-issue-labels: bug
+          exempt-issue-labels: never stale
           days-before-issue-stale: 7
           days-before-issue-close: 7
           stale-issue-label: stale
