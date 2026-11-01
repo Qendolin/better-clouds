@@ -18,6 +18,7 @@ layout (std140) uniform CloudVertexData {
     float uBlockDistance, uCloudHeightRange, uScaleFalloffMin;
     float uWindEffectFactor, uWindSpeedFactor;
     float uFogDensityFactor, uFogRangeFactor, uFogStart, uFogEnd;
+    float worldCurvatureSize;
 };
 
 layout(location = 0) out float fogFade;
@@ -63,6 +64,11 @@ void main() {
 
     vec3 pos = scale * LocalPosition + cloudPos;
     vec3 localWorldVertexPos = pos - originOffset;
+
+    #if WORLD_CURVATURE
+    pos.y -= pow(length(localWorldVertexPos), 2) / worldCurvatureSize;
+    #endif
+
     fogFade = calcFogFade(length(localWorldVertexPos.xyz));
     lightSampleDir = localWorldVertexPos;
     tintInterp = clamp((scale.y * LocalPosition.y + WorldPosition.y + uCloudHeightRange * 0.3f) / (uTransitionRangePercent * uCloudHeightRange), 0, 1);

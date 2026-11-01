@@ -32,7 +32,7 @@ public class ShaderPresetGUI {
     public final Option<Integer> selectedPreset;
     public final Option<String> presetTitle;
     public final Option<String> description;
-    public final List<Integer> worldCurvatureValues = List.of(0, -256, -512, -1024, -2048, -4096, -8192, -16384, 16384, 8192, 4096, 2048, 1024, 512, 256, 128, 64, 32, 16);
+    public final List<Integer> worldCurvatureValues = List.of(-11, -13, -14, -15, -16, -18 -23, 0, 23, 18, 16, 15, 14, 13, 11);
     public final Option<Integer> worldCurvatureSize; // option value is the index
     public final Option<Float> saturation;
     public final Option<Color> topColor;
@@ -174,7 +174,7 @@ public class ShaderPresetGUI {
                         () -> Math.max(worldCurvatureValues.indexOf(config.shaderPreset().worldCurvatureSize), 0),
                         val -> config.shaderPreset().worldCurvatureSize = worldCurvatureValues.get(val))
                 .customController(opt -> new IntegerSliderController(opt, 0, worldCurvatureValues.size() - 1, 1,
-                        i -> i == 0 ? Component.translatable("options.off") : Component.literal(worldCurvatureValues.get(i).toString())))
+                        i -> worldCurvatureValues.get(i) == 0 ? Component.translatable("options.off") : Component.literal(worldCurvatureValues.get(i).toString())))
                 .build();
         shaderConfigPresetOptions.addAll(List.of(
                 presetTitle,

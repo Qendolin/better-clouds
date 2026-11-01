@@ -30,6 +30,10 @@ public class Migrations {
             // goodbye opengl renderer
             config.renderer = Config.Renderer.BLAZE3D;
         });
+        MIGRATIONS.add(config -> {
+            // units are different from before
+            config.shaderPreset().worldCurvatureSize = 0;
+        });
     }
 
     public static void migrate(Config config) {

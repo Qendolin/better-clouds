@@ -116,7 +116,7 @@ public class Blaze3DRenderer extends CloudRenderer {
     // cloud position xyz, capacity can change, so must recreate every time cloud positions change
     private final ReadOnlyBuffer worldCloudPosBuffer = new ReadOnlyBuffer("cloudPositions");
     // uniforms
-    private final WritableBuffer uCloudVertexData = new WritableBuffer("uCloudVertexData", Float.BYTES * 18, GpuBuffer.USAGE_UNIFORM);
+    private final WritableBuffer uCloudVertexData = new WritableBuffer("uCloudVertexData", Float.BYTES * 19, GpuBuffer.USAGE_UNIFORM);
     private final WritableBuffer uCloudFragData = new WritableBuffer("uCloudFragData", Float.BYTES * 19, GpuBuffer.USAGE_UNIFORM);
     private final WritableBuffer uLodProjMat = new WritableBuffer("uLodProjMat", Float.BYTES * 16, GpuBuffer.USAGE_UNIFORM);
     // misc
@@ -257,6 +257,8 @@ public class Blaze3DRenderer extends CloudRenderer {
             b.putFloat(config.fogRangeFactor);
             b.putFloat(0);
             b.putFloat(config.blockDistance() * config.fogEndFactor);
+
+            b.putFloat((float) Math.pow(2, Math.abs(sp.worldCurvatureSize)) * Math.signum(sp.worldCurvatureSize));
         });
         uCloudFragData.write(b -> {
             b.putFloat(sp.opacity);
@@ -368,6 +370,7 @@ public class Blaze3DRenderer extends CloudRenderer {
                 .withShaderDefine("LOD_ENABLED", params.distantHorizons() || params.voxy() ? 1 : 0)
                 .withShaderDefine("REVERSE_Z", params.reverseZ() ? 1 : 0)
                 .withShaderDefine("Z_NEG1_TO_1", params.zNeg1To1() ? 1 : 0)
+                .withShaderDefine("WORLD_CURVATURE", params.worldCurvature() ? 1 : 0)
                 .withBindGroupLayout(SHADER_BIND_GROUP)
                 .withBindGroupLayout(BindGroupLayouts.DYNAMIC_TRANSFORMS)
                 .withBindGroupLayout(BindGroupLayouts.PROJECTION)

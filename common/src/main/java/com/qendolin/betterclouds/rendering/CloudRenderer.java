@@ -178,7 +178,7 @@ public abstract class CloudRenderer implements AutoCloseable {
     public void reloadTimer() {
         deleteTimer();
         if (!Debug.isProfilingEnabled()) return;
-        timer = new PerfTimer();
+        if (GraphicsCompat.isOpenGL) timer = new PerfTimer();
     }
 
     public void deleteTimer() {
