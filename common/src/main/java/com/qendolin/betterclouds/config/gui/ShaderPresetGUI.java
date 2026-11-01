@@ -32,7 +32,7 @@ public class ShaderPresetGUI {
     public final Option<Integer> selectedPreset;
     public final Option<String> presetTitle;
     public final Option<String> description;
-    public final List<Integer> worldCurvatureValues = List.of(-11, -13, -14, -15, -16, -18 -23, 0, 23, 18, 16, 15, 14, 13, 11);
+    public final List<Integer> worldCurvatureValues = List.of(-11, -13, -14, -15, -16, -18, -23, 0, 23, 18, 16, 15, 14, 13, 11);
     public final Option<Integer> worldCurvatureSize; // option value is the index
     public final Option<Float> saturation;
     public final Option<Color> topColor;
