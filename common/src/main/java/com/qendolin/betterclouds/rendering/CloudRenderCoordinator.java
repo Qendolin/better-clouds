@@ -4,10 +4,7 @@ import com.mojang.renderpearl.api.commands.RenderPass;
 import com.qendolin.betterclouds.*;
 import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.config.ConfigManager;
-import com.qendolin.betterclouds.renderdoc.RenderDoc;
 import com.qendolin.betterclouds.rendering.blaze3d.Blaze3DRenderer;
-import com.qendolin.betterclouds.rendering.opengl.Debug;
-import com.qendolin.betterclouds.rendering.opengl.OpenGLRenderer;
 import net.minecraft.client.CloudStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -37,8 +34,7 @@ public class CloudRenderCoordinator {
     private boolean sentCloudsDisabledMessage = false;
 
     public void initialize() {
-        if (GraphicsCompat.instance.isIncompatible()) return;
-        renderer = GraphicsCompat.isOpenGL ? new OpenGLRenderer() : new Blaze3DRenderer();
+        renderer = new Blaze3DRenderer();
     }
 
     public CloudRenderer getRenderer() {
@@ -66,7 +62,7 @@ public class CloudRenderCoordinator {
 
     public void reload(ResourceManager manager) {
         if (renderer == null)
-            renderer = GraphicsCompat.isOpenGL ? new OpenGLRenderer() : new Blaze3DRenderer();
+            renderer = new Blaze3DRenderer();
         renderer.reload(manager);
     }
 
@@ -89,15 +85,8 @@ public class CloudRenderCoordinator {
         if (!shouldRenderClouds()) return false;
 
         getProfiler().push(BetterCloudsStatic.MODID);
-        GraphicsCompat.instance.pushDebugGroupDev("Better Clouds");
 
         Vector3d cam = tempVector.set(camX, camY, camZ);
-
-        if (Debug.animationPause >= 0) {
-            if (Debug.animationPause == 0) Debug.animationPause = clientTicks;
-            else clientTicks = Debug.animationPause;
-            tickDelta = 0;
-        }
 
         long trueCloudTicks = Math.floorMod(
                 ConfigManager.instance().getCloudTicks(Minecraft.getInstance(), clientTicks),
@@ -110,15 +99,12 @@ public class CloudRenderCoordinator {
         // renderer gets clamped cloud time
         PrepareResult prepareResult = renderer.checkAndPrepare(capturedViewMat, capturedProjMat, clampedCloudTicks, clientTicks, tickDelta, cam, fogData);
 
-        if (RenderDoc.isFrameCapturing())
-            GraphicsCompat.instance.debugMessage("renderer prepare returned " + prepareResult.name());
 
         if (prepareResult == PrepareResult.RENDER) {
             final long fticks = clampedCloudTicks;
             final float ftickDelta = tickDelta;
             scheduleRender.accept(pass -> {
                 getProfiler().push("clouds");
-                GraphicsCompat.instance.pushDebugGroupDev("Better Clouds");
                 try {
                     renderer.checkAndRender(pass, fticks, ftickDelta, cam, cam, frustum);
                 } catch (Exception e) {
@@ -128,12 +114,10 @@ public class CloudRenderCoordinator {
                     Commands.sendCrashChatMessage();
                 }
                 getProfiler().pop();
-                GraphicsCompat.instance.popDebugGroupDev();
             });
         }
 
         getProfiler().pop();
-        GraphicsCompat.instance.popDebugGroupDev();
         return prepareResult != PrepareResult.FALLBACK;
     }
 
@@ -143,7 +127,6 @@ public class CloudRenderCoordinator {
 
     private boolean shouldRenderClouds() {
         if (renderer == null) return false;
-        if (GraphicsCompat.instance.isIncompatible()) return false;
 
         ClientLevel level = Minecraft.getInstance().level;
         if (level == null) return false;

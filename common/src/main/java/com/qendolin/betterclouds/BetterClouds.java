@@ -12,11 +12,6 @@ import com.qendolin.betterclouds.util.*;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import org.apache.logging.log4j.LogManager;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-
-import static com.qendolin.betterclouds.compat.GLCompat.instance;
-
 public class BetterClouds extends BetterCloudsStatic {
 
     static {
@@ -57,28 +52,7 @@ public class BetterClouds extends BetterCloudsStatic {
     }
 
     public static void initializeClientEvents() {
-        EventHooks.instance.onClientStarted(_ -> {
-            if (instance == null)
-                throw new IllegalStateException("Compat not initialized yet. This should not happen!");
-            if (BetterCloudsStatic.IS_DEV)
-                instance.initDev();
-        });
-        EventHooks.instance.onWorldJoin(client -> {
-            if (ConfigManager.instance().renderer.equals(Config.Renderer.OPENGL)) {
-                CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
-                        .execute(() -> client.execute(Commands::sendLegacyRendererMessage));
-            }
-            if (instance.isIncompatible()) {
-                CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
-                        .execute(() -> client.execute(Commands::sendGpuIncompatibleChatMessage));
-            } else if (instance.isPartiallyIncompatible()) {
-                CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
-                        .execute(() -> client.execute(Commands::sendGpuPartiallyIncompatibleChatMessage));
-            }
-            if (HardwareCompat.isMaybeIncompatible()) {
-                CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS)
-                        .execute(() -> client.execute(Commands::sendHardwareMaybeIncompatibleChatMessage));
-            }
+        EventHooks.instance.onWorldJoin(_ -> {
             if (RenderDoc.isAvailable()) {
                 ChatUtil.debugChatMessage("renderdoc.load.ready", RenderDoc.getAPIVersion());
             }

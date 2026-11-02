@@ -26,9 +26,8 @@ public class Migrations {
             // this code used to migrate old color names to new color names
             // look at commit 839a162a562afd6af503a682a9ff253d1eec4f60 for earlier code
         });
-        MIGRATIONS.add(config -> {
+        MIGRATIONS.add(_ -> {
             // goodbye opengl renderer
-            config.renderer = Config.Renderer.BLAZE3D;
         });
         MIGRATIONS.add(config -> {
             // units are different from before

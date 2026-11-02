@@ -1,7 +1,6 @@
 package com.qendolin.betterclouds.rendering.blaze3d;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.datafixers.util.Pair;
 import com.mojang.renderpearl.api.GpuFormat;
 import com.mojang.renderpearl.api.buffers.GpuBuffer;
 import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
@@ -19,16 +18,11 @@ import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.generator.ChunkedGenerator;
 import com.qendolin.betterclouds.mixin.provider.EffectTintProvider;
 import com.qendolin.betterclouds.rendering.*;
-import com.qendolin.betterclouds.rendering.opengl.Debug;
-import com.qendolin.betterclouds.rendering.opengl.Resources;
 import com.qendolin.betterclouds.util.MathUtil;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.BindGroupLayouts;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.fog.FogData;
-import net.minecraft.gizmos.GizmoStyle;
-import net.minecraft.gizmos.Gizmos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.Mth;
@@ -45,10 +39,10 @@ import java.util.Optional;
 
 import static com.qendolin.betterclouds.compat.ProfilerWrapper.getProfiler;
 
-/**
- * Rendering is hard
- */
 public class Blaze3DRenderer extends CloudRenderer {
+    public static final Identifier NOISE_TEXTURE = Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "textures/environment/cloud_noise_rgb.png");
+    public static final Identifier LIGHTING_TEXTURE = Identifier.fromNamespaceAndPath(BetterCloudsStatic.MODID, "textures/environment/cloud_light_gradient.png");
+
     public static final Matrix4f NOOP_MATRIX = new Matrix4f(
             new Vector4f(0, 0, 0, 0),
             new Vector4f(0, 0, 0, 0),
@@ -218,10 +212,10 @@ public class Blaze3DRenderer extends CloudRenderer {
 
         // texture opens / uploads must now be outside a render pass
         noiseTexture = TextureWrapper.fromMcTexture(
-                "NoiseTexture", Resources.NOISE_TEXTURE,
+                "NoiseTexture", NOISE_TEXTURE,
                 () -> TextureWrapper.customSampler(AddressMode.REPEAT, AddressMode.REPEAT, FilterMode.LINEAR));
         lightTexture = TextureWrapper.fromMcTexture(
-                "LightTexture", Resources.LIGHTING_TEXTURE,
+                "LightTexture", LIGHTING_TEXTURE,
                 () -> TextureWrapper.customSampler(AddressMode.CLAMP_TO_EDGE, AddressMode.REPEAT, FilterMode.LINEAR));
 
         // larger value = smaller halo size
@@ -388,38 +382,24 @@ public class Blaze3DRenderer extends CloudRenderer {
         // the next non-visible chunk is found. At the end of a run the entire run is rendered as once.
         // This is possible due to the memory layout of the instance buffers.
         Config config = ConfigManager.instance();
-        Debug.frustumCulledBoxes.clear();
 
         int runStart = -1;
         int runCount = 0;
         for (ChunkedGenerator.ChunkIndex chunk : generator.chunks()) {
             AABB bounds = chunk.bounds(cloudHeight, config.sizeXZ, config.sizeY);
             if (!frustumAtOrigin.isVisible(bounds)) {
-                Debug.addFrustumCulledBox(bounds, false);
                 if (runCount != 0) {
                     pass.drawIndexed(CUBE_INDICES.length, runCount, 0, 0, runStart);
                 }
                 runStart = -1;
                 runCount = 0;
             } else {
-                Debug.addFrustumCulledBox(bounds, true);
                 if (runStart == -1) runStart = chunk.start();
                 runCount += chunk.count();
             }
         }
         if (runCount != 0) {
             pass.drawIndexed(CUBE_INDICES.length, runCount, 0, 0, runStart);
-        }
-        if (Debug.frustumCulling) {
-            try (var ignored = Minecraft.getInstance().levelRenderer.collectPerFrameRenderThreadGizmos()) {
-                int visible = 0xFF99FF80;
-                int culled = 0xFFFF9977;
-
-                for (Pair<AABB, Boolean> box : Debug.frustumCulledBoxes) {
-                    Gizmos.cuboid(box.getFirst(), GizmoStyle.stroke(box.getSecond() ? visible : culled, 1.0f))
-                            .setAlwaysOnTop();
-                }
-            }
         }
     }
 

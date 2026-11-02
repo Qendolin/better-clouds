@@ -156,8 +156,6 @@
   "betterclouds.config.entry.windSpeedFactor.description" : "How fast the size of individual cloud cubes changes dynamically",
   "betterclouds.config.entry.worldCurvatureSize" : "World Curvature",
   "betterclouds.config.entry.worldCurvatureSize.description" : "Enables world curvature and disables frustum culling.\n§e§nNote:§r\nIf world curvature is enabled in your shader, but not in Better Clouds then you must manually disable 'Frustum Culling' in the 'Performance' settings.",
-  "betterclouds.config.entry.writeDepth" : "Write Depth Buffer",
-  "betterclouds.config.entry.writeDepth.description" : "§7OpenGL renderer only§r Required by certain shader effects",
   "betterclouds.config.entry.yOffset" : "Height Offset",
   "betterclouds.config.entry.yOffset.description" : "Adjusts the y level of the clouds",
   "betterclouds.config.entry.yRange" : "Height Range",

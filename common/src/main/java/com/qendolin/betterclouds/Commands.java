@@ -4,29 +4,19 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.*;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
-import com.mojang.brigadier.context.CommandContext;
-import com.mojang.serialization.Codec;
 import com.qendolin.betterclouds.compat.DhCompat;
-import com.qendolin.betterclouds.compat.GLCompat;
 import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.config.gui.ConfigGUI;
 import com.qendolin.betterclouds.renderdoc.*;
-import com.qendolin.betterclouds.rendering.CloudRenderCoordinator;
-import com.qendolin.betterclouds.rendering.opengl.Debug;
 import com.qendolin.betterclouds.util.ChatUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.commands.arguments.StringRepresentableArgument;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.StringRepresentable;
-import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 public class Commands {
 
@@ -49,96 +39,6 @@ public class Commands {
 
     private static void registerImpl(CommandDispatcher<Object> dispatcher) {
         final Minecraft client = Minecraft.getInstance();
-        dispatcher.register(literal(BetterCloudsStatic.MODID + ":profile")
-                .then(argument("interval", IntegerArgumentType.integer(30))
-                        .executes(context -> {
-                            int interval = IntegerArgumentType.getInteger(context, "interval");
-                            ChatUtil.debugChatMessage("profiling.enabled", interval);
-                            Debug.profileInterval = interval;
-                            return 1;
-                        })));
-
-        dispatcher.register(literal(BetterCloudsStatic.MODID + ":profile")
-                .then(argument("interval", IntegerArgumentType.integer(30))
-                        .executes(context -> {
-                            int interval = IntegerArgumentType.getInteger(context, "interval");
-                            ChatUtil.debugChatMessage("profiling.enabled", interval);
-                            Debug.profileInterval = interval;
-                            return 1;
-                        }))
-                .then(literal("stop")
-                        .executes(_ -> {
-                            ChatUtil.debugChatMessage("profiling.disabled");
-                            Debug.profileInterval = 0;
-                            var renderer = CloudRenderCoordinator.instance.getRenderer();
-                            if (renderer != null) {
-                                var timer = renderer.timer();
-                                if (timer != null)
-                                    timer.reset();
-                            }
-                            return 1;
-                        }))
-        );
-        dispatcher.register(literal(BetterCloudsStatic.MODID + ":frustum")
-                .then(literal("capture")
-                        .executes(_ -> {
-                            ChatUtil.debugChatMessage(Component.literal("Frustum capture is not available on Minecraft 26.2"));
-                            return 1;
-                        }))
-                .then(literal("release")
-                        .executes(_ -> {
-                            ChatUtil.debugChatMessage(Component.literal("Frustum capture is not available on Minecraft 26.2"));
-                            return 1;
-                        }))
-                .then(literal("debugCulling")
-                        .then(argument("enable", BoolArgumentType.bool())
-                                .executes(context -> {
-                                    Debug.frustumCulling = BoolArgumentType.getBool(context, "enable");
-                                    return 1;
-                                }))));
-        dispatcher.register(literal(BetterCloudsStatic.MODID + ":generator")
-                .then(literal("pause")
-                        .executes(_ -> {
-                            Debug.generatorPause = true;
-                            ChatUtil.debugChatMessage("generatorPaused");
-                            return 1;
-                        }))
-                .then(literal("resume")
-                        .executes(_ -> {
-                            Debug.generatorPause = false;
-                            ChatUtil.debugChatMessage("generatorResumed");
-                            return 1;
-                        }))
-                .then(literal("update")
-                        .executes(_ -> {
-                            Debug.generatorForceUpdate = true;
-                            return 1;
-                        }))
-                .then(literal("setCacheSize")
-                        .then(argument("cacheSize", IntegerArgumentType.integer(30, 1000))
-                                .executes(context -> {
-                                    Debug.generatorChangeCacheSize = IntegerArgumentType.getInteger(context, "cacheSize");
-                                    return 1;
-                                }))));
-        dispatcher.register(literal(BetterCloudsStatic.MODID + ":animation")
-                .then(literal("pause")
-                        .executes(_ -> {
-                            Debug.animationPause = 0;
-                            ChatUtil.debugChatMessage("animationPaused");
-                            return 1;
-                        })
-                        .then(argument("ticks", IntegerArgumentType.integer(1))
-                                .executes(context -> {
-                                    Debug.animationPause = IntegerArgumentType.getInteger(context, "ticks");
-                                    ChatUtil.debugChatMessage("animationPaused");
-                                    return 1;
-                                })))
-                .then(literal("resume")
-                        .executes(_ -> {
-                            Debug.animationPause = -1;
-                            ChatUtil.debugChatMessage("animationResumed");
-                            return 1;
-                        })));
         dispatcher.register(literal(BetterCloudsStatic.MODID + ":config")
                 .then(literal("open").executes(_ -> {
                     // The chat screen will call setScreen(null) after the command handler
@@ -161,28 +61,6 @@ public class Commands {
                                         })
                                 )
                         )
-                        .then(literal("gpuIncompatibleMessage")
-                                .then(argument("enable", BoolArgumentType.bool())
-                                        .executes(context -> {
-                                            boolean enable = BoolArgumentType.getBool(context, "enable");
-                                            if (ConfigManager.instance().gpuIncompatibleMessageEnabled == enable)
-                                                return 1;
-                                            ConfigManager.instance().gpuIncompatibleMessageEnabled = enable;
-                                            ConfigManager.handler().save();
-                                            ChatUtil.debugChatMessage("updatedPreferences");
-                                            return 1;
-                                        })))
-                        .then(literal("legacyRendererMessage")
-                                .then(argument("enable", BoolArgumentType.bool())
-                                        .executes(context -> {
-                                            boolean enable = BoolArgumentType.getBool(context, "enable");
-                                            if (ConfigManager.instance().legacyRendererMessage == enable)
-                                                return 1;
-                                            ConfigManager.instance().legacyRendererMessage = enable;
-                                            ConfigManager.handler().save();
-                                            ChatUtil.debugChatMessage("updatedPreferences");
-                                            return 1;
-                                        })))
                         .then(literal("cloudsDisabledMessage")
                                 .then(argument("enable", BoolArgumentType.bool())
                                         .executes(context -> {
@@ -225,31 +103,8 @@ public class Commands {
                             ChatUtil.debugChatMessage("dimensionRemoved", key.identifier().toString());
                             return 1;
                         })));
-
-        registerOpenGLCommands(dispatcher, client);
-    }
-
-    private static void registerOpenGLCommands(CommandDispatcher<Object> dispatcher, Minecraft client) {
         dispatcher.register(literal(BetterCloudsStatic.MODID + ":debug")
-                .then(renderdocCommands())
-                .then(literal("fallback")
-                        .then(argument("name", FallbackArgumentType.fallback())
-                                .executes(context -> {
-                                    FallbackArgument fallback = FallbackArgumentType.getFallback(context, "name");
-                                    boolean enabled = fallback.get((GLCompat) GLCompat.instance);
-                                    ChatUtil.debugChatMessage(Component.literal(String.format("Fallback %s is currently %s", fallback.getSerializedName(), enabled ? "enabled" : "disabled")));
-                                    return 1;
-                                })
-                                .then(argument("enable", BoolArgumentType.bool())
-                                        .executes(context -> {
-                                            FallbackArgument fallback = FallbackArgumentType.getFallback(context, "name");
-                                            boolean enable = BoolArgumentType.getBool(context, "enable");
-                                            fallback.set((GLCompat) GLCompat.instance, enable);
-                                            client.reloadResourcePacks().whenComplete((_, _) -> ChatUtil.debugChatMessage(Component.literal(String.format("Fallback %s is now %s", fallback.getSerializedName(), enable ? "enabled" : "disabled"))));
-                                            return 1;
-                                        })))
-                )
-        );
+                .then(renderdocCommands()));
     }
 
     private static LiteralArgumentBuilder<Object> renderdocCommands() {
@@ -348,50 +203,6 @@ public class Commands {
                 }));
     }
 
-    public static void sendLegacyRendererMessage() {
-        if (!ConfigManager.instance().legacyRendererMessage) return;
-        ChatUtil.debugChatMessage(
-                Component.translatable(ChatUtil.debugChatMessageKey("legacyRenderer"))
-                        .append(Component.literal("\n - "))
-                        .append(Component.translatable(ChatUtil.debugChatMessageKey("generic.disable"))
-                                .withStyle(style -> style.withItalic(true).withUnderlined(true).withColor(ChatFormatting.GRAY)
-                                        .withClickEvent(createCommandClickEvent(
-                                                "/betterclouds:config set legacyRendererMessage false")))));
-    }
-
-    public static void sendGpuIncompatibleChatMessage() {
-        if (!ConfigManager.instance().gpuIncompatibleMessageEnabled) return;
-        ChatUtil.debugChatMessage(
-                Component.translatable(ChatUtil.debugChatMessageKey("gpuIncompatible"))
-                        .append(Component.literal("\n - "))
-                        .append(Component.translatable(ChatUtil.debugChatMessageKey("generic.disable"))
-                                .withStyle(style -> style.withItalic(true).withUnderlined(true).withColor(ChatFormatting.GRAY)
-                                        .withClickEvent(createCommandClickEvent(
-                                                "/betterclouds:config set gpuIncompatibleMessage false")))));
-    }
-
-    public static void sendGpuPartiallyIncompatibleChatMessage() {
-        if (!ConfigManager.instance().gpuIncompatibleMessageEnabled) return;
-        ChatUtil.debugChatMessage(
-                Component.translatable(ChatUtil.debugChatMessageKey("gpuPartiallyIncompatible"))
-                        .append(Component.literal("\n - "))
-                        .append(Component.translatable(ChatUtil.debugChatMessageKey("generic.disable"))
-                                .withStyle(style -> style.withItalic(true).withUnderlined(true).withColor(ChatFormatting.GRAY)
-                                        .withClickEvent(createCommandClickEvent(
-                                                "/betterclouds:config set gpuIncompatibleMessage false")))));
-    }
-
-    public static void sendHardwareMaybeIncompatibleChatMessage() {
-        if (!ConfigManager.instance().gpuIncompatibleMessageEnabled) return;
-        ChatUtil.debugChatMessage(
-                Component.translatable(ChatUtil.debugChatMessageKey("hwMaybeIncompatible"), GLCompat.getCpuInfo(), GLCompat.getRenderer())
-                        .append(Component.literal("\n - "))
-                        .append(Component.translatable(ChatUtil.debugChatMessageKey("generic.disable"))
-                                .withStyle(style -> style.withItalic(true).withUnderlined(true).withColor(ChatFormatting.GRAY)
-                                        .withClickEvent(createCommandClickEvent(
-                                                "/betterclouds:config set gpuIncompatibleMessage false")))));
-    }
-
     public static void sendCloudsDisabledMessage() {
         var component = Component.translatable(ChatUtil.debugChatMessageKey("cloudsDisabledMessage"));
         if (DhCompat.instance.isEnabled())
@@ -414,49 +225,5 @@ public class Commands {
 
     private static ClickEvent createOpenFileClickEvent(String path) {
         return new ClickEvent.OpenFile(path);
-    }
-
-    private enum FallbackArgument implements StringRepresentable {
-        BASE_INSTANCE(GLCompat::useBaseInstanceFallback, GLCompat::setUseBaseInstanceFallback),
-        STENCIL_TEXTURE(GLCompat::useStencilTextureFallback, GLCompat::setUseStencilTextureFallback),
-        TEX_STORAGE(GLCompat::useTexStorageFallback, GLCompat::setUseTexStorageFallback),
-        DEPTH_WRITE(GLCompat::useDepthWriteFallback, GLCompat::setUseDepthWriteFallback);
-
-        private static final Codec<FallbackArgument> CODEC = StringRepresentable.fromEnum(FallbackArgument::values);
-
-        private final Function<GLCompat, Boolean> getter;
-        private final BiConsumer<GLCompat, Boolean> setter;
-
-        FallbackArgument(Function<GLCompat, Boolean> getter, BiConsumer<GLCompat, Boolean> setter) {
-            this.getter = getter;
-            this.setter = setter;
-        }
-
-        public void set(GLCompat compat, boolean enable) {
-            setter.accept(compat, enable);
-        }
-
-        public boolean get(GLCompat compat) {
-            return getter.apply(compat);
-        }
-
-        @Override
-        public @NonNull String getSerializedName() {
-            return name().toLowerCase();
-        }
-    }
-
-    private static class FallbackArgumentType extends StringRepresentableArgument<FallbackArgument> {
-        private FallbackArgumentType() {
-            super(FallbackArgument.CODEC, FallbackArgument::values);
-        }
-
-        public static StringRepresentableArgument<FallbackArgument> fallback() {
-            return new FallbackArgumentType();
-        }
-
-        public static FallbackArgument getFallback(CommandContext<?> context, String id) {
-            return context.getArgument(id, FallbackArgument.class);
-        }
     }
 }

@@ -104,8 +104,6 @@ public class Config {
     @SerialEntry
     public boolean useIrisFBO = true;
     @SerialEntry
-    public Renderer renderer = Renderer.BLAZE3D;
-    @SerialEntry
     public int selectedPreset = 0;
     @SerialEntry
     public int selectedNoisePreset = 0;
@@ -113,10 +111,6 @@ public class Config {
     public boolean useFallbacks = false;
     @SerialEntry
     public List<ResourceKey<DimensionType>> enabledDimensions = new ArrayList<>(getDefaultDimensions());
-    @SerialEntry
-    public boolean gpuIncompatibleMessageEnabled = true;
-    @SerialEntry
-    public boolean legacyRendererMessage = true;
     @SerialEntry
     public boolean cloudsDisabledMessageEnabled = true;
 
@@ -233,15 +227,6 @@ public class Config {
     @Override
     public int hashCode() {
         return Configs.hashCode(this);
-    }
-
-    public enum Renderer implements NameableEnum {
-        OPENGL, BLAZE3D;
-
-        @Override
-        public Component getDisplayName() {
-            return Component.translatable("betterclouds.config.entry.renderer.option." + name().toLowerCase());
-        }
     }
 
     public enum TimeSource implements NameableEnum {

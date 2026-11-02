@@ -12,8 +12,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static com.qendolin.betterclouds.compat.GLCompat.instance;
-
 @Mixin(Minecraft.class)
 public abstract class MinecraftMixin {
 
@@ -40,7 +38,6 @@ public abstract class MinecraftMixin {
     @Inject(at = @At("TAIL"), method = "onResourceLoadFinished(Lnet/minecraft/client/GameLoadCookie;)V")
     private void reloadBetterCloudsRenderer(GameLoadCookie loadCookie, CallbackInfo ci) {
         if (!BetterClouds.isInitialized()) return;
-        if (instance.isIncompatible()) return;
         CloudRenderCoordinator.instance.reload(getResourceManager());
     }
 }

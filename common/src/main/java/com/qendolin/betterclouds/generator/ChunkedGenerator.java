@@ -3,7 +3,6 @@ package com.qendolin.betterclouds.generator;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
-import com.qendolin.betterclouds.rendering.opengl.Debug;
 import com.qendolin.betterclouds.util.ChatUtil;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -162,19 +161,6 @@ public class ChunkedGenerator implements AutoCloseable {
             updateGeometry = true;
         }
 
-        if (Debug.generatorChangeCacheSize >= 30) {
-            pointCache = new ChunkCache(Debug.generatorChangeCacheSize);
-            BetterCloudsStatic.getLogger().info("Changing cache size and invalidating cache");
-            Debug.generatorForceUpdate = true;
-            Debug.generatorChangeCacheSize = 0;
-        }
-
-        if (Debug.generatorForceUpdate) {
-            Debug.generatorForceUpdate = false;
-            BetterCloudsStatic.getLogger().info("Forcibly updating geometry");
-            updateGeometry = true;
-        }
-
         if (updateGeometry) {
             queuedTask = new Task(chunkX, chunkZ, new Config(options), cloudiness, this);
         }
@@ -244,17 +230,6 @@ public class ChunkedGenerator implements AutoCloseable {
         }
 
         swappedTask = completedTask;
-
-        if (Debug.isProfilingEnabled()) {
-            long elapsed = swappedTask.elapsedMs(Util.getMillis());
-            ChatUtil.debugChatMessage(
-                    "profiling.genTimes",
-                    elapsed, 1000f / elapsed,
-                    cacheHit, cacheMiss + cacheHit,
-                    pointCache.capacity(),
-                    (float) cacheHit / (cacheMiss + cacheHit) * 100
-            );
-        }
     }
 
     private static class Task {

@@ -9,9 +9,6 @@ import com.qendolin.betterclouds.config.ConfigManager;
 import com.qendolin.betterclouds.generator.ChunkedGenerator;
 import com.qendolin.betterclouds.mixin.duck.BiomeManagerDuck;
 import com.qendolin.betterclouds.mixin.provider.CloudinessProvider;
-import com.qendolin.betterclouds.rendering.opengl.Debug;
-import com.qendolin.betterclouds.util.ChatUtil;
-import net.minecraft.client.CloudStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.culling.Frustum;
@@ -41,15 +38,12 @@ public abstract class CloudRenderer implements AutoCloseable {
     protected final Minecraft client = Minecraft.getInstance();
     protected ChunkedGenerator generator;
     protected ClientLevel level;
-    protected PerfTimer timer;
 
     protected float cloudHeight;
 
     protected boolean closed = false;
 
     public CloudRenderer() {
-        if (GraphicsCompat.isOpenGL)
-            this.timer = new PerfTimer();
         reloadGenerator();
     }
 
@@ -90,9 +84,7 @@ public abstract class CloudRenderer implements AutoCloseable {
         if (level == null)
             return;
 
-        startTiming();
         render(pass, ticks, tickDelta, cam, frustumPos, frustum);
-        stopTiming();
     }
 
     public abstract @NonNull PrepareResult prepare(Matrix4f viewMat, Matrix4f projMat, long cloudTicks, long clientTicks, float tickDelta, Vector3d cam, FogData fogData);
@@ -121,8 +113,6 @@ public abstract class CloudRenderer implements AutoCloseable {
             onClose();
             generator.close();
             TextureWrapper.closeAllWrappers();
-            if (timer != null)
-                timer.close();
             closed = true;
         } catch (Exception e) {
             BetterCloudsStatic.getLogger().error("Error while closing " + getClass().getSimpleName(), e);
@@ -143,49 +133,6 @@ public abstract class CloudRenderer implements AutoCloseable {
         return cloudHeight;
     }
 
-    // Used to be called isFancyMode
-    public boolean useCubeClouds() {
-        return Minecraft.getInstance().options.getCloudStatus() == CloudStatus.FANCY && ConfigManager.instance().sizeY > 0;
-    }
-
-    public PerfTimer timer() {
-        return timer;
-    }
-
-    protected void stopTiming() {
-        if (!Debug.isProfilingEnabled() || timer == null) return;
-        timer.stop();
-
-        if (timer.frames() >= Debug.profileInterval) {
-            PerfTimer.Stats gpu = PerfTimer.Stats.of(timer.gpu());
-            PerfTimer.Stats cpu = PerfTimer.Stats.of(timer.cpu());
-            BetterCloudsStatic.getLogger().info("GPU Times (msec):\n" + gpu);
-            BetterCloudsStatic.getLogger().info("CPU Times (msec):\n" + cpu);
-            ChatUtil.debugChatMessage("profiling.gpuTimes", gpu.formatted());
-            ChatUtil.debugChatMessage("profiling.cpuTimes", cpu.formatted());
-            timer.reset();
-        }
-    }
-
-    protected void startTiming() {
-        if (!Debug.isProfilingEnabled()) return;
-        if (timer == null)
-            reloadTimer();
-        if (timer != null)
-            timer.start();
-    }
-
-    public void reloadTimer() {
-        deleteTimer();
-        if (!Debug.isProfilingEnabled()) return;
-        if (GraphicsCompat.isOpenGL) timer = new PerfTimer();
-    }
-
-    public void deleteTimer() {
-        if (timer != null) timer.close();
-        timer = null;
-    }
-
     public void setLevel(ClientLevel level) {
         this.level = level;
     }
@@ -200,7 +147,7 @@ public abstract class CloudRenderer implements AutoCloseable {
             uploadPointsToBuffer();
             getProfiler().popPush("render_setup");
         }
-        if (generator.canGenerate() && !generator.generating() && !Debug.generatorPause) {
+        if (generator.canGenerate() && !generator.generating()) {
             getProfiler().popPush("generate_clouds");
             generator.generate();
             getProfiler().popPush("render_setup");

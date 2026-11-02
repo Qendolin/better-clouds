@@ -14,15 +14,10 @@ public class RuntimeMixinPlugin extends MixinPlugin {
 
         List<String> classes = new ArrayList<>();
 
-        classes.add("FogRendererMixin");
         classes.add("SimpleOptionAccessor");
 
         classes.add("yacl.OptionListGroupSeparatorEntryMixin");
         classes.add("yacl.OptionListOptionEntryMixin");
-
-        if (BetterCloudsStatic.IS_DEV) {
-            classes.add("GlDebugMixin");
-        }
 
         //noinspection ConstantValue
         if (classes.isEmpty())
