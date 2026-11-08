@@ -5,8 +5,8 @@ import com.mojang.blaze3d.resource.GraphicsResourceAllocator;
 import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
 import com.mojang.renderpearl.api.commands.RenderPass;
 import com.mojang.renderpearl.api.textures.GpuTextureView;
+import com.mojang.renderpearl.frontend.FrontendRenderPass;
 import com.qendolin.betterclouds.rendering.CloudRenderCoordinator;
-import com.qendolin.betterclouds.rendering.blaze3d.PipelineParams;
 import net.minecraft.client.CloudStatus;
 import net.minecraft.client.renderer.CloudRenderer;
 import net.minecraft.client.renderer.LevelRenderer;
@@ -75,7 +75,7 @@ public abstract class WorldRendererMixin {
 
         Consumer<RenderPass> render = betterclouds$renderClouds;
         betterclouds$renderClouds = null;
-        render.accept(renderPass);
+        render.accept(renderPass instanceof FrontendRenderPass && !((FrontendRenderPassAccessor) renderPass).isClosed() ? renderPass : null);
     }
 
     /**
