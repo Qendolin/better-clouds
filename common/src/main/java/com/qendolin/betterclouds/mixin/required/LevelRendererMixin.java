@@ -6,6 +6,7 @@ import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
 import com.mojang.renderpearl.api.commands.RenderPass;
 import com.mojang.renderpearl.api.textures.GpuTextureView;
 import com.mojang.renderpearl.frontend.FrontendRenderPass;
+import com.qendolin.betterclouds.compat.IrisCompat;
 import com.qendolin.betterclouds.rendering.CloudRenderCoordinator;
 import net.minecraft.client.CloudStatus;
 import net.minecraft.client.renderer.CloudRenderer;
@@ -27,7 +28,7 @@ import java.util.function.Consumer;
 
 // run after dh
 @Mixin(value = LevelRenderer.class, priority = 900)
-public abstract class WorldRendererMixin {
+public abstract class LevelRendererMixin {
     @Shadow
     @Final
     private OptionsRenderState optionsRenderState;
@@ -68,7 +69,7 @@ public abstract class WorldRendererMixin {
      */
     @Inject(method = "executeSolid", at = @At("TAIL"))
     private void renderCloudsBeforeTransparent(ChunkSectionsToRender chunkSectionsToRender, FeatureRenderDispatcher.PreparedFrame featureFrame, RenderPass renderPass, CallbackInfo ci) {
-        if (betterclouds$renderClouds == null || betterclouds$lastCameraPos == null) return;
+        if (betterclouds$renderClouds == null || betterclouds$lastCameraPos == null || IrisCompat.instance.isShadersEnabled()) return;
 
         var r = CloudRenderCoordinator.instance.renderer;
         if (betterclouds$lastCameraPos.y > (r != null ? r.getCloudHeight() : Integer.MAX_VALUE)) return;

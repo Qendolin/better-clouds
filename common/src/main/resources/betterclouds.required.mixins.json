@@ -18,7 +18,7 @@
         "RenderSystemMixin",
         "TabNavigationWidgetMixin",
         "WorldMixin",
-        "WorldRendererMixin",
+        "LevelRendererMixin",
         "yacl.AbstractWidgetMixin",
         "yacl.CategoryTabMixin",
         "yacl.ListOptionMixin",
