@@ -3,7 +3,6 @@ package com.qendolin.betterclouds.generator;
 import com.qendolin.betterclouds.BetterCloudsStatic;
 import com.qendolin.betterclouds.config.Config;
 import com.qendolin.betterclouds.config.ConfigManager;
-import com.qendolin.betterclouds.util.ChatUtil;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.Mth;
@@ -20,13 +19,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ChunkedGenerator implements AutoCloseable {
-    private static int cacheHit = 0;
-    private static int cacheMiss = 0;
     private final long seed;
     public boolean queueCacheClear = false;
     private ObjectArrayList<Point> readPoints = new ObjectArrayList<>(), writePoints = new ObjectArrayList<>();
     private Sampler sampler;
-    private DummyCache pointCache;
+    private final DummyCache pointCache;
     private double originX, originZ;
     private long lastCloudTicks, lastClientTicks;
     private float lastTickIncrement = 1;
@@ -65,10 +62,6 @@ public class ChunkedGenerator implements AutoCloseable {
 
     public synchronized boolean canSwap() {
         return completedTask != null && completedTask != swappedTask;
-    }
-
-    public synchronized boolean canRender() {
-        return swappedTask != null;
     }
 
     public synchronized List<ChunkIndex> chunks() {
@@ -339,8 +332,6 @@ public class ChunkedGenerator implements AutoCloseable {
             int gridOriginZ = Mth.floor((chunkZ * chunkSize) / spacing);
 
             generator.writePoints.clear();
-            cacheHit = 0;
-            cacheMiss = 0;
 
             // The outer loop generates chunks
             for (int chunkX = chunkMin; chunkX < chunkMax; chunkX += chunkSize) {
@@ -356,7 +347,6 @@ public class ChunkedGenerator implements AutoCloseable {
 
                     SamplePoints samplePoints = generator.pointCache.get(cacheKey);
                     if (samplePoints == null) {
-                        cacheMiss++;
                         samplePoints = genSamplePoints(
                                 chunkX, chunkZ,
                                 gridMin, gridMax,
@@ -364,8 +354,6 @@ public class ChunkedGenerator implements AutoCloseable {
                                 spacing
                         );
                         generator.pointCache.put(cacheKey, samplePoints);
-                    } else {
-                        cacheHit++;
                     }
 
                     for (AABB point : samplePoints.points()) {
