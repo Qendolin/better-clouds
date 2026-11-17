@@ -59,7 +59,6 @@ public class ConfigGUI {
     public final Option<Boolean> usePersistentBuffers;
     public final Option<Boolean> useFrustumCulling;
     public final Option<Boolean> useSamplerCaching;
-    public final Option<Boolean> useFallbacks;
 
     public final List<Tuple<ConfigCategory.Builder, List<Tuple<OptionGroup.Builder, List<Option<?>>>>>> categories = new ArrayList<>();
     public final Map<ConfigCategory.Builder, Tuple<Integer, ListOption<?>>> listOptions = new HashMap<>();
@@ -211,10 +210,6 @@ public class ConfigGUI {
                 .binding(defaults.useSamplerCaching, () -> config.useSamplerCaching, val -> config.useSamplerCaching = val)
                 .customController(TickBoxController::new)
                 .build();
-        this.useFallbacks = createOption(boolean.class, "useFallbacks")
-                .binding(defaults.useFallbacks, () -> config.useFallbacks, val -> config.useFallbacks = val)
-                .customController(TickBoxController::new)
-                .build();
 
         categories.add(new Tuple<>(ConfigCategory.createBuilder()
                 .name(categoryLabel("common")), commonCategory));
@@ -327,7 +322,7 @@ public class ConfigGUI {
 
         performanceCategory.add(new Tuple<>(OptionGroup.createBuilder()
                 .name(groupLabel("performance.technical")), performanceTechnicalGroup));
-        performanceTechnicalGroup.addAll(List.of(usePersistentBuffers, useFrustumCulling, useSamplerCaching, useFallbacks));
+        performanceTechnicalGroup.addAll(List.of(usePersistentBuffers, useFrustumCulling, useSamplerCaching));
 
         categories.add(new Tuple<>(ConfigCategory.createBuilder()
                 .name(categoryLabel("shaders")), shaderPresetGUI.shadersCategory));
